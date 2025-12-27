@@ -10,16 +10,20 @@
 	import '../app.css';
 
 	let { children } = $props();
+	let debugInfo = $state('Starting...');
 
 	onMount(async () => {
 		if (!browser) return;
 
+		debugInfo = 'onMount started';
 		console.log('onMount started');
 
 		const tg = window.Telegram?.WebApp;
+		debugInfo = `Telegram WebApp: ${tg ? 'found' : 'NOT FOUND'}`;
 		console.log('Telegram WebApp:', tg);
 
 		if (!tg) {
+			debugInfo = 'ERROR: Telegram WebApp not available';
 			console.error('Telegram WebApp not available');
 			$isLoading = false;
 			return;
@@ -31,25 +35,31 @@
 		tg.setBackgroundColor('#1a1a2e');
 
 		const initData = tg.initData;
+		debugInfo = `initData: ${initData ? initData.length + ' chars' : 'EMPTY'}`;
 		console.log('initData:', initData ? 'present (' + initData.length + ' chars)' : 'empty');
 
 		if (!initData) {
+			debugInfo = 'ERROR: No init data from Telegram';
 			console.error('No init data');
 			$isLoading = false;
 			return;
 		}
 
 		try {
+			debugInfo = 'Calling API auth...';
 			console.log('Calling authTelegram...');
 			const result = await api.authTelegram(initData);
+			debugInfo = 'Auth OK, getting user...';
 			console.log('Auth result:', result);
 			$token = result.access_token;
 			$isAuthenticated = true;
 
 			const userData = await api.getMe();
+			debugInfo = 'User loaded!';
 			console.log('User data:', userData);
 			$user = userData;
 		} catch (error) {
+			debugInfo = `ERROR: ${error instanceof Error ? error.message : String(error)}`;
 			console.error('Auth error:', error);
 		} finally {
 			$isLoading = false;
@@ -82,6 +92,7 @@
 			<div class="loading-bar">
 				<div class="loading-fill"></div>
 			</div>
+			<div class="debug-info">{debugInfo}</div>
 		</div>
 	</div>
 {:else}
@@ -154,5 +165,13 @@
 		0% { width: 0%; }
 		50% { width: 100%; }
 		100% { width: 0%; }
+	}
+
+	.debug-info {
+		font-size: 10px;
+		color: #888;
+		margin-top: var(--space-lg);
+		word-break: break-all;
+		max-width: 280px;
 	}
 </style>
