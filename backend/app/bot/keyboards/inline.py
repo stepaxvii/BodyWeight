@@ -9,7 +9,7 @@ def get_webapp_button() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="Open BodyWeight",
+                    text="Открыть приложение",
                     web_app=WebAppInfo(url=settings.mini_app_url),
                 )
             ]
@@ -18,24 +18,14 @@ def get_webapp_button() -> InlineKeyboardMarkup:
 
 
 def get_main_keyboard() -> InlineKeyboardMarkup:
-    """Get main menu keyboard."""
+    """Get main menu keyboard with single app button."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="Start Workout",
+                    text="Открыть приложение",
                     web_app=WebAppInfo(url=settings.mini_app_url),
                 )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="View Stats",
-                    callback_data="view_stats",
-                ),
-                InlineKeyboardButton(
-                    text="Help",
-                    callback_data="help",
-                ),
             ],
         ]
     )

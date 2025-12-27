@@ -56,17 +56,11 @@ async def cmd_start(message: Message):
     )
 
     welcome_text = f"""
-<b>Welcome to BodyWeight!</b>
+<b>BodyWeight</b>
 
-Hey {user.first_name or 'there'}! Ready to level up your fitness?
+Привет, {user.first_name or 'друг'}!
 
-<b>Your Stats:</b>
-Level: {db_user.level}
-XP: {db_user.total_xp}
-Streak: {db_user.current_streak} days
-Coins: {db_user.coins}
-
-Tap the button below to start your workout!
+Тренируйся, зарабатывай опыт, соревнуйся с друзьями.
 """
 
     await message.answer(

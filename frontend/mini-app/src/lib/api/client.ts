@@ -485,7 +485,7 @@ class ApiClient {
 			const routines = await this.getRoutines();
 			return routines.filter(r => r.category === category);
 		}
-		return this.request<Routine[]>(`/exercises/routines?category=${category}`);
+		return this.request<Routine[]>(`/exercises/routines/all?category=${category}`);
 	}
 }
 
