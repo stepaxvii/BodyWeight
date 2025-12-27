@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { telegram } from '$lib/stores/telegram';
+	import { telegram } from '$lib/stores/telegram.svelte';
 
 	interface Props {
 		variant?: 'default' | 'accent' | 'success' | 'warning';

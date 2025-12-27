@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { PixelCard, PixelIcon, PixelButton } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
-	import { telegram } from '$lib/stores/telegram';
+	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { LeaderboardEntry, LeaderboardType } from '$lib/types';
 
 	let entries = $state<LeaderboardEntry[]>([]);

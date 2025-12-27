@@ -2,7 +2,7 @@
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { PixelCard, PixelProgress, PixelIcon, PixelButton } from '$lib/components/ui';
-	import { userStore } from '$lib/stores/user';
+	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
 	import type { Achievement } from '$lib/types';
 

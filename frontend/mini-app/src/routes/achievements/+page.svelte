@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { PixelCard, PixelIcon, PixelProgress } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
-	import { telegram } from '$lib/stores/telegram';
+	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { Achievement } from '$lib/types';
 
 	let achievements = $state<Achievement[]>([]);

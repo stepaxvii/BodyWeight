@@ -1,7 +1,7 @@
 import type { WorkoutSession, Exercise, WorkoutExercise } from '$lib/types';
 import { api } from '$lib/api/client';
-import { userStore } from './user';
-import { telegram } from './telegram';
+import { userStore } from './user.svelte';
+import { telegram } from './telegram.svelte';
 
 // Workout state using Svelte 5 runes
 class WorkoutStore {

@@ -3,8 +3,8 @@
 	import { onMount } from 'svelte';
 	import { PixelButton, PixelCard, PixelIcon, PixelProgress } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
-	import { workoutStore } from '$lib/stores/workout';
-	import { telegram } from '$lib/stores/telegram';
+	import { workoutStore } from '$lib/stores/workout.svelte';
+	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { ExerciseCategory, Exercise } from '$lib/types';
 
 	let categories = $state<ExerciseCategory[]>([]);

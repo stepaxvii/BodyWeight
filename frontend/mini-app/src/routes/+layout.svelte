@@ -2,8 +2,8 @@
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { PixelNav } from '$lib/components/ui';
-	import { telegram } from '$lib/stores/telegram';
-	import { userStore } from '$lib/stores/user';
+	import { telegram } from '$lib/stores/telegram.svelte';
+	import { userStore } from '$lib/stores/user.svelte';
 
 	let { children } = $props();
 

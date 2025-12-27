@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { PixelButton, PixelCard, PixelProgress, PixelIcon } from '$lib/components/ui';
-	import { userStore } from '$lib/stores/user';
+	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
 	import { onMount } from 'svelte';
 	import type { Achievement } from '$lib/types';
