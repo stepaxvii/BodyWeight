@@ -1,0 +1,16 @@
+[Unit]
+Description=BodyWeight API Service
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/bodyweight/backend
+Environment="PATH=/var/www/bodyweight/backend/venv/bin"
+ExecStart=/var/www/bodyweight/backend/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8002
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

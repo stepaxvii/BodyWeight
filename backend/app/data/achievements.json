@@ -1,0 +1,202 @@
+{
+  "achievements": [
+    {
+      "id": "streak_7",
+      "name": "Неделя силы",
+      "description": "Тренируйся 7 дней подряд",
+      "icon": "🔥",
+      "category": "streak",
+      "threshold": 7,
+      "exp_reward": 100
+    },
+    {
+      "id": "streak_30",
+      "name": "Месяц дисциплины",
+      "description": "Тренируйся 30 дней подряд",
+      "icon": "⚡",
+      "category": "streak",
+      "threshold": 30,
+      "exp_reward": 500
+    },
+    {
+      "id": "streak_100",
+      "name": "Стальная воля",
+      "description": "Тренируйся 100 дней подряд",
+      "icon": "🏆",
+      "category": "streak",
+      "threshold": 100,
+      "exp_reward": 2000
+    },
+    {
+      "id": "streak_365",
+      "name": "Легенда",
+      "description": "Тренируйся 365 дней подряд",
+      "icon": "👑",
+      "category": "streak",
+      "threshold": 365,
+      "exp_reward": 10000
+    },
+    {
+      "id": "reps_100",
+      "name": "Первая сотня",
+      "description": "Сделай 100 повторений",
+      "icon": "💯",
+      "category": "volume",
+      "threshold": 100,
+      "exp_reward": 50
+    },
+    {
+      "id": "reps_1000",
+      "name": "Тысячник",
+      "description": "Сделай 1000 повторений",
+      "icon": "🎯",
+      "category": "volume",
+      "threshold": 1000,
+      "exp_reward": 200
+    },
+    {
+      "id": "reps_5000",
+      "name": "Железный боец",
+      "description": "Сделай 5000 повторений",
+      "icon": "🦾",
+      "category": "volume",
+      "threshold": 5000,
+      "exp_reward": 500
+    },
+    {
+      "id": "reps_10000",
+      "name": "Машина",
+      "description": "Сделай 10000 повторений",
+      "icon": "🤖",
+      "category": "volume",
+      "threshold": 10000,
+      "exp_reward": 1000
+    },
+    {
+      "id": "workouts_10",
+      "name": "Начало пути",
+      "description": "Проведи 10 тренировок",
+      "icon": "🚀",
+      "category": "volume",
+      "threshold": 10,
+      "exp_reward": 100
+    },
+    {
+      "id": "workouts_50",
+      "name": "Регулярность",
+      "description": "Проведи 50 тренировок",
+      "icon": "📈",
+      "category": "volume",
+      "threshold": 50,
+      "exp_reward": 300
+    },
+    {
+      "id": "workouts_100",
+      "name": "Атлет",
+      "description": "Проведи 100 тренировок",
+      "icon": "🏅",
+      "category": "volume",
+      "threshold": 100,
+      "exp_reward": 500
+    },
+    {
+      "id": "pushups_50",
+      "name": "Отжимания x50",
+      "description": "Сделай 50 отжиманий за одну тренировку",
+      "icon": "💪",
+      "category": "record",
+      "threshold": 50,
+      "exp_reward": 150
+    },
+    {
+      "id": "pushups_100",
+      "name": "Отжимания x100",
+      "description": "Сделай 100 отжиманий за одну тренировку",
+      "icon": "💎",
+      "category": "record",
+      "threshold": 100,
+      "exp_reward": 300
+    },
+    {
+      "id": "pullups_20",
+      "name": "Подтягивания x20",
+      "description": "Сделай 20 подтягиваний за одну тренировку",
+      "icon": "🦅",
+      "category": "record",
+      "threshold": 20,
+      "exp_reward": 200
+    },
+    {
+      "id": "plank_60",
+      "name": "Минута планки",
+      "description": "Простой в планке 60 секунд",
+      "icon": "🧘",
+      "category": "record",
+      "threshold": 60,
+      "exp_reward": 100
+    },
+    {
+      "id": "plank_180",
+      "name": "3 минуты планки",
+      "description": "Простой в планке 180 секунд",
+      "icon": "⚔️",
+      "category": "record",
+      "threshold": 180,
+      "exp_reward": 300
+    },
+    {
+      "id": "plank_300",
+      "name": "5 минут планки",
+      "description": "Простой в планке 300 секунд",
+      "icon": "🗡️",
+      "category": "record",
+      "threshold": 300,
+      "exp_reward": 500
+    },
+    {
+      "id": "first_pistol",
+      "name": "Пистолетик!",
+      "description": "Сделай первый пистолетик",
+      "icon": "🔫",
+      "category": "special",
+      "threshold": 1,
+      "exp_reward": 200
+    },
+    {
+      "id": "first_handstand",
+      "name": "Стойка на руках",
+      "description": "Простой в стойке на руках 10 секунд",
+      "icon": "🤸",
+      "category": "special",
+      "threshold": 10,
+      "exp_reward": 300
+    },
+    {
+      "id": "level_10",
+      "name": "Уровень 10",
+      "description": "Достигни 10 уровня",
+      "icon": "⭐",
+      "category": "level",
+      "threshold": 10,
+      "exp_reward": 500
+    },
+    {
+      "id": "level_25",
+      "name": "Уровень 25",
+      "description": "Достигни 25 уровня",
+      "icon": "🌟",
+      "category": "level",
+      "threshold": 25,
+      "exp_reward": 1000
+    },
+    {
+      "id": "level_50",
+      "name": "Уровень 50",
+      "description": "Достигни 50 уровня",
+      "icon": "✨",
+      "category": "level",
+      "threshold": 50,
+      "exp_reward": 2500
+    }
+  ]
+}

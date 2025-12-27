@@ -1,0 +1,384 @@
+{
+  "exercises": [
+    {
+      "id": 1,
+      "name": "Отжимания",
+      "category": "push",
+      "metric_type": "reps",
+      "description": "Классические отжимания от пола",
+      "icon": "💪",
+      "difficulty": 2,
+      "exp_per_rep": 2
+    },
+    {
+      "id": 2,
+      "name": "Алмазные отжимания",
+      "category": "push",
+      "metric_type": "reps",
+      "description": "Отжимания с узкой постановкой рук",
+      "icon": "💎",
+      "difficulty": 3,
+      "exp_per_rep": 3
+    },
+    {
+      "id": 3,
+      "name": "Отжимания с хлопком",
+      "category": "push",
+      "metric_type": "reps",
+      "description": "Взрывные отжимания с хлопком",
+      "icon": "👏",
+      "difficulty": 4,
+      "exp_per_rep": 5
+    },
+    {
+      "id": 4,
+      "name": "Отжимания на одной руке",
+      "category": "push",
+      "metric_type": "reps",
+      "description": "Продвинутые отжимания на одной руке",
+      "icon": "🦾",
+      "difficulty": 5,
+      "exp_per_rep": 10
+    },
+    {
+      "id": 5,
+      "name": "Отжимания от стены",
+      "category": "push",
+      "metric_type": "reps",
+      "description": "Отжимания для начинающих",
+      "icon": "🧱",
+      "difficulty": 1,
+      "exp_per_rep": 1
+    },
+    {
+      "id": 10,
+      "name": "Подтягивания",
+      "category": "pull",
+      "metric_type": "reps",
+      "description": "Классические подтягивания на турнике",
+      "icon": "🏋️",
+      "difficulty": 3,
+      "exp_per_rep": 5
+    },
+    {
+      "id": 11,
+      "name": "Подтягивания широким хватом",
+      "category": "pull",
+      "metric_type": "reps",
+      "description": "Подтягивания с широкой постановкой рук",
+      "icon": "🦅",
+      "difficulty": 4,
+      "exp_per_rep": 6
+    },
+    {
+      "id": 12,
+      "name": "Подтягивания узким хватом",
+      "category": "pull",
+      "metric_type": "reps",
+      "description": "Подтягивания с узкой постановкой рук",
+      "icon": "🎯",
+      "difficulty": 3,
+      "exp_per_rep": 5
+    },
+    {
+      "id": 13,
+      "name": "Австралийские подтягивания",
+      "category": "pull",
+      "metric_type": "reps",
+      "description": "Горизонтальные подтягивания для начинающих",
+      "icon": "🦘",
+      "difficulty": 2,
+      "exp_per_rep": 3
+    },
+    {
+      "id": 14,
+      "name": "Подтягивания на одной руке",
+      "category": "pull",
+      "metric_type": "reps",
+      "description": "Мастерский уровень подтягиваний",
+      "icon": "👑",
+      "difficulty": 5,
+      "exp_per_rep": 15
+    },
+    {
+      "id": 20,
+      "name": "Приседания",
+      "category": "legs",
+      "metric_type": "reps",
+      "description": "Классические приседания",
+      "icon": "🦵",
+      "difficulty": 1,
+      "exp_per_rep": 1
+    },
+    {
+      "id": 21,
+      "name": "Выпады",
+      "category": "legs",
+      "metric_type": "reps",
+      "description": "Выпады вперёд",
+      "icon": "🚶",
+      "difficulty": 2,
+      "exp_per_rep": 2
+    },
+    {
+      "id": 22,
+      "name": "Пистолетик",
+      "category": "legs",
+      "metric_type": "reps",
+      "description": "Приседания на одной ноге",
+      "icon": "🔫",
+      "difficulty": 5,
+      "exp_per_rep": 10
+    },
+    {
+      "id": 23,
+      "name": "Прыжки из приседа",
+      "category": "legs",
+      "metric_type": "reps",
+      "description": "Взрывные приседания с прыжком",
+      "icon": "🦘",
+      "difficulty": 3,
+      "exp_per_rep": 3
+    },
+    {
+      "id": 24,
+      "name": "Подъём на носки",
+      "category": "legs",
+      "metric_type": "reps",
+      "description": "Подъём на носки стоя",
+      "icon": "🩰",
+      "difficulty": 1,
+      "exp_per_rep": 1
+    },
+    {
+      "id": 25,
+      "name": "Болгарские выпады",
+      "category": "legs",
+      "metric_type": "reps",
+      "description": "Выпады с опорой задней ноги",
+      "icon": "🇧🇬",
+      "difficulty": 3,
+      "exp_per_rep": 3
+    },
+    {
+      "id": 30,
+      "name": "Скручивания",
+      "category": "core",
+      "metric_type": "reps",
+      "description": "Классические скручивания на пресс",
+      "icon": "🔄",
+      "difficulty": 1,
+      "exp_per_rep": 1
+    },
+    {
+      "id": 31,
+      "name": "Подъём ног лёжа",
+      "category": "core",
+      "metric_type": "reps",
+      "description": "Подъём прямых ног лёжа",
+      "icon": "⬆️",
+      "difficulty": 2,
+      "exp_per_rep": 2
+    },
+    {
+      "id": 32,
+      "name": "Велосипед",
+      "category": "core",
+      "metric_type": "reps",
+      "description": "Упражнение велосипед для пресса",
+      "icon": "🚴",
+      "difficulty": 2,
+      "exp_per_rep": 2
+    },
+    {
+      "id": 33,
+      "name": "Супермен",
+      "category": "core",
+      "metric_type": "reps",
+      "description": "Подъём рук и ног лёжа на животе",
+      "icon": "🦸",
+      "difficulty": 2,
+      "exp_per_rep": 2
+    },
+    {
+      "id": 34,
+      "name": "Подъём ног в висе",
+      "category": "core",
+      "metric_type": "reps",
+      "description": "Подъём ног на турнике",
+      "icon": "🎢",
+      "difficulty": 4,
+      "exp_per_rep": 5
+    },
+    {
+      "id": 40,
+      "name": "Планка",
+      "category": "static",
+      "metric_type": "time",
+      "description": "Классическая планка на локтях",
+      "icon": "🧘",
+      "difficulty": 2,
+      "exp_per_second": 1
+    },
+    {
+      "id": 41,
+      "name": "Боковая планка",
+      "category": "static",
+      "metric_type": "time",
+      "description": "Планка на боку",
+      "icon": "↔️",
+      "difficulty": 3,
+      "exp_per_second": 1
+    },
+    {
+      "id": 42,
+      "name": "Стойка на руках",
+      "category": "static",
+      "metric_type": "time",
+      "description": "Стойка на руках у стены",
+      "icon": "🤸",
+      "difficulty": 4,
+      "exp_per_second": 2
+    },
+    {
+      "id": 43,
+      "name": "Уголок",
+      "category": "static",
+      "metric_type": "time",
+      "description": "Удержание уголка в висе",
+      "icon": "📐",
+      "difficulty": 4,
+      "exp_per_second": 2
+    },
+    {
+      "id": 44,
+      "name": "Мостик",
+      "category": "static",
+      "metric_type": "time",
+      "description": "Гимнастический мостик",
+      "icon": "🌉",
+      "difficulty": 3,
+      "exp_per_second": 1
+    },
+    {
+      "id": 50,
+      "name": "Бёрпи",
+      "category": "cardio",
+      "metric_type": "reps",
+      "description": "Полный цикл бёрпи",
+      "icon": "🔥",
+      "difficulty": 4,
+      "exp_per_rep": 5
+    },
+    {
+      "id": 51,
+      "name": "Джампинг джек",
+      "category": "cardio",
+      "metric_type": "reps",
+      "description": "Прыжки с разведением рук и ног",
+      "icon": "⭐",
+      "difficulty": 1,
+      "exp_per_rep": 1
+    },
+    {
+      "id": 52,
+      "name": "Скалолаз",
+      "category": "cardio",
+      "metric_type": "reps",
+      "description": "Бег в упоре лёжа",
+      "icon": "🧗",
+      "difficulty": 3,
+      "exp_per_rep": 2
+    },
+    {
+      "id": 53,
+      "name": "Прыжки на месте",
+      "category": "cardio",
+      "metric_type": "time",
+      "description": "Прыжки с высоким подъёмом коленей",
+      "icon": "🦿",
+      "difficulty": 2,
+      "exp_per_second": 1
+    },
+    {
+      "id": 54,
+      "name": "Бег на месте",
+      "category": "cardio",
+      "metric_type": "time",
+      "description": "Бег на месте",
+      "icon": "🏃",
+      "difficulty": 1,
+      "exp_per_second": 1
+    },
+    {
+      "id": 60,
+      "name": "Вращения руками",
+      "category": "warmup",
+      "metric_type": "time",
+      "description": "Разминка плечевых суставов",
+      "icon": "🔄",
+      "difficulty": 1,
+      "exp_per_second": 1
+    },
+    {
+      "id": 61,
+      "name": "Наклоны",
+      "category": "warmup",
+      "metric_type": "time",
+      "description": "Наклоны туловища",
+      "icon": "🙇",
+      "difficulty": 1,
+      "exp_per_second": 1
+    },
+    {
+      "id": 62,
+      "name": "Вращения тазом",
+      "category": "warmup",
+      "metric_type": "time",
+      "description": "Круговые движения тазом",
+      "icon": "💫",
+      "difficulty": 1,
+      "exp_per_second": 1
+    },
+    {
+      "id": 70,
+      "name": "Растяжка плеч",
+      "category": "stretch",
+      "metric_type": "time",
+      "description": "Растяжка плечевого пояса",
+      "icon": "🤗",
+      "difficulty": 1,
+      "exp_per_second": 1
+    },
+    {
+      "id": 71,
+      "name": "Складка",
+      "category": "stretch",
+      "metric_type": "time",
+      "description": "Наклон к прямым ногам",
+      "icon": "📖",
+      "difficulty": 2,
+      "exp_per_second": 1
+    },
+    {
+      "id": 72,
+      "name": "Шпагат",
+      "category": "stretch",
+      "metric_type": "time",
+      "description": "Продольный или поперечный шпагат",
+      "icon": "🤸‍♀️",
+      "difficulty": 5,
+      "exp_per_second": 2
+    },
+    {
+      "id": 73,
+      "name": "Растяжка квадрицепса",
+      "category": "stretch",
+      "metric_type": "time",
+      "description": "Растяжка передней поверхности бедра",
+      "icon": "🦵",
+      "difficulty": 1,
+      "exp_per_second": 1
+    }
+  ]
+}
