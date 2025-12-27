@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: bodyweight-api
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/bodyweight.db
+      - BOT_TOKEN=${BOT_TOKEN}
+      - SECRET_KEY=${SECRET_KEY}
+      - MINI_APP_URL=${MINI_APP_URL}
+      - DEBUG=true
+    volumes:
+      - ./data:/app/data
+      - ./backend/static:/app/static
+    ports:
+      - "127.0.0.1:8002:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  bot:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.bot
+    container_name: bodyweight-bot
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/bodyweight.db
+      - BOT_TOKEN=${BOT_TOKEN}
+      - SECRET_KEY=${SECRET_KEY}
+      - MINI_APP_URL=${MINI_APP_URL}
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
