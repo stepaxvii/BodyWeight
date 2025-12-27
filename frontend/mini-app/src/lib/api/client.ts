@@ -183,7 +183,10 @@ class ApiClient {
 		if (this.useMocks) {
 			return { user: MOCK_USER, token: 'mock-token' };
 		}
-		return this.request<AuthResponse>('/auth/validate', { method: 'POST' });
+		return this.request<AuthResponse>('/auth/validate', {
+			method: 'POST',
+			body: JSON.stringify({ init_data: this.initData })
+		});
 	}
 
 	// Users
