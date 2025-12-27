@@ -1,170 +1,233 @@
-import json
-from pathlib import Path
-from fastapi import APIRouter, Depends, HTTPException
+from typing import List, Optional
+from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional, List
+from sqlalchemy.orm import selectinload
 
-from app.api.deps import get_current_user
-from app.db.database import get_session
-from app.db.models import User, Exercise, ExerciseCategory, MetricType
+from app.api.deps import AsyncSessionDep, CurrentUser
+from app.db.models import Exercise, ExerciseCategory, UserExerciseProgress
 
-router = APIRouter(prefix="/exercises", tags=["exercises"])
+router = APIRouter()
 
 
-class ExerciseResponse(BaseModel):
+class CategoryResponse(BaseModel):
     id: int
+    slug: str
     name: str
-    category: str
-    metric_type: str
-    description: Optional[str]
-    icon: str
-    difficulty: int
-    exp_per_rep: int
-    exp_per_second: int
+    name_ru: str
+    icon: str | None
+    color: str | None
+    sort_order: int
+    exercises_count: int = 0
 
     class Config:
         from_attributes = True
 
 
-class CategoryResponse(BaseModel):
-    id: str
+class ExerciseResponse(BaseModel):
+    id: int
+    slug: str
     name: str
-    icon: str
-    exercises_count: int
+    name_ru: str
+    description: str | None
+    description_ru: str | None
+    difficulty: int
+    base_xp: int
+    required_level: int
+    gif_url: str | None
+    thumbnail_url: str | None
+    category_slug: str
+    easier_exercise_slug: str | None = None
+    harder_exercise_slug: str | None = None
+
+    class Config:
+        from_attributes = True
 
 
-CATEGORY_INFO = {
-    "push": {"name": "Жимовые", "icon": "💪"},
-    "pull": {"name": "Тяговые", "icon": "🏋️"},
-    "legs": {"name": "Ноги", "icon": "🦵"},
-    "core": {"name": "Кор", "icon": "🔄"},
-    "static": {"name": "Статика", "icon": "🧘"},
-    "cardio": {"name": "Кардио", "icon": "🔥"},
-    "warmup": {"name": "Разминка", "icon": "🌡️"},
-    "stretch": {"name": "Растяжка", "icon": "🤸"},
-}
+class ExerciseProgressResponse(BaseModel):
+    total_reps_ever: int
+    best_single_set: int
+    times_performed: int
+    recommended_upgrade: bool
+
+
+class ExerciseWithProgressResponse(ExerciseResponse):
+    user_progress: ExerciseProgressResponse | None = None
 
 
 @router.get("/categories", response_model=List[CategoryResponse])
-async def get_categories(
-    session: AsyncSession = Depends(get_session),
-    user: User = Depends(get_current_user),
-):
-    """Get all exercise categories with counts."""
-    from sqlalchemy import func
-
+async def get_categories(session: AsyncSessionDep):
+    """Get all exercise categories."""
     result = await session.execute(
-        select(Exercise.category, func.count(Exercise.id))
-        .group_by(Exercise.category)
+        select(ExerciseCategory)
+        .options(selectinload(ExerciseCategory.exercises))
+        .order_by(ExerciseCategory.sort_order)
     )
-    counts = {cat: count for cat, count in result.all()}
-
-    categories = []
-    for cat_id, info in CATEGORY_INFO.items():
-        categories.append(CategoryResponse(
-            id=cat_id,
-            name=info["name"],
-            icon=info["icon"],
-            exercises_count=counts.get(ExerciseCategory(cat_id), 0),
-        ))
-
-    return categories
-
-
-@router.get("/", response_model=List[ExerciseResponse])
-async def get_exercises(
-    category: Optional[str] = None,
-    session: AsyncSession = Depends(get_session),
-    user: User = Depends(get_current_user),
-):
-    """Get all exercises, optionally filtered by category."""
-    query = select(Exercise)
-
-    if category:
-        try:
-            cat = ExerciseCategory(category)
-            query = query.where(Exercise.category == cat)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid category")
-
-    query = query.order_by(Exercise.difficulty, Exercise.name)
-    result = await session.execute(query)
-    exercises = result.scalars().all()
+    categories = result.scalars().all()
 
     return [
-        ExerciseResponse(
-            id=e.id,
-            name=e.name,
-            category=e.category.value,
-            metric_type=e.metric_type.value,
-            description=e.description,
-            icon=e.icon,
-            difficulty=e.difficulty,
-            exp_per_rep=e.exp_per_rep,
-            exp_per_second=e.exp_per_second,
+        CategoryResponse(
+            id=cat.id,
+            slug=cat.slug,
+            name=cat.name,
+            name_ru=cat.name_ru,
+            icon=cat.icon,
+            color=cat.color,
+            sort_order=cat.sort_order,
+            exercises_count=len([e for e in cat.exercises if e.is_active]),
         )
-        for e in exercises
+        for cat in categories
     ]
 
 
-@router.get("/{exercise_id}", response_model=ExerciseResponse)
-async def get_exercise(
-    exercise_id: int,
-    session: AsyncSession = Depends(get_session),
-    user: User = Depends(get_current_user),
+@router.get("", response_model=List[ExerciseResponse])
+async def get_exercises(
+    session: AsyncSessionDep,
+    category: Optional[str] = Query(None, description="Filter by category slug"),
+    difficulty: Optional[int] = Query(None, ge=1, le=5, description="Filter by difficulty"),
+    max_level: Optional[int] = Query(None, description="Filter exercises up to required level"),
 ):
-    """Get single exercise by ID."""
+    """Get all exercises with optional filters."""
+    query = (
+        select(Exercise)
+        .options(selectinload(Exercise.category))
+        .where(Exercise.is_active == True)
+    )
+
+    if category:
+        query = query.join(Exercise.category).where(ExerciseCategory.slug == category)
+
+    if difficulty:
+        query = query.where(Exercise.difficulty == difficulty)
+
+    if max_level:
+        query = query.where(Exercise.required_level <= max_level)
+
+    query = query.order_by(Exercise.difficulty, Exercise.name)
+
+    result = await session.execute(query)
+    exercises = result.scalars().all()
+
+    response = []
+    for ex in exercises:
+        ex_response = ExerciseResponse(
+            id=ex.id,
+            slug=ex.slug,
+            name=ex.name,
+            name_ru=ex.name_ru,
+            description=ex.description,
+            description_ru=ex.description_ru,
+            difficulty=ex.difficulty,
+            base_xp=ex.base_xp,
+            required_level=ex.required_level,
+            gif_url=ex.gif_url,
+            thumbnail_url=ex.thumbnail_url,
+            category_slug=ex.category.slug if ex.category else "",
+        )
+        response.append(ex_response)
+
+    return response
+
+
+@router.get("/{slug}", response_model=ExerciseWithProgressResponse)
+async def get_exercise(
+    slug: str,
+    session: AsyncSessionDep,
+    user: CurrentUser,
+):
+    """Get exercise details with user progress."""
     result = await session.execute(
-        select(Exercise).where(Exercise.id == exercise_id)
+        select(Exercise)
+        .options(
+            selectinload(Exercise.category),
+            selectinload(Exercise.easier_exercise),
+            selectinload(Exercise.harder_exercise),
+        )
+        .where(Exercise.slug == slug)
+        .where(Exercise.is_active == True)
     )
     exercise = result.scalar_one_or_none()
 
     if not exercise:
-        raise HTTPException(status_code=404, detail="Exercise not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Exercise not found",
+        )
 
-    return ExerciseResponse(
+    # Get user progress
+    progress_result = await session.execute(
+        select(UserExerciseProgress)
+        .where(UserExerciseProgress.user_id == user.id)
+        .where(UserExerciseProgress.exercise_id == exercise.id)
+    )
+    progress = progress_result.scalar_one_or_none()
+
+    user_progress = None
+    if progress:
+        user_progress = ExerciseProgressResponse(
+            total_reps_ever=progress.total_reps_ever,
+            best_single_set=progress.best_single_set,
+            times_performed=progress.times_performed,
+            recommended_upgrade=progress.recommended_upgrade,
+        )
+
+    return ExerciseWithProgressResponse(
         id=exercise.id,
+        slug=exercise.slug,
         name=exercise.name,
-        category=exercise.category.value,
-        metric_type=exercise.metric_type.value,
+        name_ru=exercise.name_ru,
         description=exercise.description,
-        icon=exercise.icon,
+        description_ru=exercise.description_ru,
         difficulty=exercise.difficulty,
-        exp_per_rep=exercise.exp_per_rep,
-        exp_per_second=exercise.exp_per_second,
+        base_xp=exercise.base_xp,
+        required_level=exercise.required_level,
+        gif_url=exercise.gif_url,
+        thumbnail_url=exercise.thumbnail_url,
+        category_slug=exercise.category.slug if exercise.category else "",
+        easier_exercise_slug=exercise.easier_exercise.slug if exercise.easier_exercise else None,
+        harder_exercise_slug=exercise.harder_exercise.slug if exercise.harder_exercise else None,
+        user_progress=user_progress,
     )
 
 
-async def seed_exercises(session: AsyncSession):
-    """Seed exercises from JSON file."""
-    data_path = Path(__file__).parent.parent.parent / "data" / "exercises.json"
+@router.get("/{slug}/progress", response_model=ExerciseProgressResponse)
+async def get_exercise_progress(
+    slug: str,
+    session: AsyncSessionDep,
+    user: CurrentUser,
+):
+    """Get user's progress for a specific exercise."""
+    # First get the exercise
+    exercise_result = await session.execute(
+        select(Exercise).where(Exercise.slug == slug)
+    )
+    exercise = exercise_result.scalar_one_or_none()
 
-    if not data_path.exists():
-        return
-
-    with open(data_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    for ex_data in data.get("exercises", []):
-        result = await session.execute(
-            select(Exercise).where(Exercise.id == ex_data["id"])
+    if not exercise:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Exercise not found",
         )
-        existing = result.scalar_one_or_none()
 
-        if not existing:
-            exercise = Exercise(
-                id=ex_data["id"],
-                name=ex_data["name"],
-                category=ExerciseCategory(ex_data["category"]),
-                metric_type=MetricType(ex_data["metric_type"]),
-                description=ex_data.get("description"),
-                icon=ex_data.get("icon", "💪"),
-                difficulty=ex_data.get("difficulty", 1),
-                exp_per_rep=ex_data.get("exp_per_rep", 1),
-                exp_per_second=ex_data.get("exp_per_second", 1),
-            )
-            session.add(exercise)
+    # Get user progress
+    progress_result = await session.execute(
+        select(UserExerciseProgress)
+        .where(UserExerciseProgress.user_id == user.id)
+        .where(UserExerciseProgress.exercise_id == exercise.id)
+    )
+    progress = progress_result.scalar_one_or_none()
 
-    await session.commit()
+    if not progress:
+        return ExerciseProgressResponse(
+            total_reps_ever=0,
+            best_single_set=0,
+            times_performed=0,
+            recommended_upgrade=False,
+        )
+
+    return ExerciseProgressResponse(
+        total_reps_ever=progress.total_reps_ever,
+        best_single_set=progress.best_single_set,
+        times_performed=progress.times_performed,
+        recommended_upgrade=progress.recommended_upgrade,
+    )

@@ -1,299 +1,550 @@
-from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import datetime, date, timedelta
+from typing import List, Optional
+from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, and_
 from sqlalchemy.orm import selectinload
-from typing import Optional, List
 
-from app.api.deps import get_current_user
-from app.db.database import get_session
-from app.db.models import User, Workout, WorkoutExercise, Exercise
+from app.api.deps import AsyncSessionDep, CurrentUser
+from app.db.models import (
+    WorkoutSession,
+    WorkoutExercise,
+    Exercise,
+    UserExerciseProgress,
+)
+from app.services.xp_calculator import (
+    calculate_xp,
+    calculate_coins,
+    get_level_from_xp,
+    get_streak_multiplier,
+)
+from app.services.achievement_checker import check_achievements
 
-router = APIRouter(prefix="/workouts", tags=["workouts"])
+router = APIRouter()
 
 
-class ExerciseEntry(BaseModel):
-    exercise_id: int
+class AddExerciseRequest(BaseModel):
+    exercise_slug: str
+    reps: int
     sets: int = 1
-    reps: Optional[int] = None
-    duration_seconds: Optional[int] = None
-
-
-class WorkoutCreate(BaseModel):
-    exercises: List[ExerciseEntry]
-    notes: Optional[str] = None
 
 
 class WorkoutExerciseResponse(BaseModel):
     id: int
-    exercise_id: int
+    exercise_slug: str
     exercise_name: str
-    exercise_icon: str
-    sets: int
-    reps: Optional[int]
-    duration_seconds: Optional[int]
-    is_personal_record: bool
-    exp_earned: int
+    exercise_name_ru: str
+    sets_completed: int
+    total_reps: int
+    xp_earned: int
+    coins_earned: int
+
+    class Config:
+        from_attributes = True
 
 
 class WorkoutResponse(BaseModel):
     id: int
     started_at: datetime
-    finished_at: Optional[datetime]
-    notes: Optional[str]
-    total_exp: int
-    exercises: List[WorkoutExerciseResponse]
-
-
-class WorkoutSummary(BaseModel):
-    id: int
-    started_at: datetime
-    exercises_count: int
+    finished_at: datetime | None
+    duration_seconds: int | None
+    total_xp_earned: int
+    total_coins_earned: int
     total_reps: int
-    total_time: int
-    total_exp: int
+    streak_multiplier: float
+    status: str
+    exercises: List[WorkoutExerciseResponse] = []
+
+    class Config:
+        from_attributes = True
 
 
-def calculate_level(exp: int) -> int:
-    """Calculate level from total XP."""
-    level = 1
-    while 100 * level * level <= exp:
-        level += 1
-    return level - 1 if level > 1 else 1
+class WorkoutSummaryResponse(BaseModel):
+    workout: WorkoutResponse
+    new_achievements: List[dict] = []
+    level_up: bool = False
+    new_level: int | None = None
 
 
-@router.post("/", response_model=dict)
-async def create_workout(
-    data: WorkoutCreate,
-    user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+class TodayStatsResponse(BaseModel):
+    workouts_count: int
+    total_xp: int
+    total_reps: int
+    exercises_done: int
+
+
+@router.post("", response_model=WorkoutResponse, status_code=status.HTTP_201_CREATED)
+async def start_workout(
+    session: AsyncSessionDep,
+    user: CurrentUser,
 ):
-    """Create a new workout."""
-    if not data.exercises:
-        raise HTTPException(status_code=400, detail="No exercises provided")
+    """Start a new workout session."""
+    # Check if there's an active workout
+    active_result = await session.execute(
+        select(WorkoutSession)
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "active")
+    )
+    active_workout = active_result.scalar_one_or_none()
 
-    workout = Workout(
+    if active_workout:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You already have an active workout. Complete or cancel it first.",
+        )
+
+    # Calculate streak multiplier
+    streak_mult = get_streak_multiplier(user.current_streak)
+
+    workout = WorkoutSession(
         user_id=user.id,
         started_at=datetime.utcnow(),
-        finished_at=datetime.utcnow(),
-        notes=data.notes,
+        streak_multiplier=streak_mult,
+        status="active",
     )
     session.add(workout)
     await session.flush()
 
-    total_exp = 0
-    total_reps = 0
-    total_time = 0
-    new_records = []
-
-    for entry in data.exercises:
-        # Get exercise
-        result = await session.execute(
-            select(Exercise).where(Exercise.id == entry.exercise_id)
-        )
-        exercise = result.scalar_one_or_none()
-
-        if not exercise:
-            raise HTTPException(status_code=400, detail=f"Exercise {entry.exercise_id} not found")
-
-        # Calculate XP
-        if entry.reps:
-            exp = entry.reps * entry.sets * exercise.exp_per_rep
-            total_reps += entry.reps * entry.sets
-        elif entry.duration_seconds:
-            exp = entry.duration_seconds * exercise.exp_per_second
-            total_time += entry.duration_seconds
-        else:
-            exp = 0
-
-        # Check for personal record
-        is_record = False
-        if entry.reps:
-            result = await session.execute(
-                select(func.max(WorkoutExercise.reps))
-                .join(Workout)
-                .where(Workout.user_id == user.id)
-                .where(WorkoutExercise.exercise_id == entry.exercise_id)
-            )
-            max_reps = result.scalar() or 0
-            if entry.reps > max_reps:
-                is_record = True
-                new_records.append({
-                    "exercise": exercise.name,
-                    "value": entry.reps,
-                    "type": "reps"
-                })
-        elif entry.duration_seconds:
-            result = await session.execute(
-                select(func.max(WorkoutExercise.duration_seconds))
-                .join(Workout)
-                .where(Workout.user_id == user.id)
-                .where(WorkoutExercise.exercise_id == entry.exercise_id)
-            )
-            max_time = result.scalar() or 0
-            if entry.duration_seconds > max_time:
-                is_record = True
-                new_records.append({
-                    "exercise": exercise.name,
-                    "value": entry.duration_seconds,
-                    "type": "time"
-                })
-
-        workout_exercise = WorkoutExercise(
-            workout_id=workout.id,
-            exercise_id=entry.exercise_id,
-            sets=entry.sets,
-            reps=entry.reps,
-            duration_seconds=entry.duration_seconds,
-            is_personal_record=is_record,
-            exp_earned=exp,
-        )
-        session.add(workout_exercise)
-        total_exp += exp
-
-    workout.total_exp = total_exp
-
-    # Update user stats
-    old_level = calculate_level(user.experience)
-    user.experience += total_exp
-    user.total_workouts += 1
-    user.total_reps += total_reps
-    user.total_time_seconds += total_time
-    new_level = calculate_level(user.experience)
-
-    # Update streak
-    today = datetime.utcnow().date()
-    if user.last_workout_date:
-        last_date = user.last_workout_date.date()
-        if last_date == today - timedelta(days=1):
-            user.streak_days += 1
-        elif last_date != today:
-            user.streak_days = 1
-    else:
-        user.streak_days = 1
-
-    user.last_workout_date = datetime.utcnow()
-    user.level = new_level
-
-    await session.commit()
-
-    return {
-        "workout_id": workout.id,
-        "total_exp": total_exp,
-        "total_reps": total_reps,
-        "total_time": total_time,
-        "new_level": new_level,
-        "level_up": new_level > old_level,
-        "streak_days": user.streak_days,
-        "new_records": new_records,
-    }
-
-
-@router.get("/", response_model=List[WorkoutSummary])
-async def get_workouts(
-    limit: int = 20,
-    offset: int = 0,
-    user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
-):
-    """Get user's workout history."""
-    result = await session.execute(
-        select(Workout)
-        .where(Workout.user_id == user.id)
-        .order_by(Workout.started_at.desc())
-        .offset(offset)
-        .limit(limit)
-        .options(selectinload(Workout.exercises))
+    return WorkoutResponse(
+        id=workout.id,
+        started_at=workout.started_at,
+        finished_at=None,
+        duration_seconds=None,
+        total_xp_earned=0,
+        total_coins_earned=0,
+        total_reps=0,
+        streak_multiplier=float(workout.streak_multiplier),
+        status=workout.status,
+        exercises=[],
     )
-    workouts = result.scalars().all()
-
-    return [
-        WorkoutSummary(
-            id=w.id,
-            started_at=w.started_at,
-            exercises_count=len(w.exercises),
-            total_reps=sum(e.reps or 0 for e in w.exercises),
-            total_time=sum(e.duration_seconds or 0 for e in w.exercises),
-            total_exp=w.total_exp,
-        )
-        for w in workouts
-    ]
 
 
 @router.get("/{workout_id}", response_model=WorkoutResponse)
 async def get_workout(
     workout_id: int,
-    user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSessionDep,
+    user: CurrentUser,
 ):
     """Get workout details."""
     result = await session.execute(
-        select(Workout)
-        .where(Workout.id == workout_id)
-        .where(Workout.user_id == user.id)
-        .options(selectinload(Workout.exercises).selectinload(WorkoutExercise.exercise))
+        select(WorkoutSession)
+        .options(
+            selectinload(WorkoutSession.exercises).selectinload(WorkoutExercise.exercise)
+        )
+        .where(WorkoutSession.id == workout_id)
+        .where(WorkoutSession.user_id == user.id)
     )
     workout = result.scalar_one_or_none()
 
     if not workout:
-        raise HTTPException(status_code=404, detail="Workout not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Workout not found",
+        )
+
+    exercises = [
+        WorkoutExerciseResponse(
+            id=we.id,
+            exercise_slug=we.exercise.slug,
+            exercise_name=we.exercise.name,
+            exercise_name_ru=we.exercise.name_ru,
+            sets_completed=we.sets_completed,
+            total_reps=we.total_reps,
+            xp_earned=we.xp_earned,
+            coins_earned=we.coins_earned,
+        )
+        for we in workout.exercises
+    ]
 
     return WorkoutResponse(
         id=workout.id,
         started_at=workout.started_at,
         finished_at=workout.finished_at,
-        notes=workout.notes,
-        total_exp=workout.total_exp,
-        exercises=[
-            WorkoutExerciseResponse(
-                id=e.id,
-                exercise_id=e.exercise_id,
-                exercise_name=e.exercise.name,
-                exercise_icon=e.exercise.icon,
-                sets=e.sets,
-                reps=e.reps,
-                duration_seconds=e.duration_seconds,
-                is_personal_record=e.is_personal_record,
-                exp_earned=e.exp_earned,
-            )
-            for e in workout.exercises
-        ],
+        duration_seconds=workout.duration_seconds,
+        total_xp_earned=workout.total_xp_earned,
+        total_coins_earned=workout.total_coins_earned,
+        total_reps=workout.total_reps,
+        streak_multiplier=float(workout.streak_multiplier),
+        status=workout.status,
+        exercises=exercises,
     )
 
 
-@router.get("/stats/weekly")
-async def get_weekly_stats(
-    user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+@router.put("/{workout_id}/exercise", response_model=WorkoutResponse)
+async def add_exercise_to_workout(
+    workout_id: int,
+    request: AddExerciseRequest,
+    session: AsyncSessionDep,
+    user: CurrentUser,
 ):
-    """Get weekly workout statistics."""
-    week_ago = datetime.utcnow() - timedelta(days=7)
-
+    """Add exercise to active workout."""
+    # Get active workout
     result = await session.execute(
-        select(Workout)
-        .where(Workout.user_id == user.id)
-        .where(Workout.started_at >= week_ago)
-        .options(selectinload(Workout.exercises))
+        select(WorkoutSession)
+        .options(
+            selectinload(WorkoutSession.exercises).selectinload(WorkoutExercise.exercise)
+        )
+        .where(WorkoutSession.id == workout_id)
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "active")
+    )
+    workout = result.scalar_one_or_none()
+
+    if not workout:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Active workout not found",
+        )
+
+    # Get exercise
+    exercise_result = await session.execute(
+        select(Exercise).where(Exercise.slug == request.exercise_slug)
+    )
+    exercise = exercise_result.scalar_one_or_none()
+
+    if not exercise:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Exercise not found",
+        )
+
+    # Check if user level is sufficient
+    if user.level < exercise.required_level:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Exercise requires level {exercise.required_level}",
+        )
+
+    # Check if this is first workout today
+    today = date.today()
+    is_first_today = user.last_workout_date != today
+
+    # Calculate XP
+    total_reps = request.reps * request.sets
+    xp_earned = calculate_xp(
+        base_xp=exercise.base_xp,
+        difficulty=exercise.difficulty,
+        reps=total_reps,
+        streak_days=user.current_streak,
+        is_first_today=is_first_today,
+    )
+
+    # Check if we have existing entry for this exercise in this workout
+    existing_entry = None
+    for we in workout.exercises:
+        if we.exercise_id == exercise.id:
+            existing_entry = we
+            break
+
+    if existing_entry:
+        existing_entry.sets_completed += request.sets
+        existing_entry.total_reps += total_reps
+        existing_entry.xp_earned += xp_earned
+    else:
+        workout_exercise = WorkoutExercise(
+            workout_session_id=workout.id,
+            exercise_id=exercise.id,
+            sets_completed=request.sets,
+            total_reps=total_reps,
+            xp_earned=xp_earned,
+            coins_earned=0,
+        )
+        session.add(workout_exercise)
+
+    # Update workout totals
+    workout.total_xp_earned += xp_earned
+    workout.total_reps += total_reps
+
+    # Update user exercise progress
+    progress_result = await session.execute(
+        select(UserExerciseProgress)
+        .where(UserExerciseProgress.user_id == user.id)
+        .where(UserExerciseProgress.exercise_id == exercise.id)
+    )
+    progress = progress_result.scalar_one_or_none()
+
+    if progress:
+        progress.total_reps_ever += total_reps
+        progress.times_performed += 1
+        progress.best_single_set = max(progress.best_single_set, request.reps)
+        progress.last_performed_at = datetime.utcnow()
+
+        # Check if we should recommend upgrade
+        if progress.total_reps_ever >= 100 and exercise.harder_exercise_id:
+            progress.recommended_upgrade = True
+    else:
+        progress = UserExerciseProgress(
+            user_id=user.id,
+            exercise_id=exercise.id,
+            total_reps_ever=total_reps,
+            best_single_set=request.reps,
+            times_performed=1,
+            last_performed_at=datetime.utcnow(),
+        )
+        session.add(progress)
+
+    await session.flush()
+
+    # Reload workout with exercises
+    result = await session.execute(
+        select(WorkoutSession)
+        .options(
+            selectinload(WorkoutSession.exercises).selectinload(WorkoutExercise.exercise)
+        )
+        .where(WorkoutSession.id == workout_id)
+    )
+    workout = result.scalar_one()
+
+    exercises = [
+        WorkoutExerciseResponse(
+            id=we.id,
+            exercise_slug=we.exercise.slug,
+            exercise_name=we.exercise.name,
+            exercise_name_ru=we.exercise.name_ru,
+            sets_completed=we.sets_completed,
+            total_reps=we.total_reps,
+            xp_earned=we.xp_earned,
+            coins_earned=we.coins_earned,
+        )
+        for we in workout.exercises
+    ]
+
+    return WorkoutResponse(
+        id=workout.id,
+        started_at=workout.started_at,
+        finished_at=workout.finished_at,
+        duration_seconds=workout.duration_seconds,
+        total_xp_earned=workout.total_xp_earned,
+        total_coins_earned=workout.total_coins_earned,
+        total_reps=workout.total_reps,
+        streak_multiplier=float(workout.streak_multiplier),
+        status=workout.status,
+        exercises=exercises,
+    )
+
+
+@router.post("/{workout_id}/complete", response_model=WorkoutSummaryResponse)
+async def complete_workout(
+    workout_id: int,
+    session: AsyncSessionDep,
+    user: CurrentUser,
+):
+    """Complete a workout session."""
+    result = await session.execute(
+        select(WorkoutSession)
+        .options(
+            selectinload(WorkoutSession.exercises).selectinload(WorkoutExercise.exercise)
+        )
+        .where(WorkoutSession.id == workout_id)
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "active")
+    )
+    workout = result.scalar_one_or_none()
+
+    if not workout:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Active workout not found",
+        )
+
+    if len(workout.exercises) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot complete workout with no exercises",
+        )
+
+    # Complete workout
+    now = datetime.utcnow()
+    workout.finished_at = now
+    workout.duration_seconds = int((now - workout.started_at).total_seconds())
+    workout.status = "completed"
+
+    # Calculate coins
+    coins_earned = calculate_coins(workout.total_xp_earned, has_new_achievement=False)
+    workout.total_coins_earned = coins_earned
+
+    # Update user stats
+    old_level = user.level
+    user.total_xp += workout.total_xp_earned
+    user.coins += coins_earned
+
+    # Update level
+    new_level = get_level_from_xp(user.total_xp)
+    user.level = new_level
+    level_up = new_level > old_level
+
+    # Update streak
+    today = date.today()
+    if user.last_workout_date is None:
+        user.current_streak = 1
+    elif user.last_workout_date == today - timedelta(days=1):
+        user.current_streak += 1
+    elif user.last_workout_date != today:
+        user.current_streak = 1
+
+    user.max_streak = max(user.max_streak, user.current_streak)
+    user.last_workout_date = today
+
+    await session.flush()
+
+    # Check achievements
+    new_achievements = await check_achievements(session, user)
+
+    # If there are new achievements, add bonus coins
+    if new_achievements:
+        bonus_coins = sum(a.get("coin_reward", 0) for a in new_achievements)
+        workout.total_coins_earned += bonus_coins
+        user.coins += bonus_coins
+
+    await session.flush()
+
+    exercises = [
+        WorkoutExerciseResponse(
+            id=we.id,
+            exercise_slug=we.exercise.slug,
+            exercise_name=we.exercise.name,
+            exercise_name_ru=we.exercise.name_ru,
+            sets_completed=we.sets_completed,
+            total_reps=we.total_reps,
+            xp_earned=we.xp_earned,
+            coins_earned=we.coins_earned,
+        )
+        for we in workout.exercises
+    ]
+
+    workout_response = WorkoutResponse(
+        id=workout.id,
+        started_at=workout.started_at,
+        finished_at=workout.finished_at,
+        duration_seconds=workout.duration_seconds,
+        total_xp_earned=workout.total_xp_earned,
+        total_coins_earned=workout.total_coins_earned,
+        total_reps=workout.total_reps,
+        streak_multiplier=float(workout.streak_multiplier),
+        status=workout.status,
+        exercises=exercises,
+    )
+
+    return WorkoutSummaryResponse(
+        workout=workout_response,
+        new_achievements=new_achievements,
+        level_up=level_up,
+        new_level=new_level if level_up else None,
+    )
+
+
+@router.delete("/{workout_id}")
+async def cancel_workout(
+    workout_id: int,
+    session: AsyncSessionDep,
+    user: CurrentUser,
+):
+    """Cancel an active workout."""
+    result = await session.execute(
+        select(WorkoutSession)
+        .where(WorkoutSession.id == workout_id)
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "active")
+    )
+    workout = result.scalar_one_or_none()
+
+    if not workout:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Active workout not found",
+        )
+
+    workout.status = "cancelled"
+    workout.finished_at = datetime.utcnow()
+
+    return {"message": "Workout cancelled"}
+
+
+@router.get("/history", response_model=List[WorkoutResponse])
+async def get_workout_history(
+    session: AsyncSessionDep,
+    user: CurrentUser,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    """Get user's workout history."""
+    result = await session.execute(
+        select(WorkoutSession)
+        .options(
+            selectinload(WorkoutSession.exercises).selectinload(WorkoutExercise.exercise)
+        )
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "completed")
+        .order_by(WorkoutSession.finished_at.desc())
+        .limit(limit)
+        .offset(offset)
     )
     workouts = result.scalars().all()
 
-    # Stats per day
-    days = {}
-    for i in range(7):
-        day = (datetime.utcnow() - timedelta(days=i)).date()
-        days[day.isoformat()] = {"workouts": 0, "reps": 0, "exp": 0}
+    response = []
+    for workout in workouts:
+        exercises = [
+            WorkoutExerciseResponse(
+                id=we.id,
+                exercise_slug=we.exercise.slug,
+                exercise_name=we.exercise.name,
+                exercise_name_ru=we.exercise.name_ru,
+                sets_completed=we.sets_completed,
+                total_reps=we.total_reps,
+                xp_earned=we.xp_earned,
+                coins_earned=we.coins_earned,
+            )
+            for we in workout.exercises
+        ]
 
+        response.append(WorkoutResponse(
+            id=workout.id,
+            started_at=workout.started_at,
+            finished_at=workout.finished_at,
+            duration_seconds=workout.duration_seconds,
+            total_xp_earned=workout.total_xp_earned,
+            total_coins_earned=workout.total_coins_earned,
+            total_reps=workout.total_reps,
+            streak_multiplier=float(workout.streak_multiplier),
+            status=workout.status,
+            exercises=exercises,
+        ))
+
+    return response
+
+
+@router.get("/today", response_model=TodayStatsResponse)
+async def get_today_stats(
+    session: AsyncSessionDep,
+    user: CurrentUser,
+):
+    """Get today's workout statistics."""
+    today = date.today()
+    today_start = datetime.combine(today, datetime.min.time())
+    today_end = datetime.combine(today, datetime.max.time())
+
+    # Count today's completed workouts
+    workouts_result = await session.execute(
+        select(WorkoutSession)
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "completed")
+        .where(WorkoutSession.finished_at >= today_start)
+        .where(WorkoutSession.finished_at <= today_end)
+    )
+    workouts = workouts_result.scalars().all()
+
+    total_xp = sum(w.total_xp_earned for w in workouts)
+    total_reps = sum(w.total_reps for w in workouts)
+
+    # Count unique exercises
+    exercise_ids = set()
     for w in workouts:
-        day = w.started_at.date().isoformat()
-        if day in days:
-            days[day]["workouts"] += 1
-            days[day]["reps"] += sum(e.reps or 0 for e in w.exercises)
-            days[day]["exp"] += w.total_exp
+        for we in w.exercises:
+            exercise_ids.add(we.exercise_id)
 
-    return {
-        "total_workouts": len(workouts),
-        "total_reps": sum(sum(e.reps or 0 for e in w.exercises) for w in workouts),
-        "total_exp": sum(w.total_exp for w in workouts),
-        "days": days,
-    }
+    return TodayStatsResponse(
+        workouts_count=len(workouts),
+        total_xp=total_xp,
+        total_reps=total_reps,
+        exercises_done=len(exercise_ids),
+    )

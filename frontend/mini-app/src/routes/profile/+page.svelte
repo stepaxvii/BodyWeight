@@ -1,340 +1,379 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
-	import { browser } from '$app/environment';
-	import { user, getLevelProgress, getXPForNextLevel } from '$lib/stores/user';
-	import { api, type Workout } from '$lib/api/client';
+	import { PixelCard, PixelProgress, PixelIcon, PixelButton } from '$lib/components/ui';
+	import { userStore } from '$lib/stores/user';
+	import { api } from '$lib/api/client';
+	import type { Achievement } from '$lib/types';
 
-	let workoutHistory: Workout[] = $state([]);
-	let isLoading = $state(true);
+	let achievements = $state<Achievement[]>([]);
 
 	onMount(async () => {
-		try {
-			workoutHistory = await api.getWorkoutHistory(10);
-		} catch (error) {
-			console.error('Failed to load history:', error);
-		} finally {
-			isLoading = false;
-		}
+		await userStore.loadStats();
+		achievements = await api.getAchievements();
 	});
 
-	let levelProgress = $derived($user ? getLevelProgress($user.experience, $user.level) : 0);
-	let xpForNext = $derived($user ? getXPForNextLevel($user.level) : 200);
+	const unlockedCount = $derived(achievements.filter(a => a.unlocked).length);
 
-	function formatDate(dateStr: string): string {
-		const date = new Date(dateStr);
-		return date.toLocaleDateString('ru-RU', {
-			day: 'numeric',
-			month: 'short',
-		});
-	}
-
-	function formatTime(seconds: number): string {
-		const hours = Math.floor(seconds / 3600);
-		const minutes = Math.floor((seconds % 3600) / 60);
-		if (hours > 0) {
-			return `${hours}ч ${minutes}м`;
-		}
-		return `${minutes}м`;
-	}
+	// Level XP calculation
+	const currentLevelXp = $derived(100 * userStore.level * userStore.level);
+	const nextLevelXp = $derived(100 * (userStore.level + 1) * (userStore.level + 1));
+	const xpInLevel = $derived(userStore.xp - currentLevelXp);
+	const xpNeeded = $derived(nextLevelXp - currentLevelXp);
 </script>
 
-<div class="container">
-	{#if $user}
-		<!-- Profile Header -->
-		<div class="profile-header pixel-card">
-			<div class="profile-avatar">⚔️</div>
-			<div class="profile-info">
-				<div class="profile-name">{$user.first_name || $user.username || 'ВОИН'}</div>
-				{#if $user.username}
-					<div class="profile-username">@{$user.username}</div>
-				{/if}
+<div class="page container">
+	<!-- Profile Header -->
+	<header class="profile-header">
+		<div class="avatar">
+			<div class="avatar-placeholder">
+				<PixelIcon name="profile" size="xl" />
 			</div>
+			<div class="level-badge">Lv.{userStore.level}</div>
 		</div>
+		<h1 class="username">{userStore.displayName}</h1>
+		<p class="user-title">Pixel Warrior</p>
+	</header>
 
-		<!-- Level Progress -->
-		<div class="level-section pixel-card">
-			<div class="level-header">
-				<div class="level-badge-xl">
-					<span class="level-label">LVL</span>
-					<span class="level-value">{$user.level}</span>
+	<!-- XP Progress -->
+	<section class="xp-section">
+		<PixelCard>
+			<div class="xp-content">
+				<div class="xp-header">
+					<span class="xp-label">Level {userStore.level}</span>
+					<span class="xp-value">{xpInLevel} / {xpNeeded} XP</span>
 				</div>
-				<div class="level-info">
-					<div class="level-title">УРОВЕНЬ {$user.level}</div>
-					<div class="xp-text">{$user.experience} / {xpForNext} XP</div>
-					<div class="pixel-progress mt-sm">
-						<div class="pixel-progress-fill xp" style="width: {levelProgress}%"></div>
+				<PixelProgress value={xpInLevel} max={xpNeeded} variant="xp" size="lg" />
+			</div>
+		</PixelCard>
+	</section>
+
+	<!-- Stats Grid -->
+	<section class="stats-section">
+		<h3 class="section-title">Statistics</h3>
+		<div class="stats-grid">
+			<PixelCard padding="sm">
+				<div class="stat-item">
+					<PixelIcon name="xp" size="lg" color="var(--pixel-blue)" />
+					<span class="stat-value">{userStore.xp}</span>
+					<span class="stat-label">Total XP</span>
+				</div>
+			</PixelCard>
+			<PixelCard padding="sm">
+				<div class="stat-item">
+					<PixelIcon name="coin" size="lg" color="var(--pixel-orange)" />
+					<span class="stat-value">{userStore.coins}</span>
+					<span class="stat-label">Coins</span>
+				</div>
+			</PixelCard>
+			<PixelCard padding="sm">
+				<div class="stat-item">
+					<PixelIcon name="streak" size="lg" color="var(--pixel-yellow)" />
+					<span class="stat-value">{userStore.streak}</span>
+					<span class="stat-label">Streak</span>
+				</div>
+			</PixelCard>
+			<PixelCard padding="sm">
+				<div class="stat-item">
+					<PixelIcon name="trophy" size="lg" color="var(--pixel-accent)" />
+					<span class="stat-value">{unlockedCount}</span>
+					<span class="stat-label">Badges</span>
+				</div>
+			</PixelCard>
+		</div>
+	</section>
+
+	<!-- Detailed Stats -->
+	{#if userStore.stats}
+		<section class="detailed-stats">
+			<h3 class="section-title">Activity</h3>
+			<PixelCard>
+				<div class="detail-list">
+					<div class="detail-item">
+						<span class="detail-label">Total Workouts</span>
+						<span class="detail-value">{userStore.stats.total_workouts}</span>
 					</div>
+					<div class="detail-item">
+						<span class="detail-label">Total Reps</span>
+						<span class="detail-value">{userStore.stats.total_reps}</span>
+					</div>
+					<div class="detail-item">
+						<span class="detail-label">Time Trained</span>
+						<span class="detail-value">{Math.floor(userStore.stats.total_time_minutes / 60)}h {userStore.stats.total_time_minutes % 60}m</span>
+					</div>
+					{#if userStore.stats.favorite_exercise}
+						<div class="detail-item">
+							<span class="detail-label">Favorite</span>
+							<span class="detail-value">{userStore.stats.favorite_exercise}</span>
+						</div>
+					{/if}
 				</div>
-			</div>
-		</div>
+			</PixelCard>
+		</section>
+	{/if}
 
-		<!-- Stats -->
-		<div class="stats-section">
-			<h2 class="section-title">📊 СТАТИСТИКА</h2>
-			<div class="stats-grid">
-				<div class="stat-card">
-					<div class="stat-icon">🔥</div>
-					<div class="stat-value">{$user.streak_days}</div>
-					<div class="stat-label">ДНЕЙ ПОДРЯД</div>
+	<!-- Streak Info -->
+	<section class="streak-section">
+		<h3 class="section-title">Streak</h3>
+		<PixelCard variant={userStore.streak >= 7 ? 'success' : 'default'}>
+			<div class="streak-display">
+				<div class="streak-icon">
+					<PixelIcon name="streak" size="xl" color="var(--pixel-yellow)" />
 				</div>
-				<div class="stat-card">
-					<div class="stat-icon">💪</div>
-					<div class="stat-value">{$user.total_workouts}</div>
-					<div class="stat-label">ТРЕНИРОВОК</div>
+				<div class="streak-info">
+					<span class="streak-current">{userStore.streak} days</span>
+					<span class="streak-max">Best: {userStore.user?.max_streak || 0} days</span>
 				</div>
-				<div class="stat-card">
-					<div class="stat-icon">🔢</div>
-					<div class="stat-value">{$user.total_reps}</div>
-					<div class="stat-label">ПОВТОРЕНИЙ</div>
-				</div>
-				<div class="stat-card">
-					<div class="stat-icon">⏱️</div>
-					<div class="stat-value">{formatTime($user.total_time_seconds)}</div>
-					<div class="stat-label">ВРЕМЕНИ</div>
-				</div>
-			</div>
-		</div>
-
-		<!-- Recent Workouts -->
-		<div class="history-section">
-			<h2 class="section-title">📋 ПОСЛЕДНИЕ ТРЕНИРОВКИ</h2>
-
-			{#if isLoading}
-				<div class="loading-text">Загрузка...</div>
-			{:else if workoutHistory.length === 0}
-				<div class="empty-text">Тренировок пока нет</div>
-			{:else}
-				<div class="history-list">
-					{#each workoutHistory as workout}
-						<div class="history-item pixel-card">
-							<div class="history-date">
-								{formatDate(workout.completed_at || workout.started_at)}
-							</div>
-							<div class="history-info">
-								<div class="history-exercises">
-									{workout.exercises?.length || 0} упражнений
-								</div>
-							</div>
-							<div class="history-xp">
-								+{workout.total_exp} XP
-							</div>
+				<div class="streak-visual">
+					{#each Array(7) as _, i}
+						<div class="streak-day" class:active={i < Math.min(userStore.streak, 7)}>
+							{#if i < Math.min(userStore.streak, 7)}
+								<PixelIcon name="check" size="sm" color="var(--pixel-green)" />
+							{/if}
 						</div>
 					{/each}
 				</div>
-			{/if}
-		</div>
-
-		<!-- Settings -->
-		<div class="settings-section">
-			<h2 class="section-title">⚙️ НАСТРОЙКИ</h2>
-			<div class="setting-item pixel-card">
-				<span class="setting-label">🔔 Уведомления</span>
-				<button
-					class="toggle-btn"
-					class:active={$user.notifications_enabled}
-					onclick={async () => {
-						if ($user) {
-							try {
-								const updated = await api.updateMe({
-									notifications_enabled: !$user.notifications_enabled
-								});
-								$user = updated;
-								if (browser) {
-									window.Telegram?.WebApp?.HapticFeedback?.selectionChanged();
-								}
-							} catch (e) {
-								console.error(e);
-							}
-						}
-					}}
-				>
-					{$user.notifications_enabled ? 'ВКЛ' : 'ВЫКЛ'}
-				</button>
 			</div>
-		</div>
-	{/if}
+		</PixelCard>
+	</section>
+
+	<!-- Quick Links -->
+	<section class="links-section">
+		<a href="{base}/achievements" class="link-item">
+			<PixelCard hoverable>
+				<div class="link-content">
+					<PixelIcon name="trophy" color="var(--pixel-yellow)" />
+					<span>Achievements</span>
+					<span class="link-count">{unlockedCount}/{achievements.length}</span>
+				</div>
+			</PixelCard>
+		</a>
+		<a href="{base}/friends" class="link-item">
+			<PixelCard hoverable>
+				<div class="link-content">
+					<PixelIcon name="friend" color="var(--pixel-cyan)" />
+					<span>Friends</span>
+				</div>
+			</PixelCard>
+		</a>
+	</section>
 </div>
 
 <style>
-	.profile-header {
-		display: flex;
-		align-items: center;
-		gap: var(--space-md);
-		background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-light) 100%);
+	.page {
+		padding-top: var(--spacing-md);
+		padding-bottom: var(--spacing-lg);
 	}
 
-	.profile-avatar {
+	/* Profile Header */
+	.profile-header {
+		text-align: center;
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.avatar {
+		position: relative;
+		display: inline-block;
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.avatar-placeholder {
 		width: 64px;
 		height: 64px;
+		background: var(--pixel-card);
+		border: 2px solid var(--pixel-accent);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: var(--bg-medium);
-		border: 4px solid var(--accent);
-		font-size: 32px;
 	}
 
-	.profile-name {
-		font-size: 14px;
-		color: var(--text-primary);
+	.level-badge {
+		position: absolute;
+		bottom: -8px;
+		left: 50%;
+		transform: translateX(-50%);
+		background: var(--pixel-accent);
+		padding: 2px 8px;
+		font-size: var(--font-size-xs);
+		white-space: nowrap;
 	}
 
-	.profile-username {
-		font-size: 9px;
-		color: var(--text-muted);
-		margin-top: var(--space-xs);
+	.username {
+		font-size: var(--font-size-lg);
+		margin-bottom: var(--spacing-xs);
 	}
 
-	.level-section {
-		margin-top: var(--space-md);
+	.user-title {
+		font-size: var(--font-size-xs);
+		color: var(--pixel-yellow);
+		text-transform: uppercase;
 	}
 
-	.level-header {
-		display: flex;
-		gap: var(--space-md);
+	/* Sections */
+	.section-title {
+		font-size: var(--font-size-sm);
+		margin-bottom: var(--spacing-sm);
+		text-transform: uppercase;
 	}
 
-	.level-badge-xl {
+	/* XP Section */
+	.xp-section {
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.xp-content {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		width: 72px;
-		height: 72px;
-		background: linear-gradient(180deg, var(--accent) 0%, #cc8800 100%);
-		border: 4px solid #996600;
-		box-shadow:
-			inset 4px 4px 0 rgba(255,255,255,0.4),
-			4px 4px 0 rgba(0,0,0,0.3);
+		gap: var(--spacing-sm);
 	}
 
-	.level-label {
-		font-size: 8px;
-		color: var(--bg-dark);
+	.xp-header {
+		display: flex;
+		justify-content: space-between;
+		font-size: var(--font-size-xs);
 	}
 
-	.level-value {
-		font-size: 24px;
-		color: var(--bg-dark);
+	.xp-label {
+		color: var(--text-secondary);
+		text-transform: uppercase;
 	}
 
-	.level-info {
-		flex: 1;
+	.xp-value {
+		color: var(--pixel-blue);
 	}
 
-	.level-title {
-		font-size: 12px;
-		color: var(--accent);
-		margin-bottom: var(--space-xs);
-	}
-
-	.xp-text {
-		font-size: 9px;
-		color: var(--text-muted);
-	}
-
-	.section-title {
-		font-size: 10px;
-		color: var(--accent);
-		margin-bottom: var(--space-md);
-		margin-top: var(--space-lg);
+	/* Stats Grid */
+	.stats-section {
+		margin-bottom: var(--spacing-lg);
 	}
 
 	.stats-grid {
 		display: grid;
 		grid-template-columns: repeat(2, 1fr);
-		gap: var(--space-sm);
+		gap: var(--spacing-sm);
 	}
 
-	.stat-card {
+	.stat-item {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: var(--space-md);
-		background: var(--bg-card);
-		border: 4px solid var(--border);
-		text-align: center;
-	}
-
-	.stat-icon {
-		font-size: 24px;
-		margin-bottom: var(--space-xs);
+		gap: var(--spacing-xs);
 	}
 
 	.stat-value {
-		font-size: 14px;
-		color: var(--accent);
+		font-size: var(--font-size-lg);
 	}
 
 	.stat-label {
-		font-size: 7px;
-		color: var(--text-muted);
-		margin-top: var(--space-xs);
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		text-transform: uppercase;
 	}
 
-	.history-list {
+	/* Detailed Stats */
+	.detailed-stats {
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.detail-list {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-xs);
+		gap: var(--spacing-sm);
 	}
 
-	.history-item {
+	.detail-item {
 		display: flex;
-		align-items: center;
-		gap: var(--space-md);
-		padding: var(--space-sm) var(--space-md);
+		justify-content: space-between;
+		font-size: var(--font-size-xs);
 	}
 
-	.history-date {
-		font-size: 9px;
-		color: var(--text-muted);
-		min-width: 60px;
+	.detail-label {
+		color: var(--text-secondary);
+		text-transform: uppercase;
 	}
 
-	.history-info {
-		flex: 1;
-	}
-
-	.history-exercises {
-		font-size: 9px;
+	.detail-value {
 		color: var(--text-primary);
 	}
 
-	.history-xp {
-		font-size: 10px;
-		color: var(--accent);
+	/* Streak Section */
+	.streak-section {
+		margin-bottom: var(--spacing-lg);
 	}
 
-	.loading-text, .empty-text {
-		font-size: 10px;
-		color: var(--text-muted);
-		text-align: center;
-		padding: var(--space-lg);
-	}
-
-	.setting-item {
+	.streak-display {
 		display: flex;
-		justify-content: space-between;
+		flex-direction: column;
 		align-items: center;
+		gap: var(--spacing-md);
 	}
 
-	.setting-label {
-		font-size: 10px;
+	.streak-icon {
+		animation: pixel-pulse 2s ease-in-out infinite;
 	}
 
-	.toggle-btn {
-		padding: var(--space-sm) var(--space-md);
-		background: var(--bg-dark);
-		border: 2px solid var(--border);
-		color: var(--text-muted);
-		font-family: 'Press Start 2P', monospace;
-		font-size: 8px;
-		cursor: pointer;
+	.streak-info {
+		text-align: center;
 	}
 
-	.toggle-btn.active {
-		background: var(--secondary);
-		border-color: var(--secondary);
-		color: var(--bg-dark);
+	.streak-current {
+		display: block;
+		font-size: var(--font-size-lg);
+		color: var(--pixel-yellow);
+	}
+
+	.streak-max {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+
+	.streak-visual {
+		display: flex;
+		gap: var(--spacing-xs);
+	}
+
+	.streak-day {
+		width: 24px;
+		height: 24px;
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.streak-day.active {
+		border-color: var(--pixel-green);
+		background: rgba(0, 168, 0, 0.2);
+	}
+
+	/* Links Section */
+	.links-section {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+	}
+
+	.link-item {
+		text-decoration: none;
+	}
+
+	.link-content {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+		font-size: var(--font-size-sm);
+		text-transform: uppercase;
+	}
+
+	.link-count {
+		margin-left: auto;
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+
+	@keyframes pixel-pulse {
+		0%, 100% { transform: scale(1); }
+		50% { transform: scale(1.1); }
 	}
 </style>

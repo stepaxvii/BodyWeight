@@ -1,137 +1,124 @@
-import hashlib
-import hmac
-from datetime import datetime, timedelta
-from urllib.parse import parse_qsl
-
-from fastapi import APIRouter, HTTPException, status, Depends
-from jose import jwt
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import get_settings
-from app.db.database import get_session
+from app.api.deps import AsyncSessionDep, validate_telegram_init_data
 from app.db.models import User
+from app.config import settings
 
-router = APIRouter(prefix="/auth", tags=["auth"])
-settings = get_settings()
+router = APIRouter()
 
 
-class TelegramAuthRequest(BaseModel):
+class AuthRequest(BaseModel):
     init_data: str
 
 
+class UserResponse(BaseModel):
+    id: int
+    telegram_id: int
+    username: str | None
+    first_name: str | None
+    last_name: str | None
+    photo_url: str | None
+    level: int
+    total_xp: int
+    coins: int
+    current_streak: int
+    max_streak: int
+
+    class Config:
+        from_attributes = True
+
+
 class AuthResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    is_new_user: bool
-    user: dict
+    user: UserResponse
+    is_new: bool
 
 
-def validate_init_data(init_data: str, bot_token: str) -> dict | None:
-    """Validate Telegram WebApp init data."""
-    try:
-        parsed = dict(parse_qsl(init_data, keep_blank_values=True))
-
-        if "hash" not in parsed:
-            return None
-
-        received_hash = parsed.pop("hash")
-
-        data_check_string = "\n".join(
-            f"{k}={v}" for k, v in sorted(parsed.items())
-        )
-
-        secret_key = hmac.new(
-            b"WebAppData",
-            bot_token.encode(),
-            hashlib.sha256
-        ).digest()
-
-        calculated_hash = hmac.new(
-            secret_key,
-            data_check_string.encode(),
-            hashlib.sha256
-        ).hexdigest()
-
-        if calculated_hash != received_hash:
-            return None
-
-        return parsed
-    except Exception:
-        return None
-
-
-def create_access_token(telegram_id: int) -> str:
-    """Create JWT access token."""
-    expire = datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)
-    to_encode = {
-        "sub": str(telegram_id),
-        "exp": expire,
-    }
-    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
-
-
-@router.post("/telegram", response_model=AuthResponse)
-async def auth_telegram(
-    request: TelegramAuthRequest,
-    session: AsyncSession = Depends(get_session),
+@router.post("/validate", response_model=AuthResponse)
+async def validate_auth(
+    request: AuthRequest,
+    session: AsyncSessionDep,
 ):
-    """Authenticate user via Telegram WebApp."""
-    validated = validate_init_data(request.init_data, settings.bot_token)
+    """
+    Validate Telegram init data and create/update user.
+    This is the main auth endpoint called when Mini App opens.
+    """
+    # In debug mode, allow mock auth
+    if settings.debug and request.init_data.startswith("debug_"):
+        try:
+            telegram_id = int(request.init_data.split("_")[1])
+            result = await session.execute(
+                select(User).where(User.telegram_id == telegram_id)
+            )
+            user = result.scalar_one_or_none()
+            if user:
+                return AuthResponse(user=UserResponse.model_validate(user), is_new=False)
+            else:
+                # Create debug user
+                user = User(
+                    telegram_id=telegram_id,
+                    username=f"debug_user_{telegram_id}",
+                    first_name="Debug",
+                    last_name="User",
+                )
+                session.add(user)
+                await session.flush()
+                return AuthResponse(user=UserResponse.model_validate(user), is_new=True)
+        except (ValueError, IndexError):
+            pass
 
-    if not validated:
+    # Validate Telegram init data
+    validated_data = validate_telegram_init_data(request.init_data, settings.bot_token)
+
+    if not validated_data:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid init data",
+            detail="Invalid or expired Telegram init data",
         )
 
-    import json
-    user_data = json.loads(validated.get("user", "{}"))
+    user_data = validated_data.get("user")
+    if not user_data:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User data not found in init data",
+        )
 
     telegram_id = user_data.get("id")
-    if not telegram_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User ID not found",
-        )
+    username = user_data.get("username")
+    first_name = user_data.get("first_name")
+    last_name = user_data.get("last_name")
+    photo_url = user_data.get("photo_url")
 
+    # Get or create user
     result = await session.execute(
         select(User).where(User.telegram_id == telegram_id)
     )
     user = result.scalar_one_or_none()
-
-    is_new_user = False
+    is_new = False
 
     if not user:
-        is_new_user = True
+        # Create new user
         user = User(
             telegram_id=telegram_id,
-            username=user_data.get("username"),
-            first_name=user_data.get("first_name"),
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+            photo_url=photo_url,
         )
         session.add(user)
-        await session.commit()
-        await session.refresh(user)
+        await session.flush()
+        is_new = True
     else:
-        user.username = user_data.get("username")
-        user.first_name = user_data.get("first_name")
-        await session.commit()
-
-    access_token = create_access_token(telegram_id)
+        # Update existing user info
+        user.username = username
+        user.first_name = first_name
+        user.last_name = last_name
+        if photo_url:
+            user.photo_url = photo_url
+        await session.flush()
 
     return AuthResponse(
-        access_token=access_token,
-        is_new_user=is_new_user,
-        user={
-            "id": user.id,
-            "telegram_id": user.telegram_id,
-            "username": user.username,
-            "first_name": user.first_name,
-            "level": user.level,
-            "experience": user.experience,
-            "streak_days": user.streak_days,
-            "total_workouts": user.total_workouts,
-            "total_reps": user.total_reps,
-        }
+        user=UserResponse.model_validate(user),
+        is_new=is_new,
     )

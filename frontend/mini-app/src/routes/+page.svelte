@@ -1,293 +1,336 @@
 <script lang="ts">
-	import { user, getLevelProgress, getXPForNextLevel } from '$lib/stores/user';
 	import { base } from '$app/paths';
+	import { PixelButton, PixelCard, PixelProgress, PixelIcon } from '$lib/components/ui';
+	import { userStore } from '$lib/stores/user';
+	import { api } from '$lib/api/client';
+	import { onMount } from 'svelte';
+	import type { Achievement } from '$lib/types';
 
-	let levelProgress = $derived($user ? getLevelProgress($user.experience, $user.level) : 0);
-	let xpForNext = $derived($user ? getXPForNextLevel($user.level) : 200);
+	let recentAchievements = $state<Achievement[]>([]);
+
+	onMount(async () => {
+		await userStore.loadStats();
+		const achievements = await api.getAchievements();
+		recentAchievements = achievements.filter(a => a.unlocked).slice(0, 3);
+	});
+
+	// Level XP calculation
+	const currentLevelXp = $derived(100 * userStore.level * userStore.level);
+	const nextLevelXp = $derived(100 * (userStore.level + 1) * (userStore.level + 1));
+	const xpInLevel = $derived(userStore.xp - currentLevelXp);
+	const xpNeeded = $derived(nextLevelXp - currentLevelXp);
 </script>
 
-<div class="container">
-	{#if $user}
-		<!-- Header -->
-		<header class="hero-header">
-			<div class="hero-title">
-				<span class="hero-icon">⚔️</span>
-				<span>BODYWEIGHT</span>
-			</div>
-			<div class="hero-subtitle">ВОИН {$user.first_name || $user.username || 'НЕИЗВЕСТНЫЙ'}</div>
-		</header>
+<div class="page container">
+	<!-- Header with user info -->
+	<header class="page-header">
+		<div class="user-greeting">
+			<span class="greeting-text">Welcome back,</span>
+			<span class="user-name">{userStore.displayName}!</span>
+		</div>
+	</header>
 
-		<!-- Level Card -->
-		<div class="pixel-card level-card">
-			<div class="level-header">
-				<div class="level-badge-large">
-					<span class="level-label">LVL</span>
-					<span class="level-value">{$user.level}</span>
+	<!-- Stats Row -->
+	<section class="stats-row">
+		<PixelCard padding="sm">
+			<div class="stat">
+				<PixelIcon name="level" size="lg" color="var(--pixel-accent)" />
+				<div class="stat-info">
+					<span class="stat-value">{userStore.level}</span>
+					<span class="stat-label">Level</span>
 				</div>
-				<div class="xp-info">
-					<div class="xp-text">{$user.experience} / {xpForNext} XP</div>
-					<div class="pixel-progress">
-						<div class="pixel-progress-fill xp" style="width: {levelProgress}%"></div>
+			</div>
+		</PixelCard>
+
+		<PixelCard padding="sm">
+			<div class="stat">
+				<PixelIcon name="streak" size="lg" color="var(--pixel-yellow)" />
+				<div class="stat-info">
+					<span class="stat-value">{userStore.streak}</span>
+					<span class="stat-label">Streak</span>
+				</div>
+			</div>
+		</PixelCard>
+
+		<PixelCard padding="sm">
+			<div class="stat">
+				<PixelIcon name="coin" size="lg" color="var(--pixel-orange)" />
+				<div class="stat-info">
+					<span class="stat-value">{userStore.coins}</span>
+					<span class="stat-label">Coins</span>
+				</div>
+			</div>
+		</PixelCard>
+	</section>
+
+	<!-- XP Progress -->
+	<section class="xp-section">
+		<PixelCard>
+			<div class="xp-header">
+				<div class="xp-title">
+					<PixelIcon name="xp" color="var(--pixel-blue)" />
+					<span>Experience</span>
+				</div>
+				<span class="xp-total">{userStore.xp} XP</span>
+			</div>
+			<PixelProgress
+				value={xpInLevel}
+				max={xpNeeded}
+				variant="xp"
+				showLabel
+				size="lg"
+			/>
+			<div class="xp-footer">
+				<span class="text-muted">Next level: {nextLevelXp} XP</span>
+			</div>
+		</PixelCard>
+	</section>
+
+	<!-- Quick Start Button -->
+	<section class="action-section">
+		<a href="{base}/workout" class="start-workout-link">
+			<PixelButton variant="primary" size="lg" fullWidth>
+				<PixelIcon name="play" />
+				Start Workout
+			</PixelButton>
+		</a>
+	</section>
+
+	<!-- Today's Stats -->
+	{#if userStore.stats}
+		<section class="today-section">
+			<h3 class="section-title">This Week</h3>
+			<div class="today-grid">
+				<PixelCard padding="sm">
+					<div class="today-stat">
+						<span class="today-value">{userStore.stats.this_week_workouts}</span>
+						<span class="today-label">Workouts</span>
 					</div>
-				</div>
+				</PixelCard>
+				<PixelCard padding="sm">
+					<div class="today-stat">
+						<span class="today-value">{userStore.stats.this_week_xp}</span>
+						<span class="today-label">XP Earned</span>
+					</div>
+				</PixelCard>
 			</div>
-		</div>
+		</section>
+	{/if}
 
-		<!-- Stats Grid -->
-		<div class="stats-grid">
-			<div class="stat-box">
-				<div class="stat-icon streak-fire">🔥</div>
-				<div class="stat-value">{$user.streak_days}</div>
-				<div class="stat-label">ДНЕЙ</div>
+	<!-- Recent Achievements -->
+	{#if recentAchievements.length > 0}
+		<section class="achievements-section">
+			<div class="section-header">
+				<h3 class="section-title">Recent Achievements</h3>
+				<a href="{base}/achievements" class="see-all">See All</a>
 			</div>
-			<div class="stat-box">
-				<div class="stat-icon">💪</div>
-				<div class="stat-value">{$user.total_workouts}</div>
-				<div class="stat-label">ТРЕНИ</div>
+			<div class="achievements-list">
+				{#each recentAchievements as achievement}
+					<PixelCard padding="sm" hoverable>
+						<div class="achievement-item">
+							<div class="achievement-icon">
+								<PixelIcon name="trophy" size="lg" color="var(--pixel-yellow)" />
+							</div>
+							<div class="achievement-info">
+								<span class="achievement-name">{achievement.name_ru}</span>
+								<span class="achievement-desc">{achievement.description_ru}</span>
+							</div>
+						</div>
+					</PixelCard>
+				{/each}
 			</div>
-			<div class="stat-box">
-				<div class="stat-icon">🔢</div>
-				<div class="stat-value">{$user.total_reps}</div>
-				<div class="stat-label">ПОВТОРЫ</div>
-			</div>
-		</div>
-
-		<!-- Quick Actions -->
-		<div class="quick-actions">
-			<a href="{base}/workout" class="action-card primary">
-				<div class="action-icon">🎮</div>
-				<div class="action-text">
-					<div class="action-title">НАЧАТЬ ТРЕНИРОВКУ</div>
-					<div class="action-desc">Заработай опыт!</div>
-				</div>
-			</a>
-
-			<a href="{base}/exercises" class="action-card">
-				<div class="action-icon">📋</div>
-				<div class="action-text">
-					<div class="action-title">УПРАЖНЕНИЯ</div>
-					<div class="action-desc">Изучи арсенал</div>
-				</div>
-			</a>
-
-			<a href="{base}/goals" class="action-card">
-				<div class="action-icon">🎯</div>
-				<div class="action-text">
-					<div class="action-title">ЦЕЛИ</div>
-					<div class="action-desc">Ставь задачи</div>
-				</div>
-			</a>
-
-			<a href="{base}/friends" class="action-card">
-				<div class="action-icon">👥</div>
-				<div class="action-text">
-					<div class="action-title">ДРУЗЬЯ</div>
-					<div class="action-desc">Соревнуйся</div>
-				</div>
-			</a>
-		</div>
-
-		<!-- Motivation -->
-		<div class="motivation-card pixel-card">
-			<div class="motivation-icon">⚡</div>
-			<div class="motivation-text">
-				{#if $user.streak_days > 0}
-					Серия {$user.streak_days} дней! Продолжай в том же духе, воин!
-				{:else}
-					Начни новую серию тренировок сегодня!
-				{/if}
-			</div>
-		</div>
-	{:else}
-		<div class="no-user">
-			<div class="pixel-text">Загрузка данных воина...</div>
-		</div>
+		</section>
 	{/if}
 </div>
 
 <style>
-	.hero-header {
+	.page {
+		padding-top: var(--spacing-md);
+		padding-bottom: var(--spacing-lg);
+	}
+
+	.page-header {
 		text-align: center;
-		padding: var(--space-lg) 0;
+		margin-bottom: var(--spacing-lg);
 	}
 
-	.hero-title {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: var(--space-sm);
-		font-size: 18px;
-		color: var(--accent);
-		text-shadow: 4px 4px 0 rgba(0,0,0,0.5);
-	}
-
-	.hero-icon {
-		font-size: 24px;
-	}
-
-	.hero-subtitle {
-		font-size: 10px;
-		color: var(--text-secondary);
-		margin-top: var(--space-sm);
-	}
-
-	.level-card {
-		background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-medium) 100%);
-	}
-
-	.level-header {
-		display: flex;
-		align-items: center;
-		gap: var(--space-md);
-	}
-
-	.level-badge-large {
+	.user-greeting {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		width: 64px;
-		height: 64px;
-		background: linear-gradient(180deg, var(--accent) 0%, #cc8800 100%);
-		border: 4px solid #996600;
-		box-shadow:
-			inset 4px 4px 0 rgba(255,255,255,0.4),
-			4px 4px 0 rgba(0,0,0,0.3);
+		gap: var(--spacing-xs);
 	}
 
-	.level-label {
-		font-size: 8px;
-		color: var(--bg-dark);
+	.greeting-text {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		text-transform: uppercase;
 	}
 
-	.level-value {
-		font-size: 20px;
-		color: var(--bg-dark);
+	.user-name {
+		font-size: var(--font-size-lg);
+		color: var(--pixel-accent);
 	}
 
-	.xp-info {
-		flex: 1;
-	}
-
-	.xp-text {
-		font-size: 10px;
-		color: var(--accent);
-		margin-bottom: var(--space-sm);
-	}
-
-	.stats-grid {
+	/* Stats Row */
+	.stats-row {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
-		gap: var(--space-sm);
-		margin-top: var(--space-md);
+		gap: var(--spacing-sm);
+		margin-bottom: var(--spacing-md);
 	}
 
-	.stat-box {
+	.stat {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: var(--space-md);
-		background: var(--bg-card);
-		border: 4px solid var(--border);
+		gap: var(--spacing-xs);
 	}
 
-	.stat-icon {
-		font-size: 24px;
-		margin-bottom: var(--space-xs);
+	.stat-info {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 	}
 
 	.stat-value {
-		font-size: 16px;
-		color: var(--accent);
+		font-size: var(--font-size-md);
+		color: var(--text-primary);
 	}
 
 	.stat-label {
-		font-size: 7px;
-		color: var(--text-muted);
-		margin-top: var(--space-xs);
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		text-transform: uppercase;
 	}
 
-	.quick-actions {
+	/* XP Section */
+	.xp-section {
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.xp-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.xp-title {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		font-size: var(--font-size-sm);
+		text-transform: uppercase;
+	}
+
+	.xp-total {
+		font-size: var(--font-size-sm);
+		color: var(--pixel-blue);
+	}
+
+	.xp-footer {
+		margin-top: var(--spacing-xs);
+		font-size: var(--font-size-xs);
+	}
+
+	/* Action Section */
+	.action-section {
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.start-workout-link {
+		text-decoration: none;
+		display: block;
+	}
+
+	/* Today Section */
+	.today-section {
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.section-title {
+		font-size: var(--font-size-sm);
+		margin-bottom: var(--spacing-sm);
+		text-transform: uppercase;
+	}
+
+	.today-grid {
 		display: grid;
 		grid-template-columns: repeat(2, 1fr);
-		gap: var(--space-sm);
-		margin-top: var(--space-lg);
+		gap: var(--spacing-sm);
 	}
 
-	.action-card {
+	.today-stat {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: var(--space-md);
-		background: var(--bg-card);
-		border: 4px solid var(--border);
-		text-decoration: none;
-		color: var(--text-primary);
-		transition: all 0.1s;
+		gap: var(--spacing-xs);
 	}
 
-	.action-card:hover {
-		border-color: var(--accent);
-		transform: translateY(-2px);
+	.today-value {
+		font-size: var(--font-size-xl);
+		color: var(--pixel-green);
 	}
 
-	.action-card.primary {
-		grid-column: span 2;
-		flex-direction: row;
-		gap: var(--space-md);
-		background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-		border-color: var(--primary-dark);
-	}
-
-	.action-icon {
-		font-size: 28px;
-	}
-
-	.action-text {
-		text-align: center;
-	}
-
-	.action-card.primary .action-text {
-		text-align: left;
-	}
-
-	.action-title {
-		font-size: 10px;
-		color: var(--text-primary);
-	}
-
-	.action-desc {
-		font-size: 7px;
+	.today-label {
+		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
-		margin-top: var(--space-xs);
+		text-transform: uppercase;
 	}
 
-	.action-card.primary .action-desc {
-		color: rgba(255,255,255,0.8);
+	/* Achievements Section */
+	.achievements-section {
+		margin-bottom: var(--spacing-lg);
 	}
 
-	.motivation-card {
+	.section-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.see-all {
+		font-size: var(--font-size-xs);
+		color: var(--pixel-accent);
+		text-transform: uppercase;
+	}
+
+	.achievements-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+	}
+
+	.achievement-item {
 		display: flex;
 		align-items: center;
-		gap: var(--space-md);
-		margin-top: var(--space-lg);
-		background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-medium) 100%);
+		gap: var(--spacing-md);
 	}
 
-	.motivation-icon {
-		font-size: 24px;
-	}
-
-	.motivation-text {
-		font-size: 8px;
-		line-height: 1.6;
-		color: var(--text-secondary);
-	}
-
-	.no-user {
+	.achievement-icon {
+		width: 32px;
+		height: 32px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		min-height: 50vh;
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--pixel-yellow);
+	}
+
+	.achievement-info {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.achievement-name {
+		font-size: var(--font-size-xs);
+		color: var(--text-primary);
+	}
+
+	.achievement-desc {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
 	}
 </style>

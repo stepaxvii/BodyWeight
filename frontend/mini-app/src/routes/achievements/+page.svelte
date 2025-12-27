@@ -1,219 +1,304 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api, type AchievementWithStatus } from '$lib/api/client';
+	import { PixelCard, PixelIcon, PixelProgress } from '$lib/components/ui';
+	import { api } from '$lib/api/client';
+	import { telegram } from '$lib/stores/telegram';
+	import type { Achievement } from '$lib/types';
 
-	let achievements: AchievementWithStatus[] = $state([]);
-	let isLoading = $state(true);
-	let selectedCategory = $state('all');
-
-	const categories = [
-		{ id: 'all', name: 'Все' },
-		{ id: 'streak', name: 'Серия' },
-		{ id: 'volume', name: 'Объём' },
-		{ id: 'record', name: 'Рекорды' },
-		{ id: 'level', name: 'Уровень' },
-		{ id: 'special', name: 'Особые' },
-	];
+	let achievements = $state<Achievement[]>([]);
+	let filter = $state<'all' | 'unlocked' | 'locked'>('all');
 
 	onMount(async () => {
-		try {
-			achievements = await api.getAchievements();
-		} catch (error) {
-			console.error('Failed to load achievements:', error);
-		} finally {
-			isLoading = false;
+		achievements = await api.getAchievements();
+	});
+
+	const filteredAchievements = $derived(() => {
+		switch (filter) {
+			case 'unlocked':
+				return achievements.filter(a => a.unlocked);
+			case 'locked':
+				return achievements.filter(a => !a.unlocked);
+			default:
+				return achievements;
 		}
 	});
 
-	let filteredAchievements = $derived(
-		selectedCategory === 'all'
-			? achievements
-			: achievements.filter(a => a.category === selectedCategory)
-	);
+	const unlockedCount = $derived(achievements.filter(a => a.unlocked).length);
 
-	let unlockedCount = $derived(
-		achievements.filter(a => a.is_unlocked).length
-	);
+	function setFilter(newFilter: 'all' | 'unlocked' | 'locked') {
+		filter = newFilter;
+		telegram.hapticImpact('light');
+	}
+
+	function getProgressPercent(achievement: Achievement): number {
+		if (achievement.unlocked) return 100;
+		if (!achievement.progress || !achievement.condition.value) return 0;
+		return Math.min(100, Math.floor((achievement.progress / achievement.condition.value) * 100));
+	}
 </script>
 
-<div class="container">
+<div class="page container">
 	<header class="page-header">
-		<h1 class="pixel-title">🏆 ДОСТИЖЕНИЯ</h1>
-		<div class="achievements-count">
-			{unlockedCount} / {achievements.length} ОТКРЫТО
-		</div>
+		<h1>Achievements</h1>
+		<p class="achievement-count">{unlockedCount} / {achievements.length} Unlocked</p>
 	</header>
 
-	<!-- Categories -->
-	<div class="categories-scroll">
-		{#each categories as cat}
-			<button
-				class="category-btn"
-				class:active={selectedCategory === cat.id}
-				onclick={() => selectedCategory = cat.id}
+	<!-- Filter Tabs -->
+	<div class="filters">
+		<button
+			class="filter-btn"
+			class:active={filter === 'all'}
+			onclick={() => setFilter('all')}
+		>
+			All
+		</button>
+		<button
+			class="filter-btn"
+			class:active={filter === 'unlocked'}
+			onclick={() => setFilter('unlocked')}
+		>
+			<PixelIcon name="check" size="sm" />
+			Unlocked
+		</button>
+		<button
+			class="filter-btn"
+			class:active={filter === 'locked'}
+			onclick={() => setFilter('locked')}
+		>
+			<PixelIcon name="lock" size="sm" />
+			Locked
+		</button>
+	</div>
+
+	<!-- Achievement Grid -->
+	<div class="achievements-grid">
+		{#each filteredAchievements() as achievement}
+			<PixelCard
+				variant={achievement.unlocked ? 'success' : 'default'}
+				padding="md"
 			>
-				{cat.name}
-			</button>
+				<div class="achievement" class:unlocked={achievement.unlocked}>
+					<div class="achievement-icon" class:locked={!achievement.unlocked}>
+						{#if achievement.unlocked}
+							<PixelIcon name="trophy" size="xl" color="var(--pixel-yellow)" />
+						{:else}
+							<PixelIcon name="lock" size="xl" color="var(--text-muted)" />
+						{/if}
+					</div>
+
+					<div class="achievement-info">
+						<span class="achievement-name">{achievement.name_ru}</span>
+						<span class="achievement-desc">{achievement.description_ru}</span>
+					</div>
+
+					{#if !achievement.unlocked && achievement.progress !== undefined && achievement.condition.value}
+						<div class="achievement-progress">
+							<PixelProgress
+								value={achievement.progress}
+								max={achievement.condition.value}
+								size="sm"
+								showLabel
+							/>
+						</div>
+					{/if}
+
+					{#if achievement.unlocked}
+						<div class="achievement-rewards">
+							<span class="reward xp">
+								<PixelIcon name="xp" size="sm" color="var(--pixel-blue)" />
+								+{achievement.xp_reward}
+							</span>
+							<span class="reward coins">
+								<PixelIcon name="coin" size="sm" color="var(--pixel-orange)" />
+								+{achievement.coin_reward}
+							</span>
+						</div>
+					{:else}
+						<div class="achievement-rewards locked">
+							<span class="reward">
+								<PixelIcon name="xp" size="sm" />
+								{achievement.xp_reward} XP
+							</span>
+							<span class="reward">
+								<PixelIcon name="coin" size="sm" />
+								{achievement.coin_reward}
+							</span>
+						</div>
+					{/if}
+
+					{#if achievement.unlocked && achievement.unlocked_at}
+						<div class="unlock-date">
+							{new Date(achievement.unlocked_at).toLocaleDateString('ru-RU')}
+						</div>
+					{/if}
+				</div>
+			</PixelCard>
 		{/each}
 	</div>
 
-	{#if isLoading}
-		<div class="loading">
-			<div class="loading-icon">🏆</div>
-			<div class="loading-text">Загрузка достижений...</div>
-		</div>
-	{:else}
-		<div class="achievements-grid">
-			{#each filteredAchievements as achievement}
-				<div class="achievement-card pixel-card" class:unlocked={achievement.is_unlocked}>
-					<div class="achievement-icon-wrapper" class:unlocked={achievement.is_unlocked}>
-						<span class="achievement-icon">{achievement.icon}</span>
-					</div>
-					<div class="achievement-info">
-						<div class="achievement-name">{achievement.name}</div>
-						<div class="achievement-desc">{achievement.description}</div>
-						{#if achievement.is_unlocked}
-							<div class="achievement-date">
-								✅ Получено
-							</div>
-						{:else}
-							<div class="achievement-reward">
-								+{achievement.exp_reward} XP
-							</div>
-						{/if}
-					</div>
-				</div>
-			{/each}
+	{#if filteredAchievements().length === 0}
+		<div class="empty-state">
+			<PixelIcon name="trophy" size="xl" color="var(--text-muted)" />
+			<p>No achievements to show</p>
 		</div>
 	{/if}
 </div>
 
 <style>
+	.page {
+		padding-top: var(--spacing-md);
+		padding-bottom: var(--spacing-lg);
+	}
+
 	.page-header {
 		text-align: center;
-		margin-bottom: var(--space-md);
+		margin-bottom: var(--spacing-lg);
 	}
 
-	.achievements-count {
-		font-size: 10px;
-		color: var(--text-muted);
-		margin-top: var(--space-sm);
-	}
-
-	.categories-scroll {
-		display: flex;
-		gap: var(--space-xs);
-		overflow-x: auto;
-		padding: var(--space-sm) 0;
-		margin-bottom: var(--space-lg);
-	}
-
-	.category-btn {
-		flex-shrink: 0;
-		padding: var(--space-sm) var(--space-md);
-		background: var(--bg-card);
-		border: 2px solid var(--border);
+	.achievement-count {
+		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
-		font-family: 'Press Start 2P', monospace;
-		font-size: 8px;
-		cursor: pointer;
+		margin-top: var(--spacing-xs);
 	}
 
-	.category-btn.active {
-		border-color: var(--accent);
-		color: var(--accent);
-	}
-
-	.loading {
+	/* Filters */
+	.filters {
 		display: flex;
-		flex-direction: column;
+		gap: var(--spacing-xs);
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.filter-btn {
+		flex: 1;
+		display: flex;
 		align-items: center;
 		justify-content: center;
-		min-height: 40vh;
+		gap: var(--spacing-xs);
+		padding: var(--spacing-sm);
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		text-transform: uppercase;
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		color: var(--text-secondary);
+		cursor: pointer;
+		transition: all var(--transition-fast);
 	}
 
-	.loading-icon {
-		font-size: 48px;
-		animation: bounce 1s infinite;
+	.filter-btn:hover {
+		border-color: var(--pixel-accent);
+		color: var(--text-primary);
 	}
 
-	.loading-text {
-		font-size: 10px;
-		color: var(--text-muted);
-		margin-top: var(--space-md);
+	.filter-btn.active {
+		background: var(--pixel-accent);
+		border-color: var(--pixel-accent-hover);
+		color: var(--text-primary);
 	}
 
+	/* Achievement Grid */
 	.achievements-grid {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-md);
+		gap: var(--spacing-md);
 	}
 
-	.achievement-card {
+	.achievement {
 		display: flex;
-		gap: var(--space-md);
-		opacity: 0.6;
-	}
-
-	.achievement-card.unlocked {
-		opacity: 1;
-	}
-
-	.achievement-icon-wrapper {
-		width: 56px;
-		height: 56px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: var(--bg-dark);
-		border: 4px solid var(--border);
-		flex-shrink: 0;
-	}
-
-	.achievement-icon-wrapper.unlocked {
-		background: linear-gradient(135deg, var(--accent) 0%, var(--warning) 100%);
-		border-color: #cc8800;
-		animation: glow 2s infinite;
+		flex-direction: column;
+		gap: var(--spacing-sm);
 	}
 
 	.achievement-icon {
-		font-size: 28px;
+		width: 48px;
+		height: 48px;
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--pixel-yellow);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin: 0 auto;
+	}
+
+	.achievement-icon.locked {
+		border-color: var(--border-color);
+		opacity: 0.6;
+	}
+
+	.achievement.unlocked .achievement-icon {
+		animation: pixel-glow 2s ease-in-out infinite;
 	}
 
 	.achievement-info {
-		flex: 1;
+		text-align: center;
 	}
 
 	.achievement-name {
-		font-size: 10px;
-		color: var(--text-primary);
-		margin-bottom: var(--space-xs);
+		display: block;
+		font-size: var(--font-size-sm);
+		margin-bottom: var(--spacing-xs);
+	}
+
+	.achievement:not(.unlocked) .achievement-name {
+		color: var(--text-secondary);
 	}
 
 	.achievement-desc {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+
+	.achievement-progress {
+		margin-top: var(--spacing-xs);
+	}
+
+	.achievement-rewards {
+		display: flex;
+		justify-content: center;
+		gap: var(--spacing-md);
+		margin-top: var(--spacing-xs);
+	}
+
+	.achievement-rewards.locked {
+		opacity: 0.5;
+	}
+
+	.reward {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		font-size: var(--font-size-xs);
+	}
+
+	.reward.xp {
+		color: var(--pixel-blue);
+	}
+
+	.reward.coins {
+		color: var(--pixel-orange);
+	}
+
+	.unlock-date {
 		font-size: 8px;
 		color: var(--text-muted);
-		line-height: 1.5;
-		margin-bottom: var(--space-sm);
+		text-align: center;
+		margin-top: var(--spacing-xs);
 	}
 
-	.achievement-date {
-		font-size: 8px;
-		color: var(--secondary);
+	/* Empty State */
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--spacing-md);
+		padding: var(--spacing-xl);
+		color: var(--text-muted);
+		font-size: var(--font-size-sm);
+		text-align: center;
 	}
 
-	.achievement-reward {
-		font-size: 8px;
-		color: var(--accent);
-	}
-
-	@keyframes bounce {
-		0%, 100% { transform: translateY(0); }
-		50% { transform: translateY(-10px); }
-	}
-
-	@keyframes glow {
-		0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-		50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+	@keyframes pixel-glow {
+		0%, 100% { box-shadow: 0 0 4px var(--pixel-yellow); }
+		50% { box-shadow: 0 0 12px var(--pixel-yellow); }
 	}
 </style>

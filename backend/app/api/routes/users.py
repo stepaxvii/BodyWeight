@@ -1,146 +1,142 @@
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import date, time
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
+from sqlalchemy import select, func
 
-from app.api.deps import get_current_user
-from app.db.database import get_session
-from app.db.models import User
+from app.api.deps import AsyncSessionDep, CurrentUser
+from app.db.models import User, WorkoutSession, UserAchievement
+from app.services.xp_calculator import xp_for_level, get_level_from_xp
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter()
 
 
 class UserResponse(BaseModel):
     id: int
     telegram_id: int
-    username: Optional[str]
-    first_name: Optional[str]
+    username: str | None
+    first_name: str | None
+    last_name: str | None
+    photo_url: str | None
     level: int
-    experience: int
-    streak_days: int
-    total_workouts: int
-    total_reps: int
-    total_time_seconds: int
+    total_xp: int
+    coins: int
+    current_streak: int
+    max_streak: int
+    last_workout_date: date | None
+    notification_time: time | None
     notifications_enabled: bool
-    reminder_time: Optional[str]
 
     class Config:
         from_attributes = True
 
 
-class UserUpdate(BaseModel):
-    notifications_enabled: Optional[bool] = None
-    reminder_time: Optional[str] = None
-
-
-class UserStats(BaseModel):
-    level: int
-    experience: int
-    exp_to_next_level: int
-    streak_days: int
+class UserStatsResponse(BaseModel):
     total_workouts: int
+    total_xp: int
     total_reps: int
-    total_time_seconds: int
-    workouts_this_week: int
-    reps_this_week: int
+    current_level: int
+    xp_for_next_level: int
+    xp_progress_percent: float
+    current_streak: int
+    max_streak: int
+    achievements_count: int
+    coins: int
 
 
-def calculate_exp_for_level(level: int) -> int:
-    """Calculate total XP needed for a level."""
-    return 100 * level * level
-
-
-def calculate_level(exp: int) -> int:
-    """Calculate level from total XP."""
-    level = 1
-    while calculate_exp_for_level(level) <= exp:
-        level += 1
-    return level - 1 if level > 1 else 1
+class UpdateUserRequest(BaseModel):
+    notification_time: time | None = None
+    notifications_enabled: bool | None = None
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_me(user: User = Depends(get_current_user)):
-    """Get current user info."""
-    return user
+async def get_current_user_profile(user: CurrentUser):
+    """Get current user's profile."""
+    return UserResponse.model_validate(user)
 
 
-@router.patch("/me", response_model=UserResponse)
-async def update_me(
-    data: UserUpdate,
-    user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+@router.put("/me", response_model=UserResponse)
+async def update_current_user(
+    user: CurrentUser,
+    request: UpdateUserRequest,
+    session: AsyncSessionDep,
 ):
-    """Update current user settings."""
-    if data.notifications_enabled is not None:
-        user.notifications_enabled = data.notifications_enabled
-    if data.reminder_time is not None:
-        user.reminder_time = data.reminder_time
+    """Update current user's settings."""
+    if request.notification_time is not None:
+        user.notification_time = request.notification_time
+    if request.notifications_enabled is not None:
+        user.notifications_enabled = request.notifications_enabled
 
-    await session.commit()
-    await session.refresh(user)
-    return user
+    await session.flush()
+    return UserResponse.model_validate(user)
 
 
-@router.get("/me/stats", response_model=UserStats)
-async def get_my_stats(
-    user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+@router.get("/me/stats", response_model=UserStatsResponse)
+async def get_current_user_stats(
+    user: CurrentUser,
+    session: AsyncSessionDep,
 ):
-    """Get detailed user statistics."""
-    from datetime import datetime, timedelta
-    from sqlalchemy import func
-    from app.db.models import Workout, WorkoutExercise
-
-    week_ago = datetime.utcnow() - timedelta(days=7)
-
-    # Count workouts this week
-    result = await session.execute(
-        select(func.count(Workout.id))
-        .where(Workout.user_id == user.id)
-        .where(Workout.started_at >= week_ago)
+    """Get detailed statistics for current user."""
+    # Total workouts
+    workouts_result = await session.execute(
+        select(func.count(WorkoutSession.id))
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "completed")
     )
-    workouts_this_week = result.scalar() or 0
+    total_workouts = workouts_result.scalar() or 0
 
-    # Count reps this week
-    result = await session.execute(
-        select(func.sum(WorkoutExercise.reps))
-        .join(Workout)
-        .where(Workout.user_id == user.id)
-        .where(Workout.started_at >= week_ago)
+    # Total reps
+    reps_result = await session.execute(
+        select(func.sum(WorkoutSession.total_reps))
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "completed")
     )
-    reps_this_week = result.scalar() or 0
+    total_reps = reps_result.scalar() or 0
 
-    current_level = calculate_level(user.experience)
-    exp_for_current = calculate_exp_for_level(current_level)
-    exp_for_next = calculate_exp_for_level(current_level + 1)
+    # Achievements count
+    achievements_result = await session.execute(
+        select(func.count(UserAchievement.id))
+        .where(UserAchievement.user_id == user.id)
+    )
+    achievements_count = achievements_result.scalar() or 0
 
-    return UserStats(
-        level=current_level,
-        experience=user.experience,
-        exp_to_next_level=exp_for_next - user.experience,
-        streak_days=user.streak_days,
-        total_workouts=user.total_workouts,
-        total_reps=user.total_reps,
-        total_time_seconds=user.total_time_seconds,
-        workouts_this_week=workouts_this_week,
-        reps_this_week=reps_this_week,
+    # Level progress
+    current_level = user.level
+    current_level_xp = xp_for_level(current_level)
+    next_level_xp = xp_for_level(current_level + 1)
+    xp_in_current_level = user.total_xp - current_level_xp
+    xp_needed_for_level = next_level_xp - current_level_xp
+    xp_progress_percent = (xp_in_current_level / xp_needed_for_level) * 100 if xp_needed_for_level > 0 else 0
+
+    return UserStatsResponse(
+        total_workouts=total_workouts,
+        total_xp=user.total_xp,
+        total_reps=total_reps,
+        current_level=current_level,
+        xp_for_next_level=next_level_xp,
+        xp_progress_percent=min(xp_progress_percent, 100),
+        current_streak=user.current_streak,
+        max_streak=user.max_streak,
+        achievements_count=achievements_count,
+        coins=user.coins,
     )
 
 
 @router.get("/{user_id}", response_model=UserResponse)
-async def get_user(
+async def get_user_by_id(
     user_id: int,
-    session: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    session: AsyncSessionDep,
+    current_user: CurrentUser,  # Require auth to view profiles
 ):
-    """Get user by ID (for viewing friends)."""
+    """Get user profile by ID (public info only)."""
     result = await session.execute(
         select(User).where(User.id == user_id)
     )
     user = result.scalar_one_or_none()
 
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
 
-    return user
+    return UserResponse.model_validate(user)

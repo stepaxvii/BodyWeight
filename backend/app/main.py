@@ -1,68 +1,71 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import logging
 
 from app.config import settings
-from app.db.database import init_db
-from app.api.routes import (
-    auth,
-    users,
-    exercises,
-    workouts,
-    goals,
-    achievements,
-    leaderboard,
-    friends,
-    groups,
-)
+from app.api import api_router
+from app.db.database import async_engine, Base
+
+logging.basicConfig(level=logging.INFO if settings.debug else logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initialize database on startup."""
-    await init_db()
+    """Application lifespan handler."""
+    # Startup
+    logger.info("Starting BodyWeight API...")
+
+    # Create tables (for development; use Alembic in production)
+    if settings.debug:
+        async with async_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables created")
+
     yield
+
+    # Shutdown
+    logger.info("Shutting down BodyWeight API...")
+    await async_engine.dispose()
 
 
 app = FastAPI(
     title="BodyWeight API",
-    description="🎮 API для отслеживания тренировок с собственным весом",
+    description="API for BodyWeight Telegram Mini App",
     version="1.0.0",
     lifespan=lifespan,
+    docs_url="/api/docs" if settings.debug else None,
+    redoc_url="/api/redoc" if settings.debug else None,
+    openapi_url="/api/openapi.json" if settings.debug else None,
 )
 
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Routes
-app.include_router(auth.router, prefix="/api")
-app.include_router(users.router, prefix="/api")
-app.include_router(exercises.router, prefix="/api")
-app.include_router(workouts.router, prefix="/api")
-app.include_router(goals.router, prefix="/api")
-app.include_router(achievements.router, prefix="/api")
-app.include_router(leaderboard.router, prefix="/api")
-app.include_router(friends.router, prefix="/api")
-app.include_router(groups.router, prefix="/api")
+# Mount API router
+app.include_router(api_router)
 
 
-@app.get("/api/health")
+@app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "ok", "service": "bodyweight"}
+    return {"status": "ok", "version": "1.0.0"}
 
 
+# For local development
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8002,
+        port=8000,
         reload=settings.debug,
     )

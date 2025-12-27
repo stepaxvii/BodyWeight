@@ -1,175 +1,200 @@
-from datetime import datetime
-from sqlalchemy import String, Integer, Float, Boolean, DateTime, ForeignKey, Text, Enum as SQLEnum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import datetime, date, time
 from typing import Optional, List
-import enum
+from sqlalchemy import (
+    String,
+    Integer,
+    BigInteger,
+    Boolean,
+    Text,
+    ForeignKey,
+    DateTime,
+    Date,
+    Time,
+    Numeric,
+    UniqueConstraint,
+    Index,
+    CheckConstraint,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
 
-from app.db.database import Base
-
-
-class ExerciseCategory(str, enum.Enum):
-    PUSH = "push"           # Жимовые
-    PULL = "pull"           # Тяговые
-    LEGS = "legs"           # Ноги
-    CORE = "core"           # Кор/Пресс
-    STATIC = "static"       # Статика
-    CARDIO = "cardio"       # Кардио
-    WARMUP = "warmup"       # Разминка
-    STRETCH = "stretch"     # Растяжка
-
-
-class MetricType(str, enum.Enum):
-    REPS = "reps"           # Повторения
-    TIME = "time"           # Время в секундах
-
-
-class GoalType(str, enum.Enum):
-    TOTAL_REPS = "total_reps"           # Общее количество повторений
-    WORKOUTS_COUNT = "workouts_count"   # Количество тренировок
-    STREAK_DAYS = "streak_days"         # Дней подряд
-    EXERCISE_REPS = "exercise_reps"     # Повторения конкретного упражнения
-    EXERCISE_TIME = "exercise_time"     # Время конкретного упражнения
-
-
-class FriendshipStatus(str, enum.Enum):
-    PENDING = "pending"
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
-
-
-class GroupRole(str, enum.Enum):
-    MEMBER = "member"
-    ADMIN = "admin"
+from .database import Base
 
 
 class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    telegram_id: Mapped[int] = mapped_column(Integer, unique=True, index=True)
-    username: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    first_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False, index=True)
+    username: Mapped[Optional[str]] = mapped_column(String(255))
+    first_name: Mapped[Optional[str]] = mapped_column(String(255))
+    last_name: Mapped[Optional[str]] = mapped_column(String(255))
+    photo_url: Mapped[Optional[str]] = mapped_column(Text)
 
-    # Game stats
+    # Gamification
     level: Mapped[int] = mapped_column(Integer, default=1)
-    experience: Mapped[int] = mapped_column(Integer, default=0)
-    streak_days: Mapped[int] = mapped_column(Integer, default=0)
-    last_workout_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    total_workouts: Mapped[int] = mapped_column(Integer, default=0)
-    total_reps: Mapped[int] = mapped_column(Integer, default=0)
-    total_time_seconds: Mapped[int] = mapped_column(Integer, default=0)
+    total_xp: Mapped[int] = mapped_column(Integer, default=0)
+    coins: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Streaks
+    current_streak: Mapped[int] = mapped_column(Integer, default=0)
+    max_streak: Mapped[int] = mapped_column(Integer, default=0)
+    last_workout_date: Mapped[Optional[date]] = mapped_column(Date)
 
     # Settings
+    notification_time: Mapped[Optional[time]] = mapped_column(Time)
     notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
-    reminder_time: Mapped[Optional[str]] = mapped_column(String(5), nullable=True)  # HH:MM
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    workouts: Mapped[List["Workout"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    goals: Mapped[List["Goal"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    workout_sessions: Mapped[List["WorkoutSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     achievements: Mapped[List["UserAchievement"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    goals: Mapped[List["UserGoal"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    purchases: Mapped[List["UserPurchase"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    exercise_progress: Mapped[List["UserExerciseProgress"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+
+
+class ExerciseCategory(Base):
+    __tablename__ = "exercise_categories"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    slug: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    name_ru: Mapped[str] = mapped_column(String(100), nullable=False)
+    icon: Mapped[Optional[str]] = mapped_column(String(50))
+    color: Mapped[Optional[str]] = mapped_column(String(7))
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Relationships
+    exercises: Mapped[List["Exercise"]] = relationship(back_populates="category")
 
 
 class Exercise(Base):
     __tablename__ = "exercises"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100))
-    category: Mapped[ExerciseCategory] = mapped_column(SQLEnum(ExerciseCategory))
-    metric_type: Mapped[MetricType] = mapped_column(SQLEnum(MetricType))
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    icon: Mapped[str] = mapped_column(String(10), default="💪")
-    difficulty: Mapped[int] = mapped_column(Integer, default=1)  # 1-5
-    exp_per_rep: Mapped[int] = mapped_column(Integer, default=1)  # XP за повторение
-    exp_per_second: Mapped[int] = mapped_column(Integer, default=1)  # XP за секунду (для времени)
+    category_id: Mapped[int] = mapped_column(ForeignKey("exercise_categories.id"))
+    slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    name_ru: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text)
+    description_ru: Mapped[Optional[str]] = mapped_column(Text)
+
+    # Difficulty & progression
+    difficulty: Mapped[int] = mapped_column(Integer, default=1)
+    base_xp: Mapped[int] = mapped_column(Integer, default=10)
+    required_level: Mapped[int] = mapped_column(Integer, default=1)
+
+    # Media
+    gif_url: Mapped[Optional[str]] = mapped_column(String(255))
+    thumbnail_url: Mapped[Optional[str]] = mapped_column(String(255))
+
+    # Progression chain
+    easier_exercise_id: Mapped[Optional[int]] = mapped_column(ForeignKey("exercises.id"))
+    harder_exercise_id: Mapped[Optional[int]] = mapped_column(ForeignKey("exercises.id"))
+
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     # Relationships
-    workout_exercises: Mapped[List["WorkoutExercise"]] = relationship(back_populates="exercise")
+    category: Mapped["ExerciseCategory"] = relationship(back_populates="exercises")
+    easier_exercise: Mapped[Optional["Exercise"]] = relationship(
+        foreign_keys=[easier_exercise_id], remote_side=[id]
+    )
+    harder_exercise: Mapped[Optional["Exercise"]] = relationship(
+        foreign_keys=[harder_exercise_id], remote_side=[id]
+    )
+
+    __table_args__ = (
+        CheckConstraint("difficulty >= 1 AND difficulty <= 5", name="check_difficulty_range"),
+    )
 
 
-class Workout(Base):
-    __tablename__ = "workouts"
+class WorkoutSession(Base):
+    __tablename__ = "workout_sessions"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    total_exp: Mapped[int] = mapped_column(Integer, default=0)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+
+    started_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
+    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    duration_seconds: Mapped[Optional[int]] = mapped_column(Integer)
+
+    # Totals
+    total_xp_earned: Mapped[int] = mapped_column(Integer, default=0)
+    total_coins_earned: Mapped[int] = mapped_column(Integer, default=0)
+    total_reps: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Streak bonus applied
+    streak_multiplier: Mapped[float] = mapped_column(Numeric(3, 2), default=1.00)
+
+    status: Mapped[str] = mapped_column(String(20), default="active")  # active, completed, cancelled
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="workouts")
-    exercises: Mapped[List["WorkoutExercise"]] = relationship(back_populates="workout", cascade="all, delete-orphan")
+    user: Mapped["User"] = relationship(back_populates="workout_sessions")
+    exercises: Mapped[List["WorkoutExercise"]] = relationship(back_populates="workout_session", cascade="all, delete-orphan")
 
 
 class WorkoutExercise(Base):
     __tablename__ = "workout_exercises"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    workout_id: Mapped[int] = mapped_column(ForeignKey("workouts.id", ondelete="CASCADE"))
+    workout_session_id: Mapped[int] = mapped_column(ForeignKey("workout_sessions.id", ondelete="CASCADE"), index=True)
     exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"))
 
-    sets: Mapped[int] = mapped_column(Integer, default=1)
-    reps: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    duration_seconds: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    is_personal_record: Mapped[bool] = mapped_column(Boolean, default=False)
-    exp_earned: Mapped[int] = mapped_column(Integer, default=0)
+    sets_completed: Mapped[int] = mapped_column(Integer, default=0)
+    total_reps: Mapped[int] = mapped_column(Integer, default=0)
+
+    xp_earned: Mapped[int] = mapped_column(Integer, default=0)
+    coins_earned: Mapped[int] = mapped_column(Integer, default=0)
+
+    completed_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     # Relationships
-    workout: Mapped["Workout"] = relationship(back_populates="exercises")
-    exercise: Mapped["Exercise"] = relationship(back_populates="workout_exercises")
-
-
-class Goal(Base):
-    __tablename__ = "goals"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    exercise_id: Mapped[Optional[int]] = mapped_column(ForeignKey("exercises.id"), nullable=True)
-
-    goal_type: Mapped[GoalType] = mapped_column(SQLEnum(GoalType))
-    title: Mapped[str] = mapped_column(String(200))
-    target_value: Mapped[int] = mapped_column(Integer)
-    current_value: Mapped[int] = mapped_column(Integer, default=0)
-
-    deadline: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-
-    # Relationships
-    user: Mapped["User"] = relationship(back_populates="goals")
-    exercise: Mapped[Optional["Exercise"]] = relationship()
-
-
-class Achievement(Base):
-    __tablename__ = "achievements"
-
-    id: Mapped[str] = mapped_column(String(50), primary_key=True)
-    name: Mapped[str] = mapped_column(String(100))
-    description: Mapped[str] = mapped_column(Text)
-    icon: Mapped[str] = mapped_column(String(10))
-    category: Mapped[str] = mapped_column(String(50))  # streak, volume, record, special
-    threshold: Mapped[int] = mapped_column(Integer)
-    exp_reward: Mapped[int] = mapped_column(Integer, default=100)
-
-    # Relationships
-    user_achievements: Mapped[List["UserAchievement"]] = relationship(back_populates="achievement")
+    workout_session: Mapped["WorkoutSession"] = relationship(back_populates="exercises")
+    exercise: Mapped["Exercise"] = relationship()
 
 
 class UserAchievement(Base):
     __tablename__ = "user_achievements"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    achievement_id: Mapped[str] = mapped_column(ForeignKey("achievements.id"))
-    unlocked_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    achievement_slug: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    unlocked_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="achievements")
-    achievement: Mapped["Achievement"] = relationship(back_populates="user_achievements")
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "achievement_slug", name="uq_user_achievement"),
+    )
+
+
+class UserGoal(Base):
+    __tablename__ = "user_goals"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+
+    goal_type: Mapped[str] = mapped_column(String(50), nullable=False)  # weekly_workouts, daily_xp, specific_exercise
+    target_value: Mapped[int] = mapped_column(Integer, nullable=False)
+    current_value: Mapped[int] = mapped_column(Integer, default=0)
+
+    start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    end_date: Mapped[date] = mapped_column(Date, nullable=False)
+
+    completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    # Relationships
+    user: Mapped["User"] = relationship(back_populates="goals")
 
 
 class Friendship(Base):
@@ -178,33 +203,75 @@ class Friendship(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     friend_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    status: Mapped[FriendshipStatus] = mapped_column(SQLEnum(FriendshipStatus), default=FriendshipStatus.PENDING)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending, accepted, blocked
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "friend_id", name="uq_friendship"),
+        Index("idx_friendships_user_status", "user_id", "status"),
+    )
 
 
-class Group(Base):
-    __tablename__ = "groups"
+class ShopItem(Base):
+    __tablename__ = "shop_items"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100))
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    invite_code: Mapped[str] = mapped_column(String(20), unique=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    name_ru: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    item_type: Mapped[str] = mapped_column(String(50), nullable=False)  # title, badge, theme
+
+    price_coins: Mapped[int] = mapped_column(Integer, nullable=False)
+    required_level: Mapped[int] = mapped_column(Integer, default=1)
+
+    sprite_url: Mapped[Optional[str]] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Relationships
-    members: Mapped[List["GroupMember"]] = relationship(back_populates="group", cascade="all, delete-orphan")
+    purchases: Mapped[List["UserPurchase"]] = relationship(back_populates="shop_item")
 
 
-class GroupMember(Base):
-    __tablename__ = "group_members"
+class UserPurchase(Base):
+    __tablename__ = "user_purchases"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id", ondelete="CASCADE"))
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    role: Mapped[GroupRole] = mapped_column(SQLEnum(GroupRole), default=GroupRole.MEMBER)
-    joined_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    shop_item_id: Mapped[int] = mapped_column(ForeignKey("shop_items.id"))
+
+    purchased_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    is_equipped: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Relationships
-    group: Mapped["Group"] = relationship(back_populates="members")
+    user: Mapped["User"] = relationship(back_populates="purchases")
+    shop_item: Mapped["ShopItem"] = relationship(back_populates="purchases")
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "shop_item_id", name="uq_user_purchase"),
+    )
+
+
+class UserExerciseProgress(Base):
+    __tablename__ = "user_exercise_progress"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"))
+
+    total_reps_ever: Mapped[int] = mapped_column(Integer, default=0)
+    best_single_set: Mapped[int] = mapped_column(Integer, default=0)
+    times_performed: Mapped[int] = mapped_column(Integer, default=0)
+    last_performed_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+
+    # For progression recommendations
+    recommended_upgrade: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # Relationships
+    user: Mapped["User"] = relationship(back_populates="exercise_progress")
+    exercise: Mapped["Exercise"] = relationship()
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "exercise_id", name="uq_user_exercise_progress"),
+    )

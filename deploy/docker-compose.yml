@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ../backend
+    container_name: bodyweight-api
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://bodyweight:${DB_PASSWORD}@db:5432/bodyweight
+      - BOT_TOKEN=${BOT_TOKEN}
+      - SECRET_KEY=${SECRET_KEY}
+      - MINI_APP_URL=${MINI_APP_URL}
+      - DEBUG=false
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - bodyweight-network
+    restart: unless-stopped
+
+  bot:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.bot
+    container_name: bodyweight-bot
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://bodyweight:${DB_PASSWORD}@db:5432/bodyweight
+      - BOT_TOKEN=${BOT_TOKEN}
+      - SECRET_KEY=${SECRET_KEY}
+      - MINI_APP_URL=${MINI_APP_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    networks:
+      - bodyweight-network
+    restart: unless-stopped
+
+  frontend:
+    build: ../frontend/mini-app
+    container_name: bodyweight-frontend
+    networks:
+      - bodyweight-network
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    container_name: bodyweight-db
+    environment:
+      - POSTGRES_USER=bodyweight
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=bodyweight
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - bodyweight-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bodyweight"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: bodyweight-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - ../frontend/mini-app/build:/var/www/frontend:ro
+      - ../backend/static:/var/www/static:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - bodyweight-network
+    restart: unless-stopped
+
+networks:
+  bodyweight-network:
+    driver: bridge
+
+volumes:
+  pgdata:

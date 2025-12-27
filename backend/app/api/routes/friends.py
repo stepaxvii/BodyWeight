@@ -1,222 +1,315 @@
-from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from typing import List
+from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import select, or_, and_
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional
 
-from app.api.deps import get_current_user
-from app.db.database import get_session
-from app.db.models import User, Friendship, FriendshipStatus
+from app.api.deps import AsyncSessionDep, CurrentUser
+from app.db.models import User, Friendship
 
-router = APIRouter(prefix="/friends", tags=["friends"])
+router = APIRouter()
 
 
 class FriendResponse(BaseModel):
     id: int
     user_id: int
-    username: Optional[str]
-    first_name: Optional[str]
+    username: str | None
+    first_name: str | None
+    photo_url: str | None
     level: int
-    experience: int
-    streak_days: int
-    total_workouts: int
+    total_xp: int
+    current_streak: int
     status: str
 
+    class Config:
+        from_attributes = True
 
-class FriendRequest(BaseModel):
-    username: str
+
+class FriendRequestResponse(BaseModel):
+    id: int
+    from_user_id: int
+    from_username: str | None
+    from_first_name: str | None
+    from_photo_url: str | None
+    created_at: str
 
 
-@router.get("/", response_model=List[FriendResponse])
+class AddFriendRequest(BaseModel):
+    user_id: int | None = None
+    username: str | None = None
+
+
+@router.get("", response_model=List[FriendResponse])
 async def get_friends(
-    user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSessionDep,
+    user: CurrentUser,
+    status_filter: str = Query("accepted", description="Filter by status: accepted, pending, all"),
 ):
     """Get list of friends."""
-    # Get accepted friendships where user is either side
-    result = await session.execute(
+    query = (
         select(Friendship, User)
-        .join(User, User.id == Friendship.friend_id)
+        .join(User, Friendship.friend_id == User.id)
         .where(Friendship.user_id == user.id)
-        .where(Friendship.status == FriendshipStatus.ACCEPTED)
     )
+
+    if status_filter != "all":
+        query = query.where(Friendship.status == status_filter)
+
+    result = await session.execute(query)
     rows = result.all()
 
     return [
         FriendResponse(
-            id=f.id,
-            user_id=u.id,
-            username=u.username,
-            first_name=u.first_name,
-            level=u.level,
-            experience=u.experience,
-            streak_days=u.streak_days,
-            total_workouts=u.total_workouts,
-            status=f.status.value,
+            id=friendship.id,
+            user_id=friend.id,
+            username=friend.username,
+            first_name=friend.first_name,
+            photo_url=friend.photo_url,
+            level=friend.level,
+            total_xp=friend.total_xp,
+            current_streak=friend.current_streak,
+            status=friendship.status,
         )
-        for f, u in rows
+        for friendship, friend in rows
     ]
 
 
-@router.get("/requests", response_model=List[FriendResponse])
+@router.get("/requests", response_model=List[FriendRequestResponse])
 async def get_friend_requests(
-    user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSessionDep,
+    user: CurrentUser,
 ):
-    """Get pending friend requests."""
+    """Get pending friend requests (where someone added current user)."""
     result = await session.execute(
         select(Friendship, User)
-        .join(User, User.id == Friendship.user_id)
+        .join(User, Friendship.user_id == User.id)
         .where(Friendship.friend_id == user.id)
-        .where(Friendship.status == FriendshipStatus.PENDING)
+        .where(Friendship.status == "pending")
     )
     rows = result.all()
 
     return [
-        FriendResponse(
-            id=f.id,
-            user_id=u.id,
-            username=u.username,
-            first_name=u.first_name,
-            level=u.level,
-            experience=u.experience,
-            streak_days=u.streak_days,
-            total_workouts=u.total_workouts,
-            status=f.status.value,
+        FriendRequestResponse(
+            id=friendship.id,
+            from_user_id=from_user.id,
+            from_username=from_user.username,
+            from_first_name=from_user.first_name,
+            from_photo_url=from_user.photo_url,
+            created_at=friendship.created_at.isoformat(),
         )
-        for f, u in rows
+        for friendship, from_user in rows
     ]
 
 
-@router.post("/add")
+@router.post("/add", response_model=FriendResponse)
 async def add_friend(
-    data: FriendRequest,
-    user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+    request: AddFriendRequest,
+    session: AsyncSessionDep,
+    user: CurrentUser,
 ):
-    """Send friend request by username."""
-    # Find user by username
-    result = await session.execute(
-        select(User).where(User.username == data.username)
-    )
-    friend = result.scalar_one_or_none()
-
-    if not friend:
-        raise HTTPException(status_code=404, detail="Пользователь не найден")
-
-    if friend.id == user.id:
-        raise HTTPException(status_code=400, detail="Нельзя добавить себя в друзья")
-
-    # Check if friendship exists
-    result = await session.execute(
-        select(Friendship)
-        .where(
-            or_(
-                and_(Friendship.user_id == user.id, Friendship.friend_id == friend.id),
-                and_(Friendship.user_id == friend.id, Friendship.friend_id == user.id),
-            )
+    """Send friend request."""
+    if not request.user_id and not request.username:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Either user_id or username is required",
         )
+
+    # Find target user
+    if request.user_id:
+        result = await session.execute(
+            select(User).where(User.id == request.user_id)
+        )
+    else:
+        result = await session.execute(
+            select(User).where(User.username == request.username)
+        )
+
+    target_user = result.scalar_one_or_none()
+
+    if not target_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    if target_user.id == user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot add yourself as friend",
+        )
+
+    # Check existing friendship
+    existing_result = await session.execute(
+        select(Friendship)
+        .where(Friendship.user_id == user.id)
+        .where(Friendship.friend_id == target_user.id)
     )
-    existing = result.scalar_one_or_none()
+    existing = existing_result.scalar_one_or_none()
 
     if existing:
-        if existing.status == FriendshipStatus.ACCEPTED:
-            raise HTTPException(status_code=400, detail="Вы уже друзья")
-        elif existing.status == FriendshipStatus.PENDING:
-            raise HTTPException(status_code=400, detail="Запрос уже отправлен")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Friend request already exists (status: {existing.status})",
+        )
 
-    # Create friendship request
+    # Create friendship
     friendship = Friendship(
         user_id=user.id,
-        friend_id=friend.id,
-        status=FriendshipStatus.PENDING,
+        friend_id=target_user.id,
+        status="pending",
     )
     session.add(friendship)
-    await session.commit()
+    await session.flush()
 
-    return {"message": "Запрос отправлен"}
+    return FriendResponse(
+        id=friendship.id,
+        user_id=target_user.id,
+        username=target_user.username,
+        first_name=target_user.first_name,
+        photo_url=target_user.photo_url,
+        level=target_user.level,
+        total_xp=target_user.total_xp,
+        current_streak=target_user.current_streak,
+        status=friendship.status,
+    )
 
 
-@router.post("/{friendship_id}/accept")
-async def accept_friend(
+@router.post("/accept/{friendship_id}", response_model=FriendResponse)
+async def accept_friend_request(
     friendship_id: int,
-    user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSessionDep,
+    user: CurrentUser,
 ):
-    """Accept friend request."""
+    """Accept a friend request."""
     result = await session.execute(
         select(Friendship)
         .where(Friendship.id == friendship_id)
         .where(Friendship.friend_id == user.id)
-        .where(Friendship.status == FriendshipStatus.PENDING)
+        .where(Friendship.status == "pending")
     )
     friendship = result.scalar_one_or_none()
 
     if not friendship:
-        raise HTTPException(status_code=404, detail="Запрос не найден")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Friend request not found",
+        )
 
-    friendship.status = FriendshipStatus.ACCEPTED
+    # Update status
+    friendship.status = "accepted"
 
     # Create reverse friendship
     reverse = Friendship(
         user_id=user.id,
         friend_id=friendship.user_id,
-        status=FriendshipStatus.ACCEPTED,
+        status="accepted",
     )
     session.add(reverse)
 
-    await session.commit()
+    # Get the friend user
+    friend_result = await session.execute(
+        select(User).where(User.id == friendship.user_id)
+    )
+    friend_user = friend_result.scalar_one()
 
-    return {"message": "Друг добавлен"}
+    await session.flush()
+
+    return FriendResponse(
+        id=reverse.id,
+        user_id=friend_user.id,
+        username=friend_user.username,
+        first_name=friend_user.first_name,
+        photo_url=friend_user.photo_url,
+        level=friend_user.level,
+        total_xp=friend_user.total_xp,
+        current_streak=friend_user.current_streak,
+        status=reverse.status,
+    )
 
 
-@router.post("/{friendship_id}/reject")
-async def reject_friend(
+@router.delete("/{friendship_id}")
+async def remove_friend(
     friendship_id: int,
-    user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSessionDep,
+    user: CurrentUser,
 ):
-    """Reject friend request."""
+    """Remove a friend or decline a friend request."""
     result = await session.execute(
         select(Friendship)
         .where(Friendship.id == friendship_id)
-        .where(Friendship.friend_id == user.id)
-        .where(Friendship.status == FriendshipStatus.PENDING)
+        .where(
+            or_(
+                Friendship.user_id == user.id,
+                Friendship.friend_id == user.id,
+            )
+        )
     )
     friendship = result.scalar_one_or_none()
 
     if not friendship:
-        raise HTTPException(status_code=404, detail="Запрос не найден")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Friendship not found",
+        )
 
-    friendship.status = FriendshipStatus.REJECTED
-    await session.commit()
+    # Also remove reverse friendship if it exists
+    if friendship.status == "accepted":
+        reverse_result = await session.execute(
+            select(Friendship)
+            .where(Friendship.user_id == friendship.friend_id)
+            .where(Friendship.friend_id == friendship.user_id)
+        )
+        reverse = reverse_result.scalar_one_or_none()
+        if reverse:
+            await session.delete(reverse)
 
-    return {"message": "Запрос отклонён"}
+    await session.delete(friendship)
+
+    return {"message": "Friend removed"}
 
 
-@router.delete("/{friend_id}")
-async def remove_friend(
-    friend_id: int,
-    user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
+@router.get("/search", response_model=List[FriendResponse])
+async def search_users(
+    session: AsyncSessionDep,
+    user: CurrentUser,
+    q: str = Query(..., min_length=2, description="Search query (username or name)"),
+    limit: int = Query(10, ge=1, le=50),
 ):
-    """Remove friend."""
-    # Delete both directions
+    """Search users by username or name."""
+    search_pattern = f"%{q}%"
+
     result = await session.execute(
-        select(Friendship)
+        select(User)
+        .where(User.id != user.id)
         .where(
             or_(
-                and_(Friendship.user_id == user.id, Friendship.friend_id == friend_id),
-                and_(Friendship.user_id == friend_id, Friendship.friend_id == user.id),
+                User.username.ilike(search_pattern),
+                User.first_name.ilike(search_pattern),
+                User.last_name.ilike(search_pattern),
             )
         )
+        .limit(limit)
     )
-    friendships = result.scalars().all()
+    users = result.scalars().all()
 
-    for f in friendships:
-        await session.delete(f)
+    # Get existing friendships
+    friend_result = await session.execute(
+        select(Friendship)
+        .where(Friendship.user_id == user.id)
+        .where(Friendship.friend_id.in_([u.id for u in users]))
+    )
+    friendships = {f.friend_id: f for f in friend_result.scalars().all()}
 
-    await session.commit()
-
-    return {"message": "Друг удалён"}
+    return [
+        FriendResponse(
+            id=friendships[u.id].id if u.id in friendships else 0,
+            user_id=u.id,
+            username=u.username,
+            first_name=u.first_name,
+            photo_url=u.photo_url,
+            level=u.level,
+            total_xp=u.total_xp,
+            current_streak=u.current_streak,
+            status=friendships[u.id].status if u.id in friendships else "none",
+        )
+        for u in users
+    ]

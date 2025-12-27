@@ -1,321 +1,204 @@
-from datetime import datetime, timedelta
+import logging
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
-from aiogram.filters import CommandStart, Command
+from aiogram.filters import Command, CommandStart
 from sqlalchemy import select
 
 from app.db.database import async_session_maker
-from app.db.models import User, Workout, UserAchievement
-from app.bot.keyboards.inline import (
-    get_main_menu_keyboard,
-    get_workout_keyboard,
-    get_settings_keyboard,
-)
+from app.db.models import User
+from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button
+from app.config import settings
 
 router = Router()
+logger = logging.getLogger(__name__)
 
 
-async def get_or_create_user(
-    telegram_id: int,
-    username: str = None,
-    first_name: str = None,
-) -> tuple[User, bool]:
-    """Get existing user or create new one."""
+async def get_or_create_user(telegram_id: int, username: str | None, first_name: str | None, last_name: str | None, photo_url: str | None = None) -> User:
+    """Get or create user in database."""
     async with async_session_maker() as session:
         result = await session.execute(
             select(User).where(User.telegram_id == telegram_id)
         )
         user = result.scalar_one_or_none()
 
-        if user:
+        if not user:
+            user = User(
+                telegram_id=telegram_id,
+                username=username,
+                first_name=first_name,
+                last_name=last_name,
+                photo_url=photo_url,
+            )
+            session.add(user)
+            await session.commit()
+            logger.info(f"Created new user: {telegram_id} ({username})")
+        else:
+            # Update user info
             user.username = username
             user.first_name = first_name
+            user.last_name = last_name
+            if photo_url:
+                user.photo_url = photo_url
             await session.commit()
-            return user, False
 
-        user = User(
-            telegram_id=telegram_id,
-            username=username,
-            first_name=first_name,
-        )
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
-        return user, True
-
-
-def get_level_progress(experience: int, level: int) -> int:
-    """Calculate progress to next level in percent."""
-    current_threshold = 100 * (level ** 2)
-    next_threshold = 100 * ((level + 1) ** 2)
-    progress_in_level = experience - current_threshold
-    level_range = next_threshold - current_threshold
-    return int((progress_in_level / level_range) * 100) if level_range > 0 else 0
+        return user
 
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     """Handle /start command."""
-    tg_user = message.from_user
+    user = message.from_user
+    if not user:
+        return
 
-    user, is_new = await get_or_create_user(
-        telegram_id=tg_user.id,
-        username=tg_user.username,
-        first_name=tg_user.first_name,
+    # Get user photos for avatar
+    photo_url = None
+    try:
+        photos = await message.bot.get_user_profile_photos(user.id, limit=1)
+        if photos.photos:
+            # Get smallest photo
+            photo = photos.photos[0][-1]
+            file = await message.bot.get_file(photo.file_id)
+            if file.file_path:
+                photo_url = f"https://api.telegram.org/file/bot{settings.bot_token}/{file.file_path}"
+    except Exception as e:
+        logger.warning(f"Failed to get user photo: {e}")
+
+    # Create or update user
+    db_user = await get_or_create_user(
+        telegram_id=user.id,
+        username=user.username,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        photo_url=photo_url,
     )
 
-    if is_new:
-        text = (
-            "🎮 Добро пожаловать в BodyWeight!\n\n"
-            "⚔️ Ты - воин, который решил стать сильнее!\n\n"
-            "💪 Тренируйся каждый день, зарабатывай опыт, "
-            "открывай достижения и соревнуйся с друзьями!\n\n"
-            "🏆 Твой уровень: 1\n"
-            "⭐ Опыт: 0 XP"
-        )
-    else:
-        name = user.first_name or user.username or "воин"
-        progress = get_level_progress(user.experience, user.level)
-        text = (
-            f"⚔️ С возвращением, {name}!\n\n"
-            f"🏆 Уровень: {user.level}\n"
-            f"⭐ Опыт: {user.experience} XP\n"
-            f"📊 Прогресс: {progress}%\n"
-            f"🔥 Серия: {user.streak_days} дней\n"
-            f"💪 Всего тренировок: {user.total_workouts}"
-        )
+    welcome_text = f"""
+<b>Welcome to BodyWeight!</b>
 
-    await message.answer(text, reply_markup=get_main_menu_keyboard())
+Hey {user.first_name or 'there'}! Ready to level up your fitness?
+
+<b>Your Stats:</b>
+Level: {db_user.level}
+XP: {db_user.total_xp}
+Streak: {db_user.current_streak} days
+Coins: {db_user.coins}
+
+Tap the button below to start your workout!
+"""
+
+    await message.answer(
+        welcome_text,
+        reply_markup=get_main_keyboard(),
+    )
+
+
+@router.message(Command("workout"))
+async def cmd_workout(message: Message):
+    """Handle /workout command - open Mini App."""
+    await message.answer(
+        "Ready to work out? Open the app!",
+        reply_markup=get_webapp_button(),
+    )
 
 
 @router.message(Command("stats"))
 async def cmd_stats(message: Message):
-    """Show user stats."""
+    """Handle /stats command - show user statistics."""
+    user = message.from_user
+    if not user:
+        return
+
     async with async_session_maker() as session:
         result = await session.execute(
-            select(User).where(User.telegram_id == message.from_user.id)
+            select(User).where(User.telegram_id == user.id)
         )
-        user = result.scalar_one_or_none()
+        db_user = result.scalar_one_or_none()
 
-        if not user:
-            await message.answer("❌ Сначала используй /start")
+        if not db_user:
+            await message.answer("Please use /start first!")
             return
 
-        progress = get_level_progress(user.experience, user.level)
+        from app.services.xp_calculator import xp_for_level
 
-        text = (
-            "📊 Твоя статистика:\n\n"
-            f"🏆 Уровень: {user.level}\n"
-            f"⭐ Опыт: {user.experience} XP\n"
-            f"📈 До следующего уровня: {progress}%\n\n"
-            f"🔥 Текущая серия: {user.streak_days} дней\n"
-            f"💪 Всего тренировок: {user.total_workouts}\n"
-            f"🔢 Всего повторений: {user.total_reps}"
+        current_xp = db_user.total_xp
+        current_level_xp = xp_for_level(db_user.level)
+        next_level_xp = xp_for_level(db_user.level + 1)
+        xp_progress = current_xp - current_level_xp
+        xp_needed = next_level_xp - current_level_xp
+        progress_percent = int((xp_progress / xp_needed) * 100) if xp_needed > 0 else 0
+
+        # Create progress bar
+        bar_length = 10
+        filled = int(bar_length * progress_percent / 100)
+        progress_bar = "█" * filled + "░" * (bar_length - filled)
+
+        stats_text = f"""
+<b>Your Stats</b>
+
+<b>Level {db_user.level}</b>
+{progress_bar} {progress_percent}%
+{xp_progress}/{xp_needed} XP to next level
+
+<b>Total XP:</b> {db_user.total_xp}
+<b>Coins:</b> {db_user.coins}
+
+<b>Streaks:</b>
+Current: {db_user.current_streak} days
+Best: {db_user.max_streak} days
+
+Keep pushing! Open the app to continue your workout.
+"""
+
+        await message.answer(
+            stats_text,
+            reply_markup=get_webapp_button(),
         )
 
-        await message.answer(text, reply_markup=get_main_menu_keyboard())
 
+@router.message(Command("help"))
+async def cmd_help(message: Message):
+    """Handle /help command."""
+    help_text = """
+<b>BodyWeight - Workout Tracker</b>
 
-@router.callback_query(F.data == "menu")
-async def handle_menu(callback: CallbackQuery):
-    """Show main menu."""
-    async with async_session_maker() as session:
-        result = await session.execute(
-            select(User).where(User.telegram_id == callback.from_user.id)
-        )
-        user = result.scalar_one_or_none()
+<b>Commands:</b>
+/start - Start the bot
+/workout - Open workout app
+/stats - View your statistics
+/help - Show this message
 
-        if not user:
-            await callback.answer("Ошибка")
-            return
+<b>How it works:</b>
+1. Open the Mini App
+2. Choose exercises from 8 categories
+3. Track your reps and sets
+4. Earn XP and level up!
+5. Maintain your streak for bonus XP
+6. Compete with friends on leaderboards
 
-        name = user.first_name or user.username or "воин"
-        progress = get_level_progress(user.experience, user.level)
+<b>Tips:</b>
+• Complete workouts daily to keep your streak
+• Try harder variations as you progress
+• Check achievements for bonus rewards
 
-        text = (
-            f"⚔️ {name}\n\n"
-            f"🏆 Уровень: {user.level}\n"
-            f"⭐ Опыт: {user.experience} XP ({progress}%)\n"
-            f"🔥 Серия: {user.streak_days} дней\n"
-            f"💪 Тренировок: {user.total_workouts}"
-        )
+Questions? Just message me!
+"""
 
-    await callback.message.edit_text(text, reply_markup=get_main_menu_keyboard())
-    await callback.answer()
-
-
-@router.callback_query(F.data == "stats")
-async def handle_stats(callback: CallbackQuery):
-    """Show stats."""
-    async with async_session_maker() as session:
-        result = await session.execute(
-            select(User).where(User.telegram_id == callback.from_user.id)
-        )
-        user = result.scalar_one_or_none()
-
-        if not user:
-            await callback.answer("Ошибка")
-            return
-
-        progress = get_level_progress(user.experience, user.level)
-
-        text = (
-            "📊 Твоя статистика:\n\n"
-            f"🏆 Уровень: {user.level}\n"
-            f"⭐ Опыт: {user.experience} XP\n"
-            f"📈 До следующего уровня: {progress}%\n\n"
-            f"🔥 Текущая серия: {user.streak_days} дней\n"
-            f"💪 Всего тренировок: {user.total_workouts}\n"
-            f"🔢 Всего повторений: {user.total_reps}"
-        )
-
-    await callback.message.edit_text(text, reply_markup=get_workout_keyboard())
-    await callback.answer()
-
-
-@router.callback_query(F.data == "streak")
-async def handle_streak(callback: CallbackQuery):
-    """Show streak info."""
-    async with async_session_maker() as session:
-        result = await session.execute(
-            select(User).where(User.telegram_id == callback.from_user.id)
-        )
-        user = result.scalar_one_or_none()
-
-        if not user:
-            await callback.answer("Ошибка")
-            return
-
-        # Check if trained today
-        today = datetime.utcnow().date()
-        workout_result = await session.execute(
-            select(Workout)
-            .where(Workout.user_id == user.id)
-            .where(Workout.completed_at >= datetime.combine(today, datetime.min.time()))
-        )
-        trained_today = workout_result.scalar_one_or_none() is not None
-
-        if trained_today:
-            status = "✅ Сегодня тренировка выполнена!"
-        else:
-            status = "⏰ Сегодня ещё не тренировался!"
-
-        streak_emoji = "🔥" if user.streak_days > 0 else "❄️"
-
-        text = (
-            f"{streak_emoji} Твоя серия: {user.streak_days} дней\n\n"
-            f"{status}\n\n"
-            "💡 Тренируйся каждый день, чтобы не потерять серию!"
-        )
-
-    await callback.message.edit_text(text, reply_markup=get_main_menu_keyboard())
-    await callback.answer()
-
-
-@router.callback_query(F.data == "achievements")
-async def handle_achievements(callback: CallbackQuery):
-    """Show achievements summary."""
-    async with async_session_maker() as session:
-        result = await session.execute(
-            select(User).where(User.telegram_id == callback.from_user.id)
-        )
-        user = result.scalar_one_or_none()
-
-        if not user:
-            await callback.answer("Ошибка")
-            return
-
-        # Count unlocked achievements
-        unlocked_result = await session.execute(
-            select(UserAchievement).where(UserAchievement.user_id == user.id)
-        )
-        unlocked = len(unlocked_result.scalars().all())
-
-        text = (
-            "🏆 Достижения\n\n"
-            f"🔓 Открыто: {unlocked}\n\n"
-            "Открой приложение, чтобы увидеть все достижения!"
-        )
-
-    await callback.message.edit_text(text, reply_markup=get_main_menu_keyboard())
-    await callback.answer()
-
-
-@router.callback_query(F.data == "history")
-async def handle_history(callback: CallbackQuery):
-    """Show recent workouts."""
-    async with async_session_maker() as session:
-        result = await session.execute(
-            select(User).where(User.telegram_id == callback.from_user.id)
-        )
-        user = result.scalar_one_or_none()
-
-        if not user:
-            await callback.answer("Ошибка")
-            return
-
-        # Get last 5 workouts
-        workouts_result = await session.execute(
-            select(Workout)
-            .where(Workout.user_id == user.id)
-            .order_by(Workout.completed_at.desc())
-            .limit(5)
-        )
-        workouts = workouts_result.scalars().all()
-
-        if not workouts:
-            text = "📋 История тренировок\n\nУ тебя пока нет тренировок."
-        else:
-            text = "📋 Последние тренировки:\n\n"
-            for w in workouts:
-                date = w.completed_at.strftime("%d.%m.%Y")
-                text += f"• {date} — +{w.total_exp} XP\n"
-
-    await callback.message.edit_text(text, reply_markup=get_workout_keyboard())
-    await callback.answer()
-
-
-@router.callback_query(F.data == "settings")
-async def handle_settings(callback: CallbackQuery):
-    """Show settings."""
-    async with async_session_maker() as session:
-        result = await session.execute(
-            select(User).where(User.telegram_id == callback.from_user.id)
-        )
-        user = result.scalar_one_or_none()
-
-        if not user:
-            await callback.answer("Ошибка")
-            return
-
-        text = "⚙️ Настройки"
-
-    await callback.message.edit_text(
-        text,
-        reply_markup=get_settings_keyboard(user.notifications_enabled)
+    await message.answer(
+        help_text,
+        reply_markup=get_main_keyboard(),
     )
+
+
+@router.callback_query(F.data == "open_app")
+async def callback_open_app(callback: CallbackQuery):
+    """Handle open app callback."""
+    await callback.answer("Opening BodyWeight app...")
+
+
+@router.callback_query(F.data == "view_stats")
+async def callback_view_stats(callback: CallbackQuery):
+    """Handle view stats callback."""
+    if callback.message:
+        await cmd_stats(callback.message)
     await callback.answer()
-
-
-@router.callback_query(F.data == "toggle_notifications")
-async def handle_toggle_notifications(callback: CallbackQuery):
-    """Toggle notifications."""
-    async with async_session_maker() as session:
-        result = await session.execute(
-            select(User).where(User.telegram_id == callback.from_user.id)
-        )
-        user = result.scalar_one_or_none()
-
-        if not user:
-            await callback.answer("Ошибка")
-            return
-
-        user.notifications_enabled = not user.notifications_enabled
-        await session.commit()
-
-        status = "включены" if user.notifications_enabled else "выключены"
-        await callback.answer(f"🔔 Уведомления {status}")
-
-    await callback.message.edit_reply_markup(
-        reply_markup=get_settings_keyboard(user.notifications_enabled)
-    )

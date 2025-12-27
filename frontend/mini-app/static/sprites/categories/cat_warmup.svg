@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Warmup category icon - circular motion arrows -->
+  <circle cx="8" cy="8" r="5" fill="none" stroke="#00a8a8" stroke-width="2"/>
+  <rect x="7" y="2" width="4" height="2" fill="#00a8a8"/>
+  <rect x="11" y="5" width="2" height="2" fill="#00a8a8"/>
+</svg>

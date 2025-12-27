@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Legs category icon - stylized legs -->
+  <rect x="5" y="2" width="2" height="6" fill="#00a800"/>
+  <rect x="9" y="2" width="2" height="6" fill="#00a800"/>
+  <rect x="4" y="8" width="3" height="2" fill="#00a800"/>
+  <rect x="9" y="8" width="3" height="2" fill="#00a800"/>
+  <rect x="3" y="10" width="2" height="4" fill="#00a800"/>
+  <rect x="11" y="10" width="2" height="4" fill="#00a800"/>
+</svg>
