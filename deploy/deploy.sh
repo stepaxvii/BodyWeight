@@ -6,7 +6,7 @@
 set -e
 
 PROJECT_DIR="/var/www/bodyweight"
-REPO_URL="git@github.com:YOUR_USERNAME/bodyweight.git"
+REPO_URL="git@github.com:stepaxvii/bodyweight.git"
 
 echo "🎮 BodyWeight Deployment Starting..."
 
