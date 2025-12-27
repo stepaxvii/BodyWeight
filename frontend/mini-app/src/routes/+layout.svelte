@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { page } from '$app/stores';
 	import { token, isAuthenticated, isLoading } from '$lib/stores/auth';
@@ -10,61 +9,84 @@
 	import '../app.css';
 
 	let { children } = $props();
-	let debugInfo = $state('Starting...');
+	let debugInfo = $state('Initializing...');
+	let mounted = $state(false);
 
-	onMount(async () => {
-		if (!browser) return;
+	// Run immediately when script loads
+	if (browser) {
+		debugInfo = 'Browser detected';
+		console.log('[BodyWeight] Browser detected, waiting for mount...');
+	}
 
-		debugInfo = 'onMount started';
-		console.log('onMount started');
+	onMount(() => {
+		mounted = true;
+		console.log('[BodyWeight] Component mounted');
+		debugInfo = 'Mounted, checking Telegram...';
 
-		const tg = window.Telegram?.WebApp;
-		debugInfo = `Telegram WebApp: ${tg ? 'found' : 'NOT FOUND'}`;
-		console.log('Telegram WebApp:', tg);
+		initApp();
+	});
+
+	async function initApp() {
+		console.log('[BodyWeight] initApp started');
+
+		// Check Telegram WebApp
+		const tg = (window as any).Telegram?.WebApp;
+		console.log('[BodyWeight] Telegram WebApp:', tg ? 'found' : 'NOT FOUND');
 
 		if (!tg) {
-			debugInfo = 'ERROR: Telegram WebApp not available';
-			console.error('Telegram WebApp not available');
+			debugInfo = 'ERROR: Telegram WebApp not found';
+			console.error('[BodyWeight] Telegram WebApp not available');
 			$isLoading = false;
 			return;
 		}
 
+		// Initialize Telegram WebApp
 		tg.ready();
 		tg.expand();
-		tg.setHeaderColor('#1a1a2e');
-		tg.setBackgroundColor('#1a1a2e');
 
+		try {
+			tg.setHeaderColor('#1a1a2e');
+			tg.setBackgroundColor('#1a1a2e');
+		} catch (e) {
+			console.warn('[BodyWeight] Could not set colors:', e);
+		}
+
+		// Check initData
 		const initData = tg.initData;
-		debugInfo = `initData: ${initData ? initData.length + ' chars' : 'EMPTY'}`;
-		console.log('initData:', initData ? 'present (' + initData.length + ' chars)' : 'empty');
+		console.log('[BodyWeight] initData:', initData ? `${initData.length} chars` : 'EMPTY');
 
 		if (!initData) {
-			debugInfo = 'ERROR: No init data from Telegram';
-			console.error('No init data');
+			debugInfo = 'ERROR: No initData from Telegram';
+			console.error('[BodyWeight] No initData - app must be opened from Telegram bot');
 			$isLoading = false;
 			return;
 		}
 
+		debugInfo = 'Authenticating...';
+
 		try {
-			debugInfo = 'Calling API auth...';
-			console.log('Calling authTelegram...');
+			console.log('[BodyWeight] Calling API auth...');
 			const result = await api.authTelegram(initData);
-			debugInfo = 'Auth OK, getting user...';
-			console.log('Auth result:', result);
+			console.log('[BodyWeight] Auth success:', result);
+
 			$token = result.access_token;
 			$isAuthenticated = true;
 
+			debugInfo = 'Loading user data...';
+
 			const userData = await api.getMe();
-			debugInfo = 'User loaded!';
-			console.log('User data:', userData);
+			console.log('[BodyWeight] User data:', userData);
 			$user = userData;
+
+			debugInfo = 'Ready!';
 		} catch (error) {
-			debugInfo = `ERROR: ${error instanceof Error ? error.message : String(error)}`;
-			console.error('Auth error:', error);
+			const message = error instanceof Error ? error.message : String(error);
+			debugInfo = `ERROR: ${message}`;
+			console.error('[BodyWeight] Auth error:', error);
 		} finally {
 			$isLoading = false;
 		}
-	});
+	}
 
 	const navItems = [
 		{ href: '', icon: '🏠', label: 'Главная' },
@@ -156,6 +178,14 @@
 		animation: load 1.5s ease-in-out infinite;
 	}
 
+	.debug-info {
+		font-size: 10px;
+		color: #888;
+		margin-top: var(--space-lg);
+		word-break: break-all;
+		max-width: 280px;
+	}
+
 	@keyframes bounce {
 		0%, 100% { transform: translateY(0); }
 		50% { transform: translateY(-10px); }
@@ -165,13 +195,5 @@
 		0% { width: 0%; }
 		50% { width: 100%; }
 		100% { width: 0%; }
-	}
-
-	.debug-info {
-		font-size: 10px;
-		color: #888;
-		margin-top: var(--space-lg);
-		word-break: break-all;
-		max-width: 280px;
 	}
 </style>
