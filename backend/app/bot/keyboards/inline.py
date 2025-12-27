@@ -9,7 +9,7 @@ def get_main_menu_keyboard() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="🎮 Открыть приложение",
-                    web_app=WebAppInfo(url=settings.MINI_APP_URL),
+                    web_app=WebAppInfo(url=settings.mini_app_url),
                 )
             ],
             [
@@ -31,7 +31,7 @@ def get_workout_keyboard() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="💪 Начать тренировку",
-                    web_app=WebAppInfo(url=f"{settings.MINI_APP_URL}/workout"),
+                    web_app=WebAppInfo(url=f"{settings.mini_app_url}/workout"),
                 )
             ],
             [
@@ -51,7 +51,7 @@ def get_notification_keyboard() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="🎮 Открыть приложение",
-                    web_app=WebAppInfo(url=settings.MINI_APP_URL),
+                    web_app=WebAppInfo(url=settings.mini_app_url),
                 )
             ],
         ]
