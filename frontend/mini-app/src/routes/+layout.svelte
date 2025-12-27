@@ -14,7 +14,11 @@
 	onMount(async () => {
 		if (!browser) return;
 
+		console.log('onMount started');
+
 		const tg = window.Telegram?.WebApp;
+		console.log('Telegram WebApp:', tg);
+
 		if (!tg) {
 			console.error('Telegram WebApp not available');
 			$isLoading = false;
@@ -27,6 +31,8 @@
 		tg.setBackgroundColor('#1a1a2e');
 
 		const initData = tg.initData;
+		console.log('initData:', initData ? 'present (' + initData.length + ' chars)' : 'empty');
+
 		if (!initData) {
 			console.error('No init data');
 			$isLoading = false;
@@ -34,11 +40,14 @@
 		}
 
 		try {
+			console.log('Calling authTelegram...');
 			const result = await api.authTelegram(initData);
+			console.log('Auth result:', result);
 			$token = result.access_token;
 			$isAuthenticated = true;
 
 			const userData = await api.getMe();
+			console.log('User data:', userData);
 			$user = userData;
 		} catch (error) {
 			console.error('Auth error:', error);
