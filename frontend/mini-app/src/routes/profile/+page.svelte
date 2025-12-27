@@ -2,9 +2,9 @@
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { PixelCard, PixelProgress, PixelIcon, PixelAvatar, AvatarPicker } from '$lib/components/ui';
-	import { userStore } from '$lib/stores/user';
+	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
-	import { telegram } from '$lib/stores/telegram';
+	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { Achievement, AvatarId } from '$lib/types';
 
 	let achievements = $state<Achievement[]>([]);

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { PixelButton, PixelCard, PixelIcon, PixelModal, PixelAvatar } from '$lib/components/ui';
 	import { AVATARS, canUnlockAvatar } from '$lib/data/avatars';
-	import { userStore } from '$lib/stores/user';
-	import { telegram } from '$lib/stores/telegram';
+	import { userStore } from '$lib/stores/user.svelte';
+	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { AvatarId, Avatar } from '$lib/types';
 
 	interface Props {

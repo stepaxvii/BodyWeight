@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { PixelCard, PixelButton, PixelIcon, PixelAvatar } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
-	import { telegram } from '$lib/stores/telegram';
+	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { Friend } from '$lib/types';
 
 	let friends = $state<Friend[]>([]);
