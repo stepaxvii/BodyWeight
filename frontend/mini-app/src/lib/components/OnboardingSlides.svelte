@@ -12,7 +12,7 @@
 		{
 			icon: 'dumbbell',
 			title: 'Тренируйся',
-			description: 'Выполняй упражнения без оборудования где угодно. Отжимания, приседания, планка и другие.',
+			description: 'Выполняй упражнения где угодно и когда удобно. Отжимания, приседания, планка и другие.',
 			color: 'var(--pixel-red)'
 		},
 		{
@@ -32,6 +32,12 @@
 			title: 'Получай награды',
 			description: 'Разблокируй достижения и соревнуйся с друзьями в таблице лидеров.',
 			color: 'var(--pixel-green)'
+		},
+		{
+			icon: 'heart',
+			title: 'Будь честен',
+			description: 'Тренировки нужны тебе, а не приложению. Записывай только то, что сделал на самом деле!',
+			color: 'var(--pixel-purple)'
 		}
 	];
 
@@ -120,6 +126,23 @@
 					<rect x="16" y="52" width="32" height="4" fill="currentColor"/>
 					<!-- Star on trophy -->
 					<polygon points="32,18 34,22 38,22 35,25 36,29 32,27 28,29 29,25 26,22 30,22" fill="var(--pixel-bg)"/>
+				</svg>
+			{:else if slides[currentSlide].icon === 'heart'}
+				<svg viewBox="0 0 64 64" class="pixel-art-icon">
+					<!-- Heart pixel art -->
+					<rect x="12" y="16" width="8" height="4" fill="currentColor"/>
+					<rect x="44" y="16" width="8" height="4" fill="currentColor"/>
+					<rect x="8" y="20" width="16" height="4" fill="currentColor"/>
+					<rect x="40" y="20" width="16" height="4" fill="currentColor"/>
+					<rect x="4" y="24" width="24" height="8" fill="currentColor"/>
+					<rect x="36" y="24" width="24" height="8" fill="currentColor"/>
+					<rect x="4" y="32" width="56" height="8" fill="currentColor"/>
+					<rect x="8" y="40" width="48" height="4" fill="currentColor"/>
+					<rect x="12" y="44" width="40" height="4" fill="currentColor"/>
+					<rect x="16" y="48" width="32" height="4" fill="currentColor"/>
+					<rect x="20" y="52" width="24" height="4" fill="currentColor"/>
+					<rect x="24" y="56" width="16" height="4" fill="currentColor"/>
+					<rect x="28" y="60" width="8" height="4" fill="currentColor"/>
 				</svg>
 			{/if}
 		</div>

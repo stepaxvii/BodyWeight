@@ -45,8 +45,8 @@ def calculate_coins(xp_earned: int, has_new_achievement: bool = False) -> int:
     Calculate coins earned.
 
     Formula:
-    - Base: 1 coin per 10 XP
-    - Achievement bonus: +50 coins
+    - Base: 1 coin per 25 XP (slower accumulation for better balance)
+    - Achievement bonus: +25 coins
 
     Args:
         xp_earned: XP earned in this session
@@ -55,10 +55,10 @@ def calculate_coins(xp_earned: int, has_new_achievement: bool = False) -> int:
     Returns:
         Calculated coins amount
     """
-    coins = xp_earned // 10
+    coins = xp_earned // 25
 
     if has_new_achievement:
-        coins += 50
+        coins += 25
 
     return coins
 

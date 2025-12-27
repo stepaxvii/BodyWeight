@@ -1,3 +1,4 @@
+from datetime import date, time, datetime
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -25,6 +26,12 @@ class UserResponse(BaseModel):
     coins: int
     current_streak: int
     max_streak: int
+    last_workout_date: date | None
+    notifications_enabled: bool
+    notification_time: time | None
+    is_onboarded: bool
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True

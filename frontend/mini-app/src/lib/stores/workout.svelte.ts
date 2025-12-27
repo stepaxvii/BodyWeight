@@ -1,23 +1,37 @@
-import type { WorkoutSession, Exercise, WorkoutExercise } from '$lib/types';
+import type { WorkoutSession, Exercise } from '$lib/types';
 import { api } from '$lib/api/client';
 import { userStore } from './user.svelte';
 import { telegram } from './telegram.svelte';
 
+// Set data for each exercise
+interface ExerciseSetData {
+	exercise: Exercise;
+	sets: number[]; // array of reps per set
+	inputReps: number; // current input value
+}
+
 // Workout state using Svelte 5 runes
 class WorkoutStore {
 	session = $state<WorkoutSession | null>(null);
-	currentExercise = $state<Exercise | null>(null);
 	isActive = $state(false);
 	isLoading = $state(false);
 	error = $state<string | null>(null);
+
+	// Selected exercises for the workout (before starting)
+	selectedExercises = $state<Exercise[]>([]);
+
+	// Exercise sets data during workout
+	exerciseData = $state<Map<number, ExerciseSetData>>(new Map());
 
 	// Timer state
 	timerSeconds = $state(0);
 	isTimerRunning = $state(false);
 	private timerInterval: ReturnType<typeof setInterval> | null = null;
 
-	// Current set
-	currentReps = $state(0);
+	// Computed values
+	get selectedCount() {
+		return this.selectedExercises.length;
+	}
 
 	get totalXp() {
 		return this.session?.total_xp_earned ?? 0;
@@ -28,15 +42,19 @@ class WorkoutStore {
 	}
 
 	get totalReps() {
-		return this.session?.total_reps ?? 0;
+		let total = 0;
+		this.exerciseData.forEach(data => {
+			total += data.sets.reduce((sum, reps) => sum + reps, 0);
+		});
+		return total;
 	}
 
-	get exerciseCount() {
-		return this.session?.exercises?.length ?? 0;
-	}
-
-	get duration() {
-		return this.timerSeconds;
+	get totalSets() {
+		let total = 0;
+		this.exerciseData.forEach(data => {
+			total += data.sets.length;
+		});
+		return total;
 	}
 
 	get formattedDuration() {
@@ -45,13 +63,47 @@ class WorkoutStore {
 		return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 	}
 
+	// Selection methods (before workout starts)
+	toggleExerciseSelection(exercise: Exercise) {
+		const index = this.selectedExercises.findIndex(e => e.id === exercise.id);
+		if (index >= 0) {
+			this.selectedExercises = this.selectedExercises.filter(e => e.id !== exercise.id);
+		} else {
+			this.selectedExercises = [...this.selectedExercises, exercise];
+		}
+		telegram.hapticSelection();
+	}
+
+	isExerciseSelected(exerciseId: number): boolean {
+		return this.selectedExercises.some(e => e.id === exerciseId);
+	}
+
+	clearSelection() {
+		this.selectedExercises = [];
+	}
+
+	// Workout lifecycle
 	async startWorkout() {
+		if (this.selectedExercises.length === 0) return;
+
 		this.isLoading = true;
 		this.error = null;
 
 		try {
 			this.session = await api.startWorkout();
 			this.isActive = true;
+
+			// Initialize exercise data for each selected exercise
+			const newData = new Map<number, ExerciseSetData>();
+			for (const exercise of this.selectedExercises) {
+				newData.set(exercise.id, {
+					exercise,
+					sets: [],
+					inputReps: 10 // default value
+				});
+			}
+			this.exerciseData = newData;
+
 			this.startTimer();
 			telegram.hapticNotification('success');
 		} catch (err) {
@@ -62,46 +114,57 @@ class WorkoutStore {
 		}
 	}
 
-	selectExercise(exercise: Exercise) {
-		this.currentExercise = exercise;
-		this.currentReps = 0;
-		telegram.hapticSelection();
+	// Set input methods
+	setInputReps(exerciseId: number, reps: number) {
+		const data = this.exerciseData.get(exerciseId);
+		if (data) {
+			data.inputReps = Math.max(1, reps);
+			this.exerciseData = new Map(this.exerciseData);
+		}
 	}
 
-	setReps(reps: number) {
-		this.currentReps = Math.max(0, reps);
-	}
-
-	incrementReps() {
-		this.currentReps++;
-		telegram.hapticImpact('light');
-	}
-
-	decrementReps() {
-		if (this.currentReps > 0) {
-			this.currentReps--;
+	incrementReps(exerciseId: number) {
+		const data = this.exerciseData.get(exerciseId);
+		if (data) {
+			data.inputReps++;
+			this.exerciseData = new Map(this.exerciseData);
 			telegram.hapticImpact('light');
 		}
 	}
 
-	async addSet() {
-		if (!this.session || !this.currentExercise || this.currentReps <= 0) return;
+	decrementReps(exerciseId: number) {
+		const data = this.exerciseData.get(exerciseId);
+		if (data && data.inputReps > 1) {
+			data.inputReps--;
+			this.exerciseData = new Map(this.exerciseData);
+			telegram.hapticImpact('light');
+		}
+	}
+
+	getExerciseData(exerciseId: number): ExerciseSetData | undefined {
+		return this.exerciseData.get(exerciseId);
+	}
+
+	// Add set for an exercise
+	async addSet(exerciseId: number) {
+		if (!this.session) return;
+
+		const data = this.exerciseData.get(exerciseId);
+		if (!data || data.inputReps <= 0) return;
 
 		this.isLoading = true;
 		try {
 			this.session = await api.addExerciseToWorkout(
 				this.session.id,
-				this.currentExercise.slug,
-				this.currentReps,
-				1 // sets
+				data.exercise.slug,
+				data.inputReps,
+				1
 			);
 
-			// Update user stats
-			userStore.addXp(this.session.total_xp_earned);
-			userStore.addCoins(this.session.total_coins_earned);
+			// Add reps to local sets array
+			data.sets = [...data.sets, data.inputReps];
+			this.exerciseData = new Map(this.exerciseData);
 
-			// Reset for next set
-			this.currentReps = 0;
 			telegram.hapticNotification('success');
 		} catch (err) {
 			this.error = err instanceof Error ? err.message : 'Failed to add set';
@@ -118,6 +181,11 @@ class WorkoutStore {
 		try {
 			this.stopTimer();
 			const completedSession = await api.completeWorkout(this.session.id);
+
+			// Update user stats
+			userStore.addXp(completedSession.total_xp_earned);
+			userStore.addCoins(completedSession.total_coins_earned);
+
 			this.session = completedSession;
 			this.isActive = false;
 			telegram.hapticNotification('success');
@@ -134,10 +202,15 @@ class WorkoutStore {
 	cancelWorkout() {
 		this.stopTimer();
 		this.session = null;
-		this.currentExercise = null;
-		this.currentReps = 0;
+		this.selectedExercises = [];
+		this.exerciseData = new Map();
 		this.isActive = false;
 		this.timerSeconds = 0;
+	}
+
+	reset() {
+		this.cancelWorkout();
+		this.error = null;
 	}
 
 	private startTimer() {

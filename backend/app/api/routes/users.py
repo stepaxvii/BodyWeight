@@ -26,6 +26,8 @@ class UserResponse(BaseModel):
     notification_time: time | None
     notifications_enabled: bool
     is_onboarded: bool
+    created_at: str
+    updated_at: str
 
     class Config:
         from_attributes = True

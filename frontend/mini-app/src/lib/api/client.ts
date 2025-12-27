@@ -146,7 +146,7 @@ const MOCK_LEADERBOARD: LeaderboardEntry[] = [
 
 class ApiClient {
 	private initData: string = '';
-	private useMocks: boolean = true;
+	private useMocks: boolean = false;
 
 	setInitData(initData: string) {
 		this.initData = initData;

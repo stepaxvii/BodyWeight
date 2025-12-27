@@ -8,7 +8,7 @@
       "description_ru": "Завершите первую тренировку",
       "icon": "ach_first_workout",
       "xp_reward": 50,
-      "coin_reward": 100,
+      "coin_reward": 25,
       "condition": { "type": "total_workouts", "value": 1 }
     },
     {
@@ -19,7 +19,7 @@
       "description_ru": "Завершите 10 тренировок",
       "icon": "ach_workout_10",
       "xp_reward": 150,
-      "coin_reward": 200,
+      "coin_reward": 50,
       "condition": { "type": "total_workouts", "value": 10 }
     },
     {
@@ -30,7 +30,7 @@
       "description_ru": "Завершите 50 тренировок",
       "icon": "ach_workout_50",
       "xp_reward": 500,
-      "coin_reward": 500,
+      "coin_reward": 150,
       "condition": { "type": "total_workouts", "value": 50 }
     },
     {
@@ -41,7 +41,7 @@
       "description_ru": "Завершите 100 тренировок",
       "icon": "ach_workout_100",
       "xp_reward": 1000,
-      "coin_reward": 1000,
+      "coin_reward": 300,
       "condition": { "type": "total_workouts", "value": 100 }
     },
     {
@@ -52,7 +52,7 @@
       "description_ru": "Поддержите серию 3 дня",
       "icon": "ach_streak_3",
       "xp_reward": 75,
-      "coin_reward": 100,
+      "coin_reward": 25,
       "condition": { "type": "streak", "value": 3 }
     },
     {
@@ -63,7 +63,7 @@
       "description_ru": "Поддержите серию 7 дней",
       "icon": "ach_streak_7",
       "xp_reward": 200,
-      "coin_reward": 300,
+      "coin_reward": 75,
       "condition": { "type": "streak", "value": 7 }
     },
     {
@@ -74,7 +74,7 @@
       "description_ru": "Поддержите серию 14 дней",
       "icon": "ach_streak_14",
       "xp_reward": 400,
-      "coin_reward": 500,
+      "coin_reward": 150,
       "condition": { "type": "streak", "value": 14 }
     },
     {
@@ -85,7 +85,7 @@
       "description_ru": "Поддержите серию 30 дней",
       "icon": "ach_streak_30",
       "xp_reward": 1000,
-      "coin_reward": 1000,
+      "coin_reward": 300,
       "condition": { "type": "streak", "value": 30 }
     },
     {
@@ -96,7 +96,7 @@
       "description_ru": "Поддержите серию 100 дней",
       "icon": "ach_streak_100",
       "xp_reward": 5000,
-      "coin_reward": 5000,
+      "coin_reward": 1000,
       "condition": { "type": "streak", "value": 100 }
     },
     {
@@ -107,7 +107,7 @@
       "description_ru": "Достигните 5 уровня",
       "icon": "ach_level_5",
       "xp_reward": 100,
-      "coin_reward": 150,
+      "coin_reward": 50,
       "condition": { "type": "level", "value": 5 }
     },
     {
@@ -118,7 +118,7 @@
       "description_ru": "Достигните 10 уровня",
       "icon": "ach_level_10",
       "xp_reward": 500,
-      "coin_reward": 500,
+      "coin_reward": 150,
       "condition": { "type": "level", "value": 10 }
     },
     {
@@ -129,7 +129,7 @@
       "description_ru": "Достигните 25 уровня",
       "icon": "ach_level_25",
       "xp_reward": 1500,
-      "coin_reward": 1500,
+      "coin_reward": 400,
       "condition": { "type": "level", "value": 25 }
     },
     {
@@ -140,7 +140,7 @@
       "description_ru": "Достигните 50 уровня",
       "icon": "ach_level_50",
       "xp_reward": 5000,
-      "coin_reward": 5000,
+      "coin_reward": 1000,
       "condition": { "type": "level", "value": 50 }
     },
     {
@@ -151,7 +151,7 @@
       "description_ru": "Завершите тренировку до 7 утра",
       "icon": "ach_early_bird",
       "xp_reward": 100,
-      "coin_reward": 150,
+      "coin_reward": 50,
       "condition": { "type": "time_of_day", "before": "07:00" }
     },
     {
@@ -162,7 +162,7 @@
       "description_ru": "Завершите тренировку после 22:00",
       "icon": "ach_night_owl",
       "xp_reward": 100,
-      "coin_reward": 150,
+      "coin_reward": 50,
       "condition": { "type": "time_of_day", "after": "22:00" }
     },
     {
@@ -173,7 +173,7 @@
       "description_ru": "Сделайте 100 отжиманий всего",
       "icon": "ach_pushup_100",
       "xp_reward": 150,
-      "coin_reward": 200,
+      "coin_reward": 50,
       "condition": { "type": "exercise_reps", "exercise": "pushup-regular", "value": 100 }
     },
     {
@@ -184,7 +184,7 @@
       "description_ru": "Сделайте 500 отжиманий всего",
       "icon": "ach_pushup_500",
       "xp_reward": 500,
-      "coin_reward": 500,
+      "coin_reward": 150,
       "condition": { "type": "exercise_reps", "exercise": "pushup-regular", "value": 500 }
     },
     {
@@ -195,7 +195,7 @@
       "description_ru": "Сделайте 100 приседаний всего",
       "icon": "ach_squat_100",
       "xp_reward": 150,
-      "coin_reward": 200,
+      "coin_reward": 50,
       "condition": { "type": "exercise_reps", "exercise": "squat-regular", "value": 100 }
     },
     {
@@ -206,7 +206,7 @@
       "description_ru": "Сделайте 50 бёрпи всего",
       "icon": "ach_burpee_50",
       "xp_reward": 200,
-      "coin_reward": 250,
+      "coin_reward": 75,
       "condition": { "type": "exercise_reps", "exercise": "burpee", "value": 50 }
     },
     {
@@ -217,7 +217,7 @@
       "description_ru": "Заработайте 1000 XP всего",
       "icon": "ach_xp_1000",
       "xp_reward": 100,
-      "coin_reward": 100,
+      "coin_reward": 25,
       "condition": { "type": "total_xp", "value": 1000 }
     },
     {
@@ -228,7 +228,7 @@
       "description_ru": "Заработайте 10000 XP всего",
       "icon": "ach_xp_10000",
       "xp_reward": 500,
-      "coin_reward": 500,
+      "coin_reward": 150,
       "condition": { "type": "total_xp", "value": 10000 }
     },
     {
@@ -239,7 +239,7 @@
       "description_ru": "Заработайте 100000 XP всего",
       "icon": "ach_xp_100000",
       "xp_reward": 5000,
-      "coin_reward": 5000,
+      "coin_reward": 1000,
       "condition": { "type": "total_xp", "value": 100000 }
     }
   ]
