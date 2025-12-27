@@ -76,6 +76,26 @@
 		<path d="M8 4C6 2 2 2 2 6s6 8 6 8 6-4 6-8-4-4-6-2z"/>
 	{:else if name === 'heart-empty'}
 		<path d="M8 4C6 2 2 2 2 6s6 8 6 8 6-4 6-8-4-4-6-2z" fill="none" stroke={color} stroke-width="1"/>
+	{:else if name === 'friends'}
+		<path d="M5 4a2 2 0 100 4 2 2 0 000-4zM2 10c0-1 1-2 3-2s3 1 3 2v1H2v-1zm9-6a2 2 0 110 4 2 2 0 010-4zm0 6c2 0 3 1 3 2v1H9v-1c0-1 1-2 2-2z"/>
+	{:else if name === 'search'}
+		<path d="M6 2a4 4 0 103 6.5l3.5 3.5 1.5-1.5L10.5 7A4 4 0 006 2zm0 2a2 2 0 110 4 2 2 0 010-4z"/>
+	{:else if name === 'mail'}
+		<path d="M2 4h12v8H2V4zm2 2l4 3 4-3v1l-4 3-4-3V6z"/>
+	{:else if name === 'close'}
+		<path d="M4 4l8 8M12 4l-8 8" fill="none" stroke={color} stroke-width="2"/>
+	{:else if name === 'warning'}
+		<path d="M8 1L1 14h14L8 1zm0 4v5h0V5zm0 7a1 1 0 110 2 1 1 0 010-2z"/>
+	{:else if name === 'home'}
+		<path d="M8 2L2 7v7h4V10h4v4h4V7L8 2z"/>
+	{:else if name === 'pullup'}
+		<path d="M2 3h12v2H2V3zm5 3h2v8H7V6zm-4 0h2v4H3v-4zm8 0h2v4h-2v-4z"/>
+	{:else if name === 'dip'}
+		<path d="M2 4h3v2H2V4zm9 0h3v2h-3V4zM7 2h2v12H7V2zm-4 8h3v2H3v-2zm8 0h3v2h-3v-2z"/>
+	{:else if name === 'arrow-left'}
+		<path d="M10 3L5 8l5 5V3z"/>
+	{:else if name === 'arrow-right'}
+		<path d="M6 3l5 5-5 5V3z"/>
 	{:else}
 		<!-- Default: question mark -->
 		<path d="M6 4h4v1H8v2h2v2H8v2H6V9h2V7H6V4zm0 7h2v2H6v-2z"/>

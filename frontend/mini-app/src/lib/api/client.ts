@@ -10,7 +10,8 @@ import type {
 	Goal,
 	Friend,
 	ShopItem,
-	AuthResponse
+	AuthResponse,
+	Routine
 } from '$lib/types';
 
 const API_BASE = '/api';
@@ -22,15 +23,16 @@ const MOCK_USER: User = {
 	username: 'player1',
 	first_name: 'Pixel',
 	last_name: 'Hero',
-	photo_url: undefined,
-	level: 5,
-	total_xp: 2450,
-	coins: 320,
-	current_streak: 7,
-	max_streak: 14,
+	avatar_id: 'wolf',
+	level: 1,
+	total_xp: 0,
+	coins: 0,
+	current_streak: 0,
+	max_streak: 0,
 	last_workout_date: new Date().toISOString().split('T')[0],
 	notifications_enabled: true,
 	notification_time: '09:00',
+	is_onboarded: false,
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: new Date().toISOString()
 };
@@ -52,45 +54,50 @@ const MOCK_EXERCISES: Exercise[] = [
 		name: 'Push-up', name_ru: 'Отжимания',
 		description: 'Classic push-up with hands shoulder-width apart',
 		description_ru: 'Классические отжимания, руки на ширине плеч',
-		difficulty: 2, base_xp: 10, required_level: 1,
+		difficulty: 2, base_xp: 10, required_level: 1, equipment: 'none',
 		easier_exercise_slug: 'pushup-knee', harder_exercise_slug: 'pushup-diamond'
 	},
 	{
 		id: 2, slug: 'pushup-knee', category_id: 1, category_slug: 'push',
 		name: 'Knee Push-up', name_ru: 'Отжимания с колен',
-		difficulty: 1, base_xp: 8, required_level: 1,
+		difficulty: 1, base_xp: 8, required_level: 1, equipment: 'none',
 		harder_exercise_slug: 'pushup-regular'
 	},
 	{
 		id: 3, slug: 'pushup-diamond', category_id: 1, category_slug: 'push',
 		name: 'Diamond Push-up', name_ru: 'Алмазные отжимания',
-		difficulty: 4, base_xp: 15, required_level: 5,
+		difficulty: 4, base_xp: 15, required_level: 5, equipment: 'none',
 		easier_exercise_slug: 'pushup-regular'
 	},
 	{
-		id: 4, slug: 'pullup', category_id: 2, category_slug: 'pull',
+		id: 4, slug: 'pullup-regular', category_id: 2, category_slug: 'pull',
 		name: 'Pull-up', name_ru: 'Подтягивания',
-		difficulty: 3, base_xp: 15, required_level: 3
+		difficulty: 3, base_xp: 15, required_level: 3, equipment: 'pullup-bar'
 	},
 	{
-		id: 5, slug: 'squat', category_id: 3, category_slug: 'legs',
+		id: 5, slug: 'squat-regular', category_id: 3, category_slug: 'legs',
 		name: 'Squat', name_ru: 'Приседания',
-		difficulty: 2, base_xp: 10, required_level: 1
+		difficulty: 2, base_xp: 10, required_level: 1, equipment: 'none'
 	},
 	{
 		id: 6, slug: 'plank', category_id: 4, category_slug: 'core',
 		name: 'Plank', name_ru: 'Планка',
-		difficulty: 2, base_xp: 12, required_level: 1
+		difficulty: 2, base_xp: 12, required_level: 1, equipment: 'none'
 	},
 	{
 		id: 7, slug: 'wall-sit', category_id: 5, category_slug: 'static',
 		name: 'Wall Sit', name_ru: 'Стенка',
-		difficulty: 2, base_xp: 10, required_level: 1
+		difficulty: 2, base_xp: 10, required_level: 1, equipment: 'none'
 	},
 	{
-		id: 8, slug: 'jumping-jacks', category_id: 6, category_slug: 'cardio',
+		id: 8, slug: 'jumping-jack', category_id: 6, category_slug: 'cardio',
 		name: 'Jumping Jacks', name_ru: 'Джампинг Джек',
-		difficulty: 1, base_xp: 8, required_level: 1
+		difficulty: 1, base_xp: 8, required_level: 1, equipment: 'none'
+	},
+	{
+		id: 9, slug: 'dip-parallel', category_id: 1, category_slug: 'push',
+		name: 'Parallel Bar Dips', name_ru: 'Отжимания на брусьях',
+		difficulty: 3, base_xp: 15, required_level: 3, equipment: 'dip-bars'
 	}
 ];
 
@@ -132,12 +139,9 @@ const MOCK_ACHIEVEMENTS: Achievement[] = [
 	}
 ];
 
+// Leaderboard shows only current user in mocks - real users come from backend
 const MOCK_LEADERBOARD: LeaderboardEntry[] = [
-	{ rank: 1, user_id: 10, username: 'champion', first_name: 'Max', level: 25, total_xp: 15000, current_streak: 45, is_current_user: false },
-	{ rank: 2, user_id: 11, username: 'fitpro', first_name: 'Alex', level: 22, total_xp: 12500, current_streak: 30, is_current_user: false },
-	{ rank: 3, user_id: 12, username: 'warrior', first_name: 'Sam', level: 18, total_xp: 8200, current_streak: 21, is_current_user: false },
-	{ rank: 4, user_id: 1, username: 'player1', first_name: 'Pixel', level: 5, total_xp: 2450, current_streak: 7, is_current_user: true },
-	{ rank: 5, user_id: 13, username: 'newbie', first_name: 'John', level: 3, total_xp: 800, current_streak: 3, is_current_user: false }
+	{ rank: 1, user_id: 1, username: 'player1', first_name: 'Pixel', avatar_id: 'wolf', level: 5, total_xp: 2450, current_streak: 7, is_current_user: true }
 ];
 
 class ApiClient {
@@ -204,6 +208,29 @@ class ApiClient {
 			};
 		}
 		return this.request<UserStats>('/users/me/stats');
+	}
+
+	async updateUser(data: { avatar_id?: string; notifications_enabled?: boolean }): Promise<User> {
+		if (this.useMocks) {
+			if (data.avatar_id) {
+				MOCK_USER.avatar_id = data.avatar_id as User['avatar_id'];
+			}
+			return MOCK_USER;
+		}
+		return this.request<User>('/users/me', {
+			method: 'PUT',
+			body: JSON.stringify(data)
+		});
+	}
+
+	async completeOnboarding(): Promise<User> {
+		if (this.useMocks) {
+			MOCK_USER.is_onboarded = true;
+			return MOCK_USER;
+		}
+		return this.request<User>('/users/me/complete-onboarding', {
+			method: 'POST'
+		});
 	}
 
 	// Exercises
@@ -335,12 +362,42 @@ class ApiClient {
 	// Friends
 	async getFriends(): Promise<Friend[]> {
 		if (this.useMocks) {
-			return [
-				{ id: 1, user_id: 11, username: 'fitpro', first_name: 'Alex', level: 22, current_streak: 30, status: 'accepted' },
-				{ id: 2, user_id: 12, username: 'warrior', first_name: 'Sam', level: 18, current_streak: 21, status: 'accepted' }
-			];
+			return []; // No fake friends - real users only
 		}
 		return this.request<Friend[]>('/friends');
+	}
+
+	async getFriendRequests(): Promise<Friend[]> {
+		if (this.useMocks) {
+			return [];
+		}
+		return this.request<Friend[]>('/friends/requests');
+	}
+
+	async searchUsers(query: string): Promise<Friend[]> {
+		if (this.useMocks) {
+			return []; // Search only works with real backend
+		}
+		return this.request<Friend[]>(`/friends/search?q=${encodeURIComponent(query)}`);
+	}
+
+	async addFriend(username: string): Promise<Friend> {
+		return this.request<Friend>('/friends/add', {
+			method: 'POST',
+			body: JSON.stringify({ username })
+		});
+	}
+
+	async acceptFriendRequest(friendshipId: number): Promise<Friend> {
+		return this.request<Friend>(`/friends/accept/${friendshipId}`, {
+			method: 'POST'
+		});
+	}
+
+	async removeFriend(friendshipId: number): Promise<void> {
+		await this.request(`/friends/${friendshipId}`, {
+			method: 'DELETE'
+		});
 	}
 
 	// Shop
@@ -352,6 +409,83 @@ class ApiClient {
 			];
 		}
 		return this.request<ShopItem[]>('/shop');
+	}
+
+	// Routines (workout complexes)
+	async getRoutines(): Promise<Routine[]> {
+		if (this.useMocks) {
+			return [
+				{
+					slug: 'morning-light',
+					name: 'Лёгкая зарядка',
+					description: 'Мягкое пробуждение тела. 5-7 минут для бодрого начала дня.',
+					category: 'morning',
+					duration_minutes: 7,
+					difficulty: 1,
+					exercises: [
+						{ slug: 'cat-cow', reps: 10 },
+						{ slug: 'squat-regular', reps: 10 },
+						{ slug: 'jumping-jack', reps: 20 },
+						{ slug: 'plank', duration: 20 }
+					]
+				},
+				{
+					slug: 'home-beginner',
+					name: 'Домашняя тренировка (начало)',
+					description: 'Базовая тренировка дома без оборудования.',
+					category: 'home',
+					duration_minutes: 15,
+					difficulty: 1,
+					exercises: [
+						{ slug: 'jumping-jack', reps: 20 },
+						{ slug: 'squat-regular', reps: 15 },
+						{ slug: 'pushup-knee', reps: 10 },
+						{ slug: 'plank', duration: 20 }
+					]
+				},
+				{
+					slug: 'pullup-beginner',
+					name: 'Турник для начинающих',
+					description: 'Освоение турника. Негативы и австралийские подтягивания.',
+					category: 'pullup-bar',
+					duration_minutes: 20,
+					difficulty: 1,
+					exercises: [
+						{ slug: 'pullup-regular', reps: 5 },
+						{ slug: 'plank', duration: 30 }
+					]
+				},
+				{
+					slug: 'dips-beginner',
+					name: 'Брусья для начинающих',
+					description: 'Подготовка к отжиманиям на брусьях.',
+					category: 'dip-bars',
+					duration_minutes: 20,
+					difficulty: 1,
+					exercises: [
+						{ slug: 'dip-parallel', reps: 8 },
+						{ slug: 'pushup-regular', reps: 10 }
+					]
+				}
+			];
+		}
+		return this.request<Routine[]>('/exercises/routines/all');
+	}
+
+	async getRoutine(slug: string): Promise<Routine | undefined> {
+		if (this.useMocks) {
+			const routines = await this.getRoutines();
+			return routines.find(r => r.slug === slug);
+		}
+		return this.request<Routine>(`/exercises/routines/${slug}`);
+	}
+
+	async getRoutinesByCategory(category: string): Promise<Routine[]> {
+		if (this.useMocks) {
+			const routines = await this.getRoutines();
+			return routines.filter(r => r.category === category);
+		}
+		return this.request<Routine[]>(`/exercises/routines?category=${category}`);
 	}
 }
 

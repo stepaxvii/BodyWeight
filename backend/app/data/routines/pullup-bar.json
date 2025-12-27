@@ -1,0 +1,75 @@
+[
+  {
+    "slug": "pullup-beginner",
+    "name": "Турник для начинающих",
+    "name_en": "Pull-up Bar (Beginner)",
+    "description": "Освоение турника. Негативы и австралийские подтягивания.",
+    "category": "pullup-bar",
+    "duration_minutes": 20,
+    "difficulty": 1,
+    "tags": ["beginner", "pullup-bar", "back", "pull"],
+    "exercises": [
+      {"slug": "jumping-jack", "reps": 20},
+      {"slug": "hang-passive", "duration": 20},
+      {"slug": "pullup-negative", "reps": 5},
+      {"slug": "row-inverted", "reps": 10},
+      {"slug": "pullup-negative", "reps": 5},
+      {"slug": "hang-passive", "duration": 20},
+      {"slug": "row-inverted", "reps": 10},
+      {"slug": "superman", "reps": 15},
+      {"slug": "plank", "duration": 30},
+      {"slug": "shoulder-stretch", "duration": 30}
+    ]
+  },
+  {
+    "slug": "pullup-intermediate",
+    "name": "Турник (средний уровень)",
+    "name_en": "Pull-up Bar (Intermediate)",
+    "description": "Развитие силы на турнике. Подтягивания разными хватами.",
+    "category": "pullup-bar",
+    "duration_minutes": 30,
+    "difficulty": 2,
+    "tags": ["intermediate", "pullup-bar", "back", "pull", "grip-strength"],
+    "exercises": [
+      {"slug": "jumping-jack", "reps": 30},
+      {"slug": "hang-passive", "duration": 30},
+      {"slug": "pullup-regular", "reps": 8},
+      {"slug": "chinup", "reps": 8},
+      {"slug": "row-inverted", "reps": 12},
+      {"slug": "pullup-regular", "reps": 6},
+      {"slug": "pullup-close", "reps": 6},
+      {"slug": "knee-raise-hanging", "reps": 12},
+      {"slug": "hang-passive", "duration": 30},
+      {"slug": "pullup-regular", "reps": 5},
+      {"slug": "leg-raise-hanging", "reps": 8},
+      {"slug": "shoulder-stretch", "duration": 30}
+    ]
+  },
+  {
+    "slug": "pullup-advanced",
+    "name": "Турник (продвинутый)",
+    "name_en": "Pull-up Bar (Advanced)",
+    "description": "Сложные вариации подтягиваний и работа на прессе в висе.",
+    "category": "pullup-bar",
+    "duration_minutes": 40,
+    "difficulty": 3,
+    "tags": ["advanced", "pullup-bar", "back", "pull", "core", "grip-strength"],
+    "exercises": [
+      {"slug": "jumping-jack", "reps": 30},
+      {"slug": "hang-passive", "duration": 30},
+      {"slug": "pullup-wide", "reps": 10},
+      {"slug": "pullup-regular", "reps": 10},
+      {"slug": "chinup", "reps": 10},
+      {"slug": "pullup-close", "reps": 8},
+      {"slug": "pullup-archer", "reps": 6},
+      {"slug": "leg-raise-hanging", "reps": 12},
+      {"slug": "pullup-wide", "reps": 8},
+      {"slug": "pullup-l-sit", "reps": 6},
+      {"slug": "windshield-wiper", "reps": 8},
+      {"slug": "pullup-regular", "reps": 8},
+      {"slug": "knee-raise-hanging", "reps": 15},
+      {"slug": "hang-passive", "duration": 45},
+      {"slug": "shoulder-stretch", "duration": 45}
+    ]
+  }
+]

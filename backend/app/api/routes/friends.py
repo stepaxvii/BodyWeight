@@ -14,7 +14,7 @@ class FriendResponse(BaseModel):
     user_id: int
     username: str | None
     first_name: str | None
-    photo_url: str | None
+    avatar_id: str
     level: int
     total_xp: int
     current_streak: int
@@ -29,7 +29,7 @@ class FriendRequestResponse(BaseModel):
     from_user_id: int
     from_username: str | None
     from_first_name: str | None
-    from_photo_url: str | None
+    from_avatar_id: str
     created_at: str
 
 
@@ -63,7 +63,7 @@ async def get_friends(
             user_id=friend.id,
             username=friend.username,
             first_name=friend.first_name,
-            photo_url=friend.photo_url,
+            avatar_id=friend.avatar_id,
             level=friend.level,
             total_xp=friend.total_xp,
             current_streak=friend.current_streak,
@@ -93,7 +93,7 @@ async def get_friend_requests(
             from_user_id=from_user.id,
             from_username=from_user.username,
             from_first_name=from_user.first_name,
-            from_photo_url=from_user.photo_url,
+            from_avatar_id=from_user.avatar_id,
             created_at=friendship.created_at.isoformat(),
         )
         for friendship, from_user in rows
@@ -165,7 +165,7 @@ async def add_friend(
         user_id=target_user.id,
         username=target_user.username,
         first_name=target_user.first_name,
-        photo_url=target_user.photo_url,
+        avatar_id=target_user.avatar_id,
         level=target_user.level,
         total_xp=target_user.total_xp,
         current_streak=target_user.current_streak,
@@ -218,7 +218,7 @@ async def accept_friend_request(
         user_id=friend_user.id,
         username=friend_user.username,
         first_name=friend_user.first_name,
-        photo_url=friend_user.photo_url,
+        avatar_id=friend_user.avatar_id,
         level=friend_user.level,
         total_xp=friend_user.total_xp,
         current_streak=friend_user.current_streak,
@@ -305,7 +305,7 @@ async def search_users(
             user_id=u.id,
             username=u.username,
             first_name=u.first_name,
-            photo_url=u.photo_url,
+            avatar_id=u.avatar_id,
             level=u.level,
             total_xp=u.total_xp,
             current_streak=u.current_streak,

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { PixelCard, PixelIcon, PixelButton } from '$lib/components/ui';
+	import { PixelCard, PixelIcon, PixelAvatar } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
-	import { telegram } from '$lib/stores/telegram.svelte';
+	import { telegram } from '$lib/stores/telegram';
 	import type { LeaderboardEntry, LeaderboardType } from '$lib/types';
 
 	let entries = $state<LeaderboardEntry[]>([]);
@@ -10,9 +10,9 @@
 	let isLoading = $state(true);
 
 	const tabs: { id: LeaderboardType; label: string }[] = [
-		{ id: 'global', label: 'Global' },
-		{ id: 'weekly', label: 'Weekly' },
-		{ id: 'friends', label: 'Friends' }
+		{ id: 'global', label: 'Все' },
+		{ id: 'weekly', label: 'Неделя' },
+		{ id: 'friends', label: 'Друзья' }
 	];
 
 	onMount(async () => {
@@ -49,7 +49,7 @@
 
 <div class="page container">
 	<header class="page-header">
-		<h1>Leaderboard</h1>
+		<h1>Рейтинг</h1>
 	</header>
 
 	<!-- Tabs -->
@@ -69,12 +69,12 @@
 	{#if isLoading}
 		<div class="loading">
 			<div class="pixel-spinner"></div>
-			<span>Loading...</span>
+			<span>Загрузка...</span>
 		</div>
 	{:else if entries.length === 0}
 		<div class="empty-state">
 			<PixelIcon name="trophy" size="xl" color="var(--text-muted)" />
-			<p>No entries yet</p>
+			<p>Пока никого нет</p>
 		</div>
 	{:else}
 		<!-- Top 3 Podium -->
@@ -82,9 +82,11 @@
 			<div class="podium">
 				<!-- 2nd Place -->
 				<div class="podium-item second">
-					<div class="podium-avatar">
-						<PixelIcon name="profile" size="lg" />
-					</div>
+					<PixelAvatar
+						avatarId={entries[1].avatar_id || 'bear'}
+						size="lg"
+						borderColor="var(--pixel-light)"
+					/>
 					<span class="podium-name">{entries[1].first_name}</span>
 					<span class="podium-xp">{entries[1].total_xp} XP</span>
 					<div class="podium-rank">2</div>
@@ -95,9 +97,11 @@
 					<div class="podium-crown">
 						<PixelIcon name="trophy" color="var(--pixel-yellow)" />
 					</div>
-					<div class="podium-avatar gold">
-						<PixelIcon name="profile" size="xl" />
-					</div>
+					<PixelAvatar
+						avatarId={entries[0].avatar_id || 'dragon'}
+						size="xl"
+						borderColor="var(--pixel-yellow)"
+					/>
 					<span class="podium-name">{entries[0].first_name}</span>
 					<span class="podium-xp">{entries[0].total_xp} XP</span>
 					<div class="podium-rank">1</div>
@@ -105,9 +109,11 @@
 
 				<!-- 3rd Place -->
 				<div class="podium-item third">
-					<div class="podium-avatar">
-						<PixelIcon name="profile" size="lg" />
-					</div>
+					<PixelAvatar
+						avatarId={entries[2].avatar_id || 'lion'}
+						size="lg"
+						borderColor="var(--pixel-orange)"
+					/>
 					<span class="podium-name">{entries[2].first_name}</span>
 					<span class="podium-xp">{entries[2].total_xp} XP</span>
 					<div class="podium-rank">3</div>
@@ -129,18 +135,20 @@
 								<span>#{entry.rank}</span>
 							</div>
 
-							<div class="entry-avatar">
-								<PixelIcon name="profile" />
-							</div>
+							<PixelAvatar
+								avatarId={entry.avatar_id || 'wolf'}
+								size="sm"
+								showBorder={false}
+							/>
 
 							<div class="entry-info">
 								<span class="entry-name">
 									{entry.first_name}
 									{#if entry.is_current_user}
-										<span class="you-badge">YOU</span>
+										<span class="you-badge">ВЫ</span>
 									{/if}
 								</span>
-								<span class="entry-level">Lv.{entry.level}</span>
+								<span class="entry-level">Ур.{entry.level}</span>
 							</div>
 
 							<div class="entry-stats">
@@ -266,22 +274,6 @@
 		animation: pixel-bounce 1s ease-in-out infinite;
 	}
 
-	.podium-avatar {
-		width: 40px;
-		height: 40px;
-		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.podium-avatar.gold {
-		width: 48px;
-		height: 48px;
-		border-color: var(--pixel-yellow);
-	}
-
 	.podium-name {
 		font-size: var(--font-size-xs);
 		max-width: 60px;
@@ -335,16 +327,6 @@
 		gap: 2px;
 		min-width: 40px;
 		font-size: var(--font-size-xs);
-	}
-
-	.entry-avatar {
-		width: 32px;
-		height: 32px;
-		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
-		display: flex;
-		align-items: center;
-		justify-content: center;
 	}
 
 	.entry-info {

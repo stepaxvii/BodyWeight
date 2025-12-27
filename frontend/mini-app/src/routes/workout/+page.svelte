@@ -2,18 +2,25 @@
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { PixelButton, PixelCard, PixelIcon, PixelProgress } from '$lib/components/ui';
+	import RoutinePlayer from '$lib/components/RoutinePlayer.svelte';
 	import { api } from '$lib/api/client';
 	import { workoutStore } from '$lib/stores/workout.svelte';
+	import { userStore } from '$lib/stores/user.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
-	import type { ExerciseCategory, Exercise } from '$lib/types';
+	import type { ExerciseCategory, Exercise, Routine, RoutineCategory } from '$lib/types';
 
 	let categories = $state<ExerciseCategory[]>([]);
 	let exercises = $state<Exercise[]>([]);
+	let routines = $state<Routine[]>([]);
 	let selectedCategory = $state<ExerciseCategory | null>(null);
-	let view = $state<'categories' | 'exercises' | 'workout'>('categories');
+	let selectedRoutine = $state<Routine | null>(null);
+	let activeRoutineCategory = $state<RoutineCategory>('morning');
+	let showRoutinePlayer = $state(false);
+	let view = $state<'categories' | 'exercises' | 'workout' | 'routine'>('categories');
 
 	onMount(async () => {
 		categories = await api.getCategories();
+		routines = await api.getRoutines();
 
 		if (workoutStore.isActive) {
 			view = 'workout';
@@ -43,12 +50,71 @@
 		}
 	}
 
+	function selectRoutine(routine: Routine) {
+		selectedRoutine = routine;
+		view = 'routine';
+		telegram.hapticImpact('light');
+	}
+
+	function startRoutinePlayer() {
+		if (selectedRoutine) {
+			showRoutinePlayer = true;
+			telegram.hapticImpact('medium');
+		}
+	}
+
+	function handleRoutineComplete(xp: number, coins: number) {
+		// Routine completed - reload stats
+		userStore.loadStats();
+	}
+
+	function handleRoutineClose() {
+		showRoutinePlayer = false;
+		view = 'categories';
+		selectedRoutine = null;
+	}
+
+	function selectRoutineCategory(category: RoutineCategory) {
+		activeRoutineCategory = category;
+		telegram.hapticImpact('light');
+	}
+
+	const filteredRoutines = $derived(routines.filter(r => r.category === activeRoutineCategory));
+
+	const routineCategoryTabs: { id: RoutineCategory; name: string; icon: string }[] = [
+		{ id: 'morning', name: 'Зарядка', icon: 'streak' },
+		{ id: 'home', name: 'Дома', icon: 'home' },
+		{ id: 'pullup-bar', name: 'Турник', icon: 'pullup' },
+		{ id: 'dip-bars', name: 'Брусья', icon: 'dip' }
+	];
+
 	function goBack() {
 		if (view === 'exercises') {
 			view = 'categories';
 			selectedCategory = null;
+		} else if (view === 'routine') {
+			view = 'categories';
+			selectedRoutine = null;
 		}
 		telegram.hapticImpact('light');
+	}
+
+	function getDifficultyLabel(difficulty: number): string {
+		switch (difficulty) {
+			case 1: return 'Лёгкий';
+			case 2: return 'Средний';
+			case 3: return 'Активный';
+			default: return '';
+		}
+	}
+
+	function getDifficultyColor(difficulty: number): string {
+		switch (difficulty) {
+			case 1: return 'var(--pixel-green)';
+			case 2: return 'var(--pixel-yellow)';
+			case 3: return 'var(--pixel-orange)';
+			default: return 'var(--text-secondary)';
+		}
 	}
 
 	// Category icon colors
@@ -70,9 +136,55 @@
 
 <div class="page container">
 	{#if view === 'categories'}
+		<!-- Routines Section with Category Tabs -->
+		{#if routines.length > 0}
+			<section class="routines-section">
+				<h2 class="section-header">Комплексы</h2>
+				<div class="routine-tabs">
+					{#each routineCategoryTabs as tab}
+						<button
+							class="routine-tab"
+							class:active={activeRoutineCategory === tab.id}
+							onclick={() => selectRoutineCategory(tab.id)}
+						>
+							{tab.name}
+						</button>
+					{/each}
+				</div>
+				<div class="routines-list">
+					{#each filteredRoutines as routine}
+						<PixelCard
+							hoverable
+							onclick={() => selectRoutine(routine)}
+							padding="md"
+						>
+							<div class="routine-item">
+								<div class="routine-icon">
+									<PixelIcon name="streak" size="lg" color={getDifficultyColor(routine.difficulty)} />
+								</div>
+								<div class="routine-info">
+									<span class="routine-name">{routine.name}</span>
+									<div class="routine-meta">
+										<span class="routine-duration">{routine.duration_minutes} мин</span>
+										<span class="routine-difficulty" style="color: {getDifficultyColor(routine.difficulty)}">
+											{getDifficultyLabel(routine.difficulty)}
+										</span>
+									</div>
+								</div>
+								<PixelIcon name="play" color="var(--text-secondary)" />
+							</div>
+						</PixelCard>
+					{/each}
+					{#if filteredRoutines.length === 0}
+						<p class="no-routines">Нет комплексов в этой категории</p>
+					{/if}
+				</div>
+			</section>
+		{/if}
+
 		<!-- Category Selection -->
 		<header class="page-header">
-			<h1>Choose Category</h1>
+			<h1>Выбери категорию</h1>
 		</header>
 
 		<div class="categories-grid">
@@ -96,7 +208,7 @@
 			<div class="start-section">
 				<PixelButton variant="primary" size="lg" fullWidth onclick={startWorkout}>
 					<PixelIcon name="play" />
-					Start New Workout
+					Начать тренировку
 				</PixelButton>
 			</div>
 		{:else}
@@ -105,17 +217,17 @@
 					<div class="active-workout-info">
 						<div class="workout-status">
 							<PixelIcon name="timer" color="var(--pixel-accent)" />
-							<span>Workout in progress</span>
+							<span>Тренировка идёт</span>
 						</div>
 						<span class="workout-time">{workoutStore.formattedDuration}</span>
 					</div>
 				</PixelCard>
 				<div class="workout-actions">
 					<PixelButton variant="secondary" onclick={() => view = 'workout'}>
-						Continue
+						Продолжить
 					</PixelButton>
 					<PixelButton variant="success" onclick={finishWorkout}>
-						Finish
+						Завершить
 					</PixelButton>
 				</div>
 			</div>
@@ -161,7 +273,7 @@
 			<div class="selected-exercise">
 				<PixelCard variant="accent">
 					<div class="rep-counter">
-						<span class="rep-label">Reps</span>
+						<span class="rep-label">Повторений</span>
 						<div class="rep-controls">
 							<PixelButton variant="secondary" size="sm" onclick={() => workoutStore.decrementReps()}>
 								<PixelIcon name="minus" />
@@ -179,16 +291,77 @@
 						disabled={workoutStore.currentReps <= 0}
 					>
 						<PixelIcon name="check" />
-						Add Set
+						Добавить подход
 					</PixelButton>
 				</PixelCard>
+			</div>
+		{/if}
+
+	{:else if view === 'routine'}
+		<!-- Routine Details -->
+		<header class="page-header with-back">
+			<button class="back-btn" onclick={goBack}>
+				<PixelIcon name="back" />
+			</button>
+			<h1>{selectedRoutine?.name}</h1>
+		</header>
+
+		{#if selectedRoutine}
+			<PixelCard variant="accent" padding="md">
+				<div class="routine-details">
+					<p class="routine-description">{selectedRoutine.description}</p>
+					<div class="routine-stats">
+						<div class="routine-stat">
+							<PixelIcon name="timer" size="sm" color="var(--text-secondary)" />
+							<span>{selectedRoutine.duration_minutes} мин</span>
+						</div>
+						<div class="routine-stat">
+							<PixelIcon name="streak" size="sm" color={getDifficultyColor(selectedRoutine.difficulty)} />
+							<span style="color: {getDifficultyColor(selectedRoutine.difficulty)}">
+								{getDifficultyLabel(selectedRoutine.difficulty)}
+							</span>
+						</div>
+						<div class="routine-stat">
+							<PixelIcon name="play" size="sm" color="var(--text-secondary)" />
+							<span>{selectedRoutine.exercises.length} упр.</span>
+						</div>
+					</div>
+				</div>
+			</PixelCard>
+
+			<section class="routine-exercises">
+				<h3 class="section-title">Упражнения</h3>
+				<div class="routine-exercise-list">
+					{#each selectedRoutine.exercises as routineEx, i}
+						<PixelCard padding="sm">
+							<div class="routine-exercise-item">
+								<span class="routine-exercise-number">{i + 1}</span>
+								<span class="routine-exercise-name">{routineEx.slug.replace(/-/g, ' ')}</span>
+								<span class="routine-exercise-amount">
+									{#if routineEx.reps}
+										{routineEx.reps} повт.
+									{:else if routineEx.duration}
+										{routineEx.duration} сек
+									{/if}
+								</span>
+							</div>
+						</PixelCard>
+					{/each}
+				</div>
+			</section>
+
+			<div class="start-routine-section">
+				<PixelButton variant="primary" size="lg" fullWidth onclick={startRoutinePlayer}>
+					<PixelIcon name="play" />
+					Начать комплекс
+				</PixelButton>
 			</div>
 		{/if}
 
 	{:else if view === 'workout'}
 		<!-- Active Workout -->
 		<header class="page-header">
-			<h1>Workout</h1>
+			<h1>Тренировка</h1>
 		</header>
 
 		<!-- Timer and Stats -->
@@ -201,7 +374,7 @@
 				<div class="workout-totals">
 					<div class="total-item">
 						<span class="total-value">{workoutStore.totalReps}</span>
-						<span class="total-label">Reps</span>
+						<span class="total-label">Повторы</span>
 					</div>
 					<div class="total-item">
 						<span class="total-value text-green">+{workoutStore.totalXp}</span>
@@ -209,7 +382,7 @@
 					</div>
 					<div class="total-item">
 						<span class="total-value text-yellow">+{workoutStore.totalCoins}</span>
-						<span class="total-label">Coins</span>
+						<span class="total-label">Монеты</span>
 					</div>
 				</div>
 			</div>
@@ -217,7 +390,7 @@
 
 		<!-- Category selection -->
 		<section class="workout-categories">
-			<h3 class="section-title">Add Exercise</h3>
+			<h3 class="section-title">Добавить упражнение</h3>
 			<div class="categories-row">
 				{#each categories as category}
 					<button
@@ -234,13 +407,13 @@
 		<!-- Workout exercises log -->
 		{#if workoutStore.session?.exercises && workoutStore.session.exercises.length > 0}
 			<section class="workout-log">
-				<h3 class="section-title">Completed Sets</h3>
+				<h3 class="section-title">Выполненные подходы</h3>
 				<div class="log-list">
 					{#each workoutStore.session.exercises as we}
 						<PixelCard padding="sm">
 							<div class="log-item">
-								<span class="log-exercise">{we.exercise?.name_ru || 'Exercise'}</span>
-								<span class="log-reps">{we.total_reps} reps</span>
+								<span class="log-exercise">{we.exercise?.name_ru || 'Упражнение'}</span>
+								<span class="log-reps">{we.total_reps} повт.</span>
 								<span class="log-xp text-green">+{we.xp_earned} XP</span>
 							</div>
 						</PixelCard>
@@ -253,14 +426,22 @@
 		<div class="finish-section">
 			<PixelButton variant="success" size="lg" fullWidth onclick={finishWorkout}>
 				<PixelIcon name="check" />
-				Complete Workout
+				Завершить тренировку
 			</PixelButton>
 			<PixelButton variant="ghost" fullWidth onclick={() => workoutStore.cancelWorkout()}>
-				Cancel
+				Отменить
 			</PixelButton>
 		</div>
 	{/if}
 </div>
+
+{#if showRoutinePlayer && selectedRoutine}
+	<RoutinePlayer
+		routine={selectedRoutine}
+		onclose={handleRoutineClose}
+		oncomplete={handleRoutineComplete}
+	/>
+{/if}
 
 <style>
 	.page {
@@ -545,4 +726,163 @@
 
 	.text-green { color: var(--pixel-green); }
 	.text-yellow { color: var(--pixel-yellow); }
+
+	/* Routines Section */
+	.routines-section {
+		margin-bottom: var(--spacing-xl);
+	}
+
+	.section-header {
+		font-size: var(--font-size-sm);
+		text-transform: uppercase;
+		margin-bottom: var(--spacing-md);
+		color: var(--pixel-yellow);
+	}
+
+	.routine-tabs {
+		display: flex;
+		gap: var(--spacing-xs);
+		margin-bottom: var(--spacing-md);
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.routine-tab {
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		color: var(--text-secondary);
+		cursor: pointer;
+		white-space: nowrap;
+		transition: all var(--transition-fast);
+	}
+
+	.routine-tab:hover {
+		border-color: var(--pixel-accent);
+	}
+
+	.routine-tab.active {
+		background: var(--pixel-accent);
+		border-color: var(--pixel-accent);
+		color: var(--pixel-bg);
+	}
+
+	.routines-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+	}
+
+	.no-routines {
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
+		text-align: center;
+		padding: var(--spacing-lg);
+	}
+
+	.routine-item {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+	}
+
+	.routine-icon {
+		width: 40px;
+		height: 40px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+	}
+
+	.routine-info {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.routine-name {
+		font-size: var(--font-size-sm);
+	}
+
+	.routine-meta {
+		display: flex;
+		gap: var(--spacing-md);
+		font-size: var(--font-size-xs);
+	}
+
+	.routine-duration {
+		color: var(--text-secondary);
+	}
+
+	/* Routine Details View */
+	.routine-details {
+		text-align: center;
+	}
+
+	.routine-description {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		margin-bottom: var(--spacing-md);
+		line-height: 1.4;
+	}
+
+	.routine-stats {
+		display: flex;
+		justify-content: center;
+		gap: var(--spacing-lg);
+	}
+
+	.routine-stat {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		font-size: var(--font-size-xs);
+	}
+
+	.routine-exercises {
+		margin-top: var(--spacing-lg);
+	}
+
+	.routine-exercise-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+	}
+
+	.routine-exercise-item {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+		font-size: var(--font-size-xs);
+	}
+
+	.routine-exercise-number {
+		width: 20px;
+		height: 20px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--pixel-bg-dark);
+		border: 1px solid var(--border-color);
+		font-size: 10px;
+		color: var(--text-secondary);
+	}
+
+	.routine-exercise-name {
+		flex: 1;
+		text-transform: capitalize;
+	}
+
+	.routine-exercise-amount {
+		color: var(--pixel-green);
+	}
+
+	.start-routine-section {
+		margin-top: var(--spacing-xl);
+	}
 </style>

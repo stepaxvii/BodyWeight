@@ -1,0 +1,82 @@
+[
+  {
+    "slug": "home-beginner",
+    "name": "Домашняя тренировка (начало)",
+    "name_en": "Home Workout (Beginner)",
+    "description": "Базовая тренировка дома без оборудования. Для начинающих.",
+    "category": "home",
+    "duration_minutes": 15,
+    "difficulty": 1,
+    "tags": ["beginner", "no-equipment", "full-body", "home-friendly"],
+    "exercises": [
+      {"slug": "jumping-jack", "reps": 20},
+      {"slug": "squat-regular", "reps": 15},
+      {"slug": "pushup-knee", "reps": 10},
+      {"slug": "lunge-forward", "reps": 12},
+      {"slug": "plank", "duration": 20},
+      {"slug": "glute-bridge", "reps": 15},
+      {"slug": "crunch", "reps": 15},
+      {"slug": "superman", "reps": 10},
+      {"slug": "child-pose", "duration": 30}
+    ]
+  },
+  {
+    "slug": "home-intermediate",
+    "name": "Домашняя тренировка (средняя)",
+    "name_en": "Home Workout (Intermediate)",
+    "description": "Интенсивная тренировка дома. Средний уровень.",
+    "category": "home",
+    "duration_minutes": 25,
+    "difficulty": 2,
+    "tags": ["intermediate", "no-equipment", "full-body", "strength"],
+    "exercises": [
+      {"slug": "jumping-jack", "reps": 30},
+      {"slug": "high-knees", "duration": 30},
+      {"slug": "squat-regular", "reps": 20},
+      {"slug": "squat-jump", "reps": 10},
+      {"slug": "pushup-regular", "reps": 15},
+      {"slug": "pushup-diamond", "reps": 8},
+      {"slug": "lunge-forward", "reps": 16},
+      {"slug": "lunge-jump", "reps": 10},
+      {"slug": "mountain-climber", "reps": 30},
+      {"slug": "plank", "duration": 45},
+      {"slug": "plank-side", "duration": 30},
+      {"slug": "bicycle-crunch", "reps": 30},
+      {"slug": "v-up", "reps": 15},
+      {"slug": "glute-bridge-single", "reps": 12},
+      {"slug": "burpee", "reps": 8},
+      {"slug": "child-pose", "duration": 45}
+    ]
+  },
+  {
+    "slug": "home-advanced",
+    "name": "Домашняя тренировка (продвинутая)",
+    "name_en": "Home Workout (Advanced)",
+    "description": "Хардкорная тренировка дома для опытных.",
+    "category": "home",
+    "duration_minutes": 35,
+    "difficulty": 3,
+    "tags": ["advanced", "no-equipment", "full-body", "intense", "strength"],
+    "exercises": [
+      {"slug": "jumping-jack", "reps": 50},
+      {"slug": "burpee", "reps": 15},
+      {"slug": "squat-jump", "reps": 20},
+      {"slug": "pushup-regular", "reps": 20},
+      {"slug": "pushup-diamond", "reps": 15},
+      {"slug": "pushup-archer", "reps": 10},
+      {"slug": "lunge-jump", "reps": 20},
+      {"slug": "lunge-bulgarian", "reps": 12},
+      {"slug": "squat-pistol-assisted", "reps": 8},
+      {"slug": "mountain-climber", "reps": 50},
+      {"slug": "plank", "duration": 60},
+      {"slug": "plank-side", "duration": 45},
+      {"slug": "v-up", "reps": 20},
+      {"slug": "leg-raise", "reps": 20},
+      {"slug": "russian-twist", "reps": 30},
+      {"slug": "hollow-hold", "duration": 30},
+      {"slug": "glute-bridge-single", "reps": 15},
+      {"slug": "handstand-wall", "duration": 30},
+      {"slug": "child-pose", "duration": 60}
+    ]
+  }
+]

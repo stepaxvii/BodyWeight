@@ -15,7 +15,7 @@ class LeaderboardEntry(BaseModel):
     user_id: int
     username: str | None
     first_name: str | None
-    photo_url: str | None
+    avatar_id: str
     level: int
     total_xp: int
     current_streak: int
@@ -54,7 +54,7 @@ async def get_global_leaderboard(
             user_id=u.id,
             username=u.username,
             first_name=u.first_name,
-            photo_url=u.photo_url,
+            avatar_id=u.avatar_id,
             level=u.level,
             total_xp=u.total_xp,
             current_streak=u.current_streak,
@@ -120,7 +120,7 @@ async def get_weekly_leaderboard(
             user_id=u.id,
             username=u.username,
             first_name=u.first_name,
-            photo_url=u.photo_url,
+            avatar_id=u.avatar_id,
             level=u.level,
             total_xp=weekly_xp or 0,  # This is weekly XP
             current_streak=u.current_streak,
@@ -170,7 +170,7 @@ async def get_friends_leaderboard(
             user_id=u.id,
             username=u.username,
             first_name=u.first_name,
-            photo_url=u.photo_url,
+            avatar_id=u.avatar_id,
             level=u.level,
             total_xp=u.total_xp,
             current_streak=u.current_streak,

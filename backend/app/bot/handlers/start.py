@@ -7,13 +7,12 @@ from sqlalchemy import select
 from app.db.database import async_session_maker
 from app.db.models import User
 from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button
-from app.config import settings
 
 router = Router()
 logger = logging.getLogger(__name__)
 
 
-async def get_or_create_user(telegram_id: int, username: str | None, first_name: str | None, last_name: str | None, photo_url: str | None = None) -> User:
+async def get_or_create_user(telegram_id: int, username: str | None, first_name: str | None, last_name: str | None) -> User:
     """Get or create user in database."""
     async with async_session_maker() as session:
         result = await session.execute(
@@ -27,7 +26,6 @@ async def get_or_create_user(telegram_id: int, username: str | None, first_name:
                 username=username,
                 first_name=first_name,
                 last_name=last_name,
-                photo_url=photo_url,
             )
             session.add(user)
             await session.commit()
@@ -37,8 +35,6 @@ async def get_or_create_user(telegram_id: int, username: str | None, first_name:
             user.username = username
             user.first_name = first_name
             user.last_name = last_name
-            if photo_url:
-                user.photo_url = photo_url
             await session.commit()
 
         return user
@@ -51,26 +47,12 @@ async def cmd_start(message: Message):
     if not user:
         return
 
-    # Get user photos for avatar
-    photo_url = None
-    try:
-        photos = await message.bot.get_user_profile_photos(user.id, limit=1)
-        if photos.photos:
-            # Get smallest photo
-            photo = photos.photos[0][-1]
-            file = await message.bot.get_file(photo.file_id)
-            if file.file_path:
-                photo_url = f"https://api.telegram.org/file/bot{settings.bot_token}/{file.file_path}"
-    except Exception as e:
-        logger.warning(f"Failed to get user photo: {e}")
-
     # Create or update user
     db_user = await get_or_create_user(
         telegram_id=user.id,
         username=user.username,
         first_name=user.first_name,
         last_name=user.last_name,
-        photo_url=photo_url,
     )
 
     welcome_text = f"""

@@ -12,10 +12,10 @@
 	}
 
 	const navItems: NavItemConfig[] = [
-		{ id: 'home', label: 'Home', href: `${base}/`, icon: 'home' },
-		{ id: 'workout', label: 'Workout', href: `${base}/workout`, icon: 'workout' },
-		{ id: 'profile', label: 'Profile', href: `${base}/profile`, icon: 'profile' },
-		{ id: 'leaderboard', label: 'Board', href: `${base}/leaderboard`, icon: 'trophy' }
+		{ id: 'home', label: 'Главная', href: `${base}/`, icon: 'home' },
+		{ id: 'workout', label: 'Тренировка', href: `${base}/workout`, icon: 'workout' },
+		{ id: 'profile', label: 'Профиль', href: `${base}/profile`, icon: 'profile' },
+		{ id: 'leaderboard', label: 'Рейтинг', href: `${base}/leaderboard`, icon: 'trophy' }
 	];
 
 	function isActive(href: string, pathname: string): boolean {

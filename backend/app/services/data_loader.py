@@ -7,19 +7,51 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import ExerciseCategory, Exercise
 
 
-def load_json(filename: str) -> dict:
+DATA_DIR = Path(__file__).parent.parent / "data"
+
+
+def load_json(filename: str) -> dict | list:
     """Load JSON file from data directory."""
-    data_path = Path(__file__).parent.parent / "data" / filename
+    data_path = DATA_DIR / filename
     with open(data_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
+def load_categories_data() -> list[dict]:
+    """Load categories from categories.json."""
+    return load_json("categories.json")
+
+
+def load_all_exercises() -> list[dict]:
+    """Load all exercises from exercises/ directory."""
+    exercises_dir = DATA_DIR / "exercises"
+    all_exercises = []
+
+    for json_file in exercises_dir.glob("*.json"):
+        exercises = load_json(f"exercises/{json_file.name}")
+        all_exercises.extend(exercises)
+
+    return all_exercises
+
+
+def load_all_routines() -> list[dict]:
+    """Load all routines from routines/ directory."""
+    routines_dir = DATA_DIR / "routines"
+    all_routines = []
+
+    for json_file in routines_dir.glob("*.json"):
+        routines = load_json(f"routines/{json_file.name}")
+        all_routines.extend(routines)
+
+    return all_routines
+
+
 async def load_categories(session: AsyncSession) -> dict[str, int]:
     """Load exercise categories into database. Returns slug -> id mapping."""
-    data = load_json("exercises.json")
+    categories = load_categories_data()
     slug_to_id = {}
 
-    for cat_data in data.get("categories", []):
+    for cat_data in categories:
         # Check if exists
         result = await session.execute(
             select(ExerciseCategory).where(ExerciseCategory.slug == cat_data["slug"])
@@ -45,14 +77,14 @@ async def load_categories(session: AsyncSession) -> dict[str, int]:
 
 async def load_exercises(session: AsyncSession) -> None:
     """Load exercises into database."""
-    data = load_json("exercises.json")
-
     # First, load categories
     category_map = await load_categories(session)
 
+    # Load all exercises from the exercises/ directory
+    exercises_data = load_all_exercises()
+
     # Track exercise slug -> id for linking easier/harder
     slug_to_id = {}
-    exercises_data = data.get("exercises", [])
 
     # First pass: create all exercises without links
     for ex_data in exercises_data:
@@ -77,6 +109,7 @@ async def load_exercises(session: AsyncSession) -> None:
                 difficulty=ex_data.get("difficulty", 1),
                 base_xp=ex_data.get("base_xp", 10),
                 required_level=ex_data.get("required_level", 1),
+                equipment=ex_data.get("equipment", "none"),
                 gif_url=f"/static/exercises/{ex_data.get('gif')}" if ex_data.get("gif") else None,
             )
             session.add(exercise)

@@ -29,7 +29,7 @@ class User(Base):
     username: Mapped[Optional[str]] = mapped_column(String(255))
     first_name: Mapped[Optional[str]] = mapped_column(String(255))
     last_name: Mapped[Optional[str]] = mapped_column(String(255))
-    photo_url: Mapped[Optional[str]] = mapped_column(Text)
+    avatar_id: Mapped[str] = mapped_column(String(50), default="wolf")
 
     # Gamification
     level: Mapped[int] = mapped_column(Integer, default=1)
@@ -44,6 +44,9 @@ class User(Base):
     # Settings
     notification_time: Mapped[Optional[time]] = mapped_column(Time)
     notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Onboarding
+    is_onboarded: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
@@ -87,6 +90,9 @@ class Exercise(Base):
     difficulty: Mapped[int] = mapped_column(Integer, default=1)
     base_xp: Mapped[int] = mapped_column(Integer, default=10)
     required_level: Mapped[int] = mapped_column(Integer, default=1)
+
+    # Equipment required: none, pullup-bar, dip-bars
+    equipment: Mapped[str] = mapped_column(String(20), default="none")
 
     # Media
     gif_url: Mapped[Optional[str]] = mapped_column(String(255))

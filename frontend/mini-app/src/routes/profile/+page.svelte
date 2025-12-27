@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
-	import { PixelCard, PixelProgress, PixelIcon, PixelButton } from '$lib/components/ui';
-	import { userStore } from '$lib/stores/user.svelte';
+	import { PixelCard, PixelProgress, PixelIcon, PixelAvatar, AvatarPicker } from '$lib/components/ui';
+	import { userStore } from '$lib/stores/user';
 	import { api } from '$lib/api/client';
-	import type { Achievement } from '$lib/types';
+	import { telegram } from '$lib/stores/telegram';
+	import type { Achievement, AvatarId } from '$lib/types';
 
 	let achievements = $state<Achievement[]>([]);
+	let showAvatarPicker = $state(false);
 
 	onMount(async () => {
 		await userStore.loadStats();
@@ -20,27 +22,51 @@
 	const nextLevelXp = $derived(100 * (userStore.level + 1) * (userStore.level + 1));
 	const xpInLevel = $derived(userStore.xp - currentLevelXp);
 	const xpNeeded = $derived(nextLevelXp - currentLevelXp);
+
+	function openAvatarPicker() {
+		showAvatarPicker = true;
+		telegram.hapticImpact('light');
+	}
+
+	function handleAvatarSelect(avatarId: AvatarId) {
+		userStore.setAvatar(avatarId);
+	}
 </script>
 
 <div class="page container">
 	<!-- Profile Header -->
 	<header class="profile-header">
-		<div class="avatar">
-			<div class="avatar-placeholder">
-				<PixelIcon name="profile" size="xl" />
+		<button class="avatar-btn" onclick={openAvatarPicker}>
+			<div class="avatar">
+				<PixelAvatar
+					avatarId={userStore.user?.avatar_id || 'wolf'}
+					size="xl"
+					borderColor="var(--pixel-accent)"
+				/>
+				<div class="avatar-edit">
+					<PixelIcon name="settings" size="sm" />
+				</div>
 			</div>
-			<div class="level-badge">Lv.{userStore.level}</div>
-		</div>
+			<div class="level-badge">Ур.{userStore.level}</div>
+		</button>
 		<h1 class="username">{userStore.displayName}</h1>
-		<p class="user-title">Pixel Warrior</p>
+		<p class="user-title">Пиксельный воин</p>
 	</header>
+
+	<!-- Avatar Picker Modal -->
+	<AvatarPicker
+		open={showAvatarPicker}
+		currentAvatarId={userStore.user?.avatar_id || 'wolf'}
+		onselect={handleAvatarSelect}
+		onclose={() => showAvatarPicker = false}
+	/>
 
 	<!-- XP Progress -->
 	<section class="xp-section">
 		<PixelCard>
 			<div class="xp-content">
 				<div class="xp-header">
-					<span class="xp-label">Level {userStore.level}</span>
+					<span class="xp-label">Уровень {userStore.level}</span>
 					<span class="xp-value">{xpInLevel} / {xpNeeded} XP</span>
 				</div>
 				<PixelProgress value={xpInLevel} max={xpNeeded} variant="xp" size="lg" />
@@ -50,34 +76,34 @@
 
 	<!-- Stats Grid -->
 	<section class="stats-section">
-		<h3 class="section-title">Statistics</h3>
+		<h3 class="section-title">Статистика</h3>
 		<div class="stats-grid">
 			<PixelCard padding="sm">
 				<div class="stat-item">
 					<PixelIcon name="xp" size="lg" color="var(--pixel-blue)" />
 					<span class="stat-value">{userStore.xp}</span>
-					<span class="stat-label">Total XP</span>
+					<span class="stat-label">Всего XP</span>
 				</div>
 			</PixelCard>
 			<PixelCard padding="sm">
 				<div class="stat-item">
 					<PixelIcon name="coin" size="lg" color="var(--pixel-orange)" />
 					<span class="stat-value">{userStore.coins}</span>
-					<span class="stat-label">Coins</span>
+					<span class="stat-label">Монеты</span>
 				</div>
 			</PixelCard>
 			<PixelCard padding="sm">
 				<div class="stat-item">
 					<PixelIcon name="streak" size="lg" color="var(--pixel-yellow)" />
 					<span class="stat-value">{userStore.streak}</span>
-					<span class="stat-label">Streak</span>
+					<span class="stat-label">Серия</span>
 				</div>
 			</PixelCard>
 			<PixelCard padding="sm">
 				<div class="stat-item">
 					<PixelIcon name="trophy" size="lg" color="var(--pixel-accent)" />
 					<span class="stat-value">{unlockedCount}</span>
-					<span class="stat-label">Badges</span>
+					<span class="stat-label">Значки</span>
 				</div>
 			</PixelCard>
 		</div>
@@ -86,24 +112,24 @@
 	<!-- Detailed Stats -->
 	{#if userStore.stats}
 		<section class="detailed-stats">
-			<h3 class="section-title">Activity</h3>
+			<h3 class="section-title">Активность</h3>
 			<PixelCard>
 				<div class="detail-list">
 					<div class="detail-item">
-						<span class="detail-label">Total Workouts</span>
+						<span class="detail-label">Всего тренировок</span>
 						<span class="detail-value">{userStore.stats.total_workouts}</span>
 					</div>
 					<div class="detail-item">
-						<span class="detail-label">Total Reps</span>
+						<span class="detail-label">Всего повторений</span>
 						<span class="detail-value">{userStore.stats.total_reps}</span>
 					</div>
 					<div class="detail-item">
-						<span class="detail-label">Time Trained</span>
-						<span class="detail-value">{Math.floor(userStore.stats.total_time_minutes / 60)}h {userStore.stats.total_time_minutes % 60}m</span>
+						<span class="detail-label">Время тренировок</span>
+						<span class="detail-value">{Math.floor(userStore.stats.total_time_minutes / 60)}ч {userStore.stats.total_time_minutes % 60}м</span>
 					</div>
 					{#if userStore.stats.favorite_exercise}
 						<div class="detail-item">
-							<span class="detail-label">Favorite</span>
+							<span class="detail-label">Любимое</span>
 							<span class="detail-value">{userStore.stats.favorite_exercise}</span>
 						</div>
 					{/if}
@@ -114,15 +140,15 @@
 
 	<!-- Streak Info -->
 	<section class="streak-section">
-		<h3 class="section-title">Streak</h3>
+		<h3 class="section-title">Серия</h3>
 		<PixelCard variant={userStore.streak >= 7 ? 'success' : 'default'}>
 			<div class="streak-display">
 				<div class="streak-icon">
 					<PixelIcon name="streak" size="xl" color="var(--pixel-yellow)" />
 				</div>
 				<div class="streak-info">
-					<span class="streak-current">{userStore.streak} days</span>
-					<span class="streak-max">Best: {userStore.user?.max_streak || 0} days</span>
+					<span class="streak-current">{userStore.streak} дней</span>
+					<span class="streak-max">Рекорд: {userStore.user?.max_streak || 0} дней</span>
 				</div>
 				<div class="streak-visual">
 					{#each Array(7) as _, i}
@@ -143,7 +169,7 @@
 			<PixelCard hoverable>
 				<div class="link-content">
 					<PixelIcon name="trophy" color="var(--pixel-yellow)" />
-					<span>Achievements</span>
+					<span>Достижения</span>
 					<span class="link-count">{unlockedCount}/{achievements.length}</span>
 				</div>
 			</PixelCard>
@@ -152,7 +178,7 @@
 			<PixelCard hoverable>
 				<div class="link-content">
 					<PixelIcon name="friend" color="var(--pixel-cyan)" />
-					<span>Friends</span>
+					<span>Друзья</span>
 				</div>
 			</PixelCard>
 		</a>
@@ -171,20 +197,37 @@
 		margin-bottom: var(--spacing-lg);
 	}
 
-	.avatar {
+	.avatar-btn {
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 0;
 		position: relative;
 		display: inline-block;
 		margin-bottom: var(--spacing-sm);
 	}
 
-	.avatar-placeholder {
-		width: 64px;
-		height: 64px;
-		background: var(--pixel-card);
-		border: 2px solid var(--pixel-accent);
+	.avatar-btn:hover .avatar-edit {
+		opacity: 1;
+	}
+
+	.avatar {
+		position: relative;
+	}
+
+	.avatar-edit {
+		position: absolute;
+		bottom: 0;
+		right: 0;
+		width: 20px;
+		height: 20px;
+		background: var(--pixel-accent);
+		border: 2px solid var(--pixel-bg);
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		opacity: 0.8;
+		transition: opacity var(--transition-fast);
 	}
 
 	.level-badge {

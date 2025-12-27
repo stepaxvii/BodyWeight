@@ -1,0 +1,70 @@
+[
+  {
+    "slug": "morning-light",
+    "name": "Лёгкая зарядка",
+    "name_en": "Light Morning Routine",
+    "description": "Мягкое пробуждение тела. 5-7 минут для бодрого начала дня.",
+    "category": "morning",
+    "duration_minutes": 7,
+    "difficulty": 1,
+    "tags": ["beginner", "quick", "no-equipment", "energy"],
+    "exercises": [
+      {"slug": "cat-cow", "reps": 10},
+      {"slug": "shoulder-stretch", "duration": 30},
+      {"slug": "squat-regular", "reps": 10},
+      {"slug": "jumping-jack", "reps": 20},
+      {"slug": "plank", "duration": 20},
+      {"slug": "quad-stretch", "duration": 30},
+      {"slug": "child-pose", "duration": 30}
+    ]
+  },
+  {
+    "slug": "morning-medium",
+    "name": "Средняя зарядка",
+    "name_en": "Medium Morning Routine",
+    "description": "Активное пробуждение. 10-12 минут для хорошего заряда энергии.",
+    "category": "morning",
+    "duration_minutes": 12,
+    "difficulty": 2,
+    "tags": ["intermediate", "energy", "no-equipment", "full-body"],
+    "exercises": [
+      {"slug": "jumping-jack", "reps": 30},
+      {"slug": "high-knees", "duration": 30},
+      {"slug": "squat-regular", "reps": 15},
+      {"slug": "pushup-regular", "reps": 10},
+      {"slug": "mountain-climber", "reps": 20},
+      {"slug": "lunge-forward", "reps": 10},
+      {"slug": "plank", "duration": 30},
+      {"slug": "bicycle-crunch", "reps": 20},
+      {"slug": "glute-bridge", "reps": 15},
+      {"slug": "child-pose", "duration": 30}
+    ]
+  },
+  {
+    "slug": "morning-active",
+    "name": "Активная зарядка",
+    "name_en": "Active Morning Routine",
+    "description": "Интенсивное пробуждение. 15-20 минут для максимального заряда на весь день!",
+    "category": "morning",
+    "duration_minutes": 18,
+    "difficulty": 3,
+    "tags": ["advanced", "intense", "no-equipment", "full-body", "hiit"],
+    "exercises": [
+      {"slug": "jumping-jack", "reps": 50},
+      {"slug": "high-knees", "duration": 45},
+      {"slug": "burpee", "reps": 10},
+      {"slug": "squat-jump", "reps": 15},
+      {"slug": "pushup-regular", "reps": 15},
+      {"slug": "mountain-climber", "reps": 30},
+      {"slug": "lunge-jump", "reps": 10},
+      {"slug": "dip-bench", "reps": 12},
+      {"slug": "plank", "duration": 45},
+      {"slug": "bicycle-crunch", "reps": 30},
+      {"slug": "leg-raise", "reps": 15},
+      {"slug": "russian-twist", "reps": 20},
+      {"slug": "glute-bridge", "reps": 20},
+      {"slug": "cat-cow", "reps": 10},
+      {"slug": "child-pose", "duration": 45}
+    ]
+  }
+]

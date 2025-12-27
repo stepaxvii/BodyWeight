@@ -39,8 +39,8 @@
 
 <div class="page container">
 	<header class="page-header">
-		<h1>Achievements</h1>
-		<p class="achievement-count">{unlockedCount} / {achievements.length} Unlocked</p>
+		<h1>Достижения</h1>
+		<p class="achievement-count">{unlockedCount} / {achievements.length} Получено</p>
 	</header>
 
 	<!-- Filter Tabs -->
@@ -50,7 +50,7 @@
 			class:active={filter === 'all'}
 			onclick={() => setFilter('all')}
 		>
-			All
+			Все
 		</button>
 		<button
 			class="filter-btn"
@@ -58,7 +58,7 @@
 			onclick={() => setFilter('unlocked')}
 		>
 			<PixelIcon name="check" size="sm" />
-			Unlocked
+			Открыто
 		</button>
 		<button
 			class="filter-btn"
@@ -66,7 +66,7 @@
 			onclick={() => setFilter('locked')}
 		>
 			<PixelIcon name="lock" size="sm" />
-			Locked
+			Закрыто
 		</button>
 	</div>
 
@@ -139,7 +139,7 @@
 	{#if filteredAchievements().length === 0}
 		<div class="empty-state">
 			<PixelIcon name="trophy" size="xl" color="var(--text-muted)" />
-			<p>No achievements to show</p>
+			<p>Нет достижений для показа</p>
 		</div>
 	{/if}
 </div>

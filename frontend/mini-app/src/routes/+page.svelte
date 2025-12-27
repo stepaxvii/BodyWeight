@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { PixelButton, PixelCard, PixelProgress, PixelIcon } from '$lib/components/ui';
+	import QuickExerciseModal from '$lib/components/QuickExerciseModal.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
 	import { onMount } from 'svelte';
 	import type { Achievement } from '$lib/types';
 
 	let recentAchievements = $state<Achievement[]>([]);
+	let quickModalOpen = $state(false);
+	let lastReward = $state<{ xp: number; coins: number } | null>(null);
 
 	onMount(async () => {
 		await userStore.loadStats();
@@ -19,13 +22,20 @@
 	const nextLevelXp = $derived(100 * (userStore.level + 1) * (userStore.level + 1));
 	const xpInLevel = $derived(userStore.xp - currentLevelXp);
 	const xpNeeded = $derived(nextLevelXp - currentLevelXp);
+
+	function handleQuickSave(xp: number, coins: number) {
+		lastReward = { xp, coins };
+		setTimeout(() => {
+			lastReward = null;
+		}, 3000);
+	}
 </script>
 
 <div class="page container">
 	<!-- Header with user info -->
 	<header class="page-header">
 		<div class="user-greeting">
-			<span class="greeting-text">Welcome back,</span>
+			<span class="greeting-text">С возвращением,</span>
 			<span class="user-name">{userStore.displayName}!</span>
 		</div>
 	</header>
@@ -37,7 +47,7 @@
 				<PixelIcon name="level" size="lg" color="var(--pixel-accent)" />
 				<div class="stat-info">
 					<span class="stat-value">{userStore.level}</span>
-					<span class="stat-label">Level</span>
+					<span class="stat-label">Уровень</span>
 				</div>
 			</div>
 		</PixelCard>
@@ -47,7 +57,7 @@
 				<PixelIcon name="streak" size="lg" color="var(--pixel-yellow)" />
 				<div class="stat-info">
 					<span class="stat-value">{userStore.streak}</span>
-					<span class="stat-label">Streak</span>
+					<span class="stat-label">Серия</span>
 				</div>
 			</div>
 		</PixelCard>
@@ -57,7 +67,7 @@
 				<PixelIcon name="coin" size="lg" color="var(--pixel-orange)" />
 				<div class="stat-info">
 					<span class="stat-value">{userStore.coins}</span>
-					<span class="stat-label">Coins</span>
+					<span class="stat-label">Монеты</span>
 				</div>
 			</div>
 		</PixelCard>
@@ -69,7 +79,7 @@
 			<div class="xp-header">
 				<div class="xp-title">
 					<PixelIcon name="xp" color="var(--pixel-blue)" />
-					<span>Experience</span>
+					<span>Опыт</span>
 				</div>
 				<span class="xp-total">{userStore.xp} XP</span>
 			</div>
@@ -81,36 +91,48 @@
 				size="lg"
 			/>
 			<div class="xp-footer">
-				<span class="text-muted">Next level: {nextLevelXp} XP</span>
+				<span class="text-muted">До следующего уровня: {nextLevelXp} XP</span>
 			</div>
 		</PixelCard>
 	</section>
 
-	<!-- Quick Start Button -->
+	<!-- Quick Start Buttons -->
 	<section class="action-section">
-		<a href="{base}/workout" class="start-workout-link">
-			<PixelButton variant="primary" size="lg" fullWidth>
-				<PixelIcon name="play" />
-				Start Workout
+		<div class="action-buttons">
+			<a href="{base}/workout" class="start-workout-link">
+				<PixelButton variant="primary" size="lg" fullWidth>
+					<PixelIcon name="play" />
+					Тренировка
+				</PixelButton>
+			</a>
+			<PixelButton variant="secondary" size="lg" fullWidth onclick={() => quickModalOpen = true}>
+				<PixelIcon name="plus" />
+				Быстрая запись
 			</PixelButton>
-		</a>
+		</div>
+		{#if lastReward}
+			<div class="reward-toast">
+				<span>+{lastReward.xp} XP</span>
+				<span>+{lastReward.coins} монет</span>
+			</div>
+		{/if}
 	</section>
 
 	<!-- Today's Stats -->
 	{#if userStore.stats}
 		<section class="today-section">
-			<h3 class="section-title">This Week</h3>
+			<h3 class="section-title">На этой неделе</h3>
 			<div class="today-grid">
 				<PixelCard padding="sm">
 					<div class="today-stat">
 						<span class="today-value">{userStore.stats.this_week_workouts}</span>
-						<span class="today-label">Workouts</span>
+						<span class="today-label">Тренировок</span>
 					</div>
 				</PixelCard>
 				<PixelCard padding="sm">
 					<div class="today-stat">
 						<span class="today-value">{userStore.stats.this_week_xp}</span>
-						<span class="today-label">XP Earned</span>
+						<span class="today-label">Получено XP</span>
 					</div>
 				</PixelCard>
 			</div>
@@ -121,8 +143,8 @@
 	{#if recentAchievements.length > 0}
 		<section class="achievements-section">
 			<div class="section-header">
-				<h3 class="section-title">Recent Achievements</h3>
-				<a href="{base}/achievements" class="see-all">See All</a>
+				<h3 class="section-title">Последние достижения</h3>
+				<a href="{base}/achievements" class="see-all">Все</a>
 			</div>
 			<div class="achievements-list">
 				{#each recentAchievements as achievement}
@@ -142,6 +164,12 @@
 		</section>
 	{/if}
 </div>
+
+<QuickExerciseModal
+	bind:open={quickModalOpen}
+	onclose={() => quickModalOpen = false}
+	onsave={handleQuickSave}
+/>
 
 <style>
 	.page {
@@ -238,9 +266,38 @@
 		margin-bottom: var(--spacing-lg);
 	}
 
+	.action-buttons {
+		display: flex;
+		gap: var(--spacing-sm);
+	}
+
 	.start-workout-link {
 		text-decoration: none;
 		display: block;
+		flex: 1;
+	}
+
+	.reward-toast {
+		display: flex;
+		justify-content: center;
+		gap: var(--spacing-md);
+		margin-top: var(--spacing-sm);
+		padding: var(--spacing-sm);
+		background: var(--pixel-green);
+		color: var(--pixel-white);
+		font-size: var(--font-size-sm);
+		animation: slideIn 0.3s ease-out;
+	}
+
+	@keyframes slideIn {
+		from {
+			opacity: 0;
+			transform: translateY(-10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 
 	/* Today Section */

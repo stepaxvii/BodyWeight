@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import Exercise, ExerciseCategory, UserExerciseProgress
+from app.services.data_loader import load_all_routines
 
 router = APIRouter()
 
@@ -34,6 +35,7 @@ class ExerciseResponse(BaseModel):
     difficulty: int
     base_xp: int
     required_level: int
+    equipment: str = "none"  # none, pullup-bar, dip-bars
     gif_url: str | None
     thumbnail_url: str | None
     category_slug: str
@@ -120,6 +122,7 @@ async def get_exercises(
             difficulty=ex.difficulty,
             base_xp=ex.base_xp,
             required_level=ex.required_level,
+            equipment=ex.equipment,
             gif_url=ex.gif_url,
             thumbnail_url=ex.thumbnail_url,
             category_slug=ex.category.slug if ex.category else "",
@@ -181,6 +184,7 @@ async def get_exercise(
         difficulty=exercise.difficulty,
         base_xp=exercise.base_xp,
         required_level=exercise.required_level,
+        equipment=exercise.equipment,
         gif_url=exercise.gif_url,
         thumbnail_url=exercise.thumbnail_url,
         category_slug=exercise.category.slug if exercise.category else "",
@@ -230,4 +234,82 @@ async def get_exercise_progress(
         best_single_set=progress.best_single_set,
         times_performed=progress.times_performed,
         recommended_upgrade=progress.recommended_upgrade,
+    )
+
+
+# Routine models and endpoints
+class RoutineExerciseResponse(BaseModel):
+    slug: str
+    reps: int | None = None
+    duration: int | None = None  # duration in seconds
+
+
+class RoutineResponse(BaseModel):
+    slug: str
+    name: str
+    description: str
+    category: str  # morning, home, pullup-bar, dip-bars
+    duration_minutes: int
+    difficulty: int
+    exercises: List[RoutineExerciseResponse]
+
+
+@router.get("/routines/all", response_model=List[RoutineResponse])
+async def get_routines(
+    category: str | None = Query(None, description="Filter by category: morning, home, pullup-bar, dip-bars")
+):
+    """Get all available workout routines from all categories."""
+    routines = load_all_routines()
+
+    if category:
+        routines = [r for r in routines if r.get("category") == category]
+
+    return [
+        RoutineResponse(
+            slug=r["slug"],
+            name=r["name"],
+            description=r["description"],
+            category=r.get("category", "morning"),
+            duration_minutes=r["duration_minutes"],
+            difficulty=r["difficulty"],
+            exercises=[
+                RoutineExerciseResponse(
+                    slug=ex["slug"],
+                    reps=ex.get("reps"),
+                    duration=ex.get("duration"),
+                )
+                for ex in r["exercises"]
+            ],
+        )
+        for r in routines
+    ]
+
+
+@router.get("/routines/{slug}", response_model=RoutineResponse)
+async def get_routine(slug: str):
+    """Get a specific routine by slug."""
+    routines = load_all_routines()
+
+    for r in routines:
+        if r["slug"] == slug:
+            return RoutineResponse(
+                slug=r["slug"],
+                name=r["name"],
+                description=r["description"],
+                category=r.get("category", "morning"),
+                duration_minutes=r["duration_minutes"],
+                difficulty=r["difficulty"],
+                exercises=[
+                    RoutineExerciseResponse(
+                        slug=ex["slug"],
+                        reps=ex.get("reps"),
+                        duration=ex.get("duration"),
+                    )
+                    for ex in r["exercises"]
+                ],
+            )
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Routine not found",
     )

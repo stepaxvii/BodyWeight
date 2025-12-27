@@ -4,3 +4,5 @@ export { default as PixelProgress } from './PixelProgress.svelte';
 export { default as PixelNav } from './PixelNav.svelte';
 export { default as PixelIcon } from './PixelIcon.svelte';
 export { default as PixelModal } from './PixelModal.svelte';
+export { default as PixelAvatar } from './PixelAvatar.svelte';
+export { default as AvatarPicker } from './AvatarPicker.svelte';

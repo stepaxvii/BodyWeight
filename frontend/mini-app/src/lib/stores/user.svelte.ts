@@ -1,4 +1,4 @@
-import type { User, UserStats } from '$lib/types';
+import type { User, UserStats, AvatarId } from '$lib/types';
 import { api } from '$lib/api/client';
 
 // User state using Svelte 5 runes
@@ -45,6 +45,10 @@ class UserStore {
 	get displayName() {
 		if (!this.user) return 'Guest';
 		return this.user.username || this.user.first_name;
+	}
+
+	get isOnboarded() {
+		return this.user?.is_onboarded ?? false;
 	}
 
 	async authenticate(initData: string) {
@@ -116,6 +120,27 @@ class UserStore {
 			this.user.current_streak = streak;
 			if (streak > this.user.max_streak) {
 				this.user.max_streak = streak;
+			}
+		}
+	}
+
+	async setAvatar(avatarId: AvatarId) {
+		if (this.user) {
+			this.user.avatar_id = avatarId;
+			try {
+				await api.updateUser({ avatar_id: avatarId });
+			} catch (err) {
+				console.error('Failed to update avatar:', err);
+			}
+		}
+	}
+
+	async completeOnboarding() {
+		if (this.user) {
+			try {
+				this.user = await api.completeOnboarding();
+			} catch (err) {
+				console.error('Failed to complete onboarding:', err);
 			}
 		}
 	}

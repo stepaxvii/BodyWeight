@@ -19,7 +19,7 @@ class UserResponse(BaseModel):
     username: str | None
     first_name: str | None
     last_name: str | None
-    photo_url: str | None
+    avatar_id: str
     level: int
     total_xp: int
     coins: int
@@ -88,7 +88,6 @@ async def validate_auth(
     username = user_data.get("username")
     first_name = user_data.get("first_name")
     last_name = user_data.get("last_name")
-    photo_url = user_data.get("photo_url")
 
     # Get or create user
     result = await session.execute(
@@ -104,7 +103,6 @@ async def validate_auth(
             username=username,
             first_name=first_name,
             last_name=last_name,
-            photo_url=photo_url,
         )
         session.add(user)
         await session.flush()
@@ -114,8 +112,6 @@ async def validate_auth(
         user.username = username
         user.first_name = first_name
         user.last_name = last_name
-        if photo_url:
-            user.photo_url = photo_url
         await session.flush()
 
     return AuthResponse(

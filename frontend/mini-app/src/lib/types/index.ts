@@ -1,3 +1,16 @@
+// Avatar types
+export type AvatarId =
+	| 'wolf' | 'bear' | 'fox' | 'cat' | 'dog' | 'lion'
+	| 'panda' | 'owl' | 'rabbit' | 'tiger' | 'monkey' | 'dragon';
+
+export interface Avatar {
+	id: AvatarId;
+	name: string;
+	name_ru: string;
+	requiredLevel: number;
+	price: number; // 0 = free
+}
+
 // User types
 export interface User {
 	id: number;
@@ -5,7 +18,7 @@ export interface User {
 	username?: string;
 	first_name: string;
 	last_name?: string;
-	photo_url?: string;
+	avatar_id: AvatarId;
 	level: number;
 	total_xp: number;
 	coins: number;
@@ -14,6 +27,7 @@ export interface User {
 	last_workout_date?: string;
 	notifications_enabled: boolean;
 	notification_time?: string;
+	is_onboarded: boolean;
 	created_at: string;
 	updated_at: string;
 }
@@ -40,6 +54,8 @@ export interface ExerciseCategory {
 	sort_order: number;
 }
 
+export type EquipmentType = 'none' | 'pullup-bar' | 'dip-bars';
+
 export interface Exercise {
 	id: number;
 	slug: string;
@@ -52,6 +68,7 @@ export interface Exercise {
 	difficulty: 1 | 2 | 3 | 4 | 5;
 	base_xp: number;
 	required_level: number;
+	equipment: EquipmentType;
 	gif_url?: string;
 	thumbnail_url?: string;
 	easier_exercise_slug?: string;
@@ -129,7 +146,7 @@ export interface LeaderboardEntry {
 	user_id: number;
 	username?: string;
 	first_name: string;
-	photo_url?: string;
+	avatar_id: AvatarId;
 	level: number;
 	total_xp: number;
 	current_streak: number;
@@ -158,7 +175,7 @@ export interface Friend {
 	username?: string;
 	first_name: string;
 	last_name?: string;
-	photo_url?: string;
+	avatar_id: AvatarId;
 	level: number;
 	current_streak: number;
 	status: 'pending' | 'accepted' | 'blocked';
@@ -192,3 +209,22 @@ export interface AuthResponse {
 
 // Navigation
 export type NavItem = 'home' | 'workout' | 'profile' | 'leaderboard';
+
+// Routine types (workout complexes)
+export type RoutineCategory = 'morning' | 'home' | 'pullup-bar' | 'dip-bars';
+
+export interface RoutineExercise {
+	slug: string;
+	reps?: number;
+	duration?: number; // duration in seconds
+}
+
+export interface Routine {
+	slug: string;
+	name: string;
+	description: string;
+	category: RoutineCategory;
+	duration_minutes: number;
+	difficulty: 1 | 2 | 3;
+	exercises: RoutineExercise[];
+}

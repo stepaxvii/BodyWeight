@@ -16,7 +16,7 @@ class UserResponse(BaseModel):
     username: str | None
     first_name: str | None
     last_name: str | None
-    photo_url: str | None
+    avatar_id: str
     level: int
     total_xp: int
     coins: int
@@ -25,6 +25,7 @@ class UserResponse(BaseModel):
     last_workout_date: date | None
     notification_time: time | None
     notifications_enabled: bool
+    is_onboarded: bool
 
     class Config:
         from_attributes = True
@@ -44,6 +45,7 @@ class UserStatsResponse(BaseModel):
 
 
 class UpdateUserRequest(BaseModel):
+    avatar_id: str | None = None
     notification_time: time | None = None
     notifications_enabled: bool | None = None
 
@@ -61,11 +63,27 @@ async def update_current_user(
     session: AsyncSessionDep,
 ):
     """Update current user's settings."""
+    if request.avatar_id is not None:
+        # Validate avatar_id is a valid option
+        valid_avatars = ['wolf', 'bear', 'fox', 'cat', 'dog', 'rabbit', 'panda', 'owl', 'tiger', 'lion', 'monkey', 'dragon']
+        if request.avatar_id in valid_avatars:
+            user.avatar_id = request.avatar_id
     if request.notification_time is not None:
         user.notification_time = request.notification_time
     if request.notifications_enabled is not None:
         user.notifications_enabled = request.notifications_enabled
 
+    await session.flush()
+    return UserResponse.model_validate(user)
+
+
+@router.post("/me/complete-onboarding", response_model=UserResponse)
+async def complete_onboarding(
+    user: CurrentUser,
+    session: AsyncSessionDep,
+):
+    """Mark user as onboarded."""
+    user.is_onboarded = True
     await session.flush()
     return UserResponse.model_validate(user)
 

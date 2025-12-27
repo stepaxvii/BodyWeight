@@ -1,0 +1,73 @@
+[
+  {
+    "slug": "dips-beginner",
+    "name": "Брусья для начинающих",
+    "name_en": "Dip Bars (Beginner)",
+    "description": "Подготовка к отжиманиям на брусьях. Обратные отжимания и статика.",
+    "category": "dip-bars",
+    "duration_minutes": 20,
+    "difficulty": 1,
+    "tags": ["beginner", "dip-bars", "push", "triceps"],
+    "exercises": [
+      {"slug": "jumping-jack", "reps": 20},
+      {"slug": "dip-bench", "reps": 10},
+      {"slug": "pushup-regular", "reps": 10},
+      {"slug": "dip-bench", "reps": 10},
+      {"slug": "plank", "duration": 30},
+      {"slug": "dip-bench", "reps": 8},
+      {"slug": "pushup-diamond", "reps": 8},
+      {"slug": "tricep-stretch", "duration": 30},
+      {"slug": "chest-stretch", "duration": 30}
+    ]
+  },
+  {
+    "slug": "dips-intermediate",
+    "name": "Брусья (средний уровень)",
+    "name_en": "Dip Bars (Intermediate)",
+    "description": "Отжимания на брусьях и комбинации.",
+    "category": "dip-bars",
+    "duration_minutes": 30,
+    "difficulty": 2,
+    "tags": ["intermediate", "dip-bars", "push", "triceps", "chest"],
+    "exercises": [
+      {"slug": "jumping-jack", "reps": 30},
+      {"slug": "dip-bench", "reps": 12},
+      {"slug": "dip-parallel", "reps": 8},
+      {"slug": "pushup-regular", "reps": 15},
+      {"slug": "dip-parallel", "reps": 8},
+      {"slug": "pushup-diamond", "reps": 10},
+      {"slug": "l-sit", "duration": 10},
+      {"slug": "dip-parallel", "reps": 6},
+      {"slug": "plank", "duration": 45},
+      {"slug": "dip-bench", "reps": 15},
+      {"slug": "tricep-stretch", "duration": 30},
+      {"slug": "chest-stretch", "duration": 30}
+    ]
+  },
+  {
+    "slug": "dips-advanced",
+    "name": "Брусья (продвинутый)",
+    "name_en": "Dip Bars (Advanced)",
+    "description": "Интенсивная работа на брусьях с элементами гимнастики.",
+    "category": "dip-bars",
+    "duration_minutes": 35,
+    "difficulty": 3,
+    "tags": ["advanced", "dip-bars", "push", "triceps", "chest", "gymnastics"],
+    "exercises": [
+      {"slug": "jumping-jack", "reps": 40},
+      {"slug": "dip-parallel", "reps": 12},
+      {"slug": "pushup-regular", "reps": 20},
+      {"slug": "dip-parallel", "reps": 12},
+      {"slug": "pushup-diamond", "reps": 15},
+      {"slug": "l-sit", "duration": 20},
+      {"slug": "dip-parallel", "reps": 10},
+      {"slug": "pushup-archer", "reps": 10},
+      {"slug": "l-sit", "duration": 15},
+      {"slug": "dip-parallel", "reps": 8},
+      {"slug": "plank", "duration": 60},
+      {"slug": "dip-bench", "reps": 20},
+      {"slug": "tricep-stretch", "duration": 45},
+      {"slug": "chest-stretch", "duration": 45}
+    ]
+  }
+]
