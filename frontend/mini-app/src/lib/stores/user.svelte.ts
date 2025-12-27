@@ -27,11 +27,15 @@ class UserStore {
 	}
 
 	get xpForCurrentLevel() {
-		return 100 * this.level * this.level;
+		// Level 1 starts at 0 XP, Level 2 at 100 XP, Level 3 at 400 XP, etc.
+		const lvl = this.level - 1;
+		return 100 * lvl * lvl;
 	}
 
 	get xpForNextLevel() {
-		return 100 * (this.level + 1) * (this.level + 1);
+		// Level 2 requires 100 XP, Level 3 requires 400 XP, etc.
+		const lvl = this.level;
+		return 100 * lvl * lvl;
 	}
 
 	get xpProgress() {
@@ -44,7 +48,7 @@ class UserStore {
 
 	get displayName() {
 		if (!this.user) return 'Guest';
-		return this.user.username || this.user.first_name;
+		return this.user.first_name || this.user.username || 'Guest';
 	}
 
 	get isOnboarded() {

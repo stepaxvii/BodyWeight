@@ -6,7 +6,8 @@ import logging
 
 from app.config import settings
 from app.api import api_router
-from app.db.database import async_engine, Base
+from app.db.database import async_engine, Base, async_session_maker
+from app.services.data_loader import init_data
 
 logging.basicConfig(level=logging.INFO if settings.debug else logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -23,6 +24,11 @@ async def lifespan(app: FastAPI):
         async with async_engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         logger.info("Database tables created")
+
+        # Load initial data (categories, exercises)
+        async with async_session_maker() as session:
+            await init_data(session)
+        logger.info("Initial data loaded")
 
     yield
 

@@ -24,15 +24,6 @@ class FriendResponse(BaseModel):
         from_attributes = True
 
 
-class FriendRequestResponse(BaseModel):
-    id: int
-    from_user_id: int
-    from_username: str | None
-    from_first_name: str | None
-    from_avatar_id: str
-    created_at: str
-
-
 class AddFriendRequest(BaseModel):
     user_id: int | None = None
     username: str | None = None
@@ -73,7 +64,7 @@ async def get_friends(
     ]
 
 
-@router.get("/requests", response_model=List[FriendRequestResponse])
+@router.get("/requests", response_model=List[FriendResponse])
 async def get_friend_requests(
     session: AsyncSessionDep,
     user: CurrentUser,
@@ -88,13 +79,16 @@ async def get_friend_requests(
     rows = result.all()
 
     return [
-        FriendRequestResponse(
+        FriendResponse(
             id=friendship.id,
-            from_user_id=from_user.id,
-            from_username=from_user.username,
-            from_first_name=from_user.first_name,
-            from_avatar_id=from_user.avatar_id,
-            created_at=friendship.created_at.isoformat(),
+            user_id=from_user.id,
+            username=from_user.username,
+            first_name=from_user.first_name,
+            avatar_id=from_user.avatar_id,
+            level=from_user.level,
+            total_xp=from_user.total_xp,
+            current_streak=from_user.current_streak,
+            status=friendship.status,
         )
         for friendship, from_user in rows
     ]

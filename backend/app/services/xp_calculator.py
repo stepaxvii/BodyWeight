@@ -67,12 +67,13 @@ def xp_for_level(level: int) -> int:
     """
     Calculate total XP required to reach a level.
 
-    Formula: XP = 100 × level²
+    Formula: XP = 100 × (level-1)²
 
-    Level 1: 100 XP
-    Level 2: 400 XP
-    Level 3: 900 XP
-    Level 10: 10,000 XP
+    Level 1: 0 XP (starting level)
+    Level 2: 100 XP
+    Level 3: 400 XP
+    Level 4: 900 XP
+    Level 10: 8,100 XP
 
     Args:
         level: Target level
@@ -80,7 +81,8 @@ def xp_for_level(level: int) -> int:
     Returns:
         Total XP needed to reach this level
     """
-    return 100 * level * level
+    lvl = level - 1
+    return 100 * lvl * lvl
 
 
 def get_level_from_xp(total_xp: int) -> int:
