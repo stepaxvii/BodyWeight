@@ -7,7 +7,7 @@
     "description": "Basic abdominal crunch.",
     "description_ru": "Ляг на спину, ноги согнуты. Руки за головой или на груди. Подними плечи от пола, скругляя поясницу. Опустись. Базовое упражнение для пресса.",
     "difficulty": 1,
-    "base_xp": 6,
+    "base_xp": 3,
     "required_level": 1,
     "equipment": "none",
     "tags": ["abs", "upper-abs", "beginner", "fundamental"]
@@ -20,7 +20,7 @@
     "description": "Alternating elbow-to-knee crunches.",
     "description_ru": "Лёжа на спине, поочерёдно подтягивай колено к противоположному локтю, имитируя вращение педалей. Отлично прорабатывает косые мышцы пресса.",
     "difficulty": 2,
-    "base_xp": 10,
+    "base_xp": 5,
     "required_level": 1,
     "equipment": "none",
     "tags": ["obliques", "abs", "rotational", "popular"]
@@ -33,7 +33,7 @@
     "description": "Raise legs while lying on your back.",
     "description_ru": "Ляг на спину, руки вдоль тела. Подними прямые ноги до вертикали и медленно опусти, не касаясь пола. Прорабатывает нижнюю часть пресса.",
     "difficulty": 2,
-    "base_xp": 10,
+    "base_xp": 5,
     "required_level": 1,
     "harder": "leg-raise-hanging",
     "equipment": "none",
@@ -47,8 +47,8 @@
     "description": "Raise legs while hanging from a bar.",
     "description_ru": "Повисни на перекладине. Подними прямые ноги до горизонтали или выше. Контролируй движение, не раскачивайся. Мощнейшее упражнение для пресса.",
     "difficulty": 4,
-    "base_xp": 15,
-    "required_level": 5,
+    "base_xp": 8,
+    "required_level": 1,
     "easier": "leg-raise",
     "equipment": "pullup-bar",
     "tags": ["lower-abs", "advanced", "grip-strength", "compound"]
@@ -61,8 +61,8 @@
     "description": "Raise knees while hanging from a bar.",
     "description_ru": "Повисни на перекладине. Подтягивай согнутые колени к груди. Более лёгкая версия подъёмов прямых ног.",
     "difficulty": 3,
-    "base_xp": 12,
-    "required_level": 3,
+    "base_xp": 6,
+    "required_level": 1,
     "equipment": "pullup-bar",
     "tags": ["lower-abs", "intermediate", "grip-strength"]
   },
@@ -74,7 +74,7 @@
     "description": "Alternate bringing knees to chest in plank position.",
     "description_ru": "В позиции планки поочерёдно подтягивай колени к груди в быстром темпе. Одновременно кардио и работа на кор.",
     "difficulty": 2,
-    "base_xp": 10,
+    "base_xp": 5,
     "required_level": 1,
     "equipment": "none",
     "tags": ["dynamic", "cardio", "abs", "hip-flexors", "popular"]
@@ -87,7 +87,7 @@
     "description": "Seated twist with torso rotation.",
     "description_ru": "Сядь, ноги приподняты, корпус отклонён назад. Поворачивай торс вправо-влево, касаясь пола руками. Можно с утяжелением. Прорабатывает косые мышцы.",
     "difficulty": 2,
-    "base_xp": 8,
+    "base_xp": 4,
     "required_level": 1,
     "equipment": "none",
     "tags": ["obliques", "rotational", "anti-rotation"]
@@ -100,7 +100,7 @@
     "description": "Alternating leg raises in a scissor motion.",
     "description_ru": "Ляг на спину, ноги приподняты. Выполняй скрещивающие движения ногами, как ножницами. Не опускай ноги на пол. Прорабатывает нижний пресс.",
     "difficulty": 2,
-    "base_xp": 8,
+    "base_xp": 4,
     "required_level": 1,
     "equipment": "none",
     "tags": ["lower-abs", "hip-flexors", "dynamic"]
@@ -113,8 +113,8 @@
     "description": "Simultaneously lift torso and legs to form a V shape.",
     "description_ru": "Ляг на спину, руки за головой. Одновременно подними корпус и прямые ноги, касаясь пальцами носков. Тело образует букву V. Комплексная работа пресса.",
     "difficulty": 3,
-    "base_xp": 12,
-    "required_level": 2,
+    "base_xp": 6,
+    "required_level": 1,
     "equipment": "none",
     "tags": ["compound", "abs", "intermediate", "full-abs"]
   },
@@ -126,8 +126,8 @@
     "description": "Hanging leg raises with side-to-side rotation.",
     "description_ru": "В висе на перекладине подними ноги и опускай их поочерёдно влево и вправо, как дворники. Мощная нагрузка на косые мышцы и весь кор.",
     "difficulty": 4,
-    "base_xp": 18,
-    "required_level": 6,
+    "base_xp": 9,
+    "required_level": 1,
     "equipment": "pullup-bar",
     "tags": ["obliques", "advanced", "rotational", "grip-strength"]
   }

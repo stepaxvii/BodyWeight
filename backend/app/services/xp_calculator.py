@@ -45,9 +45,9 @@ def calculate_coins(xp_earned: int, streak_days: int = 0, workout_duration_minut
     Calculate coins earned. Coins are rare and valuable!
 
     Sources:
-    - Workout XP threshold: 1 coin if earned 100+ XP, 2 coins if 200+ XP, 3 coins if 300+ XP
-    - Streak bonus: 1 coin per 7 days of streak (max 4 coins at 28+ days)
-    - Long workout bonus: 1 coin if workout > 20 min, 2 coins if > 40 min
+    - Workout XP threshold: 1 coin if earned 200+ XP, 2 coins if 400+ XP, 3 coins if 600+ XP
+    - Streak bonus: 1 coin per 14 days of streak (max 2 coins at 28+ days)
+    - Long workout bonus: 1 coin if workout > 30 min, 2 coins if > 60 min
 
     Args:
         xp_earned: XP earned in this session
@@ -55,25 +55,25 @@ def calculate_coins(xp_earned: int, streak_days: int = 0, workout_duration_minut
         workout_duration_minutes: Duration of workout in minutes
 
     Returns:
-        Calculated coins amount (0-10 per workout typically)
+        Calculated coins amount (0-7 per workout typically)
     """
     coins = 0
 
-    # XP threshold bonus (rare)
-    if xp_earned >= 300:
+    # XP threshold bonus (rare) - doubled thresholds for harder earning
+    if xp_earned >= 600:
         coins += 3
-    elif xp_earned >= 200:
+    elif xp_earned >= 400:
         coins += 2
-    elif xp_earned >= 100:
+    elif xp_earned >= 200:
         coins += 1
 
-    # Streak bonus (1 coin per week of streak, max 4)
-    coins += min(streak_days // 7, 4)
+    # Streak bonus (1 coin per 2 weeks of streak, max 2)
+    coins += min(streak_days // 14, 2)
 
-    # Long workout bonus
-    if workout_duration_minutes >= 40:
+    # Long workout bonus - increased thresholds
+    if workout_duration_minutes >= 60:
         coins += 2
-    elif workout_duration_minutes >= 20:
+    elif workout_duration_minutes >= 30:
         coins += 1
 
     return coins

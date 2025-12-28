@@ -256,12 +256,7 @@ async def add_exercise_to_workout(
             detail="Exercise not found",
         )
 
-    # Check if user level is sufficient
-    if user.level < exercise.required_level:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Exercise requires level {exercise.required_level}",
-        )
+    # Note: All exercises are available at any level (required_level is now just informational)
 
     # Check if this is first workout today
     today = date.today()

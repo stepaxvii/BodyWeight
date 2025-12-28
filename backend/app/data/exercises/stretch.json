@@ -7,7 +7,7 @@
     "description": "Stretch chest muscles in a doorway.",
     "description_ru": "Встань в дверном проёме, упрись предплечьями в косяки и наклонись вперёд. Почувствуй растяжение грудных мышц. Держи 20-30 секунд.",
     "difficulty": 1,
-    "base_xp": 4,
+    "base_xp": 2,
     "required_level": 1,
     "equipment": "none",
     "tags": ["chest", "shoulders", "cooldown", "recovery"]
@@ -20,7 +20,7 @@
     "description": "Stretch triceps by reaching behind head.",
     "description_ru": "Подними руку вверх, согни в локте, заведи ладонь за спину. Другой рукой надави на локоть. Держи 20-30 секунд на каждую руку.",
     "difficulty": 1,
-    "base_xp": 4,
+    "base_xp": 2,
     "required_level": 1,
     "equipment": "none",
     "tags": ["triceps", "arms", "cooldown"]
@@ -33,7 +33,7 @@
     "description": "Cross-body shoulder stretch.",
     "description_ru": "Вытяни руку поперёк груди, другой рукой прижми её к себе. Почувствуй растяжение плеча. Держи 20-30 секунд на каждую сторону.",
     "difficulty": 1,
-    "base_xp": 4,
+    "base_xp": 2,
     "required_level": 1,
     "equipment": "none",
     "tags": ["shoulders", "upper-body", "cooldown", "popular"]
@@ -46,7 +46,7 @@
     "description": "Stretch the front of your thigh.",
     "description_ru": "Стоя на одной ноге, согни вторую и подтяни пятку к ягодице. Держи колени вместе. Чувствуй растяжение передней поверхности бедра.",
     "difficulty": 1,
-    "base_xp": 4,
+    "base_xp": 2,
     "required_level": 1,
     "equipment": "none",
     "tags": ["quads", "legs", "cooldown", "popular"]
@@ -59,7 +59,7 @@
     "description": "Stretch the back of your thighs.",
     "description_ru": "Стоя, наклонись вперёд с прямыми ногами, тянись руками к носкам. Или сидя: вытяни ноги и тянись к стопам. Держи 20-30 секунд.",
     "difficulty": 1,
-    "base_xp": 4,
+    "base_xp": 2,
     "required_level": 1,
     "equipment": "none",
     "tags": ["hamstrings", "legs", "flexibility", "popular"]
@@ -72,7 +72,7 @@
     "description": "Lunge stretch for hip flexors.",
     "description_ru": "Встань в выпад, заднее колено на полу. Подай таз вперёд, держи корпус вертикально. Чувствуй растяжение в передней части бедра задней ноги.",
     "difficulty": 1,
-    "base_xp": 4,
+    "base_xp": 2,
     "required_level": 1,
     "equipment": "none",
     "tags": ["hip-flexors", "hips", "mobility"]
@@ -85,7 +85,7 @@
     "description": "Deep stretch for glutes and hip rotators.",
     "description_ru": "Передняя нога согнута перед собой, задняя вытянута. Опусти таз к полу. Глубокая растяжка ягодиц и грушевидной мышцы.",
     "difficulty": 2,
-    "base_xp": 4,
+    "base_xp": 2,
     "required_level": 1,
     "equipment": "none",
     "tags": ["glutes", "hip-rotators", "deep-stretch", "yoga"]
@@ -98,7 +98,7 @@
     "description": "Seated stretch for inner thighs.",
     "description_ru": "Сядь, соедини стопы, колени разведены в стороны. Надавливай локтями на колени, наклоняйся вперёд. Растягивает приводящие мышцы бедра.",
     "difficulty": 1,
-    "base_xp": 4,
+    "base_xp": 2,
     "required_level": 1,
     "equipment": "none",
     "tags": ["adductors", "hips", "groin", "beginner"]
@@ -111,7 +111,7 @@
     "description": "Spinal flexion and extension on all fours.",
     "description_ru": "На четвереньках чередуй прогиб спины вниз (корова) и округление вверх (кошка). Плавно, синхронно с дыханием. Мобилизует весь позвоночник.",
     "difficulty": 1,
-    "base_xp": 4,
+    "base_xp": 2,
     "required_level": 1,
     "equipment": "none",
     "tags": ["spine", "mobility", "warmup", "yoga", "popular"]
@@ -124,7 +124,7 @@
     "description": "Relaxing stretch for back and shoulders.",
     "description_ru": "Сядь на пятки, наклонись вперёд, руки вытянуты. Лоб на полу. Расслабляющая поза для спины, плеч и всего тела. Хорошо для завершения тренировки.",
     "difficulty": 1,
-    "base_xp": 4,
+    "base_xp": 2,
     "required_level": 1,
     "equipment": "none",
     "tags": ["back", "relaxation", "cooldown", "yoga", "popular"]
@@ -137,7 +137,7 @@
     "description": "Hang from bar to decompress spine.",
     "description_ru": "Просто повисни на перекладине, полностью расслабив тело. Растягивает плечи, спину, декомпрессирует позвоночник. Держи 30-60 секунд.",
     "difficulty": 1,
-    "base_xp": 4,
+    "base_xp": 2,
     "required_level": 1,
     "equipment": "pullup-bar",
     "tags": ["spine", "decompression", "shoulders", "grip-strength"]

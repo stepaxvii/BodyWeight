@@ -7,7 +7,7 @@
     "description": "Jump with legs spread and arms overhead.",
     "description_ru": "Прыгни, одновременно разводя ноги в стороны и поднимая руки над головой. Вернись в исходное. Классическое кардио-упражнение для разминки и жиросжигания.",
     "difficulty": 1,
-    "base_xp": 6,
+    "base_xp": 3,
     "required_level": 1,
     "equipment": "none",
     "tags": ["warmup", "full-body", "beginner", "popular", "fat-burn"]
@@ -20,8 +20,8 @@
     "description": "Full-body explosive exercise: squat, push-up, jump.",
     "description_ru": "Присядь, упрись руками в пол, отпрыгни в планку, сделай отжимание, подтяни ноги и выпрыгни вверх с хлопком. Самое эффективное упражнение для всего тела.",
     "difficulty": 3,
-    "base_xp": 15,
-    "required_level": 2,
+    "base_xp": 8,
+    "required_level": 1,
     "equipment": "none",
     "tags": ["full-body", "hiit", "compound", "fat-burn", "popular"]
   },
@@ -33,7 +33,7 @@
     "description": "Run in place lifting knees high.",
     "description_ru": "Бег на месте, поднимая колени как можно выше (до уровня пояса). Работай руками. Интенсивное кардио и работа над координацией.",
     "difficulty": 2,
-    "base_xp": 8,
+    "base_xp": 4,
     "required_level": 1,
     "equipment": "none",
     "tags": ["running", "hip-flexors", "warmup", "coordination"]
@@ -46,7 +46,7 @@
     "description": "Run in place kicking heels to glutes.",
     "description_ru": "Бег на месте, стараясь пятками коснуться ягодиц. Хорошая разминка для задней поверхности бедра.",
     "difficulty": 1,
-    "base_xp": 6,
+    "base_xp": 3,
     "required_level": 1,
     "equipment": "none",
     "tags": ["running", "hamstrings", "warmup", "beginner"]
@@ -59,8 +59,8 @@
     "description": "Jump onto an elevated surface.",
     "description_ru": "Встань перед скамьёй или тумбой. Мощно оттолкнись и запрыгни наверх. Спустись вниз. Развивает взрывную силу ног.",
     "difficulty": 3,
-    "base_xp": 12,
-    "required_level": 3,
+    "base_xp": 6,
+    "required_level": 1,
     "equipment": "none",
     "tags": ["plyometric", "power", "explosive", "intermediate"]
   },
@@ -72,7 +72,7 @@
     "description": "Burpee without push-up and jump.",
     "description_ru": "Из стойки присядь, упрись руками в пол, отпрыгни в планку и вернись назад. Облегчённая версия бёрпи.",
     "difficulty": 2,
-    "base_xp": 10,
+    "base_xp": 5,
     "required_level": 1,
     "equipment": "none",
     "tags": ["full-body", "burpee-regression", "beginner-friendly"]
@@ -85,7 +85,7 @@
     "description": "Lateral jumps from one leg to the other.",
     "description_ru": "Прыгай из стороны в сторону, приземляясь на одну ногу, как конькобежец. Развивает боковую силу и координацию.",
     "difficulty": 2,
-    "base_xp": 10,
+    "base_xp": 5,
     "required_level": 1,
     "equipment": "none",
     "tags": ["lateral", "balance", "agility", "single-leg"]
