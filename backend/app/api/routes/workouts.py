@@ -420,8 +420,13 @@ async def complete_workout(
     workout.duration_seconds = int((now - workout.started_at).total_seconds())
     workout.status = "completed"
 
-    # Calculate coins
-    coins_earned = calculate_coins(workout.total_xp_earned, has_new_achievement=False)
+    # Calculate coins (rare and valuable!)
+    workout_duration_minutes = workout.duration_seconds // 60
+    coins_earned = calculate_coins(
+        xp_earned=workout.total_xp_earned,
+        streak_days=user.current_streak,
+        workout_duration_minutes=workout_duration_minutes
+    )
     workout.total_coins_earned = coins_earned
 
     # Update user stats

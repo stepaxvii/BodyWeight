@@ -40,25 +40,41 @@ def calculate_xp(
     return int(xp)
 
 
-def calculate_coins(xp_earned: int, has_new_achievement: bool = False) -> int:
+def calculate_coins(xp_earned: int, streak_days: int = 0, workout_duration_minutes: int = 0) -> int:
     """
-    Calculate coins earned.
+    Calculate coins earned. Coins are rare and valuable!
 
-    Formula:
-    - Base: 1 coin per 25 XP (slower accumulation for better balance)
-    - Achievement bonus: +25 coins
+    Sources:
+    - Workout XP threshold: 1 coin if earned 100+ XP, 2 coins if 200+ XP, 3 coins if 300+ XP
+    - Streak bonus: 1 coin per 7 days of streak (max 4 coins at 28+ days)
+    - Long workout bonus: 1 coin if workout > 20 min, 2 coins if > 40 min
 
     Args:
         xp_earned: XP earned in this session
-        has_new_achievement: Whether a new achievement was unlocked
+        streak_days: Current streak in days
+        workout_duration_minutes: Duration of workout in minutes
 
     Returns:
-        Calculated coins amount
+        Calculated coins amount (0-10 per workout typically)
     """
-    coins = xp_earned // 25
+    coins = 0
 
-    if has_new_achievement:
-        coins += 25
+    # XP threshold bonus (rare)
+    if xp_earned >= 300:
+        coins += 3
+    elif xp_earned >= 200:
+        coins += 2
+    elif xp_earned >= 100:
+        coins += 1
+
+    # Streak bonus (1 coin per week of streak, max 4)
+    coins += min(streak_days // 7, 4)
+
+    # Long workout bonus
+    if workout_duration_minutes >= 40:
+        coins += 2
+    elif workout_duration_minutes >= 20:
+        coins += 1
 
     return coins
 

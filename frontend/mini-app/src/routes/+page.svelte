@@ -17,11 +17,9 @@
 		recentAchievements = achievements.filter(a => a.unlocked).slice(0, 3);
 	});
 
-	// Level XP calculation
-	const currentLevelXp = $derived(100 * userStore.level * userStore.level);
-	const nextLevelXp = $derived(100 * (userStore.level + 1) * (userStore.level + 1));
-	const xpInLevel = $derived(userStore.xp - currentLevelXp);
-	const xpNeeded = $derived(nextLevelXp - currentLevelXp);
+	// Level XP calculation - use store computed values
+	const xpInLevel = $derived(userStore.xp - userStore.xpForCurrentLevel);
+	const xpNeeded = $derived(userStore.xpForNextLevel - userStore.xpForCurrentLevel);
 
 	function handleQuickSave(xp: number, coins: number) {
 		lastReward = { xp, coins };
