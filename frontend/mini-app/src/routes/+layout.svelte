@@ -28,14 +28,28 @@
 	<div class="loading-screen">
 		<div class="loading-spinner"></div>
 	</div>
+{:else if userStore.error}
+	<div class="error-screen">
+		<div class="error-content">
+			<h2>Ошибка</h2>
+			<p>{userStore.error}</p>
+		</div>
+	</div>
 {:else if userStore.isAuthenticated && !userStore.isOnboarded}
 	<OnboardingScreen />
-{:else}
+{:else if userStore.isAuthenticated}
 	<div class="app">
 		<main class="main-content">
 			{@render children()}
 		</main>
 		<PixelNav />
+	</div>
+{:else}
+	<div class="error-screen">
+		<div class="error-content">
+			<h2>Не авторизован</h2>
+			<p>Откройте приложение через Telegram</p>
+		</div>
 	</div>
 {/if}
 
@@ -70,5 +84,24 @@
 
 	@keyframes spin {
 		to { transform: rotate(360deg); }
+	}
+
+	.error-screen {
+		min-height: 100vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--pixel-bg);
+		padding: 20px;
+	}
+
+	.error-content {
+		text-align: center;
+		color: var(--pixel-text);
+	}
+
+	.error-content h2 {
+		color: var(--pixel-danger);
+		margin-bottom: 8px;
 	}
 </style>
