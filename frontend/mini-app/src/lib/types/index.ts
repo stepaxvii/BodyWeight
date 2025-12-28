@@ -69,6 +69,7 @@ export interface Exercise {
 	base_xp: number;
 	required_level: number;
 	equipment: EquipmentType;
+	is_timed: boolean; // True for time-based exercises (planks, stretches)
 	gif_url?: string;
 	thumbnail_url?: string;
 	easier_exercise_slug?: string;
@@ -94,6 +95,7 @@ export interface WorkoutSession {
 	total_xp_earned: number;
 	total_coins_earned: number;
 	total_reps: number;
+	total_duration_seconds: number; // Total time for time-based exercises
 	streak_multiplier: number;
 	status: 'active' | 'completed' | 'cancelled';
 	exercises: WorkoutExercise[];
@@ -106,9 +108,11 @@ export interface WorkoutExercise {
 	exercise_slug: string;
 	exercise_name: string;
 	exercise_name_ru: string;
+	is_timed: boolean; // True for time-based exercises
 	exercise?: Exercise;
 	sets_completed: number;
 	total_reps: number;
+	total_duration_seconds: number; // Duration for time-based exercises
 	xp_earned: number;
 	coins_earned: number;
 	completed_at?: string;

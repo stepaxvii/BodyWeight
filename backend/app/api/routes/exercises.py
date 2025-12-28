@@ -36,6 +36,7 @@ class ExerciseResponse(BaseModel):
     base_xp: int
     required_level: int
     equipment: str = "none"  # none, pullup-bar, dip-bars
+    is_timed: bool = False  # True for time-based exercises (planks, stretches)
     gif_url: str | None
     thumbnail_url: str | None
     category_slug: str
@@ -123,6 +124,7 @@ async def get_exercises(
             base_xp=ex.base_xp,
             required_level=ex.required_level,
             equipment=ex.equipment,
+            is_timed=ex.is_timed,
             gif_url=ex.gif_url,
             thumbnail_url=ex.thumbnail_url,
             category_slug=ex.category.slug if ex.category else "",
@@ -185,6 +187,7 @@ async def get_exercise(
         base_xp=exercise.base_xp,
         required_level=exercise.required_level,
         equipment=exercise.equipment,
+        is_timed=exercise.is_timed,
         gif_url=exercise.gif_url,
         thumbnail_url=exercise.thumbnail_url,
         category_slug=exercise.category.slug if exercise.category else "",

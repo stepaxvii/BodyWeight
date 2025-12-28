@@ -9,8 +9,9 @@ interface ExerciseSetData {
 	exerciseId: number;
 	exerciseSlug: string;
 	exerciseName: string;
-	sets: number[]; // array of reps per set
-	inputReps: number; // current input value
+	isTimed: boolean; // True for time-based exercises
+	sets: number[]; // array of reps per set (or seconds for timed exercises)
+	inputReps: number; // current input value (reps or seconds)
 }
 
 // Workout state using Svelte 5 runes
@@ -108,8 +109,9 @@ class WorkoutStore {
 							exerciseId: we.exercise_id,
 							exerciseSlug: we.exercise_slug,
 							exerciseName: we.exercise_name_ru,
+							isTimed: we.is_timed ?? false,
 							sets: [], // We don't know individual sets, only totals
-							inputReps: 10
+							inputReps: we.is_timed ? 30 : 10 // Default 30 sec for timed, 10 reps otherwise
 						});
 					}
 					this.exerciseData = newData;
@@ -118,6 +120,16 @@ class WorkoutStore {
 		} catch (err) {
 			console.error('Failed to load active workout:', err);
 		}
+	}
+
+	// Helper to check if exercise is time-based
+	private isTimedExercise(exercise: Exercise): boolean {
+		// Use is_timed flag from backend if available
+		if (exercise.is_timed !== undefined) {
+			return exercise.is_timed;
+		}
+		// Fallback to category check
+		return exercise.category_slug === 'static' || exercise.category_slug === 'stretch';
 	}
 
 	// Workout lifecycle
@@ -134,13 +146,15 @@ class WorkoutStore {
 			// Initialize exercise data for each selected exercise
 			const newData = new Map<number, ExerciseSetData>();
 			for (const exercise of this.selectedExercises) {
+				const isTimed = this.isTimedExercise(exercise);
 				newData.set(exercise.id, {
 					exercise,
 					exerciseId: exercise.id,
 					exerciseSlug: exercise.slug,
 					exerciseName: exercise.name_ru,
+					isTimed,
 					sets: [],
-					inputReps: 10 // default value
+					inputReps: isTimed ? 30 : 10 // default 30 sec for timed, 10 reps otherwise
 				});
 			}
 			this.exerciseData = newData;
@@ -202,33 +216,40 @@ class WorkoutStore {
 			return;
 		}
 		if (data.inputReps <= 0) {
-			console.error('[addSet] Invalid reps:', data.inputReps);
+			console.error('[addSet] Invalid value:', data.inputReps);
 			return;
 		}
 
-		// Capture the reps value before any async operations
-		const repsToAdd = data.inputReps;
+		// Capture the value before any async operations
+		const valueToAdd = data.inputReps;
+		const isTimed = data.isTimed;
+
 		console.log('[addSet] Adding set:', {
 			sessionId: this.session.id,
 			exerciseId,
 			slug: data.exerciseSlug,
-			reps: repsToAdd
+			isTimed,
+			reps: isTimed ? 0 : valueToAdd,
+			duration: isTimed ? valueToAdd : 0
 		});
 
 		this.isLoading = true;
 		try {
+			// For timed exercises: reps=0, durationSeconds=value
+			// For rep-based exercises: reps=value, durationSeconds=0
 			const result = await api.addExerciseToWorkout(
 				this.session.id,
 				data.exerciseSlug,
-				repsToAdd,
-				1
+				isTimed ? 0 : valueToAdd,
+				1, // sets
+				isTimed ? valueToAdd : 0 // durationSeconds
 			);
 			console.log('[addSet] API response:', result);
 			this.session = result;
 
-			// Add reps to local sets array - create new object for reactivity
+			// Add value to local sets array - create new object for reactivity
 			const newData = new Map(this.exerciseData);
-			newData.set(exerciseId, { ...data, sets: [...data.sets, repsToAdd] });
+			newData.set(exerciseId, { ...data, sets: [...data.sets, valueToAdd] });
 			this.exerciseData = newData;
 
 			telegram.hapticNotification('success');
@@ -256,11 +277,10 @@ class WorkoutStore {
 			const response = await api.completeWorkout(this.session.id);
 			console.log('[completeWorkout] API response:', response);
 
-			// Update user stats from the completed workout
-			userStore.addXp(response.workout.total_xp_earned);
-			userStore.addCoins(response.workout.total_coins_earned);
+			// Reload user data from server to get updated XP, level, coins, streak
+			await userStore.loadUser();
 
-			// Handle level up
+			// Handle level up notification
 			if (response.level_up && response.new_level) {
 				console.log(`Level up! New level: ${response.new_level}`);
 			}

@@ -25,7 +25,8 @@ router = APIRouter()
 
 class AddExerciseRequest(BaseModel):
     exercise_slug: str
-    reps: int
+    reps: int = 0  # For rep-based exercises
+    duration_seconds: int = 0  # For time-based exercises
     sets: int = 1
 
 
@@ -35,8 +36,10 @@ class WorkoutExerciseResponse(BaseModel):
     exercise_slug: str
     exercise_name: str
     exercise_name_ru: str
+    is_timed: bool
     sets_completed: int
     total_reps: int
+    total_duration_seconds: int
     xp_earned: int
     coins_earned: int
 
@@ -52,6 +55,7 @@ class WorkoutResponse(BaseModel):
     total_xp_earned: int
     total_coins_earned: int
     total_reps: int
+    total_duration_seconds: int
     streak_multiplier: float
     status: str
     exercises: List[WorkoutExerciseResponse] = []
@@ -71,7 +75,42 @@ class TodayStatsResponse(BaseModel):
     workouts_count: int
     total_xp: int
     total_reps: int
+    total_duration_seconds: int
     exercises_done: int
+
+
+def _make_exercise_response(we: WorkoutExercise) -> WorkoutExerciseResponse:
+    """Helper to create WorkoutExerciseResponse from WorkoutExercise model."""
+    return WorkoutExerciseResponse(
+        id=we.id,
+        exercise_id=we.exercise_id,
+        exercise_slug=we.exercise.slug,
+        exercise_name=we.exercise.name,
+        exercise_name_ru=we.exercise.name_ru,
+        is_timed=we.exercise.is_timed,
+        sets_completed=we.sets_completed,
+        total_reps=we.total_reps,
+        total_duration_seconds=we.total_duration_seconds,
+        xp_earned=we.xp_earned,
+        coins_earned=we.coins_earned,
+    )
+
+
+def _make_workout_response(workout: WorkoutSession) -> WorkoutResponse:
+    """Helper to create WorkoutResponse from WorkoutSession model."""
+    return WorkoutResponse(
+        id=workout.id,
+        started_at=workout.started_at,
+        finished_at=workout.finished_at,
+        duration_seconds=workout.duration_seconds,
+        total_xp_earned=workout.total_xp_earned,
+        total_coins_earned=workout.total_coins_earned,
+        total_reps=workout.total_reps,
+        total_duration_seconds=workout.total_duration_seconds,
+        streak_multiplier=float(workout.streak_multiplier),
+        status=workout.status,
+        exercises=[_make_exercise_response(we) for we in workout.exercises],
+    )
 
 
 @router.get("/active", response_model=WorkoutResponse | None)
@@ -93,33 +132,7 @@ async def get_active_workout(
     if not workout:
         return None
 
-    exercises = [
-        WorkoutExerciseResponse(
-            id=we.id,
-            exercise_id=we.exercise_id,
-            exercise_slug=we.exercise.slug,
-            exercise_name=we.exercise.name,
-            exercise_name_ru=we.exercise.name_ru,
-            sets_completed=we.sets_completed,
-            total_reps=we.total_reps,
-            xp_earned=we.xp_earned,
-            coins_earned=we.coins_earned,
-        )
-        for we in workout.exercises
-    ]
-
-    return WorkoutResponse(
-        id=workout.id,
-        started_at=workout.started_at,
-        finished_at=workout.finished_at,
-        duration_seconds=workout.duration_seconds,
-        total_xp_earned=workout.total_xp_earned,
-        total_coins_earned=workout.total_coins_earned,
-        total_reps=workout.total_reps,
-        streak_multiplier=float(workout.streak_multiplier),
-        status=workout.status,
-        exercises=exercises,
-    )
+    return _make_workout_response(workout)
 
 
 @router.post("", response_model=WorkoutResponse, status_code=status.HTTP_201_CREATED)
@@ -169,6 +182,7 @@ async def start_workout(
         total_xp_earned=0,
         total_coins_earned=0,
         total_reps=0,
+        total_duration_seconds=0,
         streak_multiplier=float(workout.streak_multiplier),
         status=workout.status,
         exercises=[],
@@ -198,33 +212,7 @@ async def get_workout(
             detail="Workout not found",
         )
 
-    exercises = [
-        WorkoutExerciseResponse(
-            id=we.id,
-            exercise_id=we.exercise_id,
-            exercise_slug=we.exercise.slug,
-            exercise_name=we.exercise.name,
-            exercise_name_ru=we.exercise.name_ru,
-            sets_completed=we.sets_completed,
-            total_reps=we.total_reps,
-            xp_earned=we.xp_earned,
-            coins_earned=we.coins_earned,
-        )
-        for we in workout.exercises
-    ]
-
-    return WorkoutResponse(
-        id=workout.id,
-        started_at=workout.started_at,
-        finished_at=workout.finished_at,
-        duration_seconds=workout.duration_seconds,
-        total_xp_earned=workout.total_xp_earned,
-        total_coins_earned=workout.total_coins_earned,
-        total_reps=workout.total_reps,
-        streak_multiplier=float(workout.streak_multiplier),
-        status=workout.status,
-        exercises=exercises,
-    )
+    return _make_workout_response(workout)
 
 
 @router.put("/{workout_id}/exercise", response_model=WorkoutResponse)
@@ -236,7 +224,7 @@ async def add_exercise_to_workout(
 ):
     """Add exercise to active workout."""
     import logging
-    logging.info(f"[add_exercise] Received: slug={request.exercise_slug}, reps={request.reps}, sets={request.sets}")
+    logging.info(f"[add_exercise] Received: slug={request.exercise_slug}, reps={request.reps}, duration={request.duration_seconds}, sets={request.sets}")
 
     # Get active workout
     result = await session.execute(
@@ -279,12 +267,25 @@ async def add_exercise_to_workout(
     today = date.today()
     is_first_today = user.last_workout_date != today
 
-    # Calculate XP
-    total_reps = request.reps * request.sets
+    # Handle time-based vs rep-based exercises
+    is_timed = exercise.is_timed
+    total_reps = 0
+    total_duration = 0
+
+    if is_timed:
+        # For timed exercises, use duration_seconds
+        total_duration = request.duration_seconds * request.sets
+        # For XP calculation, treat 10 seconds as 1 "rep" equivalent
+        xp_value = max(1, total_duration // 10)
+    else:
+        # For rep-based exercises
+        total_reps = request.reps * request.sets
+        xp_value = total_reps
+
     xp_earned = calculate_xp(
         base_xp=exercise.base_xp,
         difficulty=exercise.difficulty,
-        reps=total_reps,
+        reps=xp_value,
         streak_days=user.current_streak,
         is_first_today=is_first_today,
     )
@@ -299,6 +300,7 @@ async def add_exercise_to_workout(
     if existing_entry:
         existing_entry.sets_completed += request.sets
         existing_entry.total_reps += total_reps
+        existing_entry.total_duration_seconds += total_duration
         existing_entry.xp_earned += xp_earned
     else:
         workout_exercise = WorkoutExercise(
@@ -306,6 +308,7 @@ async def add_exercise_to_workout(
             exercise_id=exercise.id,
             sets_completed=request.sets,
             total_reps=total_reps,
+            total_duration_seconds=total_duration,
             xp_earned=xp_earned,
             coins_earned=0,
         )
@@ -314,6 +317,7 @@ async def add_exercise_to_workout(
     # Update workout totals
     workout.total_xp_earned += xp_earned
     workout.total_reps += total_reps
+    workout.total_duration_seconds += total_duration
 
     # Update user exercise progress
     progress_result = await session.execute(
@@ -326,7 +330,8 @@ async def add_exercise_to_workout(
     if progress:
         progress.total_reps_ever += total_reps
         progress.times_performed += 1
-        progress.best_single_set = max(progress.best_single_set, request.reps)
+        if not is_timed:
+            progress.best_single_set = max(progress.best_single_set, request.reps)
         progress.last_performed_at = datetime.utcnow()
 
         # Check if we should recommend upgrade
@@ -337,7 +342,7 @@ async def add_exercise_to_workout(
             user_id=user.id,
             exercise_id=exercise.id,
             total_reps_ever=total_reps,
-            best_single_set=request.reps,
+            best_single_set=request.reps if not is_timed else 0,
             times_performed=1,
             last_performed_at=datetime.utcnow(),
         )
@@ -355,33 +360,7 @@ async def add_exercise_to_workout(
     )
     workout = result.scalar_one()
 
-    exercises = [
-        WorkoutExerciseResponse(
-            id=we.id,
-            exercise_id=we.exercise_id,
-            exercise_slug=we.exercise.slug,
-            exercise_name=we.exercise.name,
-            exercise_name_ru=we.exercise.name_ru,
-            sets_completed=we.sets_completed,
-            total_reps=we.total_reps,
-            xp_earned=we.xp_earned,
-            coins_earned=we.coins_earned,
-        )
-        for we in workout.exercises
-    ]
-
-    return WorkoutResponse(
-        id=workout.id,
-        started_at=workout.started_at,
-        finished_at=workout.finished_at,
-        duration_seconds=workout.duration_seconds,
-        total_xp_earned=workout.total_xp_earned,
-        total_coins_earned=workout.total_coins_earned,
-        total_reps=workout.total_reps,
-        streak_multiplier=float(workout.streak_multiplier),
-        status=workout.status,
-        exercises=exercises,
-    )
+    return _make_workout_response(workout)
 
 
 @router.post("/{workout_id}/complete", response_model=WorkoutSummaryResponse)
@@ -464,36 +443,8 @@ async def complete_workout(
 
     await session.flush()
 
-    exercises = [
-        WorkoutExerciseResponse(
-            id=we.id,
-            exercise_id=we.exercise_id,
-            exercise_slug=we.exercise.slug,
-            exercise_name=we.exercise.name,
-            exercise_name_ru=we.exercise.name_ru,
-            sets_completed=we.sets_completed,
-            total_reps=we.total_reps,
-            xp_earned=we.xp_earned,
-            coins_earned=we.coins_earned,
-        )
-        for we in workout.exercises
-    ]
-
-    workout_response = WorkoutResponse(
-        id=workout.id,
-        started_at=workout.started_at,
-        finished_at=workout.finished_at,
-        duration_seconds=workout.duration_seconds,
-        total_xp_earned=workout.total_xp_earned,
-        total_coins_earned=workout.total_coins_earned,
-        total_reps=workout.total_reps,
-        streak_multiplier=float(workout.streak_multiplier),
-        status=workout.status,
-        exercises=exercises,
-    )
-
     return WorkoutSummaryResponse(
-        workout=workout_response,
+        workout=_make_workout_response(workout),
         new_achievements=new_achievements,
         level_up=level_up,
         new_level=new_level if level_up else None,
@@ -547,37 +498,7 @@ async def get_workout_history(
         .offset(offset)
     )
     workouts = result.scalars().all()
-
-    response = []
-    for workout in workouts:
-        exercises = [
-            WorkoutExerciseResponse(
-                id=we.id,
-                exercise_slug=we.exercise.slug,
-                exercise_name=we.exercise.name,
-                exercise_name_ru=we.exercise.name_ru,
-                sets_completed=we.sets_completed,
-                total_reps=we.total_reps,
-                xp_earned=we.xp_earned,
-                coins_earned=we.coins_earned,
-            )
-            for we in workout.exercises
-        ]
-
-        response.append(WorkoutResponse(
-            id=workout.id,
-            started_at=workout.started_at,
-            finished_at=workout.finished_at,
-            duration_seconds=workout.duration_seconds,
-            total_xp_earned=workout.total_xp_earned,
-            total_coins_earned=workout.total_coins_earned,
-            total_reps=workout.total_reps,
-            streak_multiplier=float(workout.streak_multiplier),
-            status=workout.status,
-            exercises=exercises,
-        ))
-
-    return response
+    return [_make_workout_response(w) for w in workouts]
 
 
 @router.get("/today", response_model=TodayStatsResponse)
@@ -602,6 +523,7 @@ async def get_today_stats(
 
     total_xp = sum(w.total_xp_earned for w in workouts)
     total_reps = sum(w.total_reps for w in workouts)
+    total_duration = sum(w.total_duration_seconds for w in workouts)
 
     # Count unique exercises
     exercise_ids = set()
@@ -613,5 +535,6 @@ async def get_today_stats(
         workouts_count=len(workouts),
         total_xp=total_xp,
         total_reps=total_reps,
+        total_duration_seconds=total_duration,
         exercises_done=len(exercise_ids),
     )

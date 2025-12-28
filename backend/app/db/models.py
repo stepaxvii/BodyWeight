@@ -94,6 +94,9 @@ class Exercise(Base):
     # Equipment required: none, pullup-bar, dip-bars
     equipment: Mapped[str] = mapped_column(String(20), default="none")
 
+    # True for time-based exercises (planks, stretches, etc.)
+    is_timed: Mapped[bool] = mapped_column(Boolean, default=False)
+
     # Media
     gif_url: Mapped[Optional[str]] = mapped_column(String(255))
     thumbnail_url: Mapped[Optional[str]] = mapped_column(String(255))
@@ -133,6 +136,7 @@ class WorkoutSession(Base):
     total_xp_earned: Mapped[int] = mapped_column(Integer, default=0)
     total_coins_earned: Mapped[int] = mapped_column(Integer, default=0)
     total_reps: Mapped[int] = mapped_column(Integer, default=0)
+    total_duration_seconds: Mapped[int] = mapped_column(Integer, default=0)  # Time for static exercises
 
     # Streak bonus applied
     streak_multiplier: Mapped[float] = mapped_column(Numeric(3, 2), default=1.00)
@@ -153,6 +157,7 @@ class WorkoutExercise(Base):
 
     sets_completed: Mapped[int] = mapped_column(Integer, default=0)
     total_reps: Mapped[int] = mapped_column(Integer, default=0)
+    total_duration_seconds: Mapped[int] = mapped_column(Integer, default=0)  # For time-based exercises
 
     xp_earned: Mapped[int] = mapped_column(Integer, default=0)
     coins_earned: Mapped[int] = mapped_column(Integer, default=0)

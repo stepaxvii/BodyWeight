@@ -67,6 +67,10 @@
 
 	// Check if exercise is time-based (planks, stretches, etc)
 	function isTimeBased(ex: Exercise): boolean {
+		// Use is_timed flag from backend, fallback to category check
+		if (ex.is_timed !== undefined) {
+			return ex.is_timed;
+		}
 		const timeBasedCategories = ['static', 'stretch'];
 		return timeBasedCategories.includes(ex.category_slug);
 	}
@@ -81,17 +85,31 @@
 			// Start a quick workout session
 			const session = await api.startWorkout();
 
-			// Add the exercise
-			const value = isTimeBased(selectedExercise) ? Math.ceil(duration / 10) : reps;
-			const result = await api.addExerciseToWorkout(session.id, selectedExercise.slug, value, 1);
+			// Add the exercise - use proper API params for reps vs duration
+			const timeBased = isTimeBased(selectedExercise);
+			console.log('[QuickExercise] Adding:', {
+				slug: selectedExercise.slug,
+				timeBased,
+				reps: timeBased ? 0 : reps,
+				duration: timeBased ? duration : 0
+			});
+
+			// For timed exercises: reps=0, durationSeconds=duration
+			// For rep-based exercises: reps=reps, durationSeconds=0
+			await api.addExerciseToWorkout(
+				session.id,
+				selectedExercise.slug,
+				timeBased ? 0 : reps,
+				1, // sets
+				timeBased ? duration : 0 // durationSeconds
+			);
 
 			// Complete the workout
 			const response = await api.completeWorkout(session.id);
 			const completed = response.workout;
 
-			// Update user stats locally
-			userStore.addXp(completed.total_xp_earned);
-			userStore.addCoins(completed.total_coins_earned);
+			// Reload user data from server to get updated XP, level, coins, streak
+			await userStore.loadUser();
 
 			onsave?.(completed.total_xp_earned, completed.total_coins_earned);
 			handleClose();

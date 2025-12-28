@@ -86,6 +86,9 @@ async def load_exercises(session: AsyncSession) -> None:
     # Track exercise slug -> id for linking easier/harder
     slug_to_id = {}
 
+    # Categories that are time-based
+    timed_categories = {"static", "stretch"}
+
     # First pass: create all exercises without links
     for ex_data in exercises_data:
         # Check if exists
@@ -94,9 +97,13 @@ async def load_exercises(session: AsyncSession) -> None:
         )
         exercise = result.scalar_one_or_none()
 
-        category_id = category_map.get(ex_data["category"])
+        category_slug = ex_data["category"]
+        category_id = category_map.get(category_slug)
         if not category_id:
             continue
+
+        # Determine if exercise is time-based
+        is_timed = category_slug in timed_categories
 
         if not exercise:
             exercise = Exercise(
@@ -110,10 +117,14 @@ async def load_exercises(session: AsyncSession) -> None:
                 base_xp=ex_data.get("base_xp", 10),
                 required_level=ex_data.get("required_level", 1),
                 equipment=ex_data.get("equipment", "none"),
+                is_timed=is_timed,
                 gif_url=f"/static/exercises/{ex_data.get('gif')}" if ex_data.get("gif") else None,
             )
             session.add(exercise)
             await session.flush()
+        else:
+            # Update existing exercise with is_timed flag
+            exercise.is_timed = is_timed
 
         slug_to_id[exercise.slug] = exercise.id
 

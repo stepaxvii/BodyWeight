@@ -295,25 +295,38 @@ class ApiClient {
 		return this.request<WorkoutSession>('/workouts', { method: 'POST' });
 	}
 
-	async addExerciseToWorkout(workoutId: number, exerciseSlug: string, reps: number, sets: number = 1): Promise<WorkoutSession> {
+	async addExerciseToWorkout(
+		workoutId: number,
+		exerciseSlug: string,
+		reps: number = 0,
+		sets: number = 1,
+		durationSeconds: number = 0
+	): Promise<WorkoutSession> {
 		if (this.useMocks) {
 			const exercise = MOCK_EXERCISES.find(e => e.slug === exerciseSlug);
+			const isTimed = exercise?.category_slug === 'static' || exercise?.category_slug === 'stretch';
 			return {
 				id: workoutId,
 				user_id: 1,
 				started_at: new Date().toISOString(),
 				total_xp_earned: reps * sets * 2,
 				total_coins_earned: Math.floor((reps * sets) / 5),
-				total_reps: reps * sets,
+				total_reps: isTimed ? 0 : reps * sets,
+				total_duration_seconds: isTimed ? durationSeconds * sets : 0,
 				streak_multiplier: 1.12,
 				status: 'active',
 				exercises: [{
 					id: Date.now(),
 					workout_session_id: workoutId,
 					exercise_id: exercise?.id ?? 0,
+					exercise_slug: exerciseSlug,
+					exercise_name: exercise?.name ?? '',
+					exercise_name_ru: exercise?.name_ru ?? '',
+					is_timed: isTimed,
 					exercise,
 					sets_completed: sets,
-					total_reps: reps * sets,
+					total_reps: isTimed ? 0 : reps * sets,
+					total_duration_seconds: isTimed ? durationSeconds * sets : 0,
 					xp_earned: reps * sets * 2,
 					coins_earned: Math.floor((reps * sets) / 5),
 					completed_at: new Date().toISOString()
@@ -322,7 +335,12 @@ class ApiClient {
 		}
 		return this.request<WorkoutSession>(`/workouts/${workoutId}/exercise`, {
 			method: 'PUT',
-			body: JSON.stringify({ exercise_slug: exerciseSlug, reps, sets })
+			body: JSON.stringify({
+				exercise_slug: exerciseSlug,
+				reps,
+				sets,
+				duration_seconds: durationSeconds
+			})
 		});
 	}
 
