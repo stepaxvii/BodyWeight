@@ -113,6 +113,7 @@ async def validate_auth(
         )
         session.add(user)
         await session.flush()
+        await session.refresh(user)
         is_new = True
     else:
         # Update existing user info
@@ -123,6 +124,8 @@ async def validate_auth(
         if user.level < 1:
             user.level = 1
         await session.flush()
+        # Refresh to get updated_at from database trigger
+        await session.refresh(user)
 
     return AuthResponse(
         user=UserResponse.model_validate(user),
