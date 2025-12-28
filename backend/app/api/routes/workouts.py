@@ -31,6 +31,7 @@ class AddExerciseRequest(BaseModel):
 
 class WorkoutExerciseResponse(BaseModel):
     id: int
+    exercise_id: int
     exercise_slug: str
     exercise_name: str
     exercise_name_ru: str
@@ -73,6 +74,54 @@ class TodayStatsResponse(BaseModel):
     exercises_done: int
 
 
+@router.get("/active", response_model=WorkoutResponse | None)
+async def get_active_workout(
+    session: AsyncSessionDep,
+    user: CurrentUser,
+):
+    """Get current active workout if exists."""
+    result = await session.execute(
+        select(WorkoutSession)
+        .options(
+            selectinload(WorkoutSession.exercises).selectinload(WorkoutExercise.exercise)
+        )
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "active")
+    )
+    workout = result.scalar_one_or_none()
+
+    if not workout:
+        return None
+
+    exercises = [
+        WorkoutExerciseResponse(
+            id=we.id,
+            exercise_id=we.exercise_id,
+            exercise_slug=we.exercise.slug,
+            exercise_name=we.exercise.name,
+            exercise_name_ru=we.exercise.name_ru,
+            sets_completed=we.sets_completed,
+            total_reps=we.total_reps,
+            xp_earned=we.xp_earned,
+            coins_earned=we.coins_earned,
+        )
+        for we in workout.exercises
+    ]
+
+    return WorkoutResponse(
+        id=workout.id,
+        started_at=workout.started_at,
+        finished_at=workout.finished_at,
+        duration_seconds=workout.duration_seconds,
+        total_xp_earned=workout.total_xp_earned,
+        total_coins_earned=workout.total_coins_earned,
+        total_reps=workout.total_reps,
+        streak_multiplier=float(workout.streak_multiplier),
+        status=workout.status,
+        exercises=exercises,
+    )
+
+
 @router.post("", response_model=WorkoutResponse, status_code=status.HTTP_201_CREATED)
 async def start_workout(
     session: AsyncSessionDep,
@@ -88,10 +137,17 @@ async def start_workout(
     active_workout = active_result.scalar_one_or_none()
 
     if active_workout:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You already have an active workout. Complete or cancel it first.",
-        )
+        # Auto-cancel old active workouts (older than 2 hours)
+        hours_old = (datetime.utcnow() - active_workout.started_at).total_seconds() / 3600
+        if hours_old > 2:
+            active_workout.status = "cancelled"
+            active_workout.finished_at = datetime.utcnow()
+            await session.flush()
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You already have an active workout. Complete or cancel it first.",
+            )
 
     # Calculate streak multiplier
     streak_mult = get_streak_multiplier(user.current_streak)
@@ -145,6 +201,7 @@ async def get_workout(
     exercises = [
         WorkoutExerciseResponse(
             id=we.id,
+            exercise_id=we.exercise_id,
             exercise_slug=we.exercise.slug,
             exercise_name=we.exercise.name,
             exercise_name_ru=we.exercise.name_ru,
@@ -178,6 +235,9 @@ async def add_exercise_to_workout(
     user: CurrentUser,
 ):
     """Add exercise to active workout."""
+    import logging
+    logging.info(f"[add_exercise] Received: slug={request.exercise_slug}, reps={request.reps}, sets={request.sets}")
+
     # Get active workout
     result = await session.execute(
         select(WorkoutSession)
@@ -298,6 +358,7 @@ async def add_exercise_to_workout(
     exercises = [
         WorkoutExerciseResponse(
             id=we.id,
+            exercise_id=we.exercise_id,
             exercise_slug=we.exercise.slug,
             exercise_name=we.exercise.name,
             exercise_name_ru=we.exercise.name_ru,
@@ -401,6 +462,7 @@ async def complete_workout(
     exercises = [
         WorkoutExerciseResponse(
             id=we.id,
+            exercise_id=we.exercise_id,
             exercise_slug=we.exercise.slug,
             exercise_name=we.exercise.name,
             exercise_name_ru=we.exercise.name_ru,

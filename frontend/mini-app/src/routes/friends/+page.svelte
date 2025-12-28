@@ -14,6 +14,9 @@
 	let activeTab = $state<'friends' | 'requests' | 'search'>('friends');
 	let error = $state<string | null>(null);
 
+	// Confirmation dialog state
+	let confirmRemove = $state<{ id: number; name: string; isRequest: boolean } | null>(null);
+
 	onMount(async () => {
 		await loadFriends();
 	});
@@ -77,16 +80,29 @@
 		}
 	}
 
-	async function removeFriend(friendshipId: number) {
+	function showRemoveConfirmation(friendshipId: number, name: string, isRequest: boolean = false) {
+		confirmRemove = { id: friendshipId, name, isRequest };
 		telegram.hapticImpact('light');
+	}
+
+	function cancelRemove() {
+		confirmRemove = null;
+	}
+
+	async function confirmRemoveFriend() {
+		if (!confirmRemove) return;
+
+		telegram.hapticImpact('medium');
 		try {
-			await api.removeFriend(friendshipId);
-			friends = friends.filter(f => f.id !== friendshipId);
-			friendRequests = friendRequests.filter(r => r.id !== friendshipId);
+			await api.removeFriend(confirmRemove.id);
+			friends = friends.filter(f => f.id !== confirmRemove!.id);
+			friendRequests = friendRequests.filter(r => r.id !== confirmRemove!.id);
 			telegram.hapticNotification('success');
 		} catch (err) {
 			telegram.hapticNotification('error');
 			error = 'Не удалось удалить';
+		} finally {
+			confirmRemove = null;
 		}
 	}
 
@@ -180,9 +196,9 @@
 							<div class="user-item">
 								<PixelAvatar avatarId={user.avatar_id} size="md" />
 								<div class="user-info">
-									<span class="user-name">{user.first_name}</span>
-									{#if user.username}
-										<span class="user-username">@{user.username}</span>
+									<span class="user-name">{user.username ? `@${user.username}` : user.first_name}</span>
+									{#if user.username && user.first_name}
+										<span class="user-username">{user.first_name}</span>
 									{/if}
 									<span class="user-level">Ур.{user.level}</span>
 								</div>
@@ -237,9 +253,9 @@
 						<div class="user-item">
 							<PixelAvatar avatarId={friend.avatar_id} size="md" />
 							<div class="user-info">
-								<span class="user-name">{friend.first_name}</span>
-								{#if friend.username}
-									<span class="user-username">@{friend.username}</span>
+								<span class="user-name">{friend.username ? `@${friend.username}` : friend.first_name}</span>
+								{#if friend.username && friend.first_name}
+									<span class="user-username">{friend.first_name}</span>
 								{/if}
 								<div class="user-stats">
 									<span>Ур.{friend.level}</span>
@@ -249,7 +265,7 @@
 									</span>
 								</div>
 							</div>
-							<button class="remove-btn" onclick={() => removeFriend(friend.id)}>
+							<button class="remove-btn" onclick={() => showRemoveConfirmation(friend.id, friend.username || friend.first_name || 'друга', false)}>
 								<PixelIcon name="close" size="sm" color="var(--text-muted)" />
 							</button>
 						</div>
@@ -278,9 +294,9 @@
 						<div class="user-item">
 							<PixelAvatar avatarId={request.avatar_id} size="md" />
 							<div class="user-info">
-								<span class="user-name">{request.first_name}</span>
-								{#if request.username}
-									<span class="user-username">@{request.username}</span>
+								<span class="user-name">{request.username ? `@${request.username}` : request.first_name}</span>
+								{#if request.username && request.first_name}
+									<span class="user-username">{request.first_name}</span>
 								{/if}
 								<span class="user-level">Ур.{request.level}</span>
 							</div>
@@ -292,7 +308,7 @@
 								>
 									Принять
 								</PixelButton>
-								<button class="remove-btn" onclick={() => removeFriend(request.id)}>
+								<button class="remove-btn" onclick={() => showRemoveConfirmation(request.id, request.username || request.first_name || 'пользователя', true)}>
 									<PixelIcon name="close" size="sm" color="var(--text-muted)" />
 								</button>
 							</div>
@@ -301,6 +317,35 @@
 				{/each}
 			</div>
 		{/if}
+	{/if}
+
+	<!-- Confirmation Dialog -->
+	{#if confirmRemove}
+		<div class="modal-overlay" onclick={cancelRemove}>
+			<div class="modal-dialog" onclick={(e) => e.stopPropagation()}>
+				<div class="modal-header">
+					<PixelIcon name="warning" size="lg" color="var(--pixel-yellow)" />
+				</div>
+				<div class="modal-body">
+					<p class="modal-title">
+						{confirmRemove.isRequest ? 'Отклонить заявку?' : 'Удалить из друзей?'}
+					</p>
+					<p class="modal-text">
+						{confirmRemove.isRequest
+							? `Вы уверены, что хотите отклонить заявку от ${confirmRemove.name}?`
+							: `Вы уверены, что хотите удалить ${confirmRemove.name} из друзей?`}
+					</p>
+				</div>
+				<div class="modal-actions">
+					<PixelButton variant="secondary" onclick={cancelRemove}>
+						Отмена
+					</PixelButton>
+					<PixelButton variant="danger" onclick={confirmRemoveFriend}>
+						{confirmRemove.isRequest ? 'Отклонить' : 'Удалить'}
+					</PixelButton>
+				</div>
+			</div>
+		</div>
 	{/if}
 </div>
 
@@ -531,5 +576,76 @@
 	.empty-hint {
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
+	}
+
+	/* Confirmation Modal */
+	.modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.8);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+		padding: var(--spacing-md);
+	}
+
+	.modal-dialog {
+		background: var(--pixel-card);
+		border: 4px solid var(--border-color);
+		max-width: 320px;
+		width: 100%;
+		animation: modal-appear 0.2s ease-out;
+	}
+
+	@keyframes modal-appear {
+		from {
+			opacity: 0;
+			transform: scale(0.9);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+
+	.modal-header {
+		display: flex;
+		justify-content: center;
+		padding: var(--spacing-md);
+		background: rgba(255, 204, 0, 0.1);
+		border-bottom: 2px solid var(--border-color);
+	}
+
+	.modal-body {
+		padding: var(--spacing-md);
+		text-align: center;
+	}
+
+	.modal-title {
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-md);
+		margin-bottom: var(--spacing-sm);
+		color: var(--text-primary);
+	}
+
+	.modal-text {
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+		line-height: 1.4;
+	}
+
+	.modal-actions {
+		display: flex;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-md);
+		border-top: 2px solid var(--border-color);
+	}
+
+	.modal-actions > :global(*) {
+		flex: 1;
 	}
 </style>

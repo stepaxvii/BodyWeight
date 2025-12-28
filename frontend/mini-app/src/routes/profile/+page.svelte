@@ -123,7 +123,7 @@
 					</div>
 					<div class="detail-item">
 						<span class="detail-label">Время тренировок</span>
-						<span class="detail-value">{Math.floor(userStore.stats.total_time_minutes / 60)}ч {userStore.stats.total_time_minutes % 60}м</span>
+						<span class="detail-value">{Math.floor((userStore.stats.total_time_minutes || 0) / 60)}ч {(userStore.stats.total_time_minutes || 0) % 60}м</span>
 					</div>
 					{#if userStore.stats.favorite_exercise}
 						<div class="detail-item">

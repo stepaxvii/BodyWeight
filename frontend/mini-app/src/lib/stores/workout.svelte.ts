@@ -1,11 +1,14 @@
-import type { WorkoutSession, Exercise } from '$lib/types';
+import type { WorkoutSession, Exercise, WorkoutExercise } from '$lib/types';
 import { api } from '$lib/api/client';
 import { userStore } from './user.svelte';
 import { telegram } from './telegram.svelte';
 
 // Set data for each exercise
 interface ExerciseSetData {
-	exercise: Exercise;
+	exercise: Exercise | null;
+	exerciseId: number;
+	exerciseSlug: string;
+	exerciseName: string;
 	sets: number[]; // array of reps per set
 	inputReps: number; // current input value
 }
@@ -82,6 +85,41 @@ class WorkoutStore {
 		this.selectedExercises = [];
 	}
 
+	// Load active workout from server (if any)
+	async loadActiveWorkout() {
+		try {
+			const response = await fetch('/bodyweight/api/workouts/active', {
+				headers: {
+					'Authorization': `tma ${api['initData'] || ''}`
+				}
+			});
+			if (response.ok) {
+				const workout = await response.json() as WorkoutSession | null;
+				if (workout) {
+					this.session = workout;
+					this.isActive = true;
+					this.startTimer();
+
+					// Initialize exercise data from workout exercises
+					const newData = new Map<number, ExerciseSetData>();
+					for (const we of workout.exercises) {
+						newData.set(we.exercise_id, {
+							exercise: null,
+							exerciseId: we.exercise_id,
+							exerciseSlug: we.exercise_slug,
+							exerciseName: we.exercise_name_ru,
+							sets: [], // We don't know individual sets, only totals
+							inputReps: 10
+						});
+					}
+					this.exerciseData = newData;
+				}
+			}
+		} catch (err) {
+			console.error('Failed to load active workout:', err);
+		}
+	}
+
 	// Workout lifecycle
 	async startWorkout() {
 		if (this.selectedExercises.length === 0) return;
@@ -98,6 +136,9 @@ class WorkoutStore {
 			for (const exercise of this.selectedExercises) {
 				newData.set(exercise.id, {
 					exercise,
+					exerciseId: exercise.id,
+					exerciseSlug: exercise.slug,
+					exerciseName: exercise.name_ru,
 					sets: [],
 					inputReps: 10 // default value
 				});
@@ -152,17 +193,21 @@ class WorkoutStore {
 		const data = this.exerciseData.get(exerciseId);
 		if (!data || data.inputReps <= 0) return;
 
+		// Capture the reps value before any async operations
+		const repsToAdd = data.inputReps;
+		console.log('[addSet] Adding set with reps:', repsToAdd, 'for exercise:', data.exerciseSlug);
+
 		this.isLoading = true;
 		try {
 			this.session = await api.addExerciseToWorkout(
 				this.session.id,
-				data.exercise.slug,
-				data.inputReps,
+				data.exerciseSlug,
+				repsToAdd,
 				1
 			);
 
 			// Add reps to local sets array
-			data.sets = [...data.sets, data.inputReps];
+			data.sets = [...data.sets, repsToAdd];
 			this.exerciseData = new Map(this.exerciseData);
 
 			telegram.hapticNotification('success');

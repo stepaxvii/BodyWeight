@@ -101,14 +101,17 @@ export interface WorkoutSession {
 
 export interface WorkoutExercise {
 	id: number;
-	workout_session_id: number;
+	workout_session_id?: number;
 	exercise_id: number;
+	exercise_slug: string;
+	exercise_name: string;
+	exercise_name_ru: string;
 	exercise?: Exercise;
 	sets_completed: number;
 	total_reps: number;
 	xp_earned: number;
 	coins_earned: number;
-	completed_at: string;
+	completed_at?: string;
 }
 
 export interface WorkoutSet {
@@ -151,6 +154,11 @@ export interface LeaderboardEntry {
 	total_xp: number;
 	current_streak: number;
 	is_current_user: boolean;
+}
+
+export interface LeaderboardResponse {
+	entries: LeaderboardEntry[];
+	current_user_rank: number | null;
 }
 
 export type LeaderboardType = 'global' | 'friends' | 'weekly';

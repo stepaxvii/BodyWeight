@@ -48,6 +48,9 @@
 	];
 
 	onMount(async () => {
+		// Check for active workout first
+		await workoutStore.loadActiveWorkout();
+
 		categories = await api.getCategories();
 		exercises = await api.getExercises();
 		routines = await api.getRoutines();
@@ -127,54 +130,108 @@
 
 		<!-- Exercise cards with inline input -->
 		<div class="exercise-cards">
-			{#each workoutStore.selectedExercises as exercise (exercise.id)}
-				{@const data = workoutStore.getExerciseData(exercise.id)}
-				<PixelCard padding="md">
-					<div class="exercise-card">
-						<div class="exercise-header">
-							<span class="exercise-name">{exercise.name_ru}</span>
-							<span class="exercise-difficulty" style="color: {categoryColors[exercise.category_slug]}">
-								{getDifficultyStars(exercise.difficulty)}
-							</span>
-						</div>
-
-						{#if data && data.sets.length > 0}
-							<div class="sets-list">
-								{#each data.sets as reps, i}
-									<span class="set-badge">{reps}</span>
-								{/each}
+			{#if workoutStore.selectedExercises.length > 0}
+				<!-- New workout with selected exercises -->
+				{#each workoutStore.selectedExercises as exercise (exercise.id)}
+					{@const data = workoutStore.getExerciseData(exercise.id)}
+					<PixelCard padding="md">
+						<div class="exercise-card">
+							<div class="exercise-header">
+								<span class="exercise-name">{exercise.name_ru}</span>
+								<span class="exercise-difficulty" style="color: {categoryColors[exercise.category_slug]}">
+									{getDifficultyStars(exercise.difficulty)}
+								</span>
 							</div>
-						{/if}
 
-						<div class="input-row">
-							<PixelButton
-								variant="secondary"
-								size="sm"
-								onclick={() => workoutStore.decrementReps(exercise.id)}
-							>
-								<PixelIcon name="minus" size="sm" />
-							</PixelButton>
-							<span class="reps-input">{data?.inputReps ?? 10}</span>
-							<PixelButton
-								variant="secondary"
-								size="sm"
-								onclick={() => workoutStore.incrementReps(exercise.id)}
-							>
-								<PixelIcon name="plus" size="sm" />
-							</PixelButton>
-							<PixelButton
-								variant="success"
-								size="sm"
-								onclick={() => workoutStore.addSet(exercise.id)}
-								disabled={workoutStore.isLoading}
-							>
-								<PixelIcon name="check" size="sm" />
-								Подход
-							</PixelButton>
+							{#if data && data.sets.length > 0}
+								<div class="sets-list">
+									{#each data.sets as reps, i}
+										<span class="set-badge">{reps}</span>
+									{/each}
+								</div>
+							{/if}
+
+							<div class="input-row">
+								<PixelButton
+									variant="secondary"
+									size="sm"
+									onclick={() => workoutStore.decrementReps(exercise.id)}
+								>
+									<PixelIcon name="minus" size="sm" />
+								</PixelButton>
+								<span class="reps-input">{data?.inputReps ?? 10}</span>
+								<PixelButton
+									variant="secondary"
+									size="sm"
+									onclick={() => workoutStore.incrementReps(exercise.id)}
+								>
+									<PixelIcon name="plus" size="sm" />
+								</PixelButton>
+								<PixelButton
+									variant="success"
+									size="sm"
+									onclick={() => workoutStore.addSet(exercise.id)}
+									disabled={workoutStore.isLoading}
+								>
+									<PixelIcon name="check" size="sm" />
+									Подход
+								</PixelButton>
+							</div>
 						</div>
-					</div>
+					</PixelCard>
+				{/each}
+			{:else if workoutStore.session?.exercises && workoutStore.session.exercises.length > 0}
+				<!-- Restored workout from server - show exercises with add set controls -->
+				{#each workoutStore.session.exercises as we (we.exercise_id)}
+					{@const data = workoutStore.getExerciseData(we.exercise_id)}
+					<PixelCard padding="md">
+						<div class="exercise-card">
+							<div class="exercise-header">
+								<span class="exercise-name">{we.exercise_name_ru}</span>
+							</div>
+
+							<!-- Show previous totals -->
+							<div class="sets-list">
+								<span class="set-badge">{we.total_reps} повт.</span>
+								<span class="set-badge">{we.sets_completed} подх.</span>
+								<span class="set-badge text-green">+{we.xp_earned} XP</span>
+							</div>
+
+							<!-- Add more sets -->
+							<div class="input-row">
+								<PixelButton
+									variant="secondary"
+									size="sm"
+									onclick={() => workoutStore.decrementReps(we.exercise_id)}
+								>
+									<PixelIcon name="minus" size="sm" />
+								</PixelButton>
+								<span class="reps-input">{data?.inputReps ?? 10}</span>
+								<PixelButton
+									variant="secondary"
+									size="sm"
+									onclick={() => workoutStore.incrementReps(we.exercise_id)}
+								>
+									<PixelIcon name="plus" size="sm" />
+								</PixelButton>
+								<PixelButton
+									variant="success"
+									size="sm"
+									onclick={() => workoutStore.addSet(we.exercise_id)}
+									disabled={workoutStore.isLoading}
+								>
+									<PixelIcon name="check" size="sm" />
+									Подход
+								</PixelButton>
+							</div>
+						</div>
+					</PixelCard>
+				{/each}
+			{:else}
+				<PixelCard variant="warning" padding="md">
+					<p>У вас есть активная тренировка без упражнений. Завершите или отмените её.</p>
 				</PixelCard>
-			{/each}
+			{/if}
 		</div>
 
 		<!-- Finish buttons -->

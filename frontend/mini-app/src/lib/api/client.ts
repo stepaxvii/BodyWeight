@@ -344,7 +344,8 @@ class ApiClient {
 			return MOCK_LEADERBOARD;
 		}
 		const endpoint = type === 'global' ? '/leaderboard' : `/leaderboard/${type}`;
-		return this.request<LeaderboardEntry[]>(endpoint);
+		const response = await this.request<{ entries: LeaderboardEntry[], current_user_rank: number | null }>(endpoint);
+		return response.entries;
 	}
 
 	// Goals

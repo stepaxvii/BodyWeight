@@ -28,6 +28,7 @@
 	let timerSeconds = $state(0);
 	let exerciseTimerSeconds = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
+	let isExerciseTimerStarted = $state(false); // User must start timer manually for time-based exercises
 
 	// Workout session
 	let workoutSessionId = $state<number | null>(null);
@@ -63,7 +64,8 @@
 		timerInterval = setInterval(() => {
 			if (!isPaused) {
 				timerSeconds++;
-				if (isTimeBased && exerciseTimerSeconds > 0) {
+				// Only count down exercise timer if user has started it
+				if (isTimeBased && isExerciseTimerStarted && exerciseTimerSeconds > 0) {
 					exerciseTimerSeconds--;
 					if (exerciseTimerSeconds === 0) {
 						telegram.hapticNotification('success');
@@ -71,6 +73,11 @@
 				}
 			}
 		}, 1000);
+	}
+
+	function startExerciseTimer() {
+		isExerciseTimerStarted = true;
+		telegram.hapticImpact('medium');
 	}
 
 	function stopTimer() {
@@ -84,12 +91,14 @@
 		isStarted = true;
 		telegram.hapticImpact('medium');
 
+		// Start the total workout timer immediately
+		startTimer();
+		resetExerciseTimer();
+
 		try {
-			// Start a workout session
+			// Start a workout session on the server
 			const session = await api.startWorkout();
 			workoutSessionId = session.id;
-			startTimer();
-			resetExerciseTimer();
 		} catch (err) {
 			console.error('Failed to start routine:', err);
 			telegram.hapticNotification('error');
@@ -97,6 +106,7 @@
 	}
 
 	function resetExerciseTimer() {
+		isExerciseTimerStarted = false; // Reset - user must start timer again for next exercise
 		if (isTimeBased) {
 			exerciseTimerSeconds = currentExercise?.duration || 0;
 		} else {
@@ -305,9 +315,17 @@
 
 						<div class="target-display">
 							{#if isTimeBased}
-								<div class="timer-circle" class:complete={exerciseTimerSeconds === 0}>
+								<div class="timer-circle" class:complete={exerciseTimerSeconds === 0} class:waiting={!isExerciseTimerStarted}>
 									<span class="timer-value">{formattedExerciseTime}</span>
-									<span class="timer-label">осталось</span>
+									<span class="timer-label">
+										{#if !isExerciseTimerStarted}
+											нажмите старт
+										{:else if exerciseTimerSeconds === 0}
+											готово!
+										{:else}
+											осталось
+										{/if}
+									</span>
 								</div>
 							{:else}
 								<div class="reps-display">
@@ -336,18 +354,28 @@
 					<PixelButton variant="ghost" onclick={skipExercise}>
 						Пропустить
 					</PixelButton>
-					<PixelButton variant="secondary" size="lg" onclick={togglePause}>
-						<PixelIcon name={isPaused ? 'play' : 'pause'} />
-					</PixelButton>
-					<PixelButton
-						variant="success"
-						size="lg"
-						onclick={completeExercise}
-						disabled={isTimeBased && exerciseTimerSeconds > 0}
-					>
-						<PixelIcon name="check" />
-						Готово
-					</PixelButton>
+					{#if isTimeBased && !isExerciseTimerStarted}
+						<!-- Show Start Timer button for time-based exercises -->
+						<PixelButton variant="primary" size="lg" onclick={startExerciseTimer}>
+							<PixelIcon name="play" />
+							Старт
+						</PixelButton>
+					{:else if isTimeBased && exerciseTimerSeconds > 0}
+						<!-- Show Pause button while timer is running -->
+						<PixelButton variant="secondary" size="lg" onclick={togglePause}>
+							<PixelIcon name={isPaused ? 'play' : 'pause'} />
+						</PixelButton>
+					{:else}
+						<!-- Show Done button for reps or when timer finished -->
+						<PixelButton
+							variant="success"
+							size="lg"
+							onclick={completeExercise}
+						>
+							<PixelIcon name="check" />
+							Готово
+						</PixelButton>
+					{/if}
 				</div>
 			</div>
 		</div>
@@ -553,6 +581,14 @@
 
 	.timer-circle.complete {
 		border-color: var(--pixel-green);
+	}
+
+	.timer-circle.waiting {
+		border-color: var(--text-secondary);
+	}
+
+	.timer-circle.waiting .timer-value {
+		color: var(--text-secondary);
 	}
 
 	.timer-value {
