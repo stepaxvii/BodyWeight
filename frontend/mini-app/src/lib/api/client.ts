@@ -4,6 +4,7 @@ import type {
 	Exercise,
 	ExerciseCategory,
 	WorkoutSession,
+	WorkoutSummaryResponse,
 	Achievement,
 	LeaderboardEntry,
 	LeaderboardType,
@@ -311,23 +312,28 @@ class ApiClient {
 		});
 	}
 
-	async completeWorkout(workoutId: number): Promise<WorkoutSession> {
+	async completeWorkout(workoutId: number): Promise<WorkoutSummaryResponse> {
 		if (this.useMocks) {
 			return {
-				id: workoutId,
-				user_id: 1,
-				started_at: new Date(Date.now() - 1800000).toISOString(),
-				finished_at: new Date().toISOString(),
-				duration_seconds: 1800,
-				total_xp_earned: 150,
-				total_coins_earned: 15,
-				total_reps: 75,
-				streak_multiplier: 1.12,
-				status: 'completed',
-				exercises: []
+				workout: {
+					id: workoutId,
+					user_id: 1,
+					started_at: new Date(Date.now() - 1800000).toISOString(),
+					finished_at: new Date().toISOString(),
+					duration_seconds: 1800,
+					total_xp_earned: 150,
+					total_coins_earned: 15,
+					total_reps: 75,
+					streak_multiplier: 1.12,
+					status: 'completed',
+					exercises: []
+				},
+				new_achievements: [],
+				level_up: false,
+				new_level: null
 			};
 		}
-		return this.request<WorkoutSession>(`/workouts/${workoutId}/complete`, { method: 'POST' });
+		return this.request<WorkoutSummaryResponse>(`/workouts/${workoutId}/complete`, { method: 'POST' });
 	}
 
 	// Achievements

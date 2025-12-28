@@ -119,6 +119,13 @@ export interface WorkoutSet {
 	reps: number;
 }
 
+export interface WorkoutSummaryResponse {
+	workout: WorkoutSession;
+	new_achievements: Achievement[];
+	level_up: boolean;
+	new_level: number | null;
+}
+
 // Achievement types
 export interface Achievement {
 	slug: string;

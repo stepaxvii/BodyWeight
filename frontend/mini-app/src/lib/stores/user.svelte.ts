@@ -11,7 +11,8 @@ class UserStore {
 
 	// Derived values
 	get level() {
-		return this.user?.level ?? 1;
+		// Ensure level is at least 1
+		return Math.max(1, this.user?.level ?? 1);
 	}
 
 	get xp() {
@@ -48,7 +49,9 @@ class UserStore {
 
 	get displayName() {
 		if (!this.user) return 'Guest';
-		return this.user.first_name || this.user.username || 'Guest';
+		// Prefer username over first_name
+		if (this.user.username) return `@${this.user.username}`;
+		return this.user.first_name || 'Guest';
 	}
 
 	get isOnboarded() {

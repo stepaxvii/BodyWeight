@@ -159,16 +159,18 @@ class WorkoutStore {
 	setInputReps(exerciseId: number, reps: number) {
 		const data = this.exerciseData.get(exerciseId);
 		if (data) {
-			data.inputReps = Math.max(1, reps);
-			this.exerciseData = new Map(this.exerciseData);
+			const newData = new Map(this.exerciseData);
+			newData.set(exerciseId, { ...data, inputReps: Math.max(1, reps) });
+			this.exerciseData = newData;
 		}
 	}
 
 	incrementReps(exerciseId: number) {
 		const data = this.exerciseData.get(exerciseId);
 		if (data) {
-			data.inputReps++;
-			this.exerciseData = new Map(this.exerciseData);
+			const newData = new Map(this.exerciseData);
+			newData.set(exerciseId, { ...data, inputReps: data.inputReps + 1 });
+			this.exerciseData = newData;
 			telegram.hapticImpact('light');
 		}
 	}
@@ -176,8 +178,9 @@ class WorkoutStore {
 	decrementReps(exerciseId: number) {
 		const data = this.exerciseData.get(exerciseId);
 		if (data && data.inputReps > 1) {
-			data.inputReps--;
-			this.exerciseData = new Map(this.exerciseData);
+			const newData = new Map(this.exerciseData);
+			newData.set(exerciseId, { ...data, inputReps: data.inputReps - 1 });
+			this.exerciseData = newData;
 			telegram.hapticImpact('light');
 		}
 	}
@@ -206,9 +209,10 @@ class WorkoutStore {
 				1
 			);
 
-			// Add reps to local sets array
-			data.sets = [...data.sets, repsToAdd];
-			this.exerciseData = new Map(this.exerciseData);
+			// Add reps to local sets array - create new object for reactivity
+			const newData = new Map(this.exerciseData);
+			newData.set(exerciseId, { ...data, sets: [...data.sets, repsToAdd] });
+			this.exerciseData = newData;
 
 			telegram.hapticNotification('success');
 		} catch (err) {
@@ -225,16 +229,21 @@ class WorkoutStore {
 		this.isLoading = true;
 		try {
 			this.stopTimer();
-			const completedSession = await api.completeWorkout(this.session.id);
+			const response = await api.completeWorkout(this.session.id);
 
-			// Update user stats
-			userStore.addXp(completedSession.total_xp_earned);
-			userStore.addCoins(completedSession.total_coins_earned);
+			// Update user stats from the completed workout
+			userStore.addXp(response.workout.total_xp_earned);
+			userStore.addCoins(response.workout.total_coins_earned);
 
-			this.session = completedSession;
+			// Handle level up
+			if (response.level_up && response.new_level) {
+				console.log(`Level up! New level: ${response.new_level}`);
+			}
+
+			this.session = response.workout;
 			this.isActive = false;
 			telegram.hapticNotification('success');
-			return completedSession;
+			return response.workout;
 		} catch (err) {
 			this.error = err instanceof Error ? err.message : 'Failed to complete workout';
 			telegram.hapticNotification('error');
