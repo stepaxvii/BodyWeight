@@ -51,9 +51,14 @@ export function calculateCoins(xpEarned: number, hasAchievement: boolean = false
 
 /**
  * Calculate XP required to reach a specific level
+ * Level 1: 0 XP (starting level)
+ * Level 2: 100 XP
+ * Level 3: 400 XP
+ * Level 4: 900 XP
  */
 export function xpForLevel(level: number): number {
-	return 100 * level * level; // 100, 400, 900, 1600...
+	const lvl = level - 1;
+	return 100 * lvl * lvl; // 0, 100, 400, 900...
 }
 
 /**
