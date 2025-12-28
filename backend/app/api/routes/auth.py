@@ -119,6 +119,9 @@ async def validate_auth(
         user.username = username
         user.first_name = first_name
         user.last_name = last_name
+        # Fix legacy users with level 0 (old default was 0, should be 1)
+        if user.level < 1:
+            user.level = 1
         await session.flush()
 
     return AuthResponse(

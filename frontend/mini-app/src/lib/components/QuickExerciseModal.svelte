@@ -86,7 +86,8 @@
 			const result = await api.addExerciseToWorkout(session.id, selectedExercise.slug, value, 1);
 
 			// Complete the workout
-			const completed = await api.completeWorkout(session.id);
+			const response = await api.completeWorkout(session.id);
+			const completed = response.workout;
 
 			// Update user stats locally
 			userStore.addXp(completed.total_xp_earned);
