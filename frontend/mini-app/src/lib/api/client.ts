@@ -14,7 +14,7 @@ import type {
 	Routine
 } from '$lib/types';
 
-const API_BASE = '/api';
+const API_BASE = '/bodyweight/api';
 
 // Mock data for development
 const MOCK_USER: User = {
