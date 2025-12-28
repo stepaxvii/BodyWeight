@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, time, datetime
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import select, func
@@ -26,8 +26,8 @@ class UserResponse(BaseModel):
     notification_time: time | None
     notifications_enabled: bool
     is_onboarded: bool
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
@@ -76,6 +76,7 @@ async def update_current_user(
         user.notifications_enabled = request.notifications_enabled
 
     await session.flush()
+    await session.refresh(user)
     return UserResponse.model_validate(user)
 
 
@@ -87,6 +88,7 @@ async def complete_onboarding(
     """Mark user as onboarded."""
     user.is_onboarded = True
     await session.flush()
+    await session.refresh(user)
     return UserResponse.model_validate(user)
 
 
