@@ -167,16 +167,30 @@ class ApiClient {
 			headers['Authorization'] = `tma ${this.initData}`;
 		}
 
-		const response = await fetch(`${API_BASE}${endpoint}`, {
+		const url = `${API_BASE}${endpoint}`;
+		console.log(`[API] ${options.method || 'GET'} ${url}`, options.body ? JSON.parse(options.body as string) : '');
+
+		const response = await fetch(url, {
 			...options,
 			headers
 		});
 
 		if (!response.ok) {
-			throw new Error(`API Error: ${response.status}`);
+			const errorText = await response.text();
+			console.error(`[API] Error ${response.status}:`, errorText);
+			let errorMessage = `API Error: ${response.status}`;
+			try {
+				const errorJson = JSON.parse(errorText);
+				errorMessage = errorJson.detail || errorMessage;
+			} catch {
+				// Ignore JSON parse errors
+			}
+			throw new Error(errorMessage);
 		}
 
-		return response.json();
+		const data = await response.json();
+		console.log(`[API] Response:`, data);
+		return data;
 	}
 
 	// Auth

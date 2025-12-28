@@ -191,23 +191,40 @@ class WorkoutStore {
 
 	// Add set for an exercise
 	async addSet(exerciseId: number) {
-		if (!this.session) return;
+		if (!this.session) {
+			console.error('[addSet] No active session');
+			return;
+		}
 
 		const data = this.exerciseData.get(exerciseId);
-		if (!data || data.inputReps <= 0) return;
+		if (!data) {
+			console.error('[addSet] No data for exercise:', exerciseId);
+			return;
+		}
+		if (data.inputReps <= 0) {
+			console.error('[addSet] Invalid reps:', data.inputReps);
+			return;
+		}
 
 		// Capture the reps value before any async operations
 		const repsToAdd = data.inputReps;
-		console.log('[addSet] Adding set with reps:', repsToAdd, 'for exercise:', data.exerciseSlug);
+		console.log('[addSet] Adding set:', {
+			sessionId: this.session.id,
+			exerciseId,
+			slug: data.exerciseSlug,
+			reps: repsToAdd
+		});
 
 		this.isLoading = true;
 		try {
-			this.session = await api.addExerciseToWorkout(
+			const result = await api.addExerciseToWorkout(
 				this.session.id,
 				data.exerciseSlug,
 				repsToAdd,
 				1
 			);
+			console.log('[addSet] API response:', result);
+			this.session = result;
 
 			// Add reps to local sets array - create new object for reactivity
 			const newData = new Map(this.exerciseData);
@@ -216,6 +233,7 @@ class WorkoutStore {
 
 			telegram.hapticNotification('success');
 		} catch (err) {
+			console.error('[addSet] Error:', err);
 			this.error = err instanceof Error ? err.message : 'Failed to add set';
 			telegram.hapticNotification('error');
 		} finally {
@@ -224,12 +242,19 @@ class WorkoutStore {
 	}
 
 	async completeWorkout(): Promise<WorkoutSession | null> {
-		if (!this.session) return null;
+		if (!this.session) {
+			console.error('[completeWorkout] No active session');
+			return null;
+		}
+
+		console.log('[completeWorkout] Starting completion for session:', this.session.id);
+		console.log('[completeWorkout] Session exercises:', this.session.exercises);
 
 		this.isLoading = true;
 		try {
 			this.stopTimer();
 			const response = await api.completeWorkout(this.session.id);
+			console.log('[completeWorkout] API response:', response);
 
 			// Update user stats from the completed workout
 			userStore.addXp(response.workout.total_xp_earned);
@@ -245,6 +270,7 @@ class WorkoutStore {
 			telegram.hapticNotification('success');
 			return response.workout;
 		} catch (err) {
+			console.error('[completeWorkout] Error:', err);
 			this.error = err instanceof Error ? err.message : 'Failed to complete workout';
 			telegram.hapticNotification('error');
 			return null;

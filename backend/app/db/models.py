@@ -32,7 +32,7 @@ class User(Base):
     avatar_id: Mapped[str] = mapped_column(String(50), default="wolf")
 
     # Gamification
-    level: Mapped[int] = mapped_column(Integer, default=0)
+    level: Mapped[int] = mapped_column(Integer, default=1)
     total_xp: Mapped[int] = mapped_column(Integer, default=0)
     coins: Mapped[int] = mapped_column(Integer, default=0)
 
