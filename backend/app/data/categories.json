@@ -1,30 +1,30 @@
 [
   {
-    "slug": "push",
-    "name": "Push",
+    "slug": "chest",
+    "name": "Chest & Triceps",
     "name_ru": "Грудь и трицепс",
-    "icon": "cat_push",
+    "icon": "cat_chest",
     "color": "#d82800",
     "sort_order": 1,
-    "tags": ["chest", "triceps", "shoulders", "upper-body"]
+    "tags": ["chest", "triceps", "push", "upper-body"]
   },
   {
-    "slug": "pull",
-    "name": "Pull",
-    "name_ru": "Спина и бицепс",
-    "icon": "cat_pull",
+    "slug": "back",
+    "name": "Back",
+    "name_ru": "Спина",
+    "icon": "cat_back",
     "color": "#0058f8",
     "sort_order": 2,
-    "tags": ["back", "biceps", "lats", "upper-body"]
+    "tags": ["back", "lower-back", "upper-body"]
   },
   {
     "slug": "legs",
-    "name": "Legs",
+    "name": "Legs & Glutes",
     "name_ru": "Ноги и ягодицы",
     "icon": "cat_legs",
     "color": "#00a800",
     "sort_order": 3,
-    "tags": ["quads", "hamstrings", "glutes", "calves", "lower-body"]
+    "tags": ["quads", "glutes", "lower-body"]
   },
   {
     "slug": "core",
@@ -33,25 +33,7 @@
     "icon": "cat_core",
     "color": "#fcc800",
     "sort_order": 4,
-    "tags": ["abs", "obliques", "lower-back", "stability"]
-  },
-  {
-    "slug": "static",
-    "name": "Static",
-    "name_ru": "Статика и баланс",
-    "icon": "cat_static",
-    "color": "#6800a8",
-    "sort_order": 5,
-    "tags": ["isometric", "balance", "hold", "endurance"]
-  },
-  {
-    "slug": "cardio",
-    "name": "Cardio",
-    "name_ru": "Кардио",
-    "icon": "cat_cardio",
-    "color": "#fc7400",
-    "sort_order": 6,
-    "tags": ["heart", "endurance", "fat-burn", "hiit"]
+    "tags": ["abs", "planks", "isometric"]
   },
   {
     "slug": "stretch",
@@ -59,7 +41,7 @@
     "name_ru": "Растяжка",
     "icon": "cat_stretch",
     "color": "#00a8a8",
-    "sort_order": 7,
-    "tags": ["flexibility", "mobility", "recovery", "cooldown"]
+    "sort_order": 5,
+    "tags": ["flexibility", "mobility", "cooldown"]
   }
 ]

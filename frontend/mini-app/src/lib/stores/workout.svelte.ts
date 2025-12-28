@@ -30,6 +30,7 @@ class WorkoutStore {
 	// Timer state
 	timerSeconds = $state(0);
 	isTimerRunning = $state(false);
+	isPaused = $state(false);
 	private timerInterval: ReturnType<typeof setInterval> | null = null;
 
 	// Computed values
@@ -132,41 +133,30 @@ class WorkoutStore {
 		return exercise.category_slug === 'static' || exercise.category_slug === 'stretch';
 	}
 
-	// Workout lifecycle
+	// Workout lifecycle - now purely local, no backend call
 	async startWorkout() {
 		if (this.selectedExercises.length === 0) return;
 
-		this.isLoading = true;
-		this.error = null;
+		this.isActive = true;
 
-		try {
-			this.session = await api.startWorkout();
-			this.isActive = true;
-
-			// Initialize exercise data for each selected exercise
-			const newData = new Map<number, ExerciseSetData>();
-			for (const exercise of this.selectedExercises) {
-				const isTimed = this.isTimedExercise(exercise);
-				newData.set(exercise.id, {
-					exercise,
-					exerciseId: exercise.id,
-					exerciseSlug: exercise.slug,
-					exerciseName: exercise.name_ru,
-					isTimed,
-					sets: [],
-					inputReps: isTimed ? 30 : 10 // default 30 sec for timed, 10 reps otherwise
-				});
-			}
-			this.exerciseData = newData;
-
-			this.startTimer();
-			telegram.hapticNotification('success');
-		} catch (err) {
-			this.error = err instanceof Error ? err.message : 'Failed to start workout';
-			telegram.hapticNotification('error');
-		} finally {
-			this.isLoading = false;
+		// Initialize exercise data for each selected exercise
+		const newData = new Map<number, ExerciseSetData>();
+		for (const exercise of this.selectedExercises) {
+			const isTimed = this.isTimedExercise(exercise);
+			newData.set(exercise.id, {
+				exercise,
+				exerciseId: exercise.id,
+				exerciseSlug: exercise.slug,
+				exerciseName: exercise.name_ru,
+				isTimed,
+				sets: [],
+				inputReps: isTimed ? 30 : 10 // default 30 sec for timed, 10 reps otherwise
+			});
 		}
+		this.exerciseData = newData;
+
+		this.startTimer();
+		telegram.hapticNotification('success');
 	}
 
 	// Set input methods
@@ -203,13 +193,8 @@ class WorkoutStore {
 		return this.exerciseData.get(exerciseId);
 	}
 
-	// Add set for an exercise
-	async addSet(exerciseId: number) {
-		if (!this.session) {
-			console.error('[addSet] No active session');
-			return;
-		}
-
+	// Add set for an exercise - now purely local, no API call
+	addSet(exerciseId: number) {
 		const data = this.exerciseData.get(exerciseId);
 		if (!data) {
 			console.error('[addSet] No data for exercise:', exerciseId);
@@ -220,61 +205,59 @@ class WorkoutStore {
 			return;
 		}
 
-		// Capture the value before any async operations
 		const valueToAdd = data.inputReps;
-		const isTimed = data.isTimed;
 
-		console.log('[addSet] Adding set:', {
-			sessionId: this.session.id,
-			exerciseId,
-			slug: data.exerciseSlug,
-			isTimed,
-			reps: isTimed ? 0 : valueToAdd,
-			duration: isTimed ? valueToAdd : 0
+		// Add value to local sets array - create new object for reactivity
+		const newData = new Map(this.exerciseData);
+		newData.set(exerciseId, { ...data, sets: [...data.sets, valueToAdd] });
+		this.exerciseData = newData;
+
+		telegram.hapticNotification('success');
+	}
+
+	async completeWorkout(): Promise<WorkoutSession | null> {
+		// Check we have exercise data
+		if (this.exerciseData.size === 0) {
+			console.error('[completeWorkout] No exercises');
+			return null;
+		}
+
+		// Build exercises array for API
+		const exercises: Array<{
+			exercise_slug: string;
+			sets: number[];
+			is_timed: boolean;
+		}> = [];
+
+		this.exerciseData.forEach((data: ExerciseSetData) => {
+			if (data.sets.length > 0) {
+				exercises.push({
+					exercise_slug: data.exerciseSlug,
+					sets: data.sets,
+					is_timed: data.isTimed
+				});
+			}
+		});
+
+		if (exercises.length === 0) {
+			console.error('[completeWorkout] No sets recorded');
+			return null;
+		}
+
+		console.log('[completeWorkout] Submitting workout:', {
+			duration: this.timerSeconds,
+			exercises
 		});
 
 		this.isLoading = true;
 		try {
-			// For timed exercises: reps=0, durationSeconds=value
-			// For rep-based exercises: reps=value, durationSeconds=0
-			const result = await api.addExerciseToWorkout(
-				this.session.id,
-				data.exerciseSlug,
-				isTimed ? 0 : valueToAdd,
-				1, // sets
-				isTimed ? valueToAdd : 0 // durationSeconds
-			);
-			console.log('[addSet] API response:', result);
-			this.session = result;
-
-			// Add value to local sets array - create new object for reactivity
-			const newData = new Map(this.exerciseData);
-			newData.set(exerciseId, { ...data, sets: [...data.sets, valueToAdd] });
-			this.exerciseData = newData;
-
-			telegram.hapticNotification('success');
-		} catch (err) {
-			console.error('[addSet] Error:', err);
-			this.error = err instanceof Error ? err.message : 'Failed to add set';
-			telegram.hapticNotification('error');
-		} finally {
-			this.isLoading = false;
-		}
-	}
-
-	async completeWorkout(): Promise<WorkoutSession | null> {
-		if (!this.session) {
-			console.error('[completeWorkout] No active session');
-			return null;
-		}
-
-		console.log('[completeWorkout] Starting completion for session:', this.session.id);
-		console.log('[completeWorkout] Session exercises:', this.session.exercises);
-
-		this.isLoading = true;
-		try {
 			this.stopTimer();
-			const response = await api.completeWorkout(this.session.id);
+
+			// Use new simplified API
+			const response = await api.submitWorkout({
+				duration_seconds: this.timerSeconds,
+				exercises
+			});
 			console.log('[completeWorkout] API response:', response);
 
 			// Reload user data from server to get updated XP, level, coins, streak
@@ -287,6 +270,8 @@ class WorkoutStore {
 
 			this.session = response.workout;
 			this.isActive = false;
+			this.selectedExercises = [];
+			this.exerciseData = new Map();
 			telegram.hapticNotification('success');
 			return response.workout;
 		} catch (err) {
@@ -315,6 +300,7 @@ class WorkoutStore {
 
 	private startTimer() {
 		this.isTimerRunning = true;
+		this.isPaused = false;
 		this.timerSeconds = 0;
 		this.timerInterval = setInterval(() => {
 			this.timerSeconds++;
@@ -323,9 +309,32 @@ class WorkoutStore {
 
 	private stopTimer() {
 		this.isTimerRunning = false;
+		this.isPaused = false;
 		if (this.timerInterval) {
 			clearInterval(this.timerInterval);
 			this.timerInterval = null;
+		}
+	}
+
+	// Pause timer when leaving page
+	pauseTimer() {
+		if (this.isTimerRunning && !this.isPaused) {
+			this.isPaused = true;
+			if (this.timerInterval) {
+				clearInterval(this.timerInterval);
+				this.timerInterval = null;
+			}
+		}
+	}
+
+	// Resume timer when returning to page
+	resumeTimer() {
+		if (this.isActive && this.isPaused) {
+			this.isPaused = false;
+			this.isTimerRunning = true;
+			this.timerInterval = setInterval(() => {
+				this.timerSeconds++;
+			}, 1000);
 		}
 	}
 

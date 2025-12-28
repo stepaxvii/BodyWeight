@@ -30,6 +30,19 @@ class AddExerciseRequest(BaseModel):
     sets: int = 1
 
 
+class ExerciseSetData(BaseModel):
+    """Data for a single exercise in a completed workout."""
+    exercise_slug: str
+    sets: List[int]  # Array of reps per set (or seconds for timed exercises)
+    is_timed: bool = False
+
+
+class CompleteWorkoutRequest(BaseModel):
+    """Request body for completing a workout with all exercise data."""
+    duration_seconds: int
+    exercises: List[ExerciseSetData]
+
+
 class WorkoutExerciseResponse(BaseModel):
     id: int
     exercise_id: int
@@ -471,6 +484,198 @@ async def cancel_workout(
     workout.finished_at = datetime.utcnow()
 
     return {"message": "Workout cancelled"}
+
+
+@router.post("/submit", response_model=WorkoutSummaryResponse, status_code=status.HTTP_201_CREATED)
+async def submit_workout(
+    request: CompleteWorkoutRequest,
+    session: AsyncSessionDep,
+    user: CurrentUser,
+):
+    """
+    Submit a completed workout with all exercise data.
+    This is the simplified endpoint - frontend sends all data at once.
+    No need to create session first or track exercises during workout.
+    """
+    if len(request.exercises) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot submit workout with no exercises",
+        )
+
+    # Cancel any stale active workouts
+    active_result = await session.execute(
+        select(WorkoutSession)
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "active")
+    )
+    for old_workout in active_result.scalars().all():
+        old_workout.status = "cancelled"
+        old_workout.finished_at = datetime.utcnow()
+
+    # Check if first workout today
+    today = date.today()
+    is_first_today = user.last_workout_date != today
+
+    # Calculate streak multiplier
+    streak_mult = get_streak_multiplier(user.current_streak)
+
+    # Create workout session
+    now = datetime.utcnow()
+    workout = WorkoutSession(
+        user_id=user.id,
+        started_at=now - timedelta(seconds=request.duration_seconds),
+        finished_at=now,
+        duration_seconds=request.duration_seconds,
+        streak_multiplier=streak_mult,
+        status="completed",
+        total_xp_earned=0,
+        total_coins_earned=0,
+        total_reps=0,
+        total_duration_seconds=0,
+    )
+    session.add(workout)
+    await session.flush()
+
+    # Process each exercise
+    for ex_data in request.exercises:
+        # Get exercise from DB
+        exercise_result = await session.execute(
+            select(Exercise).where(Exercise.slug == ex_data.exercise_slug)
+        )
+        exercise = exercise_result.scalar_one_or_none()
+
+        if not exercise:
+            continue  # Skip unknown exercises
+
+        # Calculate totals
+        total_value = sum(ex_data.sets)
+        sets_count = len(ex_data.sets)
+
+        if ex_data.is_timed:
+            total_reps = 0
+            total_duration = total_value
+            xp_value = max(1, total_duration // 10)  # 10 sec = 1 rep equivalent
+        else:
+            total_reps = total_value
+            total_duration = 0
+            xp_value = total_reps
+
+        # Calculate XP
+        xp_earned = calculate_xp(
+            base_xp=exercise.base_xp,
+            difficulty=exercise.difficulty,
+            reps=xp_value,
+            streak_days=user.current_streak,
+            is_first_today=is_first_today,
+        )
+
+        # Create workout exercise entry
+        workout_exercise = WorkoutExercise(
+            workout_session_id=workout.id,
+            exercise_id=exercise.id,
+            sets_completed=sets_count,
+            total_reps=total_reps,
+            total_duration_seconds=total_duration,
+            xp_earned=xp_earned,
+            coins_earned=0,
+        )
+        session.add(workout_exercise)
+
+        # Update workout totals
+        workout.total_xp_earned += xp_earned
+        workout.total_reps += total_reps
+        workout.total_duration_seconds += total_duration
+
+        # Update user exercise progress
+        progress_result = await session.execute(
+            select(UserExerciseProgress)
+            .where(UserExerciseProgress.user_id == user.id)
+            .where(UserExerciseProgress.exercise_id == exercise.id)
+        )
+        progress = progress_result.scalar_one_or_none()
+
+        best_set = max(ex_data.sets) if ex_data.sets else 0
+
+        if progress:
+            progress.total_reps_ever += total_reps
+            progress.times_performed += 1
+            if not ex_data.is_timed:
+                progress.best_single_set = max(progress.best_single_set, best_set)
+            progress.last_performed_at = now
+
+            if progress.total_reps_ever >= 100 and exercise.harder_exercise_id:
+                progress.recommended_upgrade = True
+        else:
+            progress = UserExerciseProgress(
+                user_id=user.id,
+                exercise_id=exercise.id,
+                total_reps_ever=total_reps,
+                best_single_set=best_set if not ex_data.is_timed else 0,
+                times_performed=1,
+                last_performed_at=now,
+            )
+            session.add(progress)
+
+    # Calculate coins
+    workout_duration_minutes = request.duration_seconds // 60
+    coins_earned = calculate_coins(
+        xp_earned=workout.total_xp_earned,
+        streak_days=user.current_streak,
+        workout_duration_minutes=workout_duration_minutes
+    )
+    workout.total_coins_earned = coins_earned
+
+    # Update user stats
+    old_level = user.level
+    user.total_xp += workout.total_xp_earned
+    user.coins += coins_earned
+
+    # Update level
+    new_level = get_level_from_xp(user.total_xp)
+    user.level = new_level
+    level_up = new_level > old_level
+
+    # Update streak
+    if user.last_workout_date is None:
+        user.current_streak = 1
+    elif user.last_workout_date == today - timedelta(days=1):
+        user.current_streak += 1
+    elif user.last_workout_date != today:
+        user.current_streak = 1
+
+    user.max_streak = max(user.max_streak, user.current_streak)
+    user.last_workout_date = today
+
+    await session.flush()
+
+    # Check achievements
+    new_achievements = await check_achievements(session, user)
+
+    # Add bonus coins for achievements
+    if new_achievements:
+        bonus_coins = sum(a.get("coin_reward", 0) for a in new_achievements)
+        workout.total_coins_earned += bonus_coins
+        user.coins += bonus_coins
+
+    await session.flush()
+
+    # Reload workout with exercises
+    result = await session.execute(
+        select(WorkoutSession)
+        .options(
+            selectinload(WorkoutSession.exercises).selectinload(WorkoutExercise.exercise)
+        )
+        .where(WorkoutSession.id == workout.id)
+    )
+    workout = result.scalar_one()
+
+    return WorkoutSummaryResponse(
+        workout=_make_workout_response(workout),
+        new_achievements=new_achievements,
+        level_up=level_up,
+        new_level=new_level if level_up else None,
+    )
 
 
 @router.get("/history", response_model=List[WorkoutResponse])

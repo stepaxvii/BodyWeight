@@ -39,66 +39,83 @@ const MOCK_USER: User = {
 };
 
 const MOCK_CATEGORIES: ExerciseCategory[] = [
-	{ id: 1, slug: 'push', name: 'Push', name_ru: 'Толкающие', icon: 'cat_push', color: '#d82800', sort_order: 1 },
-	{ id: 2, slug: 'pull', name: 'Pull', name_ru: 'Тянущие', icon: 'cat_pull', color: '#0058f8', sort_order: 2 },
-	{ id: 3, slug: 'legs', name: 'Legs', name_ru: 'Ноги', icon: 'cat_legs', color: '#00a800', sort_order: 3 },
-	{ id: 4, slug: 'core', name: 'Core', name_ru: 'Кор', icon: 'cat_core', color: '#fcc800', sort_order: 4 },
-	{ id: 5, slug: 'static', name: 'Static', name_ru: 'Статика', icon: 'cat_static', color: '#6800a8', sort_order: 5 },
-	{ id: 6, slug: 'cardio', name: 'Cardio', name_ru: 'Кардио', icon: 'cat_cardio', color: '#fc7400', sort_order: 6 },
-	{ id: 7, slug: 'warmup', name: 'Warm-up', name_ru: 'Разминка', icon: 'cat_warmup', color: '#00a8a8', sort_order: 7 },
-	{ id: 8, slug: 'stretch', name: 'Stretch', name_ru: 'Растяжка', icon: 'cat_stretch', color: '#f878f8', sort_order: 8 }
+	{ id: 1, slug: 'chest', name: 'Chest & Triceps', name_ru: 'Грудь и трицепс', icon: 'cat_chest', color: '#d82800', sort_order: 1 },
+	{ id: 2, slug: 'back', name: 'Back', name_ru: 'Спина', icon: 'cat_back', color: '#0058f8', sort_order: 2 },
+	{ id: 3, slug: 'legs', name: 'Legs & Glutes', name_ru: 'Ноги и ягодицы', icon: 'cat_legs', color: '#00a800', sort_order: 3 },
+	{ id: 4, slug: 'core', name: 'Core', name_ru: 'Пресс и кор', icon: 'cat_core', color: '#fcc800', sort_order: 4 },
+	{ id: 5, slug: 'stretch', name: 'Stretch', name_ru: 'Растяжка', icon: 'cat_stretch', color: '#00a8a8', sort_order: 5 }
 ];
 
 const MOCK_EXERCISES: Exercise[] = [
+	// Chest
 	{
-		id: 1, slug: 'pushup-regular', category_id: 1, category_slug: 'push',
-		name: 'Push-up', name_ru: 'Отжимания',
-		description: 'Classic push-up with hands shoulder-width apart',
-		description_ru: 'Классические отжимания, руки на ширине плеч',
-		difficulty: 2, base_xp: 10, required_level: 1, equipment: 'none',
+		id: 1, slug: 'pushup-regular', category_id: 1, category_slug: 'chest',
+		name: 'Push-up', name_ru: 'Классические отжимания',
+		description: 'Lie face down, hands shoulder-width apart. Tighten your core, lower chest to the floor by bending elbows, then push back up.',
+		description_ru: 'Лягте лицом вниз, руки на ширине плеч. Напрягите корпус, опуститесь до касания грудью пола. Выжмите вверх.',
+		difficulty: 2, base_xp: 5, required_level: 1, equipment: 'none', is_timed: false,
 		easier_exercise_slug: 'pushup-knee', harder_exercise_slug: 'pushup-diamond'
 	},
 	{
-		id: 2, slug: 'pushup-knee', category_id: 1, category_slug: 'push',
+		id: 2, slug: 'pushup-knee', category_id: 1, category_slug: 'chest',
 		name: 'Knee Push-up', name_ru: 'Отжимания с колен',
-		difficulty: 1, base_xp: 8, required_level: 1, equipment: 'none',
+		difficulty: 1, base_xp: 3, required_level: 1, equipment: 'none', is_timed: false,
 		harder_exercise_slug: 'pushup-regular'
 	},
 	{
-		id: 3, slug: 'pushup-diamond', category_id: 1, category_slug: 'push',
-		name: 'Diamond Push-up', name_ru: 'Алмазные отжимания',
-		difficulty: 4, base_xp: 15, required_level: 5, equipment: 'none',
+		id: 3, slug: 'pushup-diamond', category_id: 1, category_slug: 'chest',
+		name: 'Diamond Push-up', name_ru: 'Отжимания узким хватом',
+		difficulty: 3, base_xp: 6, required_level: 1, equipment: 'none', is_timed: false,
 		easier_exercise_slug: 'pushup-regular'
 	},
+	// Back
 	{
-		id: 4, slug: 'pullup-regular', category_id: 2, category_slug: 'pull',
-		name: 'Pull-up', name_ru: 'Подтягивания',
-		difficulty: 3, base_xp: 15, required_level: 3, equipment: 'pullup-bar'
+		id: 4, slug: 'superman', category_id: 2, category_slug: 'back',
+		name: 'Superman', name_ru: 'Супермен',
+		difficulty: 1, base_xp: 4, required_level: 1, equipment: 'none', is_timed: false
 	},
 	{
-		id: 5, slug: 'squat-regular', category_id: 3, category_slug: 'legs',
-		name: 'Squat', name_ru: 'Приседания',
-		difficulty: 2, base_xp: 10, required_level: 1, equipment: 'none'
+		id: 5, slug: 'superman-twist', category_id: 2, category_slug: 'back',
+		name: 'Superman with Twist', name_ru: 'Супермен с поворотом',
+		difficulty: 2, base_xp: 5, required_level: 1, equipment: 'none', is_timed: false
+	},
+	// Legs
+	{
+		id: 6, slug: 'squat-regular', category_id: 3, category_slug: 'legs',
+		name: 'Squat', name_ru: 'Классические приседания',
+		difficulty: 1, base_xp: 4, required_level: 1, equipment: 'none', is_timed: false
 	},
 	{
-		id: 6, slug: 'plank', category_id: 4, category_slug: 'core',
-		name: 'Plank', name_ru: 'Планка',
-		difficulty: 2, base_xp: 12, required_level: 1, equipment: 'none'
+		id: 7, slug: 'squat-sumo', category_id: 3, category_slug: 'legs',
+		name: 'Sumo Squat', name_ru: 'Приседания сумо',
+		difficulty: 2, base_xp: 5, required_level: 1, equipment: 'none', is_timed: false
 	},
 	{
-		id: 7, slug: 'wall-sit', category_id: 5, category_slug: 'static',
-		name: 'Wall Sit', name_ru: 'Стенка',
-		difficulty: 2, base_xp: 10, required_level: 1, equipment: 'none'
+		id: 8, slug: 'lunge-stationary', category_id: 3, category_slug: 'legs',
+		name: 'Stationary Lunges', name_ru: 'Выпады на месте',
+		difficulty: 2, base_xp: 5, required_level: 1, equipment: 'none', is_timed: false
+	},
+	// Core
+	{
+		id: 9, slug: 'plank', category_id: 4, category_slug: 'core',
+		name: 'Plank', name_ru: 'Классическая планка',
+		difficulty: 1, base_xp: 4, required_level: 1, equipment: 'none', is_timed: true
 	},
 	{
-		id: 8, slug: 'jumping-jack', category_id: 6, category_slug: 'cardio',
-		name: 'Jumping Jacks', name_ru: 'Джампинг Джек',
-		difficulty: 1, base_xp: 8, required_level: 1, equipment: 'none'
+		id: 10, slug: 'plank-side', category_id: 4, category_slug: 'core',
+		name: 'Side Plank', name_ru: 'Боковая планка',
+		difficulty: 2, base_xp: 5, required_level: 1, equipment: 'none', is_timed: true
+	},
+	// Stretch
+	{
+		id: 11, slug: 'bird-dog', category_id: 5, category_slug: 'stretch',
+		name: 'Bird Dog', name_ru: 'Птичий пёс',
+		difficulty: 1, base_xp: 3, required_level: 1, equipment: 'none', is_timed: false
 	},
 	{
-		id: 9, slug: 'dip-parallel', category_id: 1, category_slug: 'push',
-		name: 'Parallel Bar Dips', name_ru: 'Отжимания на брусьях',
-		difficulty: 3, base_xp: 15, required_level: 3, equipment: 'dip-bars'
+		id: 12, slug: 'child-pose', category_id: 5, category_slug: 'stretch',
+		name: "Child's Pose", name_ru: 'Поза ребёнка',
+		difficulty: 1, base_xp: 2, required_level: 1, equipment: 'none', is_timed: true
 	}
 ];
 
@@ -356,6 +373,7 @@ class ApiClient {
 					total_xp_earned: 150,
 					total_coins_earned: 15,
 					total_reps: 75,
+					total_duration_seconds: 0,
 					streak_multiplier: 1.12,
 					status: 'completed',
 					exercises: []
@@ -366,6 +384,51 @@ class ApiClient {
 			};
 		}
 		return this.request<WorkoutSummaryResponse>(`/workouts/${workoutId}/complete`, { method: 'POST' });
+	}
+
+	/**
+	 * Submit a completed workout with all exercise data at once.
+	 * This is the simplified API - no need to start session or track exercises during workout.
+	 */
+	async submitWorkout(data: {
+		duration_seconds: number;
+		exercises: Array<{
+			exercise_slug: string;
+			sets: number[];
+			is_timed: boolean;
+		}>;
+	}): Promise<WorkoutSummaryResponse> {
+		if (this.useMocks) {
+			const totalReps = data.exercises
+				.filter(e => !e.is_timed)
+				.reduce((sum, e) => sum + e.sets.reduce((s, r) => s + r, 0), 0);
+			const totalDuration = data.exercises
+				.filter(e => e.is_timed)
+				.reduce((sum, e) => sum + e.sets.reduce((s, r) => s + r, 0), 0);
+			return {
+				workout: {
+					id: Date.now(),
+					user_id: 1,
+					started_at: new Date(Date.now() - data.duration_seconds * 1000).toISOString(),
+					finished_at: new Date().toISOString(),
+					duration_seconds: data.duration_seconds,
+					total_xp_earned: totalReps * 2 + Math.floor(totalDuration / 10) * 2,
+					total_coins_earned: 0,
+					total_reps: totalReps,
+					total_duration_seconds: totalDuration,
+					streak_multiplier: 1.0,
+					status: 'completed',
+					exercises: []
+				},
+				new_achievements: [],
+				level_up: false,
+				new_level: null
+			};
+		}
+		return this.request<WorkoutSummaryResponse>('/workouts/submit', {
+			method: 'POST',
+			body: JSON.stringify(data)
+		});
 	}
 
 	// Achievements

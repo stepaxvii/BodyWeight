@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { PixelButton, PixelCard, PixelIcon } from '$lib/components/ui';
+	import PixelExerciseDemo from '$lib/components/ui/PixelExerciseDemo.svelte';
 	import RoutinePlayer from '$lib/components/RoutinePlayer.svelte';
 	import { api } from '$lib/api/client';
 	import { workoutStore } from '$lib/stores/workout.svelte';
@@ -30,14 +31,11 @@
 
 	// Category colors
 	const categoryColors: Record<string, string> = {
-		push: '#d82800',
-		pull: '#0058f8',
+		chest: '#d82800',
+		back: '#0058f8',
 		legs: '#00a800',
 		core: '#fcc800',
-		static: '#6800a8',
-		cardio: '#fc7400',
-		warmup: '#00a8a8',
-		stretch: '#f878f8'
+		stretch: '#00a8a8'
 	};
 
 	const routineCategoryTabs: { id: RoutineCategory; name: string }[] = [
@@ -47,6 +45,15 @@
 		{ id: 'dip-bars', name: 'Брусья' }
 	];
 
+	// Handle visibility change for pause/resume
+	function handleVisibilityChange() {
+		if (document.hidden) {
+			workoutStore.pauseTimer();
+		} else {
+			workoutStore.resumeTimer();
+		}
+	}
+
 	onMount(async () => {
 		// Check for active workout first
 		await workoutStore.loadActiveWorkout();
@@ -54,6 +61,16 @@
 		categories = await api.getCategories();
 		exercises = await api.getExercises();
 		routines = await api.getRoutines();
+
+		// Listen for page visibility changes
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+	});
+
+	onDestroy(() => {
+		// Clean up visibility listener
+		document.removeEventListener('visibilitychange', handleVisibilityChange);
+		// Pause timer when leaving page
+		workoutStore.pauseTimer();
 	});
 
 	function selectCategory(slug: string) {
@@ -69,12 +86,46 @@
 		await workoutStore.startWorkout();
 	}
 
+	// Check if workout has any sets
+	const hasSets = $derived(workoutStore.totalSets > 0);
+
 	async function finishWorkout() {
 		await workoutStore.completeWorkout();
 	}
 
-	function cancelWorkout() {
+	// Cancel workout state
+	let showCancelConfirm = $state(false);
+
+	// Animation demo state - track which exercise demo is shown
+	let showDemoForExercise = $state<number | null>(null);
+
+	function toggleExerciseDemo(exerciseId: number) {
+		showDemoForExercise = showDemoForExercise === exerciseId ? null : exerciseId;
+		telegram.hapticImpact('light');
+	}
+
+	// Map exercise slug to animation name (only squats for now)
+	function getAnimationSlug(exerciseSlug: string): string | null {
+		// All squat variations use the same demo animation
+		if (exerciseSlug.startsWith('squat')) {
+			return 'squat';
+		}
+		return null;
+	}
+
+	function requestCancelWorkout() {
+		showCancelConfirm = true;
+		telegram.hapticImpact('medium');
+	}
+
+	function confirmCancelWorkout() {
 		workoutStore.cancelWorkout();
+		showCancelConfirm = false;
+		telegram.hapticNotification('warning');
+	}
+
+	function dismissCancelConfirm() {
+		showCancelConfirm = false;
 	}
 
 	// Routine handling
@@ -104,8 +155,8 @@
 		<!-- ACTIVE WORKOUT VIEW -->
 		<header class="workout-header">
 			<h1>Тренировка</h1>
-			<div class="timer">
-				<PixelIcon name="timer" color="var(--pixel-accent)" />
+			<div class="timer" class:paused={workoutStore.isPaused}>
+				<PixelIcon name="timer" color={workoutStore.isPaused ? "var(--text-secondary)" : "var(--pixel-accent)"} />
 				<span class="timer-value">{workoutStore.formattedDuration}</span>
 			</div>
 		</header>
@@ -134,14 +185,34 @@
 				<!-- New workout with selected exercises -->
 				{#each workoutStore.selectedExercises as exercise (exercise.id)}
 					{@const data = workoutStore.getExerciseData(exercise.id)}
+					{@const animationSlug = getAnimationSlug(exercise.slug)}
 					<PixelCard padding="md">
 						<div class="exercise-card">
 							<div class="exercise-header">
 								<span class="exercise-name">{exercise.name_ru}</span>
-								<span class="exercise-difficulty" style="color: {categoryColors[exercise.category_slug]}">
-									{getDifficultyStars(exercise.difficulty)}
-								</span>
+								<div class="exercise-header-right">
+									{#if animationSlug}
+										<button
+											class="demo-toggle"
+											class:active={showDemoForExercise === exercise.id}
+											onclick={() => toggleExerciseDemo(exercise.id)}
+											title="Показать технику"
+										>
+											<PixelIcon name="play" size="sm" color={showDemoForExercise === exercise.id ? "var(--pixel-bg)" : "var(--pixel-accent)"} />
+										</button>
+									{/if}
+									<span class="exercise-difficulty" style="color: {categoryColors[exercise.category_slug]}">
+										{getDifficultyStars(exercise.difficulty)}
+									</span>
+								</div>
 							</div>
+
+							<!-- Animation demo -->
+							{#if showDemoForExercise === exercise.id && animationSlug}
+								<div class="demo-container">
+									<PixelExerciseDemo exercise={animationSlug} size="md" autoplay={true} />
+								</div>
+							{/if}
 
 							{#if data && data.sets.length > 0}
 								<div class="sets-list">
@@ -236,14 +307,43 @@
 
 		<!-- Finish buttons -->
 		<div class="workout-actions">
-			<PixelButton variant="success" size="lg" fullWidth onclick={finishWorkout}>
+			<PixelButton
+				variant="success"
+				size="lg"
+				fullWidth
+				onclick={finishWorkout}
+				disabled={!hasSets || workoutStore.isLoading}
+			>
 				<PixelIcon name="check" />
 				Завершить тренировку
 			</PixelButton>
-			<PixelButton variant="ghost" fullWidth onclick={cancelWorkout}>
-				Отменить
+			{#if !hasSets}
+				<p class="hint-text">Добавьте хотя бы один подход</p>
+			{/if}
+			<PixelButton variant="ghost" fullWidth onclick={requestCancelWorkout}>
+				Отменить тренировку
 			</PixelButton>
 		</div>
+
+		<!-- Cancel confirmation modal -->
+		{#if showCancelConfirm}
+			<div class="modal-overlay" onclick={dismissCancelConfirm}>
+				<div class="modal-content" onclick={(e) => e.stopPropagation()}>
+					<PixelCard padding="lg">
+						<h3 class="modal-title">Отменить тренировку?</h3>
+						<p class="modal-text">Весь прогресс тренировки будет потерян.</p>
+						<div class="modal-actions">
+							<PixelButton variant="danger" fullWidth onclick={confirmCancelWorkout}>
+								Да, отменить
+							</PixelButton>
+							<PixelButton variant="secondary" fullWidth onclick={dismissCancelConfirm}>
+								Продолжить тренировку
+							</PixelButton>
+						</div>
+					</PixelCard>
+				</div>
+			</div>
+		{/if}
 
 	{:else}
 		<!-- SELECTION VIEW -->
@@ -396,6 +496,16 @@
 		color: var(--pixel-accent);
 	}
 
+	.timer.paused .timer-value {
+		color: var(--text-secondary);
+		animation: blink 1s ease-in-out infinite;
+	}
+
+	@keyframes blink {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.4; }
+	}
+
 	/* Workout stats */
 	.workout-stats {
 		display: flex;
@@ -437,6 +547,40 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+	}
+
+	.exercise-header-right {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+	}
+
+	.demo-toggle {
+		width: 28px;
+		height: 28px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--pixel-card);
+		border: 2px solid var(--pixel-accent);
+		cursor: pointer;
+		transition: background 0.15s;
+	}
+
+	.demo-toggle:hover {
+		background: rgba(var(--pixel-accent-rgb), 0.2);
+	}
+
+	.demo-toggle.active {
+		background: var(--pixel-accent);
+	}
+
+	.demo-container {
+		display: flex;
+		justify-content: center;
+		padding: var(--spacing-sm) 0;
+		border-bottom: 1px solid var(--border-color);
+		margin-bottom: var(--spacing-xs);
 	}
 
 	.exercise-name {
@@ -645,4 +789,50 @@
 	}
 
 	.text-green { color: var(--pixel-green); }
+
+	.hint-text {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		text-align: center;
+		margin: 0;
+	}
+
+	/* Modal overlay */
+	.modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.8);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+		padding: var(--spacing-md);
+	}
+
+	.modal-content {
+		width: 100%;
+		max-width: 320px;
+	}
+
+	.modal-title {
+		margin: 0 0 var(--spacing-sm);
+		font-size: var(--font-size-md);
+		text-align: center;
+	}
+
+	.modal-text {
+		margin: 0 0 var(--spacing-lg);
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+		text-align: center;
+	}
+
+	.modal-actions {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+	}
 </style>

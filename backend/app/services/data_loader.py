@@ -86,9 +86,6 @@ async def load_exercises(session: AsyncSession) -> None:
     # Track exercise slug -> id for linking easier/harder
     slug_to_id = {}
 
-    # Categories that are time-based
-    timed_categories = {"static", "stretch"}
-
     # First pass: create all exercises without links
     for ex_data in exercises_data:
         # Check if exists
@@ -102,8 +99,8 @@ async def load_exercises(session: AsyncSession) -> None:
         if not category_id:
             continue
 
-        # Determine if exercise is time-based
-        is_timed = category_slug in timed_categories
+        # Use is_timed from JSON, default to False
+        is_timed = ex_data.get("is_timed", False)
 
         if not exercise:
             exercise = Exercise(

@@ -1,0 +1,50 @@
+[
+  {
+    "slug": "pushup-regular",
+    "category": "chest",
+    "name": "Push-up",
+    "name_ru": "Классические отжимания",
+    "description": "Lie face down, hands shoulder-width apart. Tighten your core, lower chest to the floor by bending elbows, then push back up.",
+    "description_ru": "Лягте лицом вниз, руки на ширине плеч, ладони на полу. Напрягите корпус, опуститесь, сгибая локти до касания грудью пола. Выжмите тело вверх, выпрямляя руки.",
+    "difficulty": 2,
+    "base_xp": 5,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": false,
+    "easier": null,
+    "harder": "pushup-diamond",
+    "tags": ["chest", "triceps", "fundamental", "beginner"]
+  },
+  {
+    "slug": "pushup-diamond",
+    "category": "chest",
+    "name": "Diamond Push-up",
+    "name_ru": "Отжимания узким хватом",
+    "description": "Hands close together (20-30cm apart), elbows pressed to body. Focus on triceps as you lower and push up.",
+    "description_ru": "Руки ближе плеч (на 20–30 см), локти прижаты к телу. Опуститесь, фокусируясь на трицепсах, затем выжмите вверх. Идеально для трицепсов.",
+    "difficulty": 3,
+    "base_xp": 6,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": false,
+    "easier": "pushup-regular",
+    "harder": null,
+    "tags": ["triceps", "chest", "intermediate"]
+  },
+  {
+    "slug": "pushup-knee",
+    "category": "chest",
+    "name": "Knee Push-up",
+    "name_ru": "Отжимания с колен",
+    "description": "Same as regular push-up but with knees on the ground. Keep a straight line from head to knees.",
+    "description_ru": "То же, но опора на колени для новичков. Сохраняйте прямую линию от головы до колен.",
+    "difficulty": 1,
+    "base_xp": 3,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": false,
+    "easier": null,
+    "harder": "pushup-regular",
+    "tags": ["chest", "triceps", "beginner", "progression-start"]
+  }
+]
