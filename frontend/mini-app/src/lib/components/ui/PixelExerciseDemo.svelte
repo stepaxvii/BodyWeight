@@ -50,7 +50,11 @@
 			if (fallback) fallback.style.display = 'flex';
 		}}
 	/>
-	<div class="fallback" style="display: none;">?</div>
+	<div class="fallback" style="display: none;">
+		<svg viewBox="0 0 16 16" fill="currentColor" class="fallback-icon">
+			<path d="M2 6h2v4H2V6zm10 0h2v4h-2V6zM4 7h8v2H4V7z"/>
+		</svg>
+	</div>
 
 	{#if tip}
 		<div class="tips">
@@ -95,7 +99,11 @@
 		justify-content: center;
 		background: var(--pixel-card, #1a1a2e);
 		border: 2px solid var(--border-color, #333);
-		font-size: var(--font-size-2xl);
 		color: var(--text-muted, #666);
+	}
+
+	.fallback-icon {
+		width: 50%;
+		height: 50%;
 	}
 </style>

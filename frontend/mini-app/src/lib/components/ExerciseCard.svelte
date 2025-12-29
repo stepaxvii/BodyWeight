@@ -28,6 +28,19 @@
 
 	const isFavorite = $derived(favoritesStore.isFavorite(exercise.id));
 
+	// Map category slug to icon file path
+	function getCategoryIconPath(categorySlug: string): string {
+		const iconMap: Record<string, string> = {
+			'strength': 'cat_push',
+			'cardio': 'cat_cardio',
+			'static': 'cat_static',
+			'dynamic-stretch': 'cat_stretch',
+			'static-stretch': 'cat_stretch'
+		};
+		const iconName = iconMap[categorySlug] || 'cat_push';
+		return `/sprites/categories/${iconName}.svg`;
+	}
+
 	function getDifficultyStars(difficulty: number): string {
 		return '\u2605'.repeat(difficulty) + '\u2606'.repeat(5 - difficulty);
 	}
@@ -52,13 +65,18 @@
 
 <PixelCard hoverable onclick={handleCardClick} padding="sm">
 	<div class="exercise-row" class:selected={isSelected}>
-		{#if showCheckbox}
-			<div class="checkbox" class:checked={isSelected}>
-				{#if isSelected}
-					<PixelIcon name="check" size="sm" color="var(--pixel-bg)" />
-				{/if}
-			</div>
-		{/if}
+		<!-- Category icon with selection indicator -->
+		<div class="category-icon" class:selected={isSelected} style="--cat-color: {categoryColor}">
+			{#if isSelected && showCheckbox}
+				<PixelIcon name="check" size="sm" color="var(--pixel-bg)" />
+			{:else}
+				<img
+					src={getCategoryIconPath(exercise.category_slug)}
+					alt={exercise.category_slug}
+					class="category-img"
+				/>
+			{/if}
+		</div>
 		<div class="exercise-info">
 			<span class="exercise-name">{exercise.name_ru}</span>
 			<span class="exercise-meta">
@@ -106,19 +124,26 @@
 		padding: var(--spacing-sm);
 	}
 
-	.checkbox {
-		width: 24px;
-		height: 24px;
-		border: 2px solid var(--border-color);
+	.category-icon {
+		width: 32px;
+		height: 32px;
+		border: 2px solid var(--cat-color, var(--border-color));
+		background: var(--pixel-bg-dark);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		flex-shrink: 0;
 	}
 
-	.checkbox.checked {
+	.category-icon.selected {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent);
+	}
+
+	.category-img {
+		width: 20px;
+		height: 20px;
+		image-rendering: pixelated;
 	}
 
 	.exercise-info {

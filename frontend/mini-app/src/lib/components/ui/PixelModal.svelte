@@ -66,7 +66,7 @@
 		align-items: center;
 		justify-content: center;
 		padding: var(--spacing-md);
-		z-index: 200;
+		z-index: 2000;
 		animation: fade-in 0.15s ease-out;
 	}
 
