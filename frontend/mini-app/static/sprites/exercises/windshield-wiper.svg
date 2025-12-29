@@ -1,81 +1,129 @@
-<!-- v2.0 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 56">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80">
   <style>
-    .skin { fill: #FFD5B8; }
-    .dark { fill: #2D2D2D; }
-    .hair { fill: #4A3728; }
-    .shirt { fill: #4CAF50; }
-    .shorts { fill: #1E88E5; }
-    .shoes { fill: #424242; }
-    .bar { fill: #666666; }
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shorts: #1E88E5;
+      --pixel-shoes: #424242;
+      --pixel-bar: #666666;
+    }
+    .frame { opacity: 0; }
+    .frame1 { animation: frame1 3.2s steps(1) infinite; }
+    .frame2 { animation: frame2 3.2s steps(1) infinite; }
+    .frame3 { animation: frame3 3.2s steps(1) infinite; }
+    .frame4 { animation: frame4 3.2s steps(1) infinite; }
 
-    .f1, .f2, .f3 { opacity: 0; }
-    .f1 { animation: a1 2.4s steps(1) infinite; }
-    .f2 { animation: a2 2.4s steps(1) infinite; }
-    .f3 { animation: a3 2.4s steps(1) infinite; }
-
-    @keyframes a1 { 0%, 66.66% { opacity: 1; } 16.66%, 50% { opacity: 0; } }
-    @keyframes a2 { 0% { opacity: 0; } 16.66%, 50% { opacity: 1; } 33.33% { opacity: 0; } }
-    @keyframes a3 { 0%, 16.66% { opacity: 0; } 33.33% { opacity: 1; } 50%, 100% { opacity: 0; } }
+    @keyframes frame1 {
+      0%, 100% { opacity: 1; }
+      12.5% { opacity: 0; }
+    }
+    @keyframes frame2 {
+      0% { opacity: 0; }
+      12.5%, 87.5% { opacity: 1; }
+      25%, 75% { opacity: 0; }
+    }
+    @keyframes frame3 {
+      0% { opacity: 0; }
+      25%, 75% { opacity: 1; }
+      37.5%, 62.5% { opacity: 0; }
+    }
+    @keyframes frame4 {
+      0% { opacity: 0; }
+      37.5%, 62.5% { opacity: 1; }
+      50% { opacity: 0; }
+    }
   </style>
 
-  <!-- Bar -->
-  <rect x="6" y="2" width="36" height="4" class="bar"/>
+  <!-- Турник -->
+  <rect x="8" y="4" width="48" height="6" fill="var(--pixel-bar)"/>
+  <rect x="8" y="0" width="4" height="10" fill="var(--pixel-bar)"/>
+  <rect x="52" y="0" width="4" height="10" fill="var(--pixel-bar)"/>
 
-  <!-- Frame 1: Legs to the left -->
-  <g class="f1">
-    <rect x="16" y="5" width="4" height="5" class="skin"/>
-    <rect x="28" y="5" width="4" height="5" class="skin"/>
-    <rect x="19" y="12" width="10" height="8" class="skin"/>
-    <rect x="21" y="15" width="2" height="2" class="dark"/>
-    <rect x="25" y="15" width="2" height="2" class="dark"/>
-    <rect x="19" y="10" width="10" height="3" class="hair"/>
-    <rect x="18" y="20" width="12" height="10" class="shirt"/>
-    <rect x="19" y="30" width="10" height="4" class="shorts"/>
-    <!-- Hips -->
-    <rect x="18" y="33" width="5" height="4" class="skin"/>
-    <rect x="24" y="33" width="5" height="4" class="skin"/>
-    <!-- Legs tilted left -->
-    <rect x="2" y="28" width="16" height="4" class="skin"/>
-    <rect x="2" y="32" width="16" height="4" class="skin"/>
-    <rect x="0" y="26" width="5" height="3" class="shoes"/>
-    <rect x="0" y="34" width="5" height="3" class="shoes"/>
+  <!-- Кадр 1: Ноги влево -->
+  <g class="frame frame1">
+    <!-- Руки -->
+    <rect x="22" y="10" width="6" height="8" fill="var(--pixel-skin)"/>
+    <rect x="36" y="10" width="6" height="8" fill="var(--pixel-skin)"/>
+    <!-- Голова -->
+    <rect x="26" y="18" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="28" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="34" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="26" y="16" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Тело -->
+    <rect x="24" y="30" width="16" height="14" fill="var(--pixel-shirt)"/>
+    <rect x="26" y="44" width="12" height="6" fill="var(--pixel-shorts)"/>
+    <!-- Ноги L-угол влево -->
+    <rect x="24" y="48" width="6" height="6" fill="var(--pixel-skin)"/>
+    <rect x="32" y="48" width="6" height="6" fill="var(--pixel-skin)"/>
+    <!-- Ноги наклонены влево -->
+    <rect x="4" y="42" width="22" height="6" fill="var(--pixel-skin)"/>
+    <rect x="4" y="48" width="22" height="6" fill="var(--pixel-skin)"/>
+    <rect x="0" y="40" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="0" y="50" width="8" height="4" fill="var(--pixel-shoes)"/>
   </g>
 
-  <!-- Frame 2: Legs center (up) -->
-  <g class="f2">
-    <rect x="16" y="5" width="4" height="5" class="skin"/>
-    <rect x="28" y="5" width="4" height="5" class="skin"/>
-    <rect x="19" y="12" width="10" height="8" class="skin"/>
-    <rect x="21" y="15" width="2" height="2" class="dark"/>
-    <rect x="25" y="15" width="2" height="2" class="dark"/>
-    <rect x="19" y="10" width="10" height="3" class="hair"/>
-    <rect x="18" y="20" width="12" height="10" class="shirt"/>
-    <rect x="19" y="30" width="10" height="4" class="shorts"/>
-    <!-- Legs vertical -->
-    <rect x="19" y="14" width="4" height="18" class="skin"/>
-    <rect x="25" y="14" width="4" height="18" class="skin"/>
-    <rect x="17" y="8" width="6" height="6" class="shoes"/>
-    <rect x="25" y="8" width="6" height="6" class="shoes"/>
+  <!-- Кадр 2: Ноги по центру вверх -->
+  <g class="frame frame2">
+    <!-- Руки -->
+    <rect x="22" y="10" width="6" height="8" fill="var(--pixel-skin)"/>
+    <rect x="36" y="10" width="6" height="8" fill="var(--pixel-skin)"/>
+    <!-- Голова -->
+    <rect x="26" y="18" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="28" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="34" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="26" y="16" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Тело -->
+    <rect x="24" y="30" width="16" height="14" fill="var(--pixel-shirt)"/>
+    <rect x="26" y="44" width="12" height="6" fill="var(--pixel-shorts)"/>
+    <!-- Ноги вертикально вверх (L-угол) -->
+    <rect x="26" y="20" width="5" height="26" fill="var(--pixel-skin)"/>
+    <rect x="33" y="20" width="5" height="26" fill="var(--pixel-skin)"/>
+    <rect x="24" y="12" width="8" height="8" fill="var(--pixel-shoes)"/>
+    <rect x="32" y="12" width="8" height="8" fill="var(--pixel-shoes)"/>
   </g>
 
-  <!-- Frame 3: Legs to the right -->
-  <g class="f3">
-    <rect x="16" y="5" width="4" height="5" class="skin"/>
-    <rect x="28" y="5" width="4" height="5" class="skin"/>
-    <rect x="19" y="12" width="10" height="8" class="skin"/>
-    <rect x="21" y="15" width="2" height="2" class="dark"/>
-    <rect x="25" y="15" width="2" height="2" class="dark"/>
-    <rect x="19" y="10" width="10" height="3" class="hair"/>
-    <rect x="18" y="20" width="12" height="10" class="shirt"/>
-    <rect x="19" y="30" width="10" height="4" class="shorts"/>
-    <!-- Hips -->
-    <rect x="19" y="33" width="5" height="4" class="skin"/>
-    <rect x="25" y="33" width="5" height="4" class="skin"/>
-    <!-- Legs tilted right -->
-    <rect x="30" y="28" width="16" height="4" class="skin"/>
-    <rect x="30" y="32" width="16" height="4" class="skin"/>
-    <rect x="43" y="26" width="5" height="3" class="shoes"/>
-    <rect x="43" y="34" width="5" height="3" class="shoes"/>
+  <!-- Кадр 3: Ноги вправо -->
+  <g class="frame frame3">
+    <!-- Руки -->
+    <rect x="22" y="10" width="6" height="8" fill="var(--pixel-skin)"/>
+    <rect x="36" y="10" width="6" height="8" fill="var(--pixel-skin)"/>
+    <!-- Голова -->
+    <rect x="26" y="18" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="28" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="34" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="26" y="16" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Тело -->
+    <rect x="24" y="30" width="16" height="14" fill="var(--pixel-shirt)"/>
+    <rect x="26" y="44" width="12" height="6" fill="var(--pixel-shorts)"/>
+    <!-- Ноги L-угол вправо -->
+    <rect x="26" y="48" width="6" height="6" fill="var(--pixel-skin)"/>
+    <rect x="34" y="48" width="6" height="6" fill="var(--pixel-skin)"/>
+    <!-- Ноги наклонены вправо -->
+    <rect x="38" y="42" width="22" height="6" fill="var(--pixel-skin)"/>
+    <rect x="38" y="48" width="22" height="6" fill="var(--pixel-skin)"/>
+    <rect x="56" y="40" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="56" y="50" width="8" height="4" fill="var(--pixel-shoes)"/>
+  </g>
+
+  <!-- Кадр 4: Возврат к центру -->
+  <g class="frame frame4">
+    <!-- Руки -->
+    <rect x="22" y="10" width="6" height="8" fill="var(--pixel-skin)"/>
+    <rect x="36" y="10" width="6" height="8" fill="var(--pixel-skin)"/>
+    <!-- Голова -->
+    <rect x="26" y="18" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="28" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="34" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="26" y="16" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Тело -->
+    <rect x="24" y="30" width="16" height="14" fill="var(--pixel-shirt)"/>
+    <rect x="26" y="44" width="12" height="6" fill="var(--pixel-shorts)"/>
+    <!-- Ноги вертикально вверх -->
+    <rect x="26" y="20" width="5" height="26" fill="var(--pixel-skin)"/>
+    <rect x="33" y="20" width="5" height="26" fill="var(--pixel-skin)"/>
+    <rect x="24" y="12" width="8" height="8" fill="var(--pixel-shoes)"/>
+    <rect x="32" y="12" width="8" height="8" fill="var(--pixel-shoes)"/>
   </g>
 </svg>

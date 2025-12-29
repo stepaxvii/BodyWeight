@@ -1,46 +1,49 @@
-<!-- v2.0 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 36">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 45">
   <style>
-    .skin { fill: #FFD5B8; }
-    .dark { fill: #2D2D2D; }
-    .hair { fill: #4A3728; }
-    .shirt { fill: #4CAF50; }
-    .shorts { fill: #1E88E5; }
-    .shoes { fill: #424242; }
-    .accent { fill: #FF9800; }
-
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shorts: #1E88E5;
+      --pixel-shoes: #424242;
+      --pixel-accent: #FF9800;
+    }
     .pulse { animation: pulse 1.6s ease-in-out infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 0.9; } 50% { opacity: 0.4; } }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; r: 3; }
+      50% { opacity: 0.5; r: 2; }
+    }
   </style>
 
-  <!-- Head -->
-  <rect x="4" y="6" width="8" height="7" class="skin"/>
-  <rect x="5" y="9" width="2" height="2" class="dark"/>
-  <rect x="4" y="4" width="8" height="3" class="hair"/>
+  <!-- Голова -->
+  <rect x="4" y="8" width="10" height="10" fill="var(--pixel-skin)"/>
+  <rect x="6" y="11" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="4" y="6" width="10" height="4" fill="var(--pixel-hair)"/>
 
-  <!-- Neck -->
-  <rect x="10" y="10" width="3" height="3" class="skin"/>
+  <!-- Шея -->
+  <rect x="12" y="12" width="4" height="4" fill="var(--pixel-skin)"/>
 
-  <!-- Body -->
-  <rect x="12" y="11" width="20" height="8" class="shirt"/>
+  <!-- Туловище -->
+  <rect x="14" y="14" width="26" height="10" fill="var(--pixel-shirt)"/>
 
-  <!-- Top arm raised -->
-  <rect x="16" y="2" width="4" height="10" class="skin"/>
+  <!-- Верхняя рука вытянута вверх -->
+  <rect x="20" y="4" width="4" height="12" fill="var(--pixel-skin)"/>
 
-  <!-- Support arm -->
-  <rect x="12" y="19" width="4" height="10" class="skin"/>
-  <rect x="10" y="29" width="6" height="3" class="skin"/>
+  <!-- Опорная рука -->
+  <rect x="14" y="24" width="4" height="12" fill="var(--pixel-skin)"/>
+  <rect x="12" y="36" width="8" height="4" fill="var(--pixel-skin)"/>
 
-  <!-- Hips -->
-  <rect x="32" y="14" width="8" height="6" class="shorts"/>
+  <!-- Таз -->
+  <rect x="40" y="18" width="10" height="8" fill="var(--pixel-shorts)"/>
 
-  <!-- Legs stacked -->
-  <rect x="40" y="16" width="12" height="5" class="skin"/>
-  <rect x="50" y="16" width="4" height="5" class="shoes"/>
+  <!-- Ноги -->
+  <rect x="50" y="20" width="16" height="6" fill="var(--pixel-skin)"/>
+  <rect x="64" y="20" width="4" height="6" fill="var(--pixel-shoes)"/>
 
-  <!-- Floor -->
-  <rect x="0" y="32" width="56" height="1" fill="#000" opacity="0.2"/>
+  <!-- Пол -->
+  <rect x="0" y="40" width="70" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
 
-  <!-- Pulse indicator -->
-  <circle class="pulse" cx="18" cy="1" r="2" class="accent"/>
+  <!-- Анимированный таймер -->
+  <circle class="pulse" cx="22" cy="2" r="3" fill="var(--pixel-accent)"/>
 </svg>

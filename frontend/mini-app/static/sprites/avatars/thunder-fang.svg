@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Thunder Fang - электрический супер тигр с молниями -->
+  <!-- Dark stormy background -->
+  <rect width="32" height="32" fill="#0f172a"/>
+
+  <!-- Electric aura -->
+  <rect x="1" y="3" width="2" height="3" fill="#38bdf8" opacity="0.5"/>
+  <rect x="28" y="5" width="2" height="4" fill="#a855f7" opacity="0.5"/>
+  <rect x="3" y="26" width="3" height="2" fill="#38bdf8" opacity="0.4"/>
+  <rect x="26" y="24" width="2" height="3" fill="#a855f7" opacity="0.4"/>
+
+  <!-- Ears - electric blue tips -->
+  <rect x="3" y="1" width="7" height="10" fill="#f97316"/>
+  <rect x="22" y="1" width="7" height="10" fill="#f97316"/>
+  <rect x="5" y="3" width="3" height="6" fill="#fb923c"/>
+  <rect x="24" y="3" width="3" height="6" fill="#fb923c"/>
+  <!-- Lightning on ears -->
+  <rect x="3" y="0" width="3" height="2" fill="#38bdf8"/>
+  <rect x="5" y="1" width="2" height="2" fill="#7dd3fc"/>
+  <rect x="26" y="0" width="3" height="2" fill="#38bdf8"/>
+  <rect x="25" y="1" width="2" height="2" fill="#7dd3fc"/>
+
+  <!-- Head - fierce orange tiger -->
+  <rect x="5" y="7" width="22" height="20" fill="#ea580c"/>
+  <rect x="7" y="9" width="18" height="16" fill="#f97316"/>
+
+  <!-- Tiger stripes - dark -->
+  <rect x="7" y="10" width="2" height="4" fill="#7c2d12"/>
+  <rect x="23" y="10" width="2" height="4" fill="#7c2d12"/>
+  <rect x="9" y="8" width="2" height="3" fill="#7c2d12"/>
+  <rect x="21" y="8" width="2" height="3" fill="#7c2d12"/>
+  <rect x="6" y="16" width="2" height="3" fill="#7c2d12"/>
+  <rect x="24" y="16" width="2" height="3" fill="#7c2d12"/>
+
+  <!-- Forehead lightning mark -->
+  <rect x="14" y="9" width="4" height="2" fill="#38bdf8"/>
+  <rect x="15" y="11" width="2" height="2" fill="#38bdf8"/>
+  <rect x="14" y="13" width="4" height="2" fill="#38bdf8"/>
+  <rect x="15" y="8" width="2" height="2" fill="#7dd3fc"/>
+
+  <!-- Eyes - electric blue glowing -->
+  <rect x="8" y="14" width="6" height="5" fill="#1e293b"/>
+  <rect x="18" y="14" width="6" height="5" fill="#1e293b"/>
+  <rect x="9" y="15" width="4" height="3" fill="#38bdf8"/>
+  <rect x="19" y="15" width="4" height="3" fill="#38bdf8"/>
+  <rect x="10" y="15" width="2" height="2" fill="#7dd3fc"/>
+  <rect x="20" y="15" width="2" height="2" fill="#7dd3fc"/>
+  <!-- Eye sparks -->
+  <rect x="10" y="15" width="1" height="1" fill="#ffffff"/>
+  <rect x="20" y="15" width="1" height="1" fill="#ffffff"/>
+  <rect x="12" y="16" width="1" height="1" fill="#e0f2fe"/>
+  <rect x="22" y="16" width="1" height="1" fill="#e0f2fe"/>
+
+  <!-- Snout - white/cream -->
+  <rect x="10" y="19" width="12" height="8" fill="#fdba74"/>
+  <rect x="11" y="20" width="10" height="6" fill="#fef3c7"/>
+  <!-- Nose -->
+  <rect x="13" y="20" width="6" height="3" fill="#1e293b"/>
+  <rect x="14" y="21" width="4" height="2" fill="#334155"/>
+  <!-- Fierce mouth -->
+  <rect x="12" y="24" width="3" height="2" fill="#7c2d12"/>
+  <rect x="17" y="24" width="3" height="2" fill="#7c2d12"/>
+  <!-- Fangs! -->
+  <rect x="12" y="25" width="2" height="2" fill="#fef3c7"/>
+  <rect x="18" y="25" width="2" height="2" fill="#fef3c7"/>
+
+  <!-- Electric whiskers -->
+  <rect x="4" y="20" width="4" height="1" fill="#38bdf8"/>
+  <rect x="3" y="22" width="5" height="1" fill="#7dd3fc"/>
+  <rect x="5" y="24" width="3" height="1" fill="#38bdf8"/>
+  <rect x="24" y="20" width="4" height="1" fill="#38bdf8"/>
+  <rect x="24" y="22" width="5" height="1" fill="#7dd3fc"/>
+  <rect x="24" y="24" width="3" height="1" fill="#38bdf8"/>
+
+  <!-- Lightning sparks around -->
+  <rect x="0" y="10" width="2" height="4" fill="#a855f7" opacity="0.7"/>
+  <rect x="1" y="12" width="1" height="1" fill="#ffffff"/>
+  <rect x="30" y="8" width="2" height="3" fill="#38bdf8" opacity="0.7"/>
+  <rect x="30" y="9" width="1" height="1" fill="#ffffff"/>
+  <rect x="0" y="22" width="2" height="2" fill="#38bdf8" opacity="0.6"/>
+  <rect x="30" y="20" width="2" height="2" fill="#a855f7" opacity="0.6"/>
+</svg>

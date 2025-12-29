@@ -1,71 +1,57 @@
-<!-- v2.0 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 56">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 72">
   <style>
-    .skin { fill: #FFD5B8; }
-    .dark { fill: #2D2D2D; }
-    .hair { fill: #4A3728; }
-    .shirt { fill: #4CAF50; }
-    .shorts { fill: #1E88E5; }
-    .shoes { fill: #424242; }
-    .rope { fill: #8D6E63; }
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shorts: #1E88E5;
+      --pixel-shoes: #424242;
+      --pixel-rope: #8D6E63;
+    }
+    .frame { opacity: 0; }
+    .frame1 { animation: frame1 1s steps(1) infinite; }
+    .frame2 { animation: frame2 1s steps(1) infinite; }
 
-    .f1, .f2 { opacity: 0; }
-    .f1 { animation: a1 0.6s steps(1) infinite; }
-    .f2 { animation: a2 0.6s steps(1) infinite; }
-
-    @keyframes a1 { 0%, 50% { opacity: 1; } 50%, 100% { opacity: 0; } }
-    @keyframes a2 { 0%, 50% { opacity: 0; } 50%, 100% { opacity: 1; } }
+    @keyframes frame1 { 0%, 50% { opacity: 1; } 50%, 100% { opacity: 0; } }
+    @keyframes frame2 { 0%, 50% { opacity: 0; } 50%, 100% { opacity: 1; } }
   </style>
 
-  <!-- Frame 1: On ground -->
-  <g class="f1">
-    <!-- Head -->
-    <rect x="14" y="6" width="10" height="8" class="skin"/>
-    <rect x="17" y="9" width="2" height="2" class="dark"/>
-    <rect x="14" y="4" width="10" height="3" class="hair"/>
-    <!-- Torso -->
-    <rect x="12" y="14" width="14" height="12" class="shirt"/>
-    <!-- Arms holding rope -->
-    <rect x="6" y="16" width="6" height="8" class="skin"/>
-    <rect x="26" y="16" width="6" height="8" class="skin"/>
-    <!-- Shorts -->
-    <rect x="14" y="26" width="10" height="6" class="shorts"/>
-    <!-- Legs -->
-    <rect x="14" y="32" width="5" height="12" class="skin"/>
-    <rect x="19" y="32" width="5" height="12" class="skin"/>
-    <!-- Shoes -->
-    <rect x="12" y="44" width="7" height="3" class="shoes"/>
-    <rect x="19" y="44" width="7" height="3" class="shoes"/>
-    <!-- Rope below -->
-    <rect x="6" y="46" width="26" height="2" class="rope"/>
-    <!-- Shadow -->
-    <rect x="4" y="50" width="32" height="1" fill="#000" opacity="0.15"/>
+  <!-- Кадр 1: На земле -->
+  <g class="frame frame1">
+    <rect x="18" y="10" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="20" y="14" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="18" y="8" width="12" height="4" fill="var(--pixel-hair)"/>
+    <rect x="16" y="22" width="16" height="16" fill="var(--pixel-shirt)"/>
+    <rect x="10" y="24" width="6" height="10" fill="var(--pixel-skin)"/>
+    <rect x="32" y="24" width="6" height="10" fill="var(--pixel-skin)"/>
+    <rect x="18" y="38" width="12" height="8" fill="var(--pixel-shorts)"/>
+    <rect x="18" y="46" width="6" height="14" fill="var(--pixel-skin)"/>
+    <rect x="24" y="46" width="6" height="14" fill="var(--pixel-skin)"/>
+    <rect x="16" y="58" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="24" y="58" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <!-- Скакалка внизу -->
+    <rect x="8" y="60" width="32" height="2" fill="var(--pixel-rope)"/>
+    <rect x="0" y="64" width="48" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
   </g>
 
-  <!-- Frame 2: In air -->
-  <g class="f2">
-    <!-- Head -->
-    <rect x="14" y="2" width="10" height="8" class="skin"/>
-    <rect x="17" y="5" width="2" height="2" class="dark"/>
-    <rect x="14" y="0" width="10" height="3" class="hair"/>
-    <!-- Torso -->
-    <rect x="12" y="10" width="14" height="12" class="shirt"/>
-    <!-- Arms holding rope -->
-    <rect x="6" y="12" width="6" height="8" class="skin"/>
-    <rect x="26" y="12" width="6" height="8" class="skin"/>
-    <!-- Shorts -->
-    <rect x="14" y="22" width="10" height="6" class="shorts"/>
-    <!-- Legs -->
-    <rect x="14" y="28" width="5" height="12" class="skin"/>
-    <rect x="19" y="28" width="5" height="12" class="skin"/>
-    <!-- Shoes -->
-    <rect x="12" y="40" width="7" height="3" class="shoes"/>
-    <rect x="19" y="40" width="7" height="3" class="shoes"/>
-    <!-- Rope above -->
-    <rect x="6" y="2" width="2" height="14" class="rope"/>
-    <rect x="30" y="2" width="2" height="14" class="rope"/>
-    <rect x="6" y="0" width="26" height="2" class="rope"/>
-    <!-- Shadow -->
-    <rect x="4" y="50" width="32" height="1" fill="#000" opacity="0.15"/>
+  <!-- Кадр 2: В прыжке -->
+  <g class="frame frame2">
+    <rect x="18" y="4" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="20" y="8" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="18" y="2" width="12" height="4" fill="var(--pixel-hair)"/>
+    <rect x="16" y="16" width="16" height="16" fill="var(--pixel-shirt)"/>
+    <rect x="10" y="18" width="6" height="10" fill="var(--pixel-skin)"/>
+    <rect x="32" y="18" width="6" height="10" fill="var(--pixel-skin)"/>
+    <rect x="18" y="32" width="12" height="8" fill="var(--pixel-shorts)"/>
+    <rect x="18" y="40" width="6" height="14" fill="var(--pixel-skin)"/>
+    <rect x="24" y="40" width="6" height="14" fill="var(--pixel-skin)"/>
+    <rect x="16" y="52" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="24" y="52" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <!-- Скакалка вверху -->
+    <rect x="8" y="4" width="2" height="20" fill="var(--pixel-rope)"/>
+    <rect x="38" y="4" width="2" height="20" fill="var(--pixel-rope)"/>
+    <rect x="8" y="2" width="32" height="2" fill="var(--pixel-rope)"/>
+    <rect x="0" y="64" width="48" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
   </g>
 </svg>

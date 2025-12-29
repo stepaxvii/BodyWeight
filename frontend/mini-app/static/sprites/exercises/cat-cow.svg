@@ -1,73 +1,82 @@
-<!-- v2.0 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 50">
   <style>
-    .skin { fill: #FFD5B8; }
-    .dark { fill: #2D2D2D; }
-    .hair { fill: #4A3728; }
-    .shirt { fill: #4CAF50; }
-    .shorts { fill: #1E88E5; }
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shorts: #1E88E5;
+      --pixel-shoes: #424242;
+    }
+    .frame { opacity: 0; }
+    .frame1 { animation: frame1 4s steps(1) infinite; }
+    .frame2 { animation: frame2 4s steps(1) infinite; }
 
-    .f1, .f2 { opacity: 0; }
-    .f1 { animation: a1 2s steps(1) infinite; }
-    .f2 { animation: a2 2s steps(1) infinite; }
-
-    @keyframes a1 { 0%, 50% { opacity: 1; } 50%, 100% { opacity: 0; } }
-    @keyframes a2 { 0%, 50% { opacity: 0; } 50%, 100% { opacity: 1; } }
+    @keyframes frame1 {
+      0%, 50% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+    @keyframes frame2 {
+      0%, 50% { opacity: 0; }
+      50%, 100% { opacity: 1; }
+    }
   </style>
 
-  <!-- Frame 1: Cat (back arched up, head down) -->
-  <g class="f1">
-    <!-- Head down -->
-    <rect x="4" y="16" width="6" height="5" class="skin"/>
-    <rect x="6" y="18" width="2" height="2" class="dark"/>
-    <rect x="4" y="14" width="6" height="3" class="hair"/>
-    <!-- Neck -->
-    <rect x="9" y="14" width="3" height="4" class="skin"/>
-    <!-- Back arched up -->
-    <rect x="11" y="10" width="8" height="6" class="shirt"/>
-    <rect x="19" y="8" width="12" height="6" class="shirt"/>
-    <rect x="31" y="10" width="8" height="6" class="shirt"/>
-    <!-- Shorts -->
-    <rect x="39" y="12" width="5" height="5" class="shorts"/>
-    <!-- Arms -->
-    <rect x="12" y="16" width="3" height="8" class="skin"/>
-    <rect x="18" y="16" width="3" height="8" class="skin"/>
-    <rect x="10" y="24" width="5" height="2" class="skin"/>
-    <rect x="17" y="24" width="5" height="2" class="skin"/>
-    <!-- Legs -->
-    <rect x="40" y="17" width="4" height="7" class="skin"/>
-    <rect x="46" y="17" width="4" height="7" class="skin"/>
-    <rect x="39" y="24" width="5" height="2" class="skin"/>
-    <rect x="46" y="24" width="5" height="2" class="skin"/>
-    <!-- Floor -->
-    <rect x="0" y="27" width="56" height="1" fill="#000" opacity="0.2"/>
+  <!-- Кадр 1: Cat (спина выгнута вверх) -->
+  <g class="frame frame1">
+    <!-- Голова опущена -->
+    <rect x="6" y="24" width="10" height="10" fill="var(--pixel-skin)"/>
+    <rect x="8" y="28" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="6" y="22" width="10" height="4" fill="var(--pixel-hair)"/>
+    <!-- Шея -->
+    <rect x="14" y="22" width="4" height="6" fill="var(--pixel-skin)"/>
+    <!-- Спина выгнута вверх (дуга) -->
+    <rect x="18" y="16" width="8" height="8" fill="var(--pixel-shirt)"/>
+    <rect x="26" y="12" width="12" height="8" fill="var(--pixel-shirt)"/>
+    <rect x="38" y="14" width="12" height="8" fill="var(--pixel-shirt)"/>
+    <rect x="50" y="16" width="8" height="8" fill="var(--pixel-shirt)"/>
+    <!-- Шорты -->
+    <rect x="56" y="18" width="8" height="8" fill="var(--pixel-shorts)"/>
+    <!-- Руки -->
+    <rect x="18" y="24" width="4" height="12" fill="var(--pixel-skin)"/>
+    <rect x="26" y="24" width="4" height="12" fill="var(--pixel-skin)"/>
+    <rect x="16" y="36" width="8" height="4" fill="var(--pixel-skin)"/>
+    <rect x="24" y="36" width="8" height="4" fill="var(--pixel-skin)"/>
+    <!-- Ноги (колени) -->
+    <rect x="58" y="26" width="6" height="10" fill="var(--pixel-skin)"/>
+    <rect x="66" y="26" width="6" height="10" fill="var(--pixel-skin)"/>
+    <rect x="56" y="36" width="10" height="4" fill="var(--pixel-skin)"/>
+    <rect x="66" y="36" width="10" height="4" fill="var(--pixel-skin)"/>
+    <!-- Пол -->
+    <rect x="0" y="42" width="80" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
   </g>
 
-  <!-- Frame 2: Cow (back arched down, head up) -->
-  <g class="f2">
-    <!-- Head up -->
-    <rect x="2" y="6" width="6" height="5" class="skin"/>
-    <rect x="4" y="8" width="2" height="2" class="dark"/>
-    <rect x="2" y="4" width="6" height="3" class="hair"/>
-    <!-- Neck -->
-    <rect x="7" y="9" width="3" height="4" class="skin"/>
-    <!-- Back arched down -->
-    <rect x="9" y="12" width="8" height="6" class="shirt"/>
-    <rect x="17" y="14" width="12" height="6" class="shirt"/>
-    <rect x="29" y="12" width="8" height="6" class="shirt"/>
-    <!-- Shorts -->
-    <rect x="37" y="10" width="5" height="5" class="shorts"/>
-    <!-- Arms -->
-    <rect x="10" y="18" width="3" height="6" class="skin"/>
-    <rect x="16" y="18" width="3" height="6" class="skin"/>
-    <rect x="8" y="24" width="5" height="2" class="skin"/>
-    <rect x="15" y="24" width="5" height="2" class="skin"/>
-    <!-- Legs -->
-    <rect x="38" y="15" width="4" height="9" class="skin"/>
-    <rect x="44" y="15" width="4" height="9" class="skin"/>
-    <rect x="37" y="24" width="5" height="2" class="skin"/>
-    <rect x="44" y="24" width="5" height="2" class="skin"/>
-    <!-- Floor -->
-    <rect x="0" y="27" width="56" height="1" fill="#000" opacity="0.2"/>
+  <!-- Кадр 2: Cow (спина прогнута вниз) -->
+  <g class="frame frame2">
+    <!-- Голова поднята -->
+    <rect x="4" y="12" width="10" height="10" fill="var(--pixel-skin)"/>
+    <rect x="8" y="16" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="4" y="10" width="10" height="4" fill="var(--pixel-hair)"/>
+    <!-- Шея -->
+    <rect x="12" y="18" width="4" height="6" fill="var(--pixel-skin)"/>
+    <!-- Спина прогнута вниз -->
+    <rect x="16" y="22" width="8" height="8" fill="var(--pixel-shirt)"/>
+    <rect x="24" y="26" width="12" height="8" fill="var(--pixel-shirt)"/>
+    <rect x="36" y="28" width="12" height="8" fill="var(--pixel-shirt)"/>
+    <rect x="48" y="26" width="8" height="8" fill="var(--pixel-shirt)"/>
+    <!-- Шорты -->
+    <rect x="54" y="24" width="8" height="8" fill="var(--pixel-shorts)"/>
+    <!-- Руки -->
+    <rect x="16" y="30" width="4" height="8" fill="var(--pixel-skin)"/>
+    <rect x="24" y="30" width="4" height="8" fill="var(--pixel-skin)"/>
+    <rect x="14" y="38" width="8" height="4" fill="var(--pixel-skin)"/>
+    <rect x="22" y="38" width="8" height="4" fill="var(--pixel-skin)"/>
+    <!-- Ноги (колени) -->
+    <rect x="58" y="30" width="6" height="8" fill="var(--pixel-skin)"/>
+    <rect x="66" y="30" width="6" height="8" fill="var(--pixel-skin)"/>
+    <rect x="56" y="38" width="10" height="4" fill="var(--pixel-skin)"/>
+    <rect x="66" y="38" width="10" height="4" fill="var(--pixel-skin)"/>
+    <!-- Пол -->
+    <rect x="0" y="42" width="80" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
   </g>
 </svg>

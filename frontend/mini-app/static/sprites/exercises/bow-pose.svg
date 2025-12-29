@@ -1,45 +1,49 @@
-<!-- v2.0 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 48">
   <style>
-    .skin { fill: #FFD5B8; }
-    .dark { fill: #2D2D2D; }
-    .hair { fill: #4A3728; }
-    .shirt { fill: #4CAF50; }
-    .shorts { fill: #1E88E5; }
-    .shoes { fill: #424242; }
-    .accent { fill: #FF9800; }
-
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shorts: #1E88E5;
+      --pixel-shoes: #424242;
+      --pixel-accent: #FF5722;
+    }
     .pulse { animation: pulse 1.6s ease-in-out infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 0.9; } 50% { opacity: 0.4; } }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 0.4; }
+    }
   </style>
 
-  <!-- Head looking up -->
-  <rect x="4" y="6" width="8" height="7" class="skin"/>
-  <rect x="6" y="9" width="2" height="2" class="dark"/>
-  <rect x="4" y="4" width="8" height="3" class="hair"/>
+  <!-- Поза лука -->
+  <!-- Голова поднята -->
+  <rect x="6" y="8" width="12" height="10" fill="var(--pixel-skin)"/>
+  <rect x="10" y="12" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="6" y="6" width="12" height="4" fill="var(--pixel-hair)"/>
 
-  <!-- Torso arched -->
-  <rect x="12" y="12" width="14" height="7" class="shirt"/>
+  <!-- Тело выгнуто -->
+  <rect x="16" y="16" width="18" height="10" fill="var(--pixel-shirt)"/>
 
-  <!-- Arms reaching back to grab feet -->
-  <rect x="14" y="6" width="10" height="4" class="skin"/>
-  <rect x="22" y="4" width="6" height="5" class="skin"/>
+  <!-- Шорты -->
+  <rect x="32" y="20" width="10" height="8" fill="var(--pixel-shorts)"/>
 
-  <!-- Shorts -->
-  <rect x="26" y="14" width="8" height="5" class="shorts"/>
+  <!-- Руки тянутся назад -->
+  <rect x="18" y="10" width="14" height="6" fill="var(--pixel-skin)"/>
+  <rect x="28" y="6" width="10" height="6" fill="var(--pixel-skin)"/>
 
-  <!-- Legs bent up -->
-  <rect x="34" y="12" width="4" height="7" class="skin"/>
-  <rect x="28" y="4" width="6" height="10" class="skin"/>
-  <rect x="28" y="0" width="6" height="4" class="shoes"/>
-  <rect x="34" y="4" width="6" height="4" class="shoes"/>
+  <!-- Ноги согнуты назад, стопы у рук -->
+  <rect x="40" y="18" width="6" height="10" fill="var(--pixel-skin)"/>
+  <rect x="36" y="6" width="8" height="14" fill="var(--pixel-skin)"/>
+  <rect x="36" y="0" width="8" height="8" fill="var(--pixel-shoes)"/>
+  <rect x="44" y="0" width="8" height="8" fill="var(--pixel-shoes)"/>
 
-  <!-- Belly on floor -->
-  <rect x="16" y="20" width="12" height="3" class="shirt"/>
+  <!-- Живот на полу -->
+  <rect x="22" y="28" width="14" height="4" fill="var(--pixel-shirt)"/>
 
-  <!-- Floor -->
-  <rect x="0" y="26" width="48" height="1" fill="#000" opacity="0.2"/>
+  <!-- Тень -->
+  <rect x="0" y="36" width="56" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
 
-  <!-- Pulse indicator -->
-  <circle class="pulse" cx="8" cy="3" r="2" class="accent"/>
+  <!-- Пульсирующий индикатор -->
+  <circle class="pulse" cx="28" cy="44" r="2" fill="var(--pixel-accent)"/>
 </svg>

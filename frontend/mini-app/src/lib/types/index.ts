@@ -1,10 +1,32 @@
+// Badge types (unlocked via achievements)
+export type BadgeId =
+	| 'first-blood'      // First workout
+	| 'week-warrior'     // 7 day streak
+	| 'month-master'     // 30 day streak
+	| 'centurion'        // 100 workouts total
+	| 'iron-will'        // 1000 total reps
+	| 'early-bird'       // Workout before 7am
+	| 'night-owl'        // Workout after 10pm
+	| 'perfectionist'    // Complete 10 workouts without skipping
+	| 'legend'           // Reach level 25
+	| 'unstoppable';     // 100 day streak
+
+export interface Badge {
+	id: BadgeId;
+	name: string;
+	name_ru: string;
+	description: string;
+	description_ru: string;
+	rarity: 'common' | 'rare' | 'epic' | 'legendary';
+}
+
 // Avatar types
 // Animals (free/cheap) and Mythical Creatures (premium)
 export type AvatarId =
 	// Free animals (level 1)
 	| 'shadow-wolf' | 'iron-bear' | 'fire-fox' | 'night-panther'
 	// Paid mythical (increasing price/level)
-	| 'phoenix' | 'griffin' | 'cerberus' | 'hydra'
+	| 'phoenix' | 'griffin' | 'cerberus' | 'thunder-fang' | 'cyber-ape' | 'hydra'
 	| 'minotaur' | 'kraken' | 'leviathan' | 'titan';
 
 export interface Avatar {

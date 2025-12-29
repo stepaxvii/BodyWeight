@@ -11,6 +11,8 @@ export const AVATARS: Avatar[] = [
 	{ id: 'phoenix', name: 'Phoenix', name_ru: 'Феникс', requiredLevel: 3, price: 100 },
 	{ id: 'griffin', name: 'Griffin', name_ru: 'Грифон', requiredLevel: 5, price: 200 },
 	{ id: 'cerberus', name: 'Cerberus', name_ru: 'Цербер', requiredLevel: 7, price: 300 },
+	{ id: 'thunder-fang', name: 'Thunder Fang', name_ru: 'Громовой Клык', requiredLevel: 7, price: 350 },
+	{ id: 'cyber-ape', name: 'Cyber Ape', name_ru: 'Кибер-Примат', requiredLevel: 7, price: 375 },
 	{ id: 'hydra', name: 'Hydra', name_ru: 'Гидра', requiredLevel: 10, price: 400 },
 	{ id: 'minotaur', name: 'Minotaur', name_ru: 'Минотавр', requiredLevel: 12, price: 500 },
 	{ id: 'kraken', name: 'Kraken', name_ru: 'Кракен', requiredLevel: 15, price: 750 },
