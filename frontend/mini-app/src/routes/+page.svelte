@@ -10,11 +10,19 @@
 	let recentAchievements = $state<Achievement[]>([]);
 	let quickModalOpen = $state(false);
 	let lastReward = $state<{ xp: number; coins: number } | null>(null);
+	let unreadNotifications = $state(0);
 
 	onMount(async () => {
 		await userStore.loadStats();
 		const achievements = await api.getAchievements();
 		recentAchievements = achievements.filter(a => a.unlocked).slice(0, 3);
+
+		// Load unread notifications count
+		try {
+			unreadNotifications = await api.getUnreadNotificationCount();
+		} catch (e) {
+			console.error('Failed to load notifications count:', e);
+		}
 	});
 
 	// Level XP calculation - use store computed values
@@ -32,9 +40,17 @@
 <div class="page container">
 	<!-- Header with user info -->
 	<header class="page-header">
-		<div class="user-greeting">
-			<span class="greeting-text">С возвращением,</span>
-			<span class="user-name">{userStore.displayName}!</span>
+		<div class="header-content">
+			<div class="user-greeting">
+				<span class="greeting-text">С возвращением,</span>
+				<span class="user-name">{userStore.displayName}!</span>
+			</div>
+			<a href="{base}/friends" class="notification-badge" class:has-notifications={unreadNotifications > 0}>
+				<PixelIcon name="bell" size="md" />
+				{#if unreadNotifications > 0}
+					<span class="badge-count">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>
+				{/if}
+			</a>
 		</div>
 	</header>
 
@@ -176,8 +192,13 @@
 	}
 
 	.page-header {
-		text-align: center;
 		margin-bottom: var(--spacing-lg);
+	}
+
+	.header-content {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
 	}
 
 	.user-greeting {
@@ -195,6 +216,46 @@
 	.user-name {
 		font-size: var(--font-size-lg);
 		color: var(--pixel-accent);
+	}
+
+	.notification-badge {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--pixel-border);
+		text-decoration: none;
+		color: var(--text-secondary);
+		transition: all 0.2s;
+	}
+
+	.notification-badge:hover {
+		border-color: var(--pixel-accent);
+		color: var(--pixel-accent);
+	}
+
+	.notification-badge.has-notifications {
+		color: var(--pixel-yellow);
+		border-color: var(--pixel-yellow);
+	}
+
+	.badge-count {
+		position: absolute;
+		top: -4px;
+		right: -4px;
+		min-width: 18px;
+		height: 18px;
+		padding: 0 4px;
+		background: var(--pixel-red);
+		color: var(--pixel-white);
+		font-size: 10px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: 2px solid var(--pixel-bg);
 	}
 
 	/* Stats Row */

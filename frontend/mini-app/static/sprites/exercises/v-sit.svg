@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56">
+  <style>
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shorts: #1E88E5;
+      --pixel-shoes: #424242;
+      --pixel-accent: #FF5722;
+    }
+    .pulse { animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 0.4; }
+    }
+  </style>
+
+  <!-- V-sit поза -->
+  <rect x="18" y="4" width="12" height="12" fill="var(--pixel-skin)"/>
+  <rect x="20" y="8" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="18" y="2" width="12" height="4" fill="var(--pixel-hair)"/>
+
+  <!-- Тело наклонено -->
+  <rect x="22" y="16" width="12" height="14" fill="var(--pixel-shirt)"/>
+
+  <!-- Шорты -->
+  <rect x="26" y="30" width="10" height="8" fill="var(--pixel-shorts)"/>
+
+  <!-- Ноги вверх (V) -->
+  <rect x="34" y="10" width="6" height="18" fill="var(--pixel-skin)"/>
+  <rect x="40" y="10" width="6" height="18" fill="var(--pixel-skin)"/>
+  <rect x="34" y="4" width="8" height="8" fill="var(--pixel-shoes)"/>
+  <rect x="40" y="4" width="8" height="8" fill="var(--pixel-shoes)"/>
+
+  <!-- Руки тянутся к ногам -->
+  <rect x="14" y="14" width="8" height="6" fill="var(--pixel-skin)"/>
+
+  <!-- Точка опоры -->
+  <rect x="28" y="38" width="8" height="4" fill="var(--pixel-shorts)"/>
+
+  <!-- Тень -->
+  <rect x="0" y="44" width="56" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+
+  <!-- Пульсирующий индикатор -->
+  <circle class="pulse" cx="32" cy="50" r="2" fill="var(--pixel-accent)"/>
+</svg>

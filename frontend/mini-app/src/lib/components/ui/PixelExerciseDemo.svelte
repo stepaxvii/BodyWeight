@@ -16,46 +16,27 @@
 
 	const pixelSize = $derived(sizeMap[size]);
 
-	// Map exercise slugs to SVG filenames
-	const exerciseMap: Record<string, string> = {
+	// Alias map for exercises with different slugs than their SVG filenames
+	const aliasMap: Record<string, string> = {
 		'squat': 'squat-regular',
-		'squat-regular': 'squat-regular',
 		'pushup': 'pushup-regular',
-		'pushup-regular': 'pushup-regular',
-		'pushup-knee': 'pushup-knee',
-		'pushup-diamond': 'pushup-diamond',
-		'superman': 'superman',
-		'superman-twist': 'superman-twist',
-		'squat-sumo': 'squat-sumo',
-		'lunge-stationary': 'lunge-stationary',
-		'plank': 'plank',
-		'plank-side': 'plank-side',
-		'bird-dog': 'bird-dog',
-		'child-pose': 'child-pose',
-		'reverse-hyperextension': 'reverse-hyperextension',
 		'hyperextension-reverse': 'reverse-hyperextension',
-		'plank-leg-raise': 'plank-leg-raise',
 		'plank-leg-lift': 'plank-leg-raise',
-		'butterfly': 'butterfly',
 		'butterfly-stretch': 'butterfly',
-		'arm-circles': 'arm-circles',
-		'arm-circle': 'arm-circles'
+		'arm-circle': 'arm-circles',
+		'hollow-hold': 'hollow-body-hold',
+		'hang-passive': 'dead-hang'
 	};
 
-	const svgFile = $derived(exerciseMap[exercise] || null);
-	const svgPath = $derived(svgFile ? `/sprites/exercises/${svgFile}.svg` : null);
+	// Use alias if exists, otherwise use slug directly (most SVGs match their slug)
+	const svgFile = $derived(aliasMap[exercise] || exercise);
+	const svgPath = $derived(`/sprites/exercises/${svgFile}.svg`);
 </script>
 
 <div class="exercise-animation" style="--size: {pixelSize}px">
-	{#if svgPath}
-		<object type="image/svg+xml" data={svgPath} class="pixel-svg" aria-label={exercise}>
-			<span class="fallback">?</span>
-		</object>
-	{:else}
-		<div class="placeholder">
-			<span>?</span>
-		</div>
-	{/if}
+	<object type="image/svg+xml" data={svgPath} class="pixel-svg" aria-label={exercise}>
+		<div class="fallback">?</div>
+	</object>
 
 	{#if tip}
 		<div class="tips">
@@ -91,7 +72,6 @@
 		text-transform: uppercase;
 	}
 
-	.placeholder,
 	.fallback {
 		width: var(--size);
 		height: var(--size);

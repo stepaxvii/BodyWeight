@@ -96,6 +96,8 @@
 		<path d="M10 3L5 8l5 5V3z"/>
 	{:else if name === 'arrow-right'}
 		<path d="M6 3l5 5-5 5V3z"/>
+	{:else if name === 'bell'}
+		<path d="M8 2a1 1 0 011 1v1c2 .5 3 2 3 4v2l1 1v1H3v-1l1-1V8c0-2 1-3.5 3-4V3a1 1 0 011-1zm-1 12h2a1 1 0 01-2 0z"/>
 	{:else}
 		<!-- Default: question mark -->
 		<path d="M6 4h4v1H8v2h2v2H8v2H6V9h2V7H6V4zm0 7h2v2H6v-2z"/>

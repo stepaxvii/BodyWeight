@@ -289,7 +289,7 @@
 				<PixelCard padding="md">
 					<div class="completion-stat">
 						<PixelIcon name="play" size="lg" color="var(--pixel-blue)" />
-						<span class="stat-value text-blue">{routine.exercises.length}</span>
+						<span class="stat-value text-blue">{completedExercisesCount}/{routine.exercises.length}</span>
 						<span class="stat-label">Упражнений</span>
 					</div>
 				</PixelCard>
