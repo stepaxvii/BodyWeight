@@ -3,8 +3,12 @@
 	import { PixelButton, PixelCard, PixelIcon } from '$lib/components/ui';
 	import PixelExerciseDemo from '$lib/components/ui/PixelExerciseDemo.svelte';
 	import RoutinePlayer from '$lib/components/RoutinePlayer.svelte';
+	import ExerciseCard from '$lib/components/ExerciseCard.svelte';
+	import FilterModal from '$lib/components/FilterModal.svelte';
+	import type { FilterState } from '$lib/components/FilterModal.svelte';
 	import { api } from '$lib/api/client';
 	import { workoutStore } from '$lib/stores/workout.svelte';
+	import { favoritesStore } from '$lib/stores/favorites.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { ExerciseCategory, Exercise, Routine, RoutineCategory } from '$lib/types';
 
@@ -13,20 +17,62 @@
 	let exercises = $state<Exercise[]>([]);
 	let routines = $state<Routine[]>([]);
 
+	// Main tab state
+	type MainTab = 'routines' | 'favorites' | 'exercises';
+	let activeMainTab = $state<MainTab>('routines');
+
 	// UI state
 	let activeCategory = $state<string | null>(null);
 	let selectedRoutine = $state<Routine | null>(null);
 	let showRoutinePlayer = $state(false);
 	let activeRoutineCategory = $state<RoutineCategory>('morning');
 
-	// Filtered exercises by category
-	const filteredExercises = $derived(
-		activeCategory ? exercises.filter(e => e.category_slug === activeCategory) : exercises
+	// Filter state
+	let showFilterModal = $state(false);
+	let selectedEquipment = $state<string[]>([]);
+	let selectedDifficulties = $state<number[]>([]);
+	let selectedTags = $state<string[]>([]);
+
+	// Filtered exercises by all criteria
+	const filteredExercises = $derived(() => {
+		let result = exercises;
+
+		// Category filter
+		if (activeCategory) {
+			result = result.filter(e => e.category_slug === activeCategory);
+		}
+
+		// Equipment filter
+		if (selectedEquipment.length > 0) {
+			result = result.filter(e => selectedEquipment.includes(e.equipment));
+		}
+
+		// Difficulty filter
+		if (selectedDifficulties.length > 0) {
+			result = result.filter(e => selectedDifficulties.includes(e.difficulty));
+		}
+
+		// Tags filter (OR logic)
+		if (selectedTags.length > 0) {
+			result = result.filter(e => e.tags.some(t => selectedTags.includes(t)));
+		}
+
+		return result;
+	});
+
+	// Favorite exercises
+	const favoriteExercises = $derived(
+		exercises.filter(e => favoritesStore.isFavorite(e.id))
 	);
 
 	// Filtered routines by category
 	const filteredRoutines = $derived(
 		routines.filter(r => r.category === activeRoutineCategory)
+	);
+
+	// Active filter count for badge
+	const activeFilterCount = $derived(
+		selectedEquipment.length + selectedDifficulties.length + selectedTags.length
 	);
 
 	// Category colors (by load type)
@@ -45,6 +91,12 @@
 		{ id: 'dip-bars', name: 'Брусья' }
 	];
 
+	const mainTabs: { id: MainTab; label: string }[] = [
+		{ id: 'routines', label: 'Комплексы' },
+		{ id: 'favorites', label: 'Избранное' },
+		{ id: 'exercises', label: 'Упражнения' }
+	];
+
 	// Handle visibility change for pause/resume
 	function handleVisibilityChange() {
 		if (document.hidden) {
@@ -58,9 +110,18 @@
 		// Check for active workout first
 		await workoutStore.loadActiveWorkout();
 
-		categories = await api.getCategories();
-		exercises = await api.getExercises();
-		routines = await api.getRoutines();
+		// Load data in parallel
+		const [cats, exs, rts] = await Promise.all([
+			api.getCategories(),
+			api.getExercises(),
+			api.getRoutines()
+		]);
+		categories = cats;
+		exercises = exs;
+		routines = rts;
+
+		// Load favorites
+		await favoritesStore.loadFavorites();
 
 		// Listen for page visibility changes
 		document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -72,6 +133,11 @@
 		// Pause timer when leaving page
 		workoutStore.pauseTimer();
 	});
+
+	function switchMainTab(tab: MainTab) {
+		activeMainTab = tab;
+		telegram.hapticImpact('light');
+	}
 
 	function selectCategory(slug: string) {
 		activeCategory = activeCategory === slug ? null : slug;
@@ -99,9 +165,21 @@
 	// Animation demo state - track which exercise demo is shown
 	let showDemoForExercise = $state<number | null>(null);
 
+	// Exercise info modal state
+	let showInfoForExercise = $state<Exercise | null>(null);
+
 	function toggleExerciseDemo(exerciseId: number) {
 		showDemoForExercise = showDemoForExercise === exerciseId ? null : exerciseId;
 		telegram.hapticImpact('light');
+	}
+
+	function openExerciseInfo(exercise: Exercise) {
+		showInfoForExercise = exercise;
+		telegram.hapticImpact('light');
+	}
+
+	function closeExerciseInfo() {
+		showInfoForExercise = null;
 	}
 
 	// Map exercise slug to animation name - all exercises have animations
@@ -143,7 +221,27 @@
 	}
 
 	function getDifficultyStars(difficulty: number): string {
-		return '★'.repeat(difficulty) + '☆'.repeat(5 - difficulty);
+		return '\u2605'.repeat(difficulty) + '\u2606'.repeat(5 - difficulty);
+	}
+
+	// Filter modal handlers
+	function openFilterModal() {
+		showFilterModal = true;
+		telegram.hapticImpact('light');
+	}
+
+	function handleFilterApply(filters: FilterState) {
+		selectedEquipment = filters.equipment;
+		selectedDifficulties = filters.difficulties;
+		selectedTags = filters.tags;
+	}
+
+	function clearAllFilters() {
+		selectedEquipment = [];
+		selectedDifficulties = [];
+		selectedTags = [];
+		activeCategory = null;
+		telegram.hapticImpact('light');
 	}
 </script>
 
@@ -183,11 +281,30 @@
 				{#each workoutStore.selectedExercises as exercise (exercise.id)}
 					{@const data = workoutStore.getExerciseData(exercise.id)}
 					{@const animationSlug = getAnimationSlug(exercise.slug)}
+					{@const isFavorite = favoritesStore.isFavorite(exercise.id)}
 					<PixelCard padding="md">
 						<div class="exercise-card">
 							<div class="exercise-header">
 								<span class="exercise-name">{exercise.name_ru}</span>
 								<div class="exercise-header-right">
+									<button
+										class="favorite-toggle"
+										onclick={() => favoritesStore.toggleFavorite(exercise.id)}
+										title={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}
+									>
+										<PixelIcon
+											name={isFavorite ? 'heart' : 'heart-empty'}
+											size="sm"
+											color={isFavorite ? 'var(--pixel-red)' : 'var(--text-secondary)'}
+										/>
+									</button>
+									<button
+										class="info-toggle"
+										onclick={() => openExerciseInfo(exercise)}
+										title="Описание упражнения"
+									>
+										?
+									</button>
 									{#if animationSlug}
 										<button
 											class="demo-toggle"
@@ -345,85 +462,147 @@
 	{:else}
 		<!-- SELECTION VIEW -->
 
-		<!-- Routines section -->
-		{#if routines.length > 0}
-			<section class="routines-section">
-				<h2 class="section-title">Комплексы</h2>
-				<div class="routine-tabs">
-					{#each routineCategoryTabs as tab}
+		<!-- Main navigation tabs -->
+		<div class="main-tabs">
+			{#each mainTabs as tab}
+				<button
+					class="main-tab"
+					class:active={activeMainTab === tab.id}
+					onclick={() => switchMainTab(tab.id)}
+				>
+					{tab.label}
+					{#if tab.id === 'favorites' && favoritesStore.count > 0}
+						<span class="tab-badge">{favoritesStore.count}</span>
+					{/if}
+				</button>
+			{/each}
+		</div>
+
+		<!-- Tab content -->
+		{#if activeMainTab === 'routines'}
+			<!-- Routines section -->
+			{#if routines.length > 0}
+				<section class="tab-section">
+					<div class="routine-tabs">
+						{#each routineCategoryTabs as tab}
+							<button
+								class="routine-tab"
+								class:active={activeRoutineCategory === tab.id}
+								onclick={() => { activeRoutineCategory = tab.id; telegram.hapticImpact('light'); }}
+							>
+								{tab.name}
+							</button>
+						{/each}
+					</div>
+					<div class="routines-list">
+						{#each filteredRoutines as routine}
+							<PixelCard hoverable onclick={() => selectRoutine(routine)} padding="sm">
+								<div class="routine-item">
+									<div class="routine-info">
+										<span class="routine-name">{routine.name}</span>
+										<span class="routine-meta">{routine.duration_minutes} мин</span>
+									</div>
+									<PixelIcon name="play" size="sm" color="var(--text-secondary)" />
+								</div>
+							</PixelCard>
+						{/each}
+						{#if filteredRoutines.length === 0}
+							<div class="empty-state">
+								<p>Нет комплексов в этой категории</p>
+							</div>
+						{/if}
+					</div>
+				</section>
+			{:else}
+				<div class="empty-state">
+					<PixelIcon name="play" size="lg" color="var(--text-secondary)" />
+					<p>Комплексы загружаются...</p>
+				</div>
+			{/if}
+
+		{:else if activeMainTab === 'favorites'}
+			<!-- Favorites section -->
+			<section class="tab-section">
+				{#if favoriteExercises.length > 0}
+					<div class="exercises-list">
+						{#each favoriteExercises as exercise (exercise.id)}
+							<ExerciseCard
+								{exercise}
+								isSelected={workoutStore.isExerciseSelected(exercise.id)}
+								categoryColor={categoryColors[exercise.category_slug]}
+								onSelect={() => toggleExercise(exercise)}
+							/>
+						{/each}
+					</div>
+				{:else}
+					<div class="empty-state">
+						<PixelIcon name="heart-empty" size="lg" color="var(--text-secondary)" />
+						<p>Нет избранных упражнений</p>
+						<p class="empty-hint">Нажми на сердечко, чтобы добавить</p>
+					</div>
+				{/if}
+			</section>
+
+		{:else}
+			<!-- All exercises section -->
+			<section class="tab-section">
+				<!-- Filter header -->
+				<div class="filter-header">
+					<span class="filter-label">
+						{filteredExercises.length} упражнений
+					</span>
+					<div class="filter-actions-row">
+						{#if activeFilterCount > 0 || activeCategory}
+							<button class="clear-filters-btn" onclick={clearAllFilters}>
+								Сбросить
+							</button>
+						{/if}
+						<button class="filter-btn" onclick={openFilterModal}>
+							<PixelIcon name="settings" size="sm" />
+							Фильтр
+							{#if activeFilterCount > 0}
+								<span class="filter-badge">{activeFilterCount}</span>
+							{/if}
+						</button>
+					</div>
+				</div>
+
+				<!-- Category tabs -->
+				<div class="category-tabs">
+					{#each categories as category}
 						<button
-							class="routine-tab"
-							class:active={activeRoutineCategory === tab.id}
-							onclick={() => { activeRoutineCategory = tab.id; telegram.hapticImpact('light'); }}
+							class="category-tab"
+							class:active={activeCategory === category.slug}
+							style="--cat-color: {categoryColors[category.slug]}"
+							onclick={() => selectCategory(category.slug)}
 						>
-							{tab.name}
+							{category.name_ru}
 						</button>
 					{/each}
 				</div>
-				<div class="routines-list">
-					{#each filteredRoutines as routine}
-						<PixelCard hoverable onclick={() => selectRoutine(routine)} padding="sm">
-							<div class="routine-item">
-								<div class="routine-info">
-									<span class="routine-name">{routine.name}</span>
-									<span class="routine-meta">{routine.duration_minutes} мин</span>
-								</div>
-								<PixelIcon name="play" size="sm" color="var(--text-secondary)" />
-							</div>
-						</PixelCard>
+
+				<!-- Exercise list -->
+				<div class="exercises-list">
+					{#each filteredExercises as exercise (exercise.id)}
+						<ExerciseCard
+							{exercise}
+							isSelected={workoutStore.isExerciseSelected(exercise.id)}
+							categoryColor={categoryColors[exercise.category_slug]}
+							onSelect={() => toggleExercise(exercise)}
+						/>
 					{/each}
+					{#if filteredExercises.length === 0}
+						<div class="empty-state">
+							<PixelIcon name="search" size="lg" color="var(--text-secondary)" />
+							<p>Ничего не найдено</p>
+							<PixelButton variant="ghost" onclick={clearAllFilters}>
+								Сбросить фильтры
+							</PixelButton>
+						</div>
+					{/if}
 				</div>
 			</section>
 		{/if}
-
-		<!-- Exercise selection -->
-		<section class="selection-section">
-			<h2 class="section-title">Свободная тренировка</h2>
-			<p class="section-subtitle">Выбери упражнения для тренировки</p>
-
-			<!-- Category tabs -->
-			<div class="category-tabs">
-				{#each categories as category}
-					<button
-						class="category-tab"
-						class:active={activeCategory === category.slug}
-						style="--cat-color: {categoryColors[category.slug]}"
-						onclick={() => selectCategory(category.slug)}
-					>
-						{category.name_ru}
-					</button>
-				{/each}
-			</div>
-
-			<!-- Exercise list with checkboxes -->
-			<div class="exercises-list">
-				{#each filteredExercises as exercise}
-					{@const isSelected = workoutStore.isExerciseSelected(exercise.id)}
-					<PixelCard
-						hoverable
-						onclick={() => toggleExercise(exercise)}
-						padding="sm"
-					>
-						<div class="exercise-row" class:selected={isSelected}>
-							<div class="checkbox" class:checked={isSelected}>
-								{#if isSelected}
-									<PixelIcon name="check" size="sm" color="var(--pixel-bg)" />
-								{/if}
-							</div>
-							<div class="exercise-info">
-								<span class="exercise-name">{exercise.name_ru}</span>
-								<span class="exercise-meta">
-									<span style="color: {categoryColors[exercise.category_slug]}">
-										{getDifficultyStars(exercise.difficulty)}
-									</span>
-									<span class="xp-badge">+{exercise.base_xp} XP</span>
-								</span>
-							</div>
-						</div>
-					</PixelCard>
-				{/each}
-			</div>
-		</section>
 
 		<!-- Fixed bottom panel -->
 		{#if workoutStore.selectedCount > 0}
@@ -451,10 +630,199 @@
 	/>
 {/if}
 
+<!-- Filter modal -->
+<FilterModal
+	open={showFilterModal}
+	initialFilters={{
+		equipment: selectedEquipment,
+		difficulties: selectedDifficulties,
+		tags: selectedTags
+	}}
+	onClose={() => showFilterModal = false}
+	onApply={handleFilterApply}
+/>
+
+<!-- Exercise info modal -->
+{#if showInfoForExercise}
+	{@const exercise = showInfoForExercise}
+	<div class="modal-overlay" onclick={closeExerciseInfo}>
+		<div class="modal-content exercise-info-modal" onclick={(e) => e.stopPropagation()}>
+			<PixelCard padding="lg">
+				<div class="info-modal-header">
+					<h3 class="modal-title">{exercise.name_ru}</h3>
+					<button class="close-btn" onclick={closeExerciseInfo}>&#10005;</button>
+				</div>
+
+				<!-- Animation -->
+				<div class="info-demo-container">
+					<PixelExerciseDemo exercise={exercise.slug} size="lg" autoplay={true} />
+				</div>
+
+				<!-- Description -->
+				<div class="info-description">
+					<p>{exercise.description_ru || exercise.description || 'Описание отсутствует'}</p>
+				</div>
+
+				<PixelButton variant="secondary" fullWidth onclick={closeExerciseInfo}>
+					Закрыть
+				</PixelButton>
+			</PixelCard>
+		</div>
+	</div>
+{/if}
+
 <style>
 	.page {
 		padding-top: var(--spacing-md);
 		padding-bottom: 180px; /* Space for fixed panel + nav */
+	}
+
+	/* Main tabs */
+	.main-tabs {
+		display: flex;
+		gap: var(--spacing-xs);
+		margin-bottom: var(--spacing-md);
+	}
+
+	.main-tab {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-xs);
+		padding: var(--spacing-sm);
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		color: var(--text-secondary);
+		cursor: pointer;
+		transition: all var(--transition-fast);
+	}
+
+	.main-tab:hover {
+		border-color: var(--pixel-accent);
+	}
+
+	.main-tab.active {
+		background: var(--pixel-accent);
+		border-color: var(--pixel-accent);
+		color: var(--pixel-bg);
+	}
+
+	.tab-badge {
+		background: var(--pixel-bg);
+		color: var(--pixel-accent);
+		padding: 1px 4px;
+		font-size: 8px;
+		min-width: 14px;
+		text-align: center;
+	}
+
+	.main-tab.active .tab-badge {
+		background: var(--pixel-bg);
+		color: var(--pixel-accent);
+	}
+
+	.tab-section {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+	}
+
+	/* Filter header */
+	.filter-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.filter-label {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+
+	.filter-actions-row {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+	}
+
+	.filter-btn {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		color: var(--text-secondary);
+		cursor: pointer;
+	}
+
+	.filter-btn:hover {
+		border-color: var(--pixel-accent);
+		color: var(--text-primary);
+	}
+
+	.filter-badge {
+		background: var(--pixel-accent);
+		color: var(--pixel-bg);
+		padding: 1px 4px;
+		font-size: 8px;
+		min-width: 12px;
+		text-align: center;
+	}
+
+	.clear-filters-btn {
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		background: none;
+		border: none;
+		color: var(--text-secondary);
+		cursor: pointer;
+		text-decoration: underline;
+	}
+
+	/* Empty state */
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-xl);
+		text-align: center;
+		color: var(--text-secondary);
+	}
+
+	.empty-state p {
+		margin: 0;
+		font-size: var(--font-size-sm);
+	}
+
+	.empty-hint {
+		font-size: var(--font-size-xs) !important;
+		color: var(--text-muted);
+	}
+
+	/* Favorite toggle in workout */
+	.favorite-toggle {
+		width: 28px;
+		height: 28px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		transition: transform var(--transition-fast);
+	}
+
+	.favorite-toggle:active {
+		transform: scale(1.2);
 	}
 
 	.section-title {
@@ -622,10 +990,6 @@
 	}
 
 	/* Routines section */
-	.routines-section {
-		margin-bottom: var(--spacing-xl);
-	}
-
 	.routine-tabs {
 		display: flex;
 		gap: var(--spacing-xs);
@@ -707,49 +1071,6 @@
 		gap: var(--spacing-xs);
 	}
 
-	.exercise-row {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-	}
-
-	.exercise-row.selected {
-		background: rgba(var(--pixel-accent-rgb), 0.1);
-	}
-
-	.checkbox {
-		width: 24px;
-		height: 24px;
-		border: 2px solid var(--border-color);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	.checkbox.checked {
-		background: var(--pixel-accent);
-		border-color: var(--pixel-accent);
-	}
-
-	.exercise-info {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-
-	.exercise-meta {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-		font-size: var(--font-size-xs);
-	}
-
-	.xp-badge {
-		color: var(--pixel-green);
-	}
-
 	/* Selection panel */
 	.selection-panel {
 		position: fixed;
@@ -762,6 +1083,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
+		z-index: 100;
 	}
 
 	.selection-info {
@@ -831,5 +1153,85 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
+	}
+
+	/* Info button */
+	.info-toggle {
+		width: 28px;
+		height: 28px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--pixel-card);
+		border: 2px solid var(--pixel-accent);
+		color: var(--pixel-accent);
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-sm);
+		font-weight: bold;
+		cursor: pointer;
+		transition: background 0.15s, color 0.15s;
+	}
+
+	.info-toggle:hover {
+		background: var(--pixel-accent);
+		color: var(--pixel-bg);
+	}
+
+	/* Exercise info modal */
+	.exercise-info-modal {
+		max-width: 360px;
+		max-height: 90vh;
+		overflow-y: auto;
+	}
+
+	.info-modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: var(--spacing-md);
+	}
+
+	.info-modal-header .modal-title {
+		margin: 0;
+		text-align: left;
+	}
+
+	.close-btn {
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: none;
+		border: 2px solid var(--border-color);
+		color: var(--text-secondary);
+		font-size: var(--font-size-md);
+		cursor: pointer;
+		transition: border-color 0.15s, color 0.15s;
+	}
+
+	.close-btn:hover {
+		border-color: var(--pixel-accent);
+		color: var(--pixel-accent);
+	}
+
+	.info-demo-container {
+		display: flex;
+		justify-content: center;
+		padding: var(--spacing-md) 0;
+		background: rgba(0, 0, 0, 0.2);
+		margin-bottom: var(--spacing-md);
+	}
+
+	.info-description {
+		margin-bottom: var(--spacing-md);
+	}
+
+	.info-description p {
+		margin: 0;
+		font-size: var(--font-size-sm);
+		line-height: 1.6;
+		color: var(--text-primary);
+		white-space: pre-wrap;
 	}
 </style>

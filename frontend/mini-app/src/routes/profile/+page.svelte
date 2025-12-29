@@ -37,7 +37,7 @@
 		<button class="avatar-btn" onclick={openAvatarPicker}>
 			<div class="avatar">
 				<PixelAvatar
-					avatarId={userStore.user?.avatar_id || 'wolf'}
+					avatarId={userStore.user?.avatar_id || 'shadow-wolf'}
 					size="xl"
 					borderColor="var(--pixel-accent)"
 				/>
@@ -54,7 +54,7 @@
 	<!-- Avatar Picker Modal -->
 	<AvatarPicker
 		open={showAvatarPicker}
-		currentAvatarId={userStore.user?.avatar_id || 'wolf'}
+		currentAvatarId={userStore.user?.avatar_id || 'shadow-wolf'}
 		onselect={handleAvatarSelect}
 		onclose={() => showAvatarPicker = false}
 	/>

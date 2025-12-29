@@ -1,10 +1,11 @@
 from typing import List
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, status, BackgroundTasks
 from pydantic import BaseModel
 from sqlalchemy import select, or_, and_
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import User, Friendship
+from app.services.notifications import send_friend_request_notification, send_friend_accepted_notification
 
 router = APIRouter()
 
@@ -99,6 +100,7 @@ async def add_friend(
     request: AddFriendRequest,
     session: AsyncSessionDep,
     user: CurrentUser,
+    background_tasks: BackgroundTasks,
 ):
     """Send friend request."""
     if not request.user_id and not request.username:
@@ -154,6 +156,14 @@ async def add_friend(
     session.add(friendship)
     await session.flush()
 
+    # Send notification to target user in background
+    from_name = user.username or user.first_name or "Пользователь"
+    background_tasks.add_task(
+        send_friend_request_notification,
+        telegram_id=target_user.telegram_id,
+        from_user_name=from_name,
+    )
+
     return FriendResponse(
         id=friendship.id,
         user_id=target_user.id,
@@ -172,6 +182,7 @@ async def accept_friend_request(
     friendship_id: int,
     session: AsyncSessionDep,
     user: CurrentUser,
+    background_tasks: BackgroundTasks,
 ):
     """Accept a friend request."""
     result = await session.execute(
@@ -199,13 +210,21 @@ async def accept_friend_request(
     )
     session.add(reverse)
 
-    # Get the friend user
+    # Get the friend user (who sent the original request)
     friend_result = await session.execute(
         select(User).where(User.id == friendship.user_id)
     )
     friend_user = friend_result.scalar_one()
 
     await session.flush()
+
+    # Notify the original requester that their request was accepted
+    accepter_name = user.username or user.first_name or "Пользователь"
+    background_tasks.add_task(
+        send_friend_accepted_notification,
+        telegram_id=friend_user.telegram_id,
+        friend_name=accepter_name,
+    )
 
     return FriendResponse(
         id=reverse.id,

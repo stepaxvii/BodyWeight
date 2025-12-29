@@ -10,11 +10,11 @@
     "tags": ["beginner", "pullup-bar", "back", "pull"],
     "exercises": [
       {"slug": "jumping-jack", "reps": 20},
-      {"slug": "hang-passive", "duration": 20},
+      {"slug": "dead-hang", "duration": 20},
       {"slug": "pullup-negative", "reps": 5},
       {"slug": "row-inverted", "reps": 10},
       {"slug": "pullup-negative", "reps": 5},
-      {"slug": "hang-passive", "duration": 20},
+      {"slug": "dead-hang", "duration": 20},
       {"slug": "row-inverted", "reps": 10},
       {"slug": "superman", "reps": 15},
       {"slug": "plank", "duration": 30},
@@ -32,14 +32,14 @@
     "tags": ["intermediate", "pullup-bar", "back", "pull", "grip-strength"],
     "exercises": [
       {"slug": "jumping-jack", "reps": 30},
-      {"slug": "hang-passive", "duration": 30},
+      {"slug": "dead-hang", "duration": 30},
       {"slug": "pullup-regular", "reps": 8},
       {"slug": "chinup", "reps": 8},
       {"slug": "row-inverted", "reps": 12},
       {"slug": "pullup-regular", "reps": 6},
       {"slug": "pullup-close", "reps": 6},
       {"slug": "knee-raise-hanging", "reps": 12},
-      {"slug": "hang-passive", "duration": 30},
+      {"slug": "dead-hang", "duration": 30},
       {"slug": "pullup-regular", "reps": 5},
       {"slug": "leg-raise-hanging", "reps": 8},
       {"slug": "shoulder-stretch", "duration": 30}
@@ -56,7 +56,7 @@
     "tags": ["advanced", "pullup-bar", "back", "pull", "core", "grip-strength"],
     "exercises": [
       {"slug": "jumping-jack", "reps": 30},
-      {"slug": "hang-passive", "duration": 30},
+      {"slug": "dead-hang", "duration": 30},
       {"slug": "pullup-wide", "reps": 10},
       {"slug": "pullup-regular", "reps": 10},
       {"slug": "chinup", "reps": 10},
@@ -68,7 +68,7 @@
       {"slug": "windshield-wiper", "reps": 8},
       {"slug": "pullup-regular", "reps": 8},
       {"slug": "knee-raise-hanging", "reps": 15},
-      {"slug": "hang-passive", "duration": 45},
+      {"slug": "dead-hang", "duration": 45},
       {"slug": "shoulder-stretch", "duration": 45}
     ]
   }

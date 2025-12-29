@@ -83,7 +83,7 @@
 				<!-- 2nd Place -->
 				<div class="podium-item second">
 					<PixelAvatar
-						avatarId={entries[1].avatar_id || 'bear'}
+						avatarId={entries[1].avatar_id || 'shadow-wolf'}
 						size="lg"
 						borderColor="var(--pixel-light)"
 					/>
@@ -98,7 +98,7 @@
 						<PixelIcon name="trophy" color="var(--pixel-yellow)" />
 					</div>
 					<PixelAvatar
-						avatarId={entries[0].avatar_id || 'dragon'}
+						avatarId={entries[0].avatar_id || 'shadow-wolf'}
 						size="xl"
 						borderColor="var(--pixel-yellow)"
 					/>
@@ -110,7 +110,7 @@
 				<!-- 3rd Place -->
 				<div class="podium-item third">
 					<PixelAvatar
-						avatarId={entries[2].avatar_id || 'lion'}
+						avatarId={entries[2].avatar_id || 'shadow-wolf'}
 						size="lg"
 						borderColor="var(--pixel-orange)"
 					/>
@@ -136,7 +136,7 @@
 							</div>
 
 							<PixelAvatar
-								avatarId={entry.avatar_id || 'wolf'}
+								avatarId={entry.avatar_id || 'shadow-wolf'}
 								size="sm"
 								showBorder={false}
 							/>

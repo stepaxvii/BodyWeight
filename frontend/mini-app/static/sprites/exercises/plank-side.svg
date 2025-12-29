@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 45">
+  <style>
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shorts: #1E88E5;
+      --pixel-shoes: #424242;
+      --pixel-accent: #FF9800;
+    }
+    .pulse { animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; r: 3; }
+      50% { opacity: 0.5; r: 2; }
+    }
+  </style>
+
+  <!-- Голова -->
+  <rect x="4" y="8" width="10" height="10" fill="var(--pixel-skin)"/>
+  <rect x="6" y="11" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="4" y="6" width="10" height="4" fill="var(--pixel-hair)"/>
+
+  <!-- Шея -->
+  <rect x="12" y="12" width="4" height="4" fill="var(--pixel-skin)"/>
+
+  <!-- Туловище -->
+  <rect x="14" y="14" width="26" height="10" fill="var(--pixel-shirt)"/>
+
+  <!-- Верхняя рука вытянута вверх -->
+  <rect x="20" y="4" width="4" height="12" fill="var(--pixel-skin)"/>
+
+  <!-- Опорная рука -->
+  <rect x="14" y="24" width="4" height="12" fill="var(--pixel-skin)"/>
+  <rect x="12" y="36" width="8" height="4" fill="var(--pixel-skin)"/>
+
+  <!-- Таз -->
+  <rect x="40" y="18" width="10" height="8" fill="var(--pixel-shorts)"/>
+
+  <!-- Ноги -->
+  <rect x="50" y="20" width="16" height="6" fill="var(--pixel-skin)"/>
+  <rect x="64" y="20" width="4" height="6" fill="var(--pixel-shoes)"/>
+
+  <!-- Пол -->
+  <rect x="0" y="40" width="70" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+
+  <!-- Анимированный таймер -->
+  <circle class="pulse" cx="22" cy="2" r="3" fill="var(--pixel-accent)"/>
+</svg>

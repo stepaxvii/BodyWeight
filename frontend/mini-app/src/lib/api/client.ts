@@ -27,7 +27,7 @@ const MOCK_USER: User = {
 	username: 'player1',
 	first_name: 'Pixel',
 	last_name: 'Hero',
-	avatar_id: 'wolf',
+	avatar_id: 'shadow-wolf',
 	level: 1,
 	total_xp: 0,
 	coins: 0,
@@ -151,7 +151,7 @@ const MOCK_ACHIEVEMENTS: Achievement[] = [
 
 // Leaderboard shows only current user in mocks - real users come from backend
 const MOCK_LEADERBOARD: LeaderboardEntry[] = [
-	{ rank: 1, user_id: 1, username: 'player1', first_name: 'Pixel', avatar_id: 'wolf', level: 5, total_xp: 2450, current_streak: 7, is_current_user: true }
+	{ rank: 1, user_id: 1, username: 'player1', first_name: 'Pixel', avatar_id: 'shadow-wolf', level: 5, total_xp: 2450, current_streak: 7, is_current_user: true }
 ];
 
 class ApiClient {

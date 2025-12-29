@@ -8,6 +8,7 @@ class TelegramStore {
 	theme = $state<'light' | 'dark'>('dark');
 	themeParams = $state<TelegramThemeParams>({});
 	isReady = $state(false);
+	startParam = $state<string | null>(null);
 
 	constructor() {
 		if (browser) {
@@ -24,6 +25,7 @@ class TelegramStore {
 			this.user = webApp.initDataUnsafe?.user ?? null;
 			this.theme = webApp.colorScheme;
 			this.themeParams = webApp.themeParams;
+			this.startParam = webApp.initDataUnsafe?.start_param ?? null;
 
 			// Configure WebApp
 			webApp.ready();

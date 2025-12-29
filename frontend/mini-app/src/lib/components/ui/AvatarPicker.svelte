@@ -14,7 +14,7 @@
 
 	let {
 		open = false,
-		currentAvatarId = 'wolf',
+		currentAvatarId = 'shadow-wolf',
 		onselect,
 		onclose
 	}: Props = $props();

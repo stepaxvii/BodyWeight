@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 	import { PixelCard, PixelButton, PixelIcon, PixelAvatar } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
@@ -18,6 +19,12 @@
 	let confirmRemove = $state<{ id: number; name: string; isRequest: boolean } | null>(null);
 
 	onMount(async () => {
+		// Check URL parameter for initial tab
+		const tabParam = $page.url.searchParams.get('tab');
+		if (tabParam === 'requests') {
+			activeTab = 'requests';
+		}
+
 		await loadFriends();
 	});
 

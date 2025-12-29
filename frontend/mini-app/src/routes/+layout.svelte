@@ -1,12 +1,30 @@
 <script lang="ts">
 	import '../app.css';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { PixelNav } from '$lib/components/ui';
 	import OnboardingScreen from '$lib/components/OnboardingScreen.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 
 	let { children } = $props();
+
+	// Handle startParam navigation (deep links from notifications)
+	function handleStartParam(param: string | null) {
+		if (!param) return;
+
+		// Map startParam values to routes
+		const routes: Record<string, string> = {
+			friends_requests: '/friends?tab=requests',
+			friends: '/friends',
+			workout: '/workout',
+		};
+
+		const route = routes[param];
+		if (route) {
+			goto(route);
+		}
+	}
 
 	onMount(async () => {
 		// Wait for Telegram WebApp to be ready
@@ -15,6 +33,11 @@
 		} else {
 			// Dev mode - authenticate with mock data
 			await userStore.authenticate('');
+		}
+
+		// Handle deep link navigation after auth
+		if (userStore.isAuthenticated && userStore.isOnboarded) {
+			handleStartParam(telegram.startParam);
 		}
 	});
 </script>

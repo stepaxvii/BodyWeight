@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 72">
+  <style>
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shorts: #1E88E5;
+      --pixel-shoes: #424242;
+    }
+    .frame { opacity: 0; }
+    .frame1 { animation: frame1 1.6s steps(1) infinite; }
+    .frame2 { animation: frame2 1.6s steps(1) infinite; }
+    .frame3 { animation: frame3 1.6s steps(1) infinite; }
+    .frame4 { animation: frame4 1.6s steps(1) infinite; }
+
+    @keyframes frame1 {
+      0%, 100% { opacity: 1; }
+      12.5% { opacity: 0; }
+    }
+    @keyframes frame2 {
+      0% { opacity: 0; }
+      12.5%, 87.5% { opacity: 1; }
+      25%, 75% { opacity: 0; }
+    }
+    @keyframes frame3 {
+      0% { opacity: 0; }
+      25%, 75% { opacity: 1; }
+      37.5%, 62.5% { opacity: 0; }
+    }
+    @keyframes frame4 {
+      0% { opacity: 0; }
+      37.5%, 62.5% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+  </style>
+
+  <!-- Кадр 1: Ноги вместе, руки вниз -->
+  <g class="frame frame1">
+    <!-- Голова -->
+    <rect x="26" y="4" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="28" y="8" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="34" y="8" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="26" y="2" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Шея -->
+    <rect x="29" y="16" width="6" height="2" fill="var(--pixel-skin)"/>
+    <!-- Тело -->
+    <rect x="22" y="18" width="20" height="16" fill="var(--pixel-shirt)"/>
+    <!-- Руки вниз -->
+    <rect x="18" y="18" width="4" height="14" fill="var(--pixel-shirt)"/>
+    <rect x="42" y="18" width="4" height="14" fill="var(--pixel-shirt)"/>
+    <rect x="16" y="32" width="4" height="4" fill="var(--pixel-skin)"/>
+    <rect x="44" y="32" width="4" height="4" fill="var(--pixel-skin)"/>
+    <!-- Шорты -->
+    <rect x="24" y="34" width="16" height="8" fill="var(--pixel-shorts)"/>
+    <!-- Ноги вместе -->
+    <rect x="26" y="42" width="5" height="16" fill="var(--pixel-skin)"/>
+    <rect x="33" y="42" width="5" height="16" fill="var(--pixel-skin)"/>
+    <!-- Обувь -->
+    <rect x="24" y="58" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="32" y="58" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <!-- Тень -->
+    <rect x="20" y="64" width="24" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  </g>
+
+  <!-- Кадр 2: Переход - ноги слегка врозь, руки поднимаются -->
+  <g class="frame frame2">
+    <!-- Голова чуть выше -->
+    <rect x="26" y="3" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="28" y="7" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="34" y="7" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="26" y="1" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Шея -->
+    <rect x="29" y="15" width="6" height="2" fill="var(--pixel-skin)"/>
+    <!-- Тело -->
+    <rect x="22" y="17" width="20" height="16" fill="var(--pixel-shirt)"/>
+    <!-- Руки диагонально вверх -->
+    <rect x="14" y="14" width="8" height="4" fill="var(--pixel-shirt)"/>
+    <rect x="42" y="14" width="8" height="4" fill="var(--pixel-shirt)"/>
+    <rect x="10" y="10" width="4" height="4" fill="var(--pixel-skin)"/>
+    <rect x="50" y="10" width="4" height="4" fill="var(--pixel-skin)"/>
+    <!-- Шорты -->
+    <rect x="24" y="33" width="16" height="8" fill="var(--pixel-shorts)"/>
+    <!-- Ноги слегка врозь -->
+    <rect x="22" y="41" width="6" height="16" fill="var(--pixel-skin)"/>
+    <rect x="36" y="41" width="6" height="16" fill="var(--pixel-skin)"/>
+    <!-- Обувь -->
+    <rect x="20" y="57" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="36" y="57" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <!-- Тень -->
+    <rect x="16" y="64" width="32" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  </g>
+
+  <!-- Кадр 3: Ноги врозь, руки вверх -->
+  <g class="frame frame3">
+    <!-- Голова выше (прыжок) -->
+    <rect x="26" y="2" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="28" y="6" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="34" y="6" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="26" y="0" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Шея -->
+    <rect x="29" y="14" width="6" height="2" fill="var(--pixel-skin)"/>
+    <!-- Тело -->
+    <rect x="22" y="16" width="20" height="16" fill="var(--pixel-shirt)"/>
+    <!-- Руки вверх -->
+    <rect x="12" y="8" width="10" height="4" fill="var(--pixel-shirt)"/>
+    <rect x="42" y="8" width="10" height="4" fill="var(--pixel-shirt)"/>
+    <rect x="8" y="4" width="4" height="6" fill="var(--pixel-skin)"/>
+    <rect x="52" y="4" width="4" height="6" fill="var(--pixel-skin)"/>
+    <!-- Шорты -->
+    <rect x="24" y="32" width="16" height="8" fill="var(--pixel-shorts)"/>
+    <!-- Ноги широко врозь -->
+    <rect x="16" y="40" width="6" height="16" fill="var(--pixel-skin)"/>
+    <rect x="42" y="40" width="6" height="16" fill="var(--pixel-skin)"/>
+    <!-- Обувь -->
+    <rect x="12" y="56" width="10" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="42" y="56" width="10" height="4" fill="var(--pixel-shoes)"/>
+    <!-- Тень маленькая (в воздухе) -->
+    <rect x="24" y="64" width="16" height="2" fill="var(--pixel-dark)" opacity="0.2"/>
+  </g>
+
+  <!-- Кадр 4: Максимум - руки хлопают вверху -->
+  <g class="frame frame4">
+    <!-- Голова на пике прыжка -->
+    <rect x="26" y="1" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="28" y="5" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="34" y="5" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="26" y="-1" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Шея -->
+    <rect x="29" y="13" width="6" height="2" fill="var(--pixel-skin)"/>
+    <!-- Тело -->
+    <rect x="22" y="15" width="20" height="16" fill="var(--pixel-shirt)"/>
+    <!-- Руки вверх сомкнуты -->
+    <rect x="18" y="4" width="10" height="4" fill="var(--pixel-shirt)"/>
+    <rect x="36" y="4" width="10" height="4" fill="var(--pixel-shirt)"/>
+    <rect x="28" y="0" width="8" height="4" fill="var(--pixel-skin)"/>
+    <!-- Шорты -->
+    <rect x="24" y="31" width="16" height="8" fill="var(--pixel-shorts)"/>
+    <!-- Ноги максимально врозь -->
+    <rect x="12" y="39" width="6" height="16" fill="var(--pixel-skin)"/>
+    <rect x="46" y="39" width="6" height="16" fill="var(--pixel-skin)"/>
+    <!-- Обувь -->
+    <rect x="8" y="55" width="10" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="46" y="55" width="10" height="4" fill="var(--pixel-shoes)"/>
+    <!-- Тень маленькая (в воздухе) -->
+    <rect x="26" y="64" width="12" height="2" fill="var(--pixel-dark)" opacity="0.15"/>
+  </g>
+</svg>

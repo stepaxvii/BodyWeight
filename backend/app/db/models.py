@@ -30,7 +30,7 @@ class User(Base):
     username: Mapped[Optional[str]] = mapped_column(String(255))
     first_name: Mapped[Optional[str]] = mapped_column(String(255))
     last_name: Mapped[Optional[str]] = mapped_column(String(255))
-    avatar_id: Mapped[str] = mapped_column(String(50), default="wolf")
+    avatar_id: Mapped[str] = mapped_column(String(50), default="shadow-wolf")
 
     # Gamification
     level: Mapped[int] = mapped_column(Integer, default=1)

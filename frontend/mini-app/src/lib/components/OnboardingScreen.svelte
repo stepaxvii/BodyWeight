@@ -12,7 +12,7 @@
 	// Filter only free avatars for onboarding
 	const freeAvatars = AVATARS.filter(a => a.price === 0 && a.requiredLevel === 1);
 
-	let selectedAvatar = $state<AvatarId>('wolf');
+	let selectedAvatar = $state<AvatarId>('shadow-wolf');
 	let isSubmitting = $state(false);
 
 	function handleSlidesComplete() {
