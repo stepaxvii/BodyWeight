@@ -111,7 +111,7 @@ async def get_exercises(
     if max_level:
         query = query.where(Exercise.required_level <= max_level)
 
-    query = query.order_by(Exercise.difficulty, Exercise.name)
+    query = query.order_by(Exercise.name_ru)
 
     result = await session.execute(query)
     exercises = result.scalars().all()

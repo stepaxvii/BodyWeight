@@ -5,27 +5,35 @@
 	import RoutinePlayer from '$lib/components/RoutinePlayer.svelte';
 	import ExerciseCard from '$lib/components/ExerciseCard.svelte';
 	import FilterModal from '$lib/components/FilterModal.svelte';
+	import CustomRoutineEditor from '$lib/components/CustomRoutineEditor.svelte';
+	import CustomRoutineList from '$lib/components/CustomRoutineList.svelte';
 	import type { FilterState } from '$lib/components/FilterModal.svelte';
 	import { api } from '$lib/api/client';
 	import { workoutStore } from '$lib/stores/workout.svelte';
 	import { favoritesStore } from '$lib/stores/favorites.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
-	import type { ExerciseCategory, Exercise, Routine, RoutineCategory } from '$lib/types';
+	import type { ExerciseCategory, Exercise, Routine, RoutineCategory, CustomRoutineListItem, CustomRoutine } from '$lib/types';
 
 	// Data
 	let categories = $state<ExerciseCategory[]>([]);
 	let exercises = $state<Exercise[]>([]);
 	let routines = $state<Routine[]>([]);
+	let customRoutines = $state<CustomRoutineListItem[]>([]);
 
 	// Main tab state
-	type MainTab = 'routines' | 'favorites' | 'exercises';
+	type MainTab = 'routines' | 'my-routines' | 'favorites' | 'exercises';
 	let activeMainTab = $state<MainTab>('routines');
 
 	// UI state
 	let activeCategory = $state<string | null>(null);
 	let selectedRoutine = $state<Routine | null>(null);
+	let selectedCustomRoutine = $state<CustomRoutine | null>(null);
 	let showRoutinePlayer = $state(false);
 	let activeRoutineCategory = $state<RoutineCategory>('morning');
+
+	// Custom routine editor state
+	let showCustomRoutineEditor = $state(false);
+	let editingCustomRoutine = $state<CustomRoutine | null>(null);
 
 	// Filter state
 	let showFilterModal = $state(false);
@@ -93,6 +101,7 @@
 
 	const mainTabs: { id: MainTab; label: string }[] = [
 		{ id: 'routines', label: 'Комплексы' },
+		{ id: 'my-routines', label: 'Мои' },
 		{ id: 'favorites', label: 'Избранное' },
 		{ id: 'exercises', label: 'Упражнения' }
 	];
@@ -111,14 +120,16 @@
 		await workoutStore.loadActiveWorkout();
 
 		// Load data in parallel
-		const [cats, exs, rts] = await Promise.all([
+		const [cats, exs, rts, customRts] = await Promise.all([
 			api.getCategories(),
 			api.getExercises(),
-			api.getRoutines()
+			api.getRoutines(),
+			api.getCustomRoutines()
 		]);
 		categories = cats;
 		exercises = exs;
 		routines = rts;
+		customRoutines = customRts;
 
 		// Load favorites
 		await favoritesStore.loadFavorites();
@@ -213,11 +224,79 @@
 	function handleRoutineClose() {
 		showRoutinePlayer = false;
 		selectedRoutine = null;
+		selectedCustomRoutine = null;
 	}
 
 	function handleRoutineComplete() {
 		showRoutinePlayer = false;
 		selectedRoutine = null;
+		selectedCustomRoutine = null;
+	}
+
+	// Custom routine handlers
+	async function playCustomRoutine(routineId: number) {
+		try {
+			const routine = await api.getCustomRoutine(routineId);
+			selectedCustomRoutine = routine;
+			showRoutinePlayer = true;
+			telegram.hapticImpact('medium');
+		} catch (err) {
+			console.error('Failed to load custom routine:', err);
+			telegram.hapticNotification('error');
+		}
+	}
+
+	async function editCustomRoutine(routineId: number) {
+		try {
+			const routine = await api.getCustomRoutine(routineId);
+			editingCustomRoutine = routine;
+			showCustomRoutineEditor = true;
+			telegram.hapticImpact('light');
+		} catch (err) {
+			console.error('Failed to load custom routine:', err);
+			telegram.hapticNotification('error');
+		}
+	}
+
+	function createCustomRoutine() {
+		editingCustomRoutine = null;
+		showCustomRoutineEditor = true;
+		telegram.hapticImpact('light');
+	}
+
+	function handleCustomRoutineSave(routine: CustomRoutine) {
+		// Update list
+		const existingIndex = customRoutines.findIndex(r => r.id === routine.id);
+		if (existingIndex >= 0) {
+			customRoutines = customRoutines.map((r, i) =>
+				i === existingIndex ? {
+					id: routine.id,
+					name: routine.name,
+					routine_type: routine.routine_type,
+					duration_minutes: routine.duration_minutes,
+					exercises_count: routine.exercises.length
+				} : r
+			);
+		} else {
+			customRoutines = [{
+				id: routine.id,
+				name: routine.name,
+				routine_type: routine.routine_type,
+				duration_minutes: routine.duration_minutes,
+				exercises_count: routine.exercises.length
+			}, ...customRoutines];
+		}
+		showCustomRoutineEditor = false;
+		editingCustomRoutine = null;
+	}
+
+	function handleCustomRoutineDelete(routineId: number) {
+		customRoutines = customRoutines.filter(r => r.id !== routineId);
+	}
+
+	function closeCustomRoutineEditor() {
+		showCustomRoutineEditor = false;
+		editingCustomRoutine = null;
 	}
 
 	function getDifficultyStars(difficulty: number): string {
@@ -514,6 +593,9 @@
 					{#if tab.id === 'favorites' && favoritesStore.count > 0}
 						<span class="tab-badge">{favoritesStore.count}</span>
 					{/if}
+					{#if tab.id === 'my-routines' && customRoutines.length > 0}
+						<span class="tab-badge">{customRoutines.length}</span>
+					{/if}
 				</button>
 			{/each}
 		</div>
@@ -560,6 +642,18 @@
 				</div>
 			{/if}
 
+		{:else if activeMainTab === 'my-routines'}
+			<!-- My custom routines section -->
+			<section class="tab-section">
+				<CustomRoutineList
+					routines={customRoutines}
+					onplay={playCustomRoutine}
+					onedit={editCustomRoutine}
+					ondelete={handleCustomRoutineDelete}
+					oncreate={createCustomRoutine}
+				/>
+			</section>
+
 		{:else if activeMainTab === 'favorites'}
 			<!-- Favorites section -->
 			<section class="tab-section">
@@ -583,7 +677,7 @@
 				{/if}
 			</section>
 
-		{:else}
+		{:else if activeMainTab === 'exercises'}
 			<!-- All exercises section -->
 			<section class="tab-section">
 				<!-- Filter header -->
@@ -667,6 +761,36 @@
 		routine={selectedRoutine}
 		onclose={handleRoutineClose}
 		oncomplete={handleRoutineComplete}
+	/>
+{/if}
+
+{#if showRoutinePlayer && selectedCustomRoutine}
+	{@const convertedRoutine = {
+		slug: `custom-${selectedCustomRoutine.id}`,
+		name: selectedCustomRoutine.name,
+		description: selectedCustomRoutine.description || '',
+		category: selectedCustomRoutine.routine_type === 'morning' ? 'morning' as const : 'home' as const,
+		duration_minutes: selectedCustomRoutine.duration_minutes,
+		difficulty: 2 as const,
+		exercises: selectedCustomRoutine.exercises.map(ex => ({
+			slug: ex.exercise_slug,
+			reps: ex.target_reps,
+			duration: ex.target_duration
+		}))
+	}}
+	<RoutinePlayer
+		routine={convertedRoutine}
+		onclose={handleRoutineClose}
+		oncomplete={handleRoutineComplete}
+	/>
+{/if}
+
+{#if showCustomRoutineEditor}
+	<CustomRoutineEditor
+		{exercises}
+		editingRoutine={editingCustomRoutine}
+		onclose={closeCustomRoutineEditor}
+		onsave={handleCustomRoutineSave}
 	/>
 {/if}
 

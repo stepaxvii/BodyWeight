@@ -34,9 +34,8 @@
 </script>
 
 <div class="exercise-animation" style="--size: {pixelSize}px">
-	<object type="image/svg+xml" data={svgPath} class="pixel-svg" aria-label={exercise}>
-		<div class="fallback">?</div>
-	</object>
+	<img src={svgPath} alt={exercise} class="pixel-svg" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+	<div class="fallback" style="display: none;">?</div>
 
 	{#if tip}
 		<div class="tips">
@@ -55,8 +54,9 @@
 	}
 
 	.pixel-svg {
-		width: 100%;
-		height: auto;
+		width: var(--size);
+		height: var(--size);
+		object-fit: contain;
 		image-rendering: pixelated;
 		image-rendering: crisp-edges;
 	}

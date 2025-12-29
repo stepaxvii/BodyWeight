@@ -5,12 +5,15 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
 	import { onMount } from 'svelte';
-	import type { Achievement } from '$lib/types';
+	import type { Achievement, Notification } from '$lib/types';
 
 	let recentAchievements = $state<Achievement[]>([]);
 	let quickModalOpen = $state(false);
 	let lastReward = $state<{ xp: number; coins: number } | null>(null);
 	let unreadNotifications = $state(0);
+	let notifications = $state<Notification[]>([]);
+	let notificationsOpen = $state(false);
+	let notificationsLoading = $state(false);
 
 	onMount(async () => {
 		await userStore.loadStats();
@@ -35,6 +38,55 @@
 			lastReward = null;
 		}, 3000);
 	}
+
+	async function toggleNotifications() {
+		notificationsOpen = !notificationsOpen;
+
+		if (notificationsOpen && notifications.length === 0) {
+			notificationsLoading = true;
+			try {
+				notifications = await api.getNotifications(10);
+				// Mark as read when opened
+				if (unreadNotifications > 0) {
+					await api.markNotificationsRead();
+					unreadNotifications = 0;
+				}
+			} catch (e) {
+				console.error('Failed to load notifications:', e);
+			} finally {
+				notificationsLoading = false;
+			}
+		}
+	}
+
+	function closeNotifications() {
+		notificationsOpen = false;
+	}
+
+	function getNotificationIcon(type: string): string {
+		switch (type) {
+			case 'friend_request': return 'friend';
+			case 'friend_accepted': return 'check';
+			case 'daily_reminder': return 'bell';
+			case 'inactivity_reminder': return 'warning';
+			default: return 'bell';
+		}
+	}
+
+	function formatTimeAgo(dateStr: string): string {
+		const date = new Date(dateStr);
+		const now = new Date();
+		const diffMs = now.getTime() - date.getTime();
+		const diffMins = Math.floor(diffMs / 60000);
+		const diffHours = Math.floor(diffMins / 60);
+		const diffDays = Math.floor(diffHours / 24);
+
+		if (diffMins < 1) return 'только что';
+		if (diffMins < 60) return `${diffMins} мин назад`;
+		if (diffHours < 24) return `${diffHours} ч назад`;
+		if (diffDays < 7) return `${diffDays} дн назад`;
+		return date.toLocaleDateString('ru-RU');
+	}
 </script>
 
 <div class="page container">
@@ -45,12 +97,58 @@
 				<span class="greeting-text">С возвращением,</span>
 				<span class="user-name">{userStore.displayName}!</span>
 			</div>
-			<a href="{base}/friends" class="notification-badge" class:has-notifications={unreadNotifications > 0}>
-				<PixelIcon name="bell" size="md" />
-				{#if unreadNotifications > 0}
-					<span class="badge-count">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>
+			<div class="notification-wrapper">
+				<button
+					type="button"
+					class="notification-badge"
+					class:has-notifications={unreadNotifications > 0}
+					onclick={toggleNotifications}
+				>
+					<PixelIcon name="bell" size="md" />
+					{#if unreadNotifications > 0}
+						<span class="badge-count">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>
+					{/if}
+				</button>
+
+				{#if notificationsOpen}
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div class="notification-overlay" onclick={closeNotifications}></div>
+					<div class="notification-dropdown">
+						<div class="dropdown-header">
+							<span>Уведомления</span>
+							<button type="button" class="close-btn" onclick={closeNotifications}>
+								<PixelIcon name="close" size="sm" />
+							</button>
+						</div>
+						<div class="dropdown-content">
+							{#if notificationsLoading}
+								<div class="dropdown-empty">Загрузка...</div>
+							{:else if notifications.length === 0}
+								<div class="dropdown-empty">Нет уведомлений</div>
+							{:else}
+								{#each notifications as notification}
+									<div class="notification-item" class:unread={!notification.is_read}>
+										<div class="notification-icon">
+											<PixelIcon name={getNotificationIcon(notification.notification_type)} size="sm" />
+										</div>
+										<div class="notification-content">
+											<span class="notification-title">{notification.title}</span>
+											<span class="notification-message">{notification.message}</span>
+											<span class="notification-time">{formatTimeAgo(notification.created_at)}</span>
+										</div>
+									</div>
+								{/each}
+							{/if}
+						</div>
+						{#if notifications.some(n => n.notification_type === 'friend_request' || n.notification_type === 'friend_accepted')}
+							<a href="{base}/friends" class="dropdown-footer" onclick={closeNotifications}>
+								Перейти к друзьям
+							</a>
+						{/if}
+					</div>
 				{/if}
-			</a>
+			</div>
 		</div>
 	</header>
 
@@ -218,6 +316,10 @@
 		color: var(--pixel-accent);
 	}
 
+	.notification-wrapper {
+		position: relative;
+	}
+
 	.notification-badge {
 		position: relative;
 		display: flex;
@@ -230,6 +332,7 @@
 		text-decoration: none;
 		color: var(--text-secondary);
 		transition: all 0.2s;
+		cursor: pointer;
 	}
 
 	.notification-badge:hover {
@@ -256,6 +359,127 @@
 		align-items: center;
 		justify-content: center;
 		border: 2px solid var(--pixel-bg);
+	}
+
+	.notification-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.5);
+		z-index: 100;
+	}
+
+	.notification-dropdown {
+		position: absolute;
+		top: calc(100% + 8px);
+		right: 0;
+		width: 280px;
+		max-height: 400px;
+		background: var(--pixel-bg);
+		border: 2px solid var(--pixel-border);
+		z-index: 101;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.dropdown-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: var(--spacing-sm);
+		border-bottom: 2px solid var(--pixel-border);
+		font-size: var(--font-size-sm);
+		text-transform: uppercase;
+	}
+
+	.close-btn {
+		background: none;
+		border: none;
+		color: var(--text-secondary);
+		cursor: pointer;
+		padding: 4px;
+	}
+
+	.close-btn:hover {
+		color: var(--pixel-accent);
+	}
+
+	.dropdown-content {
+		flex: 1;
+		overflow-y: auto;
+		max-height: 300px;
+	}
+
+	.dropdown-empty {
+		padding: var(--spacing-lg);
+		text-align: center;
+		color: var(--text-secondary);
+		font-size: var(--font-size-sm);
+	}
+
+	.notification-item {
+		display: flex;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-sm);
+		border-bottom: 1px solid var(--pixel-border);
+	}
+
+	.notification-item.unread {
+		background: var(--pixel-bg-dark);
+	}
+
+	.notification-icon {
+		width: 24px;
+		height: 24px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--pixel-accent);
+		flex-shrink: 0;
+	}
+
+	.notification-content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+
+	.notification-title {
+		font-size: var(--font-size-xs);
+		color: var(--text-primary);
+		font-weight: 500;
+	}
+
+	.notification-message {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.notification-time {
+		font-size: 10px;
+		color: var(--text-muted);
+	}
+
+	.dropdown-footer {
+		display: block;
+		padding: var(--spacing-sm);
+		text-align: center;
+		color: var(--pixel-accent);
+		font-size: var(--font-size-xs);
+		text-transform: uppercase;
+		text-decoration: none;
+		border-top: 2px solid var(--pixel-border);
+	}
+
+	.dropdown-footer:hover {
+		background: var(--pixel-bg-dark);
 	}
 
 	/* Stats Row */

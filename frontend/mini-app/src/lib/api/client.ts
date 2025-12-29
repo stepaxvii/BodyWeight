@@ -15,7 +15,8 @@ import type {
 	Routine,
 	CustomRoutine,
 	CustomRoutineListItem,
-	CustomRoutineCreate
+	CustomRoutineCreate,
+	Notification
 } from '$lib/types';
 
 const API_BASE = '/bodyweight/api';
@@ -666,6 +667,13 @@ class ApiClient {
 		await this.request('/notifications/mark-read', {
 			method: 'POST'
 		});
+	}
+
+	async getNotifications(limit: number = 20): Promise<Notification[]> {
+		if (this.useMocks) {
+			return [];
+		}
+		return this.request<Notification[]>(`/notifications?limit=${limit}`);
 	}
 }
 

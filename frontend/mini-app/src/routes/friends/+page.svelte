@@ -26,13 +26,6 @@
 		}
 
 		await loadFriends();
-
-		// Mark notifications as read when visiting friends page
-		try {
-			await api.markNotificationsRead();
-		} catch (e) {
-			console.error('Failed to mark notifications as read:', e);
-		}
 	});
 
 	async function loadFriends() {

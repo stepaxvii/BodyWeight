@@ -298,3 +298,16 @@ export interface CustomRoutineCreate {
 		rest_seconds?: number;
 	}[];
 }
+
+// Notification types
+export type NotificationType = 'friend_request' | 'friend_accepted' | 'daily_reminder' | 'inactivity_reminder';
+
+export interface Notification {
+	id: number;
+	notification_type: NotificationType;
+	title: string;
+	message: string;
+	is_read: boolean;
+	related_user_id?: number;
+	created_at: string;
+}
