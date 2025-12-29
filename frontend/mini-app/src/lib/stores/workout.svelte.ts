@@ -43,15 +43,31 @@ class WorkoutStore {
 		if (this.session?.total_xp_earned) {
 			return this.session.total_xp_earned;
 		}
-		// Otherwise calculate locally from exercise data
+		// Otherwise calculate locally from exercise data (simplified version of backend formula)
+		// Full formula on backend: base_xp × difficulty_mult × streak_mult × volume_mult × first_bonus
+		// Here we use simplified: base_xp × difficulty_mult × volume_mult (no streak/first bonus)
 		let total = 0;
 		this.exerciseData.forEach(data => {
 			if (data.exercise && data.sets.length > 0) {
-				// XP = base_xp * number_of_sets
-				total += data.exercise.base_xp * data.sets.length;
+				const baseXp = data.exercise.base_xp;
+				const difficulty = data.exercise.difficulty || 1;
+				// Difficulty multiplier: 1.0, 1.25, 1.5, 1.75, 2.0 for difficulty 1-5
+				const difficultyMult = 1 + (difficulty - 1) * 0.25;
+
+				// Calculate XP per set based on reps
+				for (const reps of data.sets) {
+					// Volume multiplier with diminishing returns after 20 reps
+					let volumeMult: number;
+					if (reps <= 20) {
+						volumeMult = 1 + reps * 0.02; // 1.0 to 1.4
+					} else {
+						volumeMult = 1.4 + (reps - 20) * 0.01; // slower growth
+					}
+					total += baseXp * difficultyMult * volumeMult;
+				}
 			}
 		});
-		return total;
+		return Math.floor(total);
 	}
 
 	get totalCoins() {

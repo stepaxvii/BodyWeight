@@ -1,94 +1,98 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<!-- v2.0 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 48">
   <style>
-    :root {
-      --pixel-skin: #FFD5B8;
-      --pixel-dark: #2D2D2D;
-      --pixel-hair: #4A3728;
-      --pixel-shirt: #4CAF50;
-      --pixel-shorts: #1E88E5;
-      --pixel-shoes: #424242;
-    }
-    .frame { opacity: 0; }
-    .frame1 { animation: frame1 3.2s steps(1) infinite; }
-    .frame2 { animation: frame2 3.2s steps(1) infinite; }
-    .frame3 { animation: frame3 3.2s steps(1) infinite; }
-    .frame4 { animation: frame4 3.2s steps(1) infinite; }
+    .skin { fill: #FFD5B8; }
+    .dark { fill: #2D2D2D; }
+    .hair { fill: #4A3728; }
+    .shirt { fill: #4CAF50; }
+    .shorts { fill: #1E88E5; }
+    .shoes { fill: #424242; }
 
-    @keyframes frame1 { 0%, 100% { opacity: 1; } 12.5% { opacity: 0; } }
-    @keyframes frame2 { 0% { opacity: 0; } 12.5%, 87.5% { opacity: 1; } 25%, 75% { opacity: 0; } }
-    @keyframes frame3 { 0% { opacity: 0; } 25%, 75% { opacity: 1; } 37.5%, 62.5% { opacity: 0; } }
-    @keyframes frame4 { 0% { opacity: 0; } 37.5%, 62.5% { opacity: 1; } 50% { opacity: 0; } }
+    .f1, .f2, .f3 { opacity: 0; }
+    .f1 { animation: a1 1.8s steps(1) infinite; }
+    .f2 { animation: a2 1.8s steps(1) infinite; }
+    .f3 { animation: a3 1.8s steps(1) infinite; }
+
+    @keyframes a1 { 0%, 33.33% { opacity: 1; } 33.33%, 100% { opacity: 0; } }
+    @keyframes a2 { 0%, 33.33% { opacity: 0; } 33.33%, 66.66% { opacity: 1; } 66.66%, 100% { opacity: 0; } }
+    @keyframes a3 { 0%, 66.66% { opacity: 0; } 66.66%, 100% { opacity: 1; } }
   </style>
 
-  <!-- Кадр 1: Пика позиция (V-форма), руки прямые -->
-  <g class="frame frame1">
-    <!-- Голова внизу -->
-    <rect x="6" y="32" width="12" height="12" fill="var(--pixel-skin)"/>
-    <rect x="10" y="36" width="2" height="2" fill="var(--pixel-dark)"/>
-    <rect x="6" y="42" width="12" height="4" fill="var(--pixel-hair)"/>
-    <!-- Руки вниз -->
-    <rect x="4" y="44" width="8" height="10" fill="var(--pixel-skin)"/>
-    <rect x="16" y="44" width="8" height="10" fill="var(--pixel-skin)"/>
-    <rect x="2" y="52" width="10" height="4" fill="var(--pixel-skin)"/>
-    <rect x="16" y="52" width="10" height="4" fill="var(--pixel-skin)"/>
-    <!-- Тело поднято -->
-    <rect x="16" y="22" width="16" height="14" fill="var(--pixel-shirt)"/>
-    <rect x="30" y="14" width="12" height="10" fill="var(--pixel-shorts)"/>
-    <!-- Ноги вверх -->
-    <rect x="40" y="10" width="8" height="8" fill="var(--pixel-skin)"/>
-    <rect x="48" y="6" width="6" height="8" fill="var(--pixel-skin)"/>
-    <rect x="52" y="4" width="8" height="6" fill="var(--pixel-shoes)"/>
-    <rect x="0" y="58" width="64" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  <!-- Frame 1: Pike position up (V-shape), arms straight -->
+  <g class="f1">
+    <!-- Head looking down -->
+    <rect x="4" y="22" width="8" height="6" class="skin"/>
+    <rect x="6" y="24" width="2" height="2" class="dark"/>
+    <rect x="4" y="28" width="8" height="3" class="hair"/>
+    <!-- Arms straight down -->
+    <rect x="2" y="30" width="5" height="10" class="skin"/>
+    <rect x="9" y="30" width="5" height="10" class="skin"/>
+    <!-- Hands on floor -->
+    <rect x="0" y="40" width="7" height="3" class="skin"/>
+    <rect x="9" y="40" width="7" height="3" class="skin"/>
+    <!-- Body angled up -->
+    <rect x="10" y="14" width="14" height="10" class="shirt"/>
+    <!-- Shorts -->
+    <rect x="22" y="8" width="10" height="8" class="shorts"/>
+    <!-- Legs up -->
+    <rect x="30" y="6" width="6" height="6" class="skin"/>
+    <rect x="36" y="2" width="6" height="6" class="skin"/>
+    <!-- Shoes -->
+    <rect x="40" y="0" width="6" height="4" class="shoes"/>
+    <rect x="44" y="0" width="6" height="4" class="shoes"/>
+    <!-- Shadow -->
+    <rect x="0" y="44" width="52" height="1" fill="#000" opacity="0.15"/>
   </g>
 
-  <!-- Кадр 2: Опускание головы -->
-  <g class="frame frame2">
-    <rect x="6" y="38" width="12" height="12" fill="var(--pixel-skin)"/>
-    <rect x="10" y="42" width="2" height="2" fill="var(--pixel-dark)"/>
-    <rect x="6" y="48" width="12" height="4" fill="var(--pixel-hair)"/>
-    <rect x="2" y="48" width="8" height="8" fill="var(--pixel-skin)"/>
-    <rect x="18" y="48" width="8" height="8" fill="var(--pixel-skin)"/>
-    <rect x="0" y="54" width="10" height="4" fill="var(--pixel-skin)"/>
-    <rect x="18" y="54" width="10" height="4" fill="var(--pixel-skin)"/>
-    <rect x="16" y="26" width="16" height="14" fill="var(--pixel-shirt)"/>
-    <rect x="30" y="18" width="12" height="10" fill="var(--pixel-shorts)"/>
-    <rect x="40" y="14" width="8" height="8" fill="var(--pixel-skin)"/>
-    <rect x="48" y="10" width="6" height="8" fill="var(--pixel-skin)"/>
-    <rect x="52" y="6" width="8" height="6" fill="var(--pixel-shoes)"/>
-    <rect x="0" y="58" width="64" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  <!-- Frame 2: Lowering head -->
+  <g class="f2">
+    <!-- Head closer to floor -->
+    <rect x="4" y="28" width="8" height="6" class="skin"/>
+    <rect x="6" y="30" width="2" height="2" class="dark"/>
+    <rect x="4" y="34" width="8" height="3" class="hair"/>
+    <!-- Arms bent -->
+    <rect x="0" y="34" width="5" height="8" class="skin"/>
+    <rect x="11" y="34" width="5" height="8" class="skin"/>
+    <!-- Hands on floor -->
+    <rect x="0" y="40" width="6" height="3" class="skin"/>
+    <rect x="10" y="40" width="6" height="3" class="skin"/>
+    <!-- Body angled -->
+    <rect x="12" y="18" width="14" height="10" class="shirt"/>
+    <!-- Shorts -->
+    <rect x="24" y="12" width="10" height="8" class="shorts"/>
+    <!-- Legs -->
+    <rect x="32" y="10" width="6" height="6" class="skin"/>
+    <rect x="38" y="6" width="6" height="6" class="skin"/>
+    <!-- Shoes -->
+    <rect x="42" y="4" width="6" height="4" class="shoes"/>
+    <rect x="46" y="4" width="6" height="4" class="shoes"/>
+    <!-- Shadow -->
+    <rect x="0" y="44" width="52" height="1" fill="#000" opacity="0.15"/>
   </g>
 
-  <!-- Кадр 3: Голова почти касается пола -->
-  <g class="frame frame3">
-    <rect x="6" y="44" width="12" height="12" fill="var(--pixel-skin)"/>
-    <rect x="10" y="48" width="2" height="2" fill="var(--pixel-dark)"/>
-    <rect x="6" y="54" width="12" height="4" fill="var(--pixel-hair)"/>
-    <rect x="0" y="50" width="8" height="6" fill="var(--pixel-skin)"/>
-    <rect x="20" y="50" width="8" height="6" fill="var(--pixel-skin)"/>
-    <rect x="0" y="54" width="8" height="4" fill="var(--pixel-skin)"/>
-    <rect x="20" y="54" width="8" height="4" fill="var(--pixel-skin)"/>
-    <rect x="16" y="30" width="16" height="16" fill="var(--pixel-shirt)"/>
-    <rect x="30" y="22" width="12" height="10" fill="var(--pixel-shorts)"/>
-    <rect x="40" y="18" width="8" height="8" fill="var(--pixel-skin)"/>
-    <rect x="48" y="14" width="6" height="8" fill="var(--pixel-skin)"/>
-    <rect x="52" y="10" width="8" height="6" fill="var(--pixel-shoes)"/>
-    <rect x="0" y="58" width="64" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
-  </g>
-
-  <!-- Кадр 4: Подъём -->
-  <g class="frame frame4">
-    <rect x="6" y="38" width="12" height="12" fill="var(--pixel-skin)"/>
-    <rect x="10" y="42" width="2" height="2" fill="var(--pixel-dark)"/>
-    <rect x="6" y="48" width="12" height="4" fill="var(--pixel-hair)"/>
-    <rect x="2" y="48" width="8" height="8" fill="var(--pixel-skin)"/>
-    <rect x="18" y="48" width="8" height="8" fill="var(--pixel-skin)"/>
-    <rect x="0" y="54" width="10" height="4" fill="var(--pixel-skin)"/>
-    <rect x="18" y="54" width="10" height="4" fill="var(--pixel-skin)"/>
-    <rect x="16" y="26" width="16" height="14" fill="var(--pixel-shirt)"/>
-    <rect x="30" y="18" width="12" height="10" fill="var(--pixel-shorts)"/>
-    <rect x="40" y="14" width="8" height="8" fill="var(--pixel-skin)"/>
-    <rect x="48" y="10" width="6" height="8" fill="var(--pixel-skin)"/>
-    <rect x="52" y="6" width="8" height="6" fill="var(--pixel-shoes)"/>
-    <rect x="0" y="58" width="64" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  <!-- Frame 3: Head near floor -->
+  <g class="f3">
+    <!-- Head near floor -->
+    <rect x="4" y="34" width="8" height="6" class="skin"/>
+    <rect x="6" y="36" width="2" height="2" class="dark"/>
+    <rect x="4" y="40" width="8" height="3" class="hair"/>
+    <!-- Arms very bent -->
+    <rect x="0" y="36" width="5" height="6" class="skin"/>
+    <rect x="11" y="36" width="5" height="6" class="skin"/>
+    <!-- Hands on floor -->
+    <rect x="0" y="40" width="6" height="3" class="skin"/>
+    <rect x="10" y="40" width="6" height="3" class="skin"/>
+    <!-- Body angled -->
+    <rect x="12" y="22" width="14" height="12" class="shirt"/>
+    <!-- Shorts -->
+    <rect x="24" y="16" width="10" height="8" class="shorts"/>
+    <!-- Legs -->
+    <rect x="32" y="14" width="6" height="6" class="skin"/>
+    <rect x="38" y="10" width="6" height="6" class="skin"/>
+    <!-- Shoes -->
+    <rect x="42" y="8" width="6" height="4" class="shoes"/>
+    <rect x="46" y="8" width="6" height="4" class="shoes"/>
+    <!-- Shadow -->
+    <rect x="0" y="44" width="52" height="1" fill="#000" opacity="0.15"/>
   </g>
 </svg>

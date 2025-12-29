@@ -1,38 +1,48 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 45">
+<!-- v2.0 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 36">
   <style>
-    :root {
-      --pixel-skin: #FFD5B8;
-      --pixel-dark: #2D2D2D;
-      --pixel-hair: #4A3728;
-      --pixel-shirt: #4CAF50;
-      --pixel-shorts: #1E88E5;
-      --pixel-shoes: #424242;
-      --pixel-accent: #FF9800;
-    }
-    .pulse { animation: pulse 1.6s ease-in-out infinite; }
+    .skin { fill: #FFD5B8; }
+    .dark { fill: #2D2D2D; }
+    .hair { fill: #4A3728; }
+    .shirt { fill: #4CAF50; }
+    .shorts { fill: #1E88E5; }
+    .shoes { fill: #424242; }
+    .accent { fill: #FF9800; }
+
+    .pulse { animation: pulse 1.5s ease-in-out infinite; }
     @keyframes pulse {
-      0%, 100% { opacity: 0.8; r: 4; }
-      50% { opacity: 0.5; r: 3; }
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 0.4; }
     }
   </style>
 
-  <!-- Статичная поза планки -->
-  <rect x="6" y="14" width="10" height="10" fill="var(--pixel-skin)"/>
-  <rect x="8" y="17" width="2" height="2" fill="var(--pixel-dark)"/>
-  <rect x="6" y="12" width="10" height="4" fill="var(--pixel-hair)"/>
-  <rect x="14" y="18" width="4" height="4" fill="var(--pixel-skin)"/>
-  <rect x="16" y="16" width="34" height="10" fill="var(--pixel-shirt)"/>
-  <rect x="50" y="16" width="10" height="10" fill="var(--pixel-shorts)"/>
-  <rect x="16" y="26" width="12" height="4" fill="var(--pixel-skin)"/>
-  <rect x="16" y="30" width="4" height="6" fill="var(--pixel-skin)"/>
-  <rect x="24" y="30" width="4" height="6" fill="var(--pixel-skin)"/>
-  <rect x="14" y="32" width="6" height="4" fill="var(--pixel-skin)"/>
-  <rect x="24" y="32" width="6" height="4" fill="var(--pixel-skin)"/>
-  <rect x="60" y="18" width="14" height="6" fill="var(--pixel-skin)"/>
-  <rect x="72" y="24" width="6" height="12" fill="var(--pixel-skin)"/>
-  <rect x="72" y="32" width="6" height="4" fill="var(--pixel-shoes)"/>
-  <rect x="0" y="36" width="80" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  <!-- Static plank pose -->
+  <!-- Head -->
+  <rect x="4" y="10" width="7" height="6" class="skin"/>
+  <rect x="4" y="8" width="7" height="3" class="hair"/>
+  <rect x="6" y="12" width="2" height="2" class="dark"/>
+  <!-- Neck -->
+  <rect x="10" y="13" width="3" height="3" class="skin"/>
+  <!-- Torso -->
+  <rect x="12" y="12" width="24" height="6" class="shirt"/>
+  <!-- Shorts -->
+  <rect x="36" y="12" width="7" height="5" class="shorts"/>
+  <!-- Forearms on ground -->
+  <rect x="12" y="18" width="10" height="3" class="skin"/>
+  <!-- Elbows -->
+  <rect x="12" y="21" width="3" height="5" class="skin"/>
+  <rect x="19" y="21" width="3" height="5" class="skin"/>
+  <!-- Hands -->
+  <rect x="10" y="25" width="5" height="2" class="skin"/>
+  <rect x="18" y="25" width="5" height="2" class="skin"/>
+  <!-- Legs -->
+  <rect x="43" y="13" width="12" height="4" class="skin"/>
+  <!-- Feet -->
+  <rect x="54" y="15" width="3" height="11" class="skin"/>
+  <rect x="54" y="25" width="4" height="2" class="shoes"/>
+  <!-- Shadow -->
+  <rect x="8" y="28" width="52" height="1" fill="#000" opacity="0.2"/>
 
-  <!-- Анимированный таймер/пульс -->
-  <circle class="pulse" cx="40" cy="6" r="4" fill="var(--pixel-accent)"/>
+  <!-- Pulsing timer indicator -->
+  <circle class="pulse" cx="32" cy="32" r="2" class="accent"/>
 </svg>

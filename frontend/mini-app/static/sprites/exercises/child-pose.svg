@@ -1,45 +1,42 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 40">
+<!-- v2.0 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 36">
   <style>
-    :root {
-      --pixel-skin: #FFD5B8;
-      --pixel-dark: #2D2D2D;
-      --pixel-hair: #4A3728;
-      --pixel-shirt: #4CAF50;
-      --pixel-shorts: #1E88E5;
-      --pixel-shoes: #424242;
-      --pixel-accent: #FF9800;
-    }
-    .breathe {
-      animation: breathe 3.2s ease-in-out infinite;
-    }
-    @keyframes breathe {
+    .skin { fill: #FFD5B8; }
+    .dark { fill: #2D2D2D; }
+    .hair { fill: #4A3728; }
+    .shirt { fill: #4CAF50; }
+    .shorts { fill: #1E88E5; }
+    .shoes { fill: #424242; }
+    .accent { fill: #FF9800; }
+
+    .pulse { animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse {
       0%, 100% { opacity: 0.8; }
-      25% { opacity: 0.6; }
-      50% { opacity: 0.4; }
-      75% { opacity: 0.6; }
+      50% { opacity: 0.3; }
     }
   </style>
 
-  <!-- Руки вытянуты вперёд -->
-  <rect x="2" y="18" width="20" height="4" fill="var(--pixel-skin)"/>
+  <!-- Static child pose (resting position) -->
+  <!-- Arms extended forward -->
+  <rect x="2" y="16" width="14" height="3" class="skin"/>
 
-  <!-- Голова опущена -->
-  <rect x="20" y="14" width="10" height="10" fill="var(--pixel-skin)"/>
-  <rect x="20" y="12" width="10" height="4" fill="var(--pixel-hair)"/>
+  <!-- Head down -->
+  <rect x="14" y="12" width="8" height="7" class="skin"/>
+  <rect x="14" y="10" width="8" height="3" class="hair"/>
 
-  <!-- Туловище согнуто -->
-  <rect x="28" y="16" width="16" height="12" fill="var(--pixel-shirt)"/>
+  <!-- Torso curved/folded -->
+  <rect x="20" y="14" width="12" height="9" class="shirt"/>
 
-  <!-- Таз на пятках -->
-  <rect x="44" y="18" width="12" height="10" fill="var(--pixel-shorts)"/>
+  <!-- Hips on heels -->
+  <rect x="32" y="16" width="9" height="8" class="shorts"/>
 
-  <!-- Ноги согнуты под себя -->
-  <rect x="50" y="28" width="14" height="6" fill="var(--pixel-skin)"/>
-  <rect x="62" y="26" width="6" height="8" fill="var(--pixel-shoes)"/>
+  <!-- Legs folded under -->
+  <rect x="37" y="24" width="10" height="4" class="skin"/>
+  <rect x="46" y="22" width="5" height="6" class="shoes"/>
 
-  <!-- Пол -->
-  <rect x="0" y="34" width="70" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  <!-- Shadow -->
+  <rect x="2" y="29" width="50" height="1" fill="#000" opacity="0.15"/>
 
-  <!-- Символ расслабления -->
-  <text class="breathe" x="35" y="8" font-size="6" fill="var(--pixel-accent)">~</text>
+  <!-- Relaxation indicator (breathing) -->
+  <circle class="pulse" cx="28" cy="32" r="2" class="accent"/>
 </svg>
