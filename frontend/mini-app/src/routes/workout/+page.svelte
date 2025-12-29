@@ -104,31 +104,10 @@
 		telegram.hapticImpact('light');
 	}
 
-	// Map exercise slug to animation name
-	function getAnimationSlug(exerciseSlug: string): string | null {
-		// Direct matches
-		const animationMap: Record<string, string> = {
-			// Squats
-			'squat-regular': 'squat',
-			'squat-sumo': 'squat-sumo',
-			// Pushups
-			'pushup-regular': 'pushup-regular',
-			'pushup-knee': 'pushup-knee',
-			'pushup-diamond': 'pushup-diamond',
-			// Back
-			'superman': 'superman',
-			'superman-twist': 'superman-twist',
-			// Legs
-			'lunge-stationary': 'lunge-stationary',
-			// Core
-			'plank': 'plank',
-			'plank-side': 'plank-side',
-			// Stretch
-			'bird-dog': 'bird-dog',
-			'child-pose': 'child-pose',
-		};
-
-		return animationMap[exerciseSlug] || null;
+	// Map exercise slug to animation name - all exercises have animations
+	function getAnimationSlug(exerciseSlug: string): string {
+		// All slugs match directly, just return the slug
+		return exerciseSlug;
 	}
 
 	function requestCancelWorkout() {
