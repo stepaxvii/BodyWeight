@@ -1660,7 +1660,9 @@
     "difficulty": 2,
     "base_xp": 10,
     "required_level": 2,
-    "equipment": "none"
+    "equipment": "none",
+    "description": "Lie on your back with arms extended to the sides for stability. Lift your legs straight up toward the ceiling. Keeping legs together and straight, lower them to one side toward the floor, then return to center and lower to the other side — like windshield wipers. This heavily works the obliques. Easier than hanging version.",
+    "description_ru": "Ляг на спину, руки в стороны для стабильности. Подними прямые ноги вверх к потолку. Держа ноги вместе и прямыми, опусти их в одну сторону к полу, затем вернись в центр и опусти в другую сторону — как дворники. Интенсивно прорабатывает косые мышцы. Легче, чем версия в висе."
   },
   {
     "slug": "toe-touch",
@@ -1675,7 +1677,9 @@
     "difficulty": 1,
     "base_xp": 6,
     "required_level": 1,
-    "equipment": "none"
+    "equipment": "none",
+    "description": "Lie on your back with legs straight up toward the ceiling. Reach your hands up and crunch forward to touch your toes (or as close as you can). Lower your shoulders back to the floor with control and repeat. Keep your legs as straight as possible and focus on using your abs to lift your upper body.",
+    "description_ru": "Ляг на спину, ноги прямо вверх к потолку. Потянись руками вверх и скрутись вперёд, чтобы коснуться носков (или как можно ближе). Опусти плечи на пол с контролем и повтори. Держи ноги максимально прямыми и фокусируйся на подъёме верхней части тела за счёт пресса."
   },
   {
     "slug": "dead-bug",
@@ -1708,7 +1712,9 @@
     "difficulty": 1,
     "base_xp": 6,
     "required_level": 1,
-    "equipment": "none"
+    "equipment": "none",
+    "description": "Start on all fours with hands under shoulders and knees under hips. Simultaneously extend your right arm forward and left leg back, forming a straight line from fingertips to toes. Hold briefly, then return to start and repeat on the other side. Keep your core engaged and back flat — don't let hips rotate. Excellent for spinal stability.",
+    "description_ru": "Встань на четвереньки, руки под плечами, колени под бёдрами. Одновременно вытяни правую руку вперёд и левую ногу назад, образуя прямую линию от пальцев руки до носка. Задержись, затем вернись в исходное положение и повтори на другую сторону. Кор напряжён, спина прямая — не давай бёдрам вращаться. Отлично для стабильности позвоночника."
   },
   {
     "slug": "flutter-kick",
@@ -1741,7 +1747,9 @@
     "difficulty": 1,
     "base_xp": 6,
     "required_level": 1,
-    "equipment": "none"
+    "equipment": "none",
+    "description": "Lie on your back with knees bent and feet flat on the floor near your glutes. Lift your shoulders slightly off the ground. Reach down and touch your right heel with your right hand, then your left heel with your left hand, alternating sides. This targets the obliques with a side-bending motion.",
+    "description_ru": "Ляг на спину, колени согнуты, стопы на полу близко к ягодицам. Слегка оторви плечи от пола. Тянись вниз и касайся правой пятки правой рукой, затем левой пятки левой рукой, чередуя стороны. Это прорабатывает косые мышцы боковым наклоном."
   },
   {
     "slug": "ab-wheel-rollout",
@@ -1813,7 +1821,9 @@
     "difficulty": 3,
     "base_xp": 12,
     "required_level": 3,
-    "equipment": "pullup-bar"
+    "equipment": "pullup-bar",
+    "description": "Hang from a pull-up bar. Bring one knee up toward the opposite elbow by rotating your torso. Return to the hanging position and repeat on the other side, alternating. This rotational movement targets the obliques while also working the hip flexors and grip. A progression from hanging knee raises.",
+    "description_ru": "Повисни на турнике. Подтяни одно колено к противоположному локтю, вращая корпус. Вернись в вис и повтори с другой стороны, чередуя. Это вращательное движение прорабатывает косые мышцы, одновременно нагружая сгибатели бедра и хват. Прогрессия от подъёма коленей в висе."
   },
   {
     "slug": "pike-hold",
@@ -1887,7 +1897,9 @@
     "difficulty": 4,
     "base_xp": 15,
     "required_level": 5,
-    "equipment": "wall"
+    "equipment": "wall",
+    "description": "Get into a wall handstand position (facing the wall). Shift your weight onto one hand and lift the other to touch your shoulder. Return hand to the floor and repeat on the other side. This requires excellent balance and shoulder strength. Keep your core tight and don't arch your back.",
+    "description_ru": "Встань в стойку на руках у стены (лицом к стене). Перенеси вес на одну руку и подними другую, чтобы коснуться плеча. Верни руку на пол и повтори с другой стороны. Требует отличного баланса и силы плеч. Держи кор напряжённым, не прогибай спину."
   },
   {
     "slug": "crab-walk",
@@ -1941,6 +1953,8 @@
     "difficulty": 1,
     "base_xp": 5,
     "required_level": 1,
-    "equipment": "none"
+    "equipment": "none",
+    "description": "Lie face down with arms extended in front of you. Lift your arms off the ground and make large circles, sweeping them out to the sides, down toward your hips, and back up to the front. Keep your chest slightly lifted and arms straight throughout. This strengthens the shoulders and upper back for better posture.",
+    "description_ru": "Ляг лицом вниз, руки вытянуты перед собой. Подними руки от пола и делай большие круги, отводя их в стороны, вниз к бёдрам и обратно вверх вперёд. Грудь слегка приподнята, руки прямые на протяжении всего движения. Укрепляет плечи и верхнюю часть спины для лучшей осанки."
   }
 ]
