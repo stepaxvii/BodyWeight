@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 72">
+  <style>
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shorts: #1E88E5;
+      --pixel-shoes: #424242;
+    }
+    .frame { opacity: 0; }
+    .frame1 { animation: frame1 2s steps(1) infinite; }
+    .frame2 { animation: frame2 2s steps(1) infinite; }
+
+    @keyframes frame1 { 0%, 50% { opacity: 1; } 50%, 100% { opacity: 0; } }
+    @keyframes frame2 { 0%, 50% { opacity: 0; } 50%, 100% { opacity: 1; } }
+  </style>
+
+  <!-- Кадр 1: Правая нога вверх -->
+  <g class="frame frame1">
+    <rect x="18" y="4" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="20" y="8" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="18" y="2" width="12" height="4" fill="var(--pixel-hair)"/>
+    <rect x="4" y="14" width="14" height="6" fill="var(--pixel-skin)"/>
+    <rect x="30" y="14" width="14" height="6" fill="var(--pixel-skin)"/>
+    <rect x="16" y="16" width="16" height="16" fill="var(--pixel-shirt)"/>
+    <rect x="18" y="32" width="12" height="8" fill="var(--pixel-shorts)"/>
+    <rect x="18" y="40" width="6" height="20" fill="var(--pixel-skin)"/>
+    <rect x="16" y="58" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="4" y="18" width="6" height="18" fill="var(--pixel-skin)"/>
+    <rect x="2" y="34" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="0" y="64" width="48" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  </g>
+
+  <!-- Кадр 2: Левая нога вверх -->
+  <g class="frame frame2">
+    <rect x="18" y="4" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="20" y="8" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="18" y="2" width="12" height="4" fill="var(--pixel-hair)"/>
+    <rect x="4" y="14" width="14" height="6" fill="var(--pixel-skin)"/>
+    <rect x="30" y="14" width="14" height="6" fill="var(--pixel-skin)"/>
+    <rect x="16" y="16" width="16" height="16" fill="var(--pixel-shirt)"/>
+    <rect x="18" y="32" width="12" height="8" fill="var(--pixel-shorts)"/>
+    <rect x="24" y="40" width="6" height="20" fill="var(--pixel-skin)"/>
+    <rect x="24" y="58" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="38" y="18" width="6" height="18" fill="var(--pixel-skin)"/>
+    <rect x="38" y="34" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="0" y="64" width="48" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  </g>
+</svg>

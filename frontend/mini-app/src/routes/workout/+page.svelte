@@ -665,6 +665,7 @@
 								isSelected={workoutStore.isExerciseSelected(exercise.id)}
 								categoryColor={categoryColors[exercise.category_slug]}
 								onSelect={() => toggleExercise(exercise)}
+								onInfoClick={() => openExerciseInfo(exercise)}
 							/>
 						{/each}
 					</div>
@@ -723,6 +724,7 @@
 							isSelected={workoutStore.isExerciseSelected(exercise.id)}
 							categoryColor={categoryColors[exercise.category_slug]}
 							onSelect={() => toggleExercise(exercise)}
+							onInfoClick={() => openExerciseInfo(exercise)}
 						/>
 					{/each}
 					{#if filteredExercises.length === 0}

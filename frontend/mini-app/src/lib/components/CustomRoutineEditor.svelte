@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { PixelButton, PixelCard, PixelIcon } from '$lib/components/ui';
 	import PixelExerciseDemo from '$lib/components/ui/PixelExerciseDemo.svelte';
+	import ExerciseInfoModal from '$lib/components/ExerciseInfoModal.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { Exercise, CustomRoutine, CustomRoutineType, CustomRoutineCreate } from '$lib/types';
@@ -34,6 +35,7 @@
 	let showExercisePicker = $state(false);
 	let searchQuery = $state('');
 	let editingExerciseIndex = $state<number | null>(null);
+	let showInfoExercise = $state<Exercise | null>(null);
 
 	// Initialize from editing routine
 	$effect(() => {
@@ -338,27 +340,41 @@
 			<div class="picker-list">
 				{#each filteredExercises as exercise (exercise.id)}
 					{@const isAdded = selectedExercises.some(e => e.exercise.id === exercise.id)}
-					<button
-						class="picker-item"
-						class:added={isAdded}
-						onclick={() => { addExercise(exercise); showExercisePicker = false; }}
-						disabled={isAdded}
-					>
-						<div class="picker-item-demo">
-							<PixelExerciseDemo exercise={exercise.slug} size="sm" />
-						</div>
-						<div class="picker-item-info">
-							<span class="picker-item-name">{exercise.name_ru}</span>
-							<span class="picker-item-type">
-								{exercise.is_timed ? 'На время' : 'Повторения'}
-							</span>
-						</div>
-						{#if isAdded}
-							<PixelIcon name="check" size="sm" color="var(--pixel-green)" />
-						{:else}
-							<PixelIcon name="plus" size="sm" color="var(--pixel-accent)" />
-						{/if}
-					</button>
+					<div class="picker-item" class:added={isAdded}>
+						<button
+							class="picker-item-main"
+							onclick={() => { addExercise(exercise); showExercisePicker = false; }}
+							disabled={isAdded}
+						>
+							<div class="picker-item-demo">
+								<PixelExerciseDemo exercise={exercise.slug} size="sm" />
+							</div>
+							<div class="picker-item-info">
+								<span class="picker-item-name">{exercise.name_ru}</span>
+								<span class="picker-item-type">
+									{exercise.is_timed ? 'На время' : 'Повторения'}
+								</span>
+							</div>
+						</button>
+						<button
+							class="picker-item-action info"
+							onclick={() => { showInfoExercise = exercise; }}
+							title="Подробнее"
+						>
+							?
+						</button>
+						<button
+							class="picker-item-action add"
+							onclick={() => { addExercise(exercise); showExercisePicker = false; }}
+							disabled={isAdded}
+						>
+							{#if isAdded}
+								<PixelIcon name="check" size="sm" color="var(--pixel-green)" />
+							{:else}
+								<PixelIcon name="plus" size="sm" color="var(--pixel-accent)" />
+							{/if}
+						</button>
+					</div>
 				{/each}
 			</div>
 		</div>
@@ -434,6 +450,13 @@
 		</div>
 	</div>
 {/if}
+
+<!-- Exercise Info Modal -->
+<ExerciseInfoModal
+	exercise={showInfoExercise}
+	open={showInfoExercise !== null}
+	onclose={() => showInfoExercise = null}
+/>
 
 <style>
 	.editor-overlay {
@@ -784,16 +807,29 @@
 		background: var(--pixel-card);
 		border: 2px solid var(--border-color);
 		margin-bottom: var(--spacing-xs);
-		cursor: pointer;
-		text-align: left;
 	}
 
-	.picker-item:hover:not(:disabled) {
+	.picker-item:hover {
 		border-color: var(--pixel-accent);
 	}
 
 	.picker-item.added {
 		opacity: 0.5;
+	}
+
+	.picker-item-main {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		text-align: left;
+		min-width: 0;
+	}
+
+	.picker-item-main:disabled {
 		cursor: not-allowed;
 	}
 
@@ -814,6 +850,41 @@
 	.picker-item-type {
 		font-size: 10px;
 		color: var(--text-secondary);
+	}
+
+	.picker-item-action {
+		width: 28px;
+		height: 28px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		flex-shrink: 0;
+	}
+
+	.picker-item-action.info {
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-sm);
+		font-weight: bold;
+		color: var(--text-secondary);
+	}
+
+	.picker-item-action.info:hover {
+		border-color: var(--pixel-accent);
+		color: var(--pixel-accent);
+	}
+
+	.picker-item-action:hover {
+		transform: scale(1.1);
+	}
+
+	.picker-item-action:disabled {
+		cursor: not-allowed;
+		opacity: 0.5;
 	}
 
 	/* Settings modal */

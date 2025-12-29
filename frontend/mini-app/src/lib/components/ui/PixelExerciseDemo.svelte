@@ -1,12 +1,13 @@
 <script lang="ts">
 	interface Props {
-		exercise: string;
+		exercise?: string; // slug (optional if gifUrl provided)
+		gifUrl?: string; // direct URL from API
 		size?: 'sm' | 'md' | 'lg';
 		tip?: string;
 		autoplay?: boolean; // kept for API compatibility, animation is always on via CSS
 	}
 
-	let { exercise, size = 'md', tip = '', autoplay = true }: Props = $props();
+	let { exercise, gifUrl, size = 'md', tip = '', autoplay = true }: Props = $props();
 
 	const sizeMap = {
 		sm: 64,
@@ -16,7 +17,7 @@
 
 	const pixelSize = $derived(sizeMap[size]);
 
-	// Alias map for exercises with different slugs than their SVG filenames
+	// Alias map for exercises with different slugs than their SVG filenames (legacy fallback)
 	const aliasMap: Record<string, string> = {
 		'squat': 'squat-regular',
 		'pushup': 'pushup-regular',
@@ -28,9 +29,13 @@
 		'hang-passive': 'dead-hang'
 	};
 
-	// Use alias if exists, otherwise use slug directly (most SVGs match their slug)
-	const svgFile = $derived(aliasMap[exercise] || exercise);
-	const svgPath = $derived(`/sprites/exercises/${svgFile}.svg`);
+	// Use gifUrl from API if provided, otherwise fallback to slug-based path
+	const svgPath = $derived.by(() => {
+		if (gifUrl) return gifUrl;
+		if (!exercise) return '';
+		const svgFile = aliasMap[exercise] || exercise;
+		return `/sprites/exercises/${svgFile}.svg`;
+	});
 </script>
 
 <div class="exercise-animation" style="--size: {pixelSize}px">

@@ -105,9 +105,13 @@ async def load_exercises(session: AsyncSession) -> None:
         # Get tags from data or default empty list
         tags = ex_data.get("tags", [])
 
+        slug = ex_data["slug"]
+        # SVG animation URL based on slug
+        gif_url = f"/sprites/exercises/{slug}.svg"
+
         if not exercise:
             exercise = Exercise(
-                slug=ex_data["slug"],
+                slug=slug,
                 category_id=category_id,
                 name=ex_data["name"],
                 name_ru=ex_data["name_ru"],
@@ -119,7 +123,7 @@ async def load_exercises(session: AsyncSession) -> None:
                 required_level=ex_data.get("required_level", 1),
                 equipment=ex_data.get("equipment", "none"),
                 is_timed=is_timed,
-                gif_url=f"/static/exercises/{ex_data.get('gif')}" if ex_data.get("gif") else None,
+                gif_url=gif_url,
             )
             session.add(exercise)
             await session.flush()
@@ -128,6 +132,7 @@ async def load_exercises(session: AsyncSession) -> None:
             exercise.is_timed = is_timed
             exercise.tags = tags
             exercise.category_id = category_id
+            exercise.gif_url = gif_url
 
         slug_to_id[exercise.slug] = exercise.id
 

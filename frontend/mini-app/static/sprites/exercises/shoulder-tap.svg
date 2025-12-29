@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 48">
+  <style>
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shorts: #1E88E5;
+      --pixel-shoes: #424242;
+    }
+    .frame { opacity: 0; }
+    .frame1 { animation: frame1 1.6s steps(1) infinite; }
+    .frame2 { animation: frame2 1.6s steps(1) infinite; }
+
+    @keyframes frame1 { 0%, 50% { opacity: 1; } 50%, 100% { opacity: 0; } }
+    @keyframes frame2 { 0%, 50% { opacity: 0; } 50%, 100% { opacity: 1; } }
+  </style>
+
+  <!-- Кадр 1: Правая рука касается левого плеча -->
+  <g class="frame frame1">
+    <rect x="4" y="10" width="12" height="10" fill="var(--pixel-skin)"/>
+    <rect x="10" y="14" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="4" y="8" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Левая рука опора -->
+    <rect x="4" y="20" width="6" height="14" fill="var(--pixel-skin)"/>
+    <!-- Правая рука касается плеча -->
+    <rect x="12" y="18" width="8" height="6" fill="var(--pixel-skin)"/>
+    <rect x="14" y="16" width="24" height="10" fill="var(--pixel-shirt)"/>
+    <rect x="36" y="18" width="12" height="8" fill="var(--pixel-shorts)"/>
+    <rect x="46" y="22" width="6" height="10" fill="var(--pixel-skin)"/>
+    <rect x="54" y="22" width="6" height="10" fill="var(--pixel-skin)"/>
+    <rect x="44" y="30" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="54" y="30" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="0" y="38" width="64" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  </g>
+
+  <!-- Кадр 2: Левая рука касается правого плеча -->
+  <g class="frame frame2">
+    <rect x="4" y="10" width="12" height="10" fill="var(--pixel-skin)"/>
+    <rect x="10" y="14" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="4" y="8" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Правая рука опора -->
+    <rect x="12" y="20" width="6" height="14" fill="var(--pixel-skin)"/>
+    <!-- Левая рука касается плеча -->
+    <rect x="4" y="18" width="8" height="6" fill="var(--pixel-skin)"/>
+    <rect x="14" y="16" width="24" height="10" fill="var(--pixel-shirt)"/>
+    <rect x="36" y="18" width="12" height="8" fill="var(--pixel-shorts)"/>
+    <rect x="46" y="22" width="6" height="10" fill="var(--pixel-skin)"/>
+    <rect x="54" y="22" width="6" height="10" fill="var(--pixel-skin)"/>
+    <rect x="44" y="30" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="54" y="30" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="0" y="38" width="64" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  </g>
+</svg>

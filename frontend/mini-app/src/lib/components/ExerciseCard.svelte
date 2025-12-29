@@ -9,8 +9,10 @@
 		isSelected?: boolean;
 		showCheckbox?: boolean;
 		showFavorite?: boolean;
+		showInfo?: boolean;
 		categoryColor?: string;
 		onSelect?: () => void;
+		onInfoClick?: () => void;
 	}
 
 	let {
@@ -18,8 +20,10 @@
 		isSelected = false,
 		showCheckbox = true,
 		showFavorite = true,
+		showInfo = true,
 		categoryColor = 'var(--pixel-accent)',
-		onSelect
+		onSelect,
+		onInfoClick
 	}: Props = $props();
 
 	const isFavorite = $derived(favoritesStore.isFavorite(exercise.id));
@@ -37,6 +41,12 @@
 	function handleFavoriteClick(e: Event) {
 		e.stopPropagation();
 		favoritesStore.toggleFavorite(exercise.id);
+	}
+
+	function handleInfoClick(e: Event) {
+		e.stopPropagation();
+		telegram.hapticImpact('light');
+		onInfoClick?.();
 	}
 </script>
 
@@ -58,6 +68,15 @@
 				<span class="xp-badge">+{exercise.base_xp} XP</span>
 			</span>
 		</div>
+		{#if showInfo}
+			<button
+				class="info-btn"
+				onclick={handleInfoClick}
+				title="Подробнее"
+			>
+				?
+			</button>
+		{/if}
 		{#if showFavorite}
 			<button
 				class="favorite-btn"
@@ -126,6 +145,32 @@
 
 	.xp-badge {
 		color: var(--pixel-green);
+	}
+
+	.info-btn {
+		width: 28px;
+		height: 28px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+		cursor: pointer;
+		flex-shrink: 0;
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-sm);
+		font-weight: bold;
+		color: var(--text-secondary);
+		transition: all var(--transition-fast);
+	}
+
+	.info-btn:hover {
+		border-color: var(--pixel-accent);
+		color: var(--pixel-accent);
+	}
+
+	.info-btn:active {
+		transform: scale(1.1);
 	}
 
 	.favorite-btn {
