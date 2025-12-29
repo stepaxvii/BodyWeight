@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from typing import List
 from fastapi import APIRouter, Query
@@ -8,6 +9,7 @@ from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import User, WorkoutSession, Friendship
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 class LeaderboardEntry(BaseModel):
@@ -34,12 +36,16 @@ async def get_global_leaderboard(
     limit: int = Query(50, ge=1, le=100),
 ):
     """Get global leaderboard by total XP."""
+    logger.info(f"[Leaderboard] Getting global leaderboard, user_id={user.id}, limit={limit}")
+
     result = await session.execute(
         select(User)
         .order_by(User.total_xp.desc())
         .limit(limit)
     )
     users = result.scalars().all()
+
+    logger.info(f"[Leaderboard] Found {len(users)} users")
 
     entries = []
     current_user_rank = None

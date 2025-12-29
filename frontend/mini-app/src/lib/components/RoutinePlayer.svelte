@@ -161,12 +161,12 @@
 			const completed = await api.completeWorkout(workoutSessionId);
 			stopTimer();
 			isCompleted = true;
-			totalXpEarned = completed.total_xp_earned;
-			totalCoinsEarned = completed.total_coins_earned;
+			totalXpEarned = completed.workout.total_xp_earned;
+			totalCoinsEarned = completed.workout.total_coins_earned;
 
 			// Update user stats
-			userStore.addXp(completed.total_xp_earned);
-			userStore.addCoins(completed.total_coins_earned);
+			userStore.addXp(completed.workout.total_xp_earned);
+			userStore.addCoins(completed.workout.total_coins_earned);
 
 			telegram.hapticNotification('success');
 		} catch (err) {
@@ -259,22 +259,39 @@
 				<p class="completion-subtitle">Комплекс выполнен</p>
 			</div>
 
-			<PixelCard variant="accent" padding="lg">
-				<div class="completion-stats">
+			<div class="completion-stats-grid">
+				<PixelCard padding="md">
 					<div class="completion-stat">
+						<PixelIcon name="timer" size="lg" color="var(--pixel-accent)" />
 						<span class="stat-value">{formattedTotalTime}</span>
 						<span class="stat-label">Время</span>
 					</div>
+				</PixelCard>
+
+				<PixelCard padding="md">
 					<div class="completion-stat">
+						<PixelIcon name="xp" size="lg" color="var(--pixel-green)" />
 						<span class="stat-value text-green">+{totalXpEarned}</span>
-						<span class="stat-label">XP</span>
+						<span class="stat-label">Опыт</span>
 					</div>
+				</PixelCard>
+
+				<PixelCard padding="md">
 					<div class="completion-stat">
+						<PixelIcon name="coin" size="lg" color="var(--pixel-yellow)" />
 						<span class="stat-value text-yellow">+{totalCoinsEarned}</span>
 						<span class="stat-label">Монеты</span>
 					</div>
-				</div>
-			</PixelCard>
+				</PixelCard>
+
+				<PixelCard padding="md">
+					<div class="completion-stat">
+						<PixelIcon name="play" size="lg" color="var(--pixel-blue)" />
+						<span class="stat-value text-blue">{routine.exercises.length}</span>
+						<span class="stat-label">Упражнений</span>
+					</div>
+				</PixelCard>
+			</div>
 
 			<div class="completion-actions">
 				<PixelButton variant="success" size="lg" fullWidth onclick={handleClose}>
@@ -681,9 +698,10 @@
 		margin: var(--spacing-xs) 0 0 0;
 	}
 
-	.completion-stats {
-		display: flex;
-		justify-content: space-around;
+	.completion-stats-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: var(--spacing-md);
 		width: 100%;
 	}
 
@@ -692,10 +710,12 @@
 		flex-direction: column;
 		align-items: center;
 		gap: var(--spacing-xs);
+		padding: var(--spacing-sm) 0;
 	}
 
 	.stat-value {
-		font-size: var(--font-size-lg);
+		font-size: var(--font-size-xl);
+		font-weight: bold;
 	}
 
 	.stat-label {
@@ -711,4 +731,5 @@
 
 	.text-green { color: var(--pixel-green); }
 	.text-yellow { color: var(--pixel-yellow); }
+	.text-blue { color: var(--pixel-blue); }
 </style>

@@ -1,16 +1,22 @@
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+
+# Get absolute path to backend directory
+BACKEND_DIR = Path(__file__).parent.parent.resolve()
+DEFAULT_DB_PATH = BACKEND_DIR / "bodyweight.db"
 
 
 class Settings(BaseSettings):
     # Telegram Bot
     bot_token: str = ""
+    bot_username: str = ""  # Bot username without @, e.g. "bodyweight_bot"
 
     # Security
     secret_key: str = "change-me-in-production"
 
-    # Database
-    database_url: str = "sqlite+aiosqlite:///./bodyweight.db"
+    # Database (use absolute path to ensure bot and API use same DB)
+    database_url: str = f"sqlite+aiosqlite:///{DEFAULT_DB_PATH}"
 
     # Mini App URL
     mini_app_url: str = "https://stepaproject.ru/bodyweight"

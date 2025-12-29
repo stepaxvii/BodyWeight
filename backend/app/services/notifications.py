@@ -1,6 +1,6 @@
 import logging
 from aiogram import Bot
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
@@ -27,14 +27,14 @@ def get_bot() -> Bot:
 
 def get_friend_requests_keyboard() -> InlineKeyboardMarkup:
     """Get keyboard with button to open friend requests page."""
-    # Add startapp parameter to open specific tab
-    url = f"{settings.mini_app_url}?startapp=friends_requests"
+    # Use t.me link with startapp parameter for deep linking
+    url = f"https://t.me/{settings.bot_username}?startapp=friends_requests"
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
                     text="👀 Посмотреть заявки",
-                    web_app=WebAppInfo(url=url),
+                    url=url,
                 )
             ]
         ]
@@ -79,13 +79,13 @@ async def send_friend_request_notification(
 
 def get_workout_keyboard() -> InlineKeyboardMarkup:
     """Get keyboard with button to open workout page."""
-    url = f"{settings.mini_app_url}?startapp=workout"
+    url = f"https://t.me/{settings.bot_username}?startapp=workout"
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
                     text="💪 Начать тренировку",
-                    web_app=WebAppInfo(url=url),
+                    url=url,
                 )
             ]
         ]
@@ -94,13 +94,13 @@ def get_workout_keyboard() -> InlineKeyboardMarkup:
 
 def get_friends_keyboard() -> InlineKeyboardMarkup:
     """Get keyboard with button to open friends page."""
-    url = f"{settings.mini_app_url}?startapp=friends"
+    url = f"https://t.me/{settings.bot_username}?startapp=friends"
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
                     text="👥 Посмотреть друзей",
-                    web_app=WebAppInfo(url=url),
+                    url=url,
                 )
             ]
         ]

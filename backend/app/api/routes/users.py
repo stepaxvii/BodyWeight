@@ -1,4 +1,4 @@
-from datetime import date, time, datetime
+from datetime import date, time, datetime, timedelta
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import select, func
@@ -6,6 +6,11 @@ from sqlalchemy import select, func
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import User, WorkoutSession, UserAchievement
 from app.services.xp_calculator import xp_for_level, get_level_from_xp
+
+
+def get_week_start(d: date) -> date:
+    """Get Monday of the current week."""
+    return d - timedelta(days=d.weekday())
 
 router = APIRouter()
 
@@ -44,6 +49,8 @@ class UserStatsResponse(BaseModel):
     max_streak: int
     achievements_count: int
     coins: int
+    this_week_workouts: int
+    this_week_xp: int
 
 
 class UpdateUserRequest(BaseModel):
@@ -121,6 +128,24 @@ async def get_current_user_stats(
     )
     achievements_count = achievements_result.scalar() or 0
 
+    # This week stats
+    week_start = get_week_start(date.today())
+    week_workouts_result = await session.execute(
+        select(func.count(WorkoutSession.id))
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "completed")
+        .where(func.date(WorkoutSession.started_at) >= week_start)
+    )
+    this_week_workouts = week_workouts_result.scalar() or 0
+
+    week_xp_result = await session.execute(
+        select(func.sum(WorkoutSession.total_xp_earned))
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "completed")
+        .where(func.date(WorkoutSession.started_at) >= week_start)
+    )
+    this_week_xp = week_xp_result.scalar() or 0
+
     # Level progress
     current_level = user.level
     current_level_xp = xp_for_level(current_level)
@@ -140,6 +165,8 @@ async def get_current_user_stats(
         max_streak=user.max_streak,
         achievements_count=achievements_count,
         coins=user.coins,
+        this_week_workouts=this_week_workouts,
+        this_week_xp=this_week_xp,
     )
 
 

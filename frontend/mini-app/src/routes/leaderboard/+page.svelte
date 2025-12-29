@@ -8,6 +8,7 @@
 	let entries = $state<LeaderboardEntry[]>([]);
 	let activeTab = $state<LeaderboardType>('global');
 	let isLoading = $state(true);
+	let error = $state<string | null>(null);
 
 	const tabs: { id: LeaderboardType; label: string }[] = [
 		{ id: 'global', label: 'Все' },
@@ -21,8 +22,17 @@
 
 	async function loadLeaderboard() {
 		isLoading = true;
-		entries = await api.getLeaderboard(activeTab);
-		isLoading = false;
+		error = null;
+		try {
+			entries = await api.getLeaderboard(activeTab);
+			console.log(`[Leaderboard] Loaded ${entries.length} entries for tab '${activeTab}'`);
+		} catch (err) {
+			console.error('Failed to load leaderboard:', err);
+			error = err instanceof Error ? err.message : 'Ошибка загрузки рейтинга';
+			entries = [];
+		} finally {
+			isLoading = false;
+		}
 	}
 
 	async function switchTab(tab: LeaderboardType) {
@@ -70,6 +80,11 @@
 		<div class="loading">
 			<div class="pixel-spinner"></div>
 			<span>Загрузка...</span>
+		</div>
+	{:else if error}
+		<div class="empty-state">
+			<PixelIcon name="trophy" size="xl" color="var(--pixel-red)" />
+			<p>{error}</p>
 		</div>
 	{:else if entries.length === 0}
 		<div class="empty-state">

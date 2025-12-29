@@ -89,7 +89,7 @@
 				size="lg"
 			/>
 			<div class="xp-footer">
-				<span class="text-muted">До следующего уровня: {xpNeeded} XP</span>
+				<span class="text-muted">До следующего уровня: {xpNeeded - xpInLevel} XP</span>
 			</div>
 		</PixelCard>
 	</section>

@@ -39,7 +39,19 @@ class WorkoutStore {
 	}
 
 	get totalXp() {
-		return this.session?.total_xp_earned ?? 0;
+		// If workout completed, use session total
+		if (this.session?.total_xp_earned) {
+			return this.session.total_xp_earned;
+		}
+		// Otherwise calculate locally from exercise data
+		let total = 0;
+		this.exerciseData.forEach(data => {
+			if (data.exercise && data.sets.length > 0) {
+				// XP = base_xp * number_of_sets
+				total += data.exercise.base_xp * data.sets.length;
+			}
+		});
+		return total;
 	}
 
 	get totalCoins() {

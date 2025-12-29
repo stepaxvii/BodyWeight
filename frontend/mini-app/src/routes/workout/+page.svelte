@@ -369,11 +369,51 @@
 				<!-- Restored workout from server - show exercises with add set controls -->
 				{#each workoutStore.session.exercises as we (we.exercise_id)}
 					{@const data = workoutStore.getExerciseData(we.exercise_id)}
+					{@const animationSlug = we.exercise_slug}
+					{@const fullExercise = exercises.find(e => e.slug === we.exercise_slug)}
+					{@const isFavorite = favoritesStore.isFavorite(we.exercise_id)}
 					<PixelCard padding="md">
 						<div class="exercise-card">
 							<div class="exercise-header">
 								<span class="exercise-name">{we.exercise_name_ru}</span>
+								<div class="exercise-header-right">
+									<button
+										class="favorite-toggle"
+										onclick={() => favoritesStore.toggleFavorite(we.exercise_id)}
+										title={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}
+									>
+										<PixelIcon
+											name={isFavorite ? 'heart' : 'heart-empty'}
+											size="sm"
+											color={isFavorite ? 'var(--pixel-red)' : 'var(--text-secondary)'}
+										/>
+									</button>
+									{#if fullExercise}
+										<button
+											class="info-toggle"
+											onclick={() => openExerciseInfo(fullExercise)}
+											title="Описание упражнения"
+										>
+											?
+										</button>
+									{/if}
+									<button
+										class="demo-toggle"
+										class:active={showDemoForExercise === we.exercise_id}
+										onclick={() => toggleExerciseDemo(we.exercise_id)}
+										title="Показать технику"
+									>
+										<PixelIcon name="play" size="sm" color={showDemoForExercise === we.exercise_id ? "var(--pixel-bg)" : "var(--pixel-accent)"} />
+									</button>
+								</div>
 							</div>
+
+							<!-- Animation demo -->
+							{#if showDemoForExercise === we.exercise_id}
+								<div class="demo-container">
+									<PixelExerciseDemo exercise={animationSlug} size="md" autoplay={true} />
+								</div>
+							{/if}
 
 							<!-- Show previous totals -->
 							<div class="sets-list">
