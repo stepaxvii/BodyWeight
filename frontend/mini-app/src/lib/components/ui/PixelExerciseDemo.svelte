@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { base } from '$app/paths';
+
 	interface Props {
 		exercise?: string; // slug (optional if gifUrl provided)
 		gifUrl?: string; // direct URL from API
@@ -34,7 +36,7 @@
 		if (gifUrl) return gifUrl;
 		if (!exercise) return '';
 		const svgFile = aliasMap[exercise] || exercise;
-		return `/sprites/exercises/${svgFile}.svg`;
+		return `${base}/sprites/exercises/${svgFile}.svg`;
 	});
 </script>
 

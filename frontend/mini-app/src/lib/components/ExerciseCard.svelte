@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import { PixelCard, PixelIcon } from '$lib/components/ui';
 	import { favoritesStore } from '$lib/stores/favorites.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
@@ -38,7 +39,7 @@
 			'static-stretch': 'cat_stretch'
 		};
 		const iconName = iconMap[categorySlug] || 'cat_push';
-		return `/sprites/categories/${iconName}.svg`;
+		return `${base}/sprites/categories/${iconName}.svg`;
 	}
 
 	function getDifficultyStars(difficulty: number): string {
