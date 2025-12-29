@@ -25,16 +25,15 @@ def get_bot() -> Bot:
     return _bot
 
 
-def get_friend_requests_keyboard() -> InlineKeyboardMarkup:
-    """Get keyboard with button to open friend requests page."""
-    # Use t.me/bot/app?startapp=param format for Mini App deep linking
-    url = f"https://t.me/{settings.bot_username}/{settings.mini_app_name}?startapp=friends_requests"
+def get_open_app_keyboard() -> InlineKeyboardMarkup:
+    """Get keyboard with button to open the Mini App."""
+    from aiogram.types import WebAppInfo
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="👀 Посмотреть заявки",
-                    url=url,
+                    text="Открыть приложение",
+                    web_app=WebAppInfo(url=settings.mini_app_url),
                 )
             ]
         ]
@@ -66,7 +65,7 @@ async def send_friend_request_notification(
         await bot.send_message(
             chat_id=telegram_id,
             text=text,
-            reply_markup=get_friend_requests_keyboard(),
+            reply_markup=get_open_app_keyboard(),
         )
 
         logger.info(f"Friend request notification sent to {telegram_id}")
@@ -77,34 +76,6 @@ async def send_friend_request_notification(
         return False
 
 
-def get_workout_keyboard() -> InlineKeyboardMarkup:
-    """Get keyboard with button to open workout page."""
-    url = f"https://t.me/{settings.bot_username}/{settings.mini_app_name}?startapp=workout"
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="💪 Начать тренировку",
-                    url=url,
-                )
-            ]
-        ]
-    )
-
-
-def get_friends_keyboard() -> InlineKeyboardMarkup:
-    """Get keyboard with button to open friends page."""
-    url = f"https://t.me/{settings.bot_username}/{settings.mini_app_name}?startapp=friends"
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="👥 Посмотреть друзей",
-                    url=url,
-                )
-            ]
-        ]
-    )
 
 
 async def send_daily_reminder(telegram_id: int, streak: int = 0) -> bool:
@@ -137,7 +108,7 @@ async def send_daily_reminder(telegram_id: int, streak: int = 0) -> bool:
         await bot.send_message(
             chat_id=telegram_id,
             text=text,
-            reply_markup=get_workout_keyboard(),
+            reply_markup=get_open_app_keyboard(),
         )
 
         logger.info(f"Daily reminder sent to {telegram_id}")
@@ -172,7 +143,7 @@ async def send_inactivity_reminder(telegram_id: int, days_inactive: int) -> bool
         await bot.send_message(
             chat_id=telegram_id,
             text=text,
-            reply_markup=get_workout_keyboard(),
+            reply_markup=get_open_app_keyboard(),
         )
 
         logger.info(f"Inactivity reminder sent to {telegram_id} ({days_inactive} days)")
@@ -209,7 +180,7 @@ async def send_friend_accepted_notification(
         await bot.send_message(
             chat_id=telegram_id,
             text=text,
-            reply_markup=get_friends_keyboard(),
+            reply_markup=get_open_app_keyboard(),
         )
 
         logger.info(f"Friend accepted notification sent to {telegram_id}")

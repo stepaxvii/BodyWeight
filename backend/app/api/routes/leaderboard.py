@@ -38,14 +38,21 @@ async def get_global_leaderboard(
     """Get global leaderboard by total XP."""
     logger.info(f"[Leaderboard] Getting global leaderboard, user_id={user.id}, limit={limit}")
 
+    # Debug: count all users
+    count_result = await session.execute(select(func.count(User.id)))
+    total_count = count_result.scalar()
+    logger.info(f"[Leaderboard] Total users in database: {total_count}")
+
     result = await session.execute(
         select(User)
         .order_by(User.total_xp.desc())
         .limit(limit)
     )
-    users = result.scalars().all()
+    users = list(result.scalars().all())
 
-    logger.info(f"[Leaderboard] Found {len(users)} users")
+    logger.info(f"[Leaderboard] Found {len(users)} users in query result")
+    for u in users[:3]:  # Log first 3 users for debug
+        logger.info(f"[Leaderboard] User: id={u.id}, username={u.username}, xp={u.total_xp}")
 
     entries = []
     current_user_rank = None
@@ -145,6 +152,8 @@ async def get_friends_leaderboard(
     user: CurrentUser,
 ):
     """Get leaderboard among friends."""
+    logger.info(f"[Leaderboard/Friends] Getting friends leaderboard, user_id={user.id}")
+
     # Get friend IDs
     friends_result = await session.execute(
         select(Friendship.friend_id)
@@ -152,9 +161,11 @@ async def get_friends_leaderboard(
         .where(Friendship.status == "accepted")
     )
     friend_ids = [row[0] for row in friends_result.all()]
+    logger.info(f"[Leaderboard/Friends] Found {len(friend_ids)} friends: {friend_ids}")
 
     # Include current user
     all_ids = friend_ids + [user.id]
+    logger.info(f"[Leaderboard/Friends] All IDs to fetch: {all_ids}")
 
     result = await session.execute(
         select(User)
@@ -162,6 +173,7 @@ async def get_friends_leaderboard(
         .order_by(User.total_xp.desc())
     )
     users = result.scalars().all()
+    logger.info(f"[Leaderboard/Friends] Found {len(users)} users")
 
     entries = []
     current_user_rank = None
