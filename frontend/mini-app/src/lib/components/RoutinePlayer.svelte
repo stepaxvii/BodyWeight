@@ -34,6 +34,7 @@
 	let workoutSessionId = $state<number | null>(null);
 	let totalXpEarned = $state(0);
 	let totalCoinsEarned = $state(0);
+	let completedExercisesCount = $state(0);
 
 	const currentExercise = $derived(routine.exercises[currentStep]);
 	const exerciseData = $derived(allExercises.find(e => e.slug === currentExercise?.slug));
@@ -139,6 +140,7 @@
 
 			totalXpEarned = result.total_xp_earned;
 			totalCoinsEarned = result.total_coins_earned;
+			completedExercisesCount++;
 
 			// Move to next exercise or complete
 			if (currentStep < routine.exercises.length - 1) {

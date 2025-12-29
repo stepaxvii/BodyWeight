@@ -648,6 +648,25 @@ class ApiClient {
 			method: 'POST'
 		});
 	}
+
+	// ============== Notifications ==============
+
+	async getUnreadNotificationCount(): Promise<number> {
+		if (this.useMocks) {
+			return 0;
+		}
+		const response = await this.request<{ count: number }>('/notifications/unread-count');
+		return response.count;
+	}
+
+	async markNotificationsRead(): Promise<void> {
+		if (this.useMocks) {
+			return;
+		}
+		await this.request('/notifications/mark-read', {
+			method: 'POST'
+		});
+	}
 }
 
 export const api = new ApiClient();

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy import select, or_, and_
 
 from app.api.deps import AsyncSessionDep, CurrentUser
-from app.db.models import User, Friendship
+from app.db.models import User, Friendship, Notification
 from app.services.notifications import send_friend_request_notification, send_friend_accepted_notification
 
 router = APIRouter()
@@ -164,6 +164,17 @@ async def add_friend(
         from_user_name=from_name,
     )
 
+    # Save notification to database for badge counter
+    notification = Notification(
+        user_id=target_user.id,
+        notification_type="friend_request",
+        title="Новая заявка в друзья!",
+        message=f"{from_name} хочет добавить тебя в друзья.",
+        related_user_id=user.id,
+    )
+    session.add(notification)
+    await session.flush()
+
     return FriendResponse(
         id=friendship.id,
         user_id=target_user.id,
@@ -225,6 +236,17 @@ async def accept_friend_request(
         telegram_id=friend_user.telegram_id,
         friend_name=accepter_name,
     )
+
+    # Save notification to database for badge counter
+    notification = Notification(
+        user_id=friend_user.id,
+        notification_type="friend_accepted",
+        title="Заявка принята!",
+        message=f"{accepter_name} теперь твой друг.",
+        related_user_id=user.id,
+    )
+    session.add(notification)
+    await session.flush()
 
     return FriendResponse(
         id=reverse.id,

@@ -361,3 +361,34 @@ class UserCustomRoutineExercise(Base):
     # Relationships
     routine: Mapped["UserCustomRoutine"] = relationship(back_populates="exercises")
     exercise: Mapped["Exercise"] = relationship()
+
+
+class Notification(Base):
+    """User notifications stored for badge display."""
+    __tablename__ = "notifications"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+
+    # Notification type: friend_request, friend_accepted, daily_reminder, inactivity_reminder
+    notification_type: Mapped[str] = mapped_column(String(50), nullable=False)
+
+    # Title and message for display
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # Read status
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+
+    # Related data (e.g., friend_id for friend requests)
+    related_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    # Relationships
+    user: Mapped["User"] = relationship(foreign_keys=[user_id])
+    related_user: Mapped[Optional["User"]] = relationship(foreign_keys=[related_user_id])
+
+    __table_args__ = (
+        Index("idx_notifications_user_unread", "user_id", "is_read"),
+    )

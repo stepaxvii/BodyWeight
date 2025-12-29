@@ -36,7 +36,7 @@ async def get_global_leaderboard(
     limit: int = Query(50, ge=1, le=100),
 ):
     """Get global leaderboard by total XP."""
-    logger.info(f"[Leaderboard] Getting global leaderboard, user_id={user.id}, limit={limit}")
+    logger.warning(f"[Leaderboard/Global] === REQUEST RECEIVED === user_id={user.id}, limit={limit}")
 
     # Debug: count all users
     count_result = await session.execute(select(func.count(User.id)))

@@ -139,7 +139,8 @@
 		<!-- Full List -->
 		<div class="leaderboard-list">
 			{#each entries as entry, i}
-				{@const showInList = activeTab === 'friends' || i >= 3}
+				{@const hasPodium = activeTab !== 'friends' && entries.length >= 3}
+				{@const showInList = activeTab === 'friends' || !hasPodium || i >= 3}
 				{#if showInList}
 					<PixelCard variant={entry.is_current_user ? 'accent' : 'default'} padding="sm">
 						<div class="entry" class:current-user={entry.is_current_user}>

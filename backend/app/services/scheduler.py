@@ -16,7 +16,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
 from app.db.models import User
-from app.services.notifications import send_daily_reminder, send_inactivity_reminder
+from app.services.notifications import send_daily_reminder, send_inactivity_reminder, save_notification
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +72,20 @@ async def check_daily_reminders(session: AsyncSession) -> int:
 
             if success:
                 sent_count += 1
+                # Save notification to database
+                if user.current_streak > 0:
+                    title = "Время тренировки!"
+                    message = f"Твой streak: {user.current_streak} дней подряд! Не останавливайся!"
+                else:
+                    title = "Время тренировки!"
+                    message = "Начни свой день с упражнений. Даже 10 минут — это уже прогресс!"
+                await save_notification(
+                    session=session,
+                    user_id=user.id,
+                    notification_type="daily_reminder",
+                    title=title,
+                    message=message,
+                )
 
     if sent_count > 0:
         logger.info(f"Sent {sent_count} daily reminders")
@@ -112,6 +126,14 @@ async def check_inactivity_reminders(session: AsyncSession) -> int:
 
         if success:
             sent_count += 1
+            # Save notification to database
+            await save_notification(
+                session=session,
+                user_id=user.id,
+                notification_type="inactivity_reminder",
+                title="Мы скучаем!",
+                message="Прошло уже 3 дня без тренировок. Твои мышцы тоже скучают!",
+            )
 
     if sent_count > 0:
         logger.info(f"Sent {sent_count} inactivity reminders")

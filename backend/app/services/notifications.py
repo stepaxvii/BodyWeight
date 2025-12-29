@@ -3,6 +3,7 @@ from aiogram import Bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 
@@ -38,6 +39,28 @@ def get_open_app_keyboard() -> InlineKeyboardMarkup:
             ]
         ]
     )
+
+
+async def save_notification(
+    session: AsyncSession,
+    user_id: int,
+    notification_type: str,
+    title: str,
+    message: str,
+    related_user_id: int | None = None,
+) -> None:
+    """Save notification to database for badge display."""
+    from app.db.models import Notification
+
+    notification = Notification(
+        user_id=user_id,
+        notification_type=notification_type,
+        title=title,
+        message=message,
+        related_user_id=related_user_id,
+    )
+    session.add(notification)
+    await session.flush()
 
 
 async def send_friend_request_notification(

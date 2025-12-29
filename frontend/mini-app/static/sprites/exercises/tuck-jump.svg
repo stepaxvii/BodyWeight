@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 72">
+  <style>
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shorts: #1E88E5;
+      --pixel-shoes: #424242;
+    }
+    .frame { opacity: 0; }
+    .frame1 { animation: frame1 1.6s steps(1) infinite; }
+    .frame2 { animation: frame2 1.6s steps(1) infinite; }
+    .frame3 { animation: frame3 1.6s steps(1) infinite; }
+    .frame4 { animation: frame4 1.6s steps(1) infinite; }
+
+    @keyframes frame1 { 0%, 100% { opacity: 1; } 25% { opacity: 0; } }
+    @keyframes frame2 { 0% { opacity: 0; } 25% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes frame3 { 0% { opacity: 0; } 50% { opacity: 1; } 75% { opacity: 0; } }
+    @keyframes frame4 { 0% { opacity: 0; } 75% { opacity: 1; } 100% { opacity: 0; } }
+  </style>
+
+  <!-- Кадр 1: Присед -->
+  <g class="frame frame1">
+    <rect x="18" y="24" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="20" y="28" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="18" y="22" width="12" height="4" fill="var(--pixel-hair)"/>
+    <rect x="16" y="36" width="16" height="12" fill="var(--pixel-shirt)"/>
+    <rect x="18" y="48" width="12" height="6" fill="var(--pixel-shorts)"/>
+    <rect x="10" y="52" width="12" height="8" fill="var(--pixel-skin)"/>
+    <rect x="26" y="52" width="12" height="8" fill="var(--pixel-skin)"/>
+    <rect x="8" y="58" width="10" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="30" y="58" width="10" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="0" y="64" width="48" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  </g>
+
+  <!-- Кадр 2: Взлёт -->
+  <g class="frame frame2">
+    <rect x="18" y="12" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="20" y="16" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="18" y="10" width="12" height="4" fill="var(--pixel-hair)"/>
+    <rect x="16" y="24" width="16" height="14" fill="var(--pixel-shirt)"/>
+    <rect x="18" y="38" width="12" height="6" fill="var(--pixel-shorts)"/>
+    <rect x="16" y="42" width="8" height="10" fill="var(--pixel-skin)"/>
+    <rect x="24" y="42" width="8" height="10" fill="var(--pixel-skin)"/>
+    <rect x="14" y="50" width="10" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="24" y="50" width="10" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="0" y="64" width="48" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  </g>
+
+  <!-- Кадр 3: Tuck (колени к груди) -->
+  <g class="frame frame3">
+    <rect x="18" y="4" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="20" y="8" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="18" y="2" width="12" height="4" fill="var(--pixel-hair)"/>
+    <rect x="16" y="16" width="16" height="12" fill="var(--pixel-shirt)"/>
+    <rect x="18" y="28" width="12" height="6" fill="var(--pixel-shorts)"/>
+    <!-- Колени подтянуты к груди -->
+    <rect x="12" y="28" width="10" height="8" fill="var(--pixel-skin)"/>
+    <rect x="26" y="28" width="10" height="8" fill="var(--pixel-skin)"/>
+    <rect x="10" y="34" width="10" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="28" y="34" width="10" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="0" y="64" width="48" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  </g>
+
+  <!-- Кадр 4: Приземление -->
+  <g class="frame frame4">
+    <rect x="18" y="12" width="12" height="12" fill="var(--pixel-skin)"/>
+    <rect x="20" y="16" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="18" y="10" width="12" height="4" fill="var(--pixel-hair)"/>
+    <rect x="16" y="24" width="16" height="14" fill="var(--pixel-shirt)"/>
+    <rect x="18" y="38" width="12" height="6" fill="var(--pixel-shorts)"/>
+    <rect x="16" y="42" width="8" height="10" fill="var(--pixel-skin)"/>
+    <rect x="24" y="42" width="8" height="10" fill="var(--pixel-skin)"/>
+    <rect x="14" y="50" width="10" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="24" y="50" width="10" height="4" fill="var(--pixel-shoes)"/>
+    <rect x="0" y="64" width="48" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+  </g>
+</svg>
