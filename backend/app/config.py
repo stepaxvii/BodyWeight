@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     # Telegram Bot
     bot_token: str = ""
     bot_username: str = ""  # Bot username without @, e.g. "bodyweight_bot"
+    mini_app_name: str = ""  # Mini App short name from BotFather, e.g. "bodyweight"
 
     # Security
     secret_key: str = "change-me-in-production"

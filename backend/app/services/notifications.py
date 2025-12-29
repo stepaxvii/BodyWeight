@@ -27,8 +27,8 @@ def get_bot() -> Bot:
 
 def get_friend_requests_keyboard() -> InlineKeyboardMarkup:
     """Get keyboard with button to open friend requests page."""
-    # Use t.me link with startapp parameter for deep linking
-    url = f"https://t.me/{settings.bot_username}?startapp=friends_requests"
+    # Use t.me/bot/app?startapp=param format for Mini App deep linking
+    url = f"https://t.me/{settings.bot_username}/{settings.mini_app_name}?startapp=friends_requests"
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -79,7 +79,7 @@ async def send_friend_request_notification(
 
 def get_workout_keyboard() -> InlineKeyboardMarkup:
     """Get keyboard with button to open workout page."""
-    url = f"https://t.me/{settings.bot_username}?startapp=workout"
+    url = f"https://t.me/{settings.bot_username}/{settings.mini_app_name}?startapp=workout"
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -94,7 +94,7 @@ def get_workout_keyboard() -> InlineKeyboardMarkup:
 
 def get_friends_keyboard() -> InlineKeyboardMarkup:
     """Get keyboard with button to open friends page."""
-    url = f"https://t.me/{settings.bot_username}?startapp=friends"
+    url = f"https://t.me/{settings.bot_username}/{settings.mini_app_name}?startapp=friends"
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
