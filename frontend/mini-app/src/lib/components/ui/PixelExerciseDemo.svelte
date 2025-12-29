@@ -34,7 +34,17 @@
 </script>
 
 <div class="exercise-animation" style="--size: {pixelSize}px">
-	<img src={svgPath} alt={exercise} class="pixel-svg" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+	<img
+		src={svgPath}
+		alt={exercise}
+		class="pixel-svg"
+		onerror={(e) => {
+			const img = e.currentTarget as HTMLImageElement;
+			img.style.display = 'none';
+			const fallback = img.nextElementSibling as HTMLElement;
+			if (fallback) fallback.style.display = 'flex';
+		}}
+	/>
 	<div class="fallback" style="display: none;">?</div>
 
 	{#if tip}
