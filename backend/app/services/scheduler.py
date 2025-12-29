@@ -5,18 +5,23 @@ This module provides functions to check and send notifications:
 - Daily workout reminders (based on user's notification_time setting)
 - Inactivity reminders (after 3 days without workout)
 
-Should be called periodically (e.g., every minute via cron or background task).
+Includes built-in APScheduler integration for automatic scheduling.
 """
 
 import logging
 from datetime import datetime, date, timedelta, time
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 
 from app.db.models import User
 from app.services.notifications import send_daily_reminder, send_inactivity_reminder
 
 logger = logging.getLogger(__name__)
+
+# Global scheduler instance
+scheduler: AsyncIOScheduler | None = None
 
 
 async def check_daily_reminders(session: AsyncSession) -> int:
@@ -141,3 +146,58 @@ async def run_notification_checks(session: AsyncSession) -> dict:
             logger.error(f"Error checking inactivity reminders: {e}")
 
     return results
+
+
+async def scheduled_notification_job():
+    """
+    Job function called by APScheduler every minute.
+    Creates its own database session.
+    """
+    from app.db.database import async_session_maker
+
+    async with async_session_maker() as session:
+        try:
+            results = await run_notification_checks(session)
+            if results["daily_reminders"] > 0 or results["inactivity_reminders"] > 0:
+                logger.info(f"Notification check results: {results}")
+        except Exception as e:
+            logger.error(f"Error in scheduled notification job: {e}")
+
+
+def start_scheduler():
+    """
+    Start the APScheduler for periodic notification checks.
+    Called during application startup.
+    """
+    global scheduler
+
+    if scheduler is not None:
+        logger.warning("Scheduler already running")
+        return
+
+    scheduler = AsyncIOScheduler()
+
+    # Run notification checks every minute
+    scheduler.add_job(
+        scheduled_notification_job,
+        trigger=IntervalTrigger(minutes=1),
+        id="notification_checks",
+        name="Check and send notifications",
+        replace_existing=True,
+    )
+
+    scheduler.start()
+    logger.info("Notification scheduler started (running every minute)")
+
+
+def stop_scheduler():
+    """
+    Stop the APScheduler.
+    Called during application shutdown.
+    """
+    global scheduler
+
+    if scheduler is not None:
+        scheduler.shutdown(wait=False)
+        scheduler = None
+        logger.info("Notification scheduler stopped")

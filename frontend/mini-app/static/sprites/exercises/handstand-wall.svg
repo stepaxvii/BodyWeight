@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 80">
+  <style>
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shorts: #1E88E5;
+      --pixel-shoes: #424242;
+      --pixel-wall: #8B7355;
+      --pixel-accent: #FF9800;
+    }
+    .pulse { animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; r: 4; }
+      50% { opacity: 0.5; r: 3; }
+    }
+  </style>
+
+  <!-- Стена -->
+  <rect x="40" y="0" width="8" height="80" fill="var(--pixel-wall)"/>
+
+  <!-- Стойка на руках у стены -->
+
+  <!-- Руки на полу -->
+  <rect x="14" y="64" width="6" height="10" fill="var(--pixel-skin)"/>
+  <rect x="26" y="64" width="6" height="10" fill="var(--pixel-skin)"/>
+  <rect x="12" y="72" width="10" height="4" fill="var(--pixel-skin)"/>
+  <rect x="24" y="72" width="10" height="4" fill="var(--pixel-skin)"/>
+
+  <!-- Плечи -->
+  <rect x="12" y="56" width="8" height="8" fill="var(--pixel-shirt)"/>
+  <rect x="26" y="56" width="8" height="8" fill="var(--pixel-shirt)"/>
+
+  <!-- Тело вертикально -->
+  <rect x="16" y="30" width="14" height="26" fill="var(--pixel-shirt)"/>
+
+  <!-- Шорты -->
+  <rect x="18" y="18" width="10" height="12" fill="var(--pixel-shorts)"/>
+
+  <!-- Ноги вверх, касаются стены -->
+  <rect x="18" y="4" width="6" height="14" fill="var(--pixel-skin)"/>
+  <rect x="24" y="4" width="6" height="14" fill="var(--pixel-skin)"/>
+
+  <!-- Ступни на стене -->
+  <rect x="34" y="2" width="6" height="4" fill="var(--pixel-shoes)"/>
+  <rect x="34" y="6" width="6" height="4" fill="var(--pixel-shoes)"/>
+
+  <!-- Голова (внизу, вверх ногами) -->
+  <rect x="17" y="54" width="12" height="12" fill="var(--pixel-skin)"/>
+  <rect x="19" y="58" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="25" y="58" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="17" y="64" width="12" height="4" fill="var(--pixel-hair)"/>
+
+  <!-- Пол -->
+  <rect x="0" y="76" width="40" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
+
+  <!-- Таймер (статическое упражнение) -->
+  <circle class="pulse" cx="20" cy="78" r="3" fill="var(--pixel-accent)"/>
+</svg>

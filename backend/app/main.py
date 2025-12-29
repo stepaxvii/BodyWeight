@@ -8,6 +8,7 @@ from app.config import settings
 from app.api import api_router
 from app.db.database import async_engine, Base, async_session_maker
 from app.services.data_loader import init_data
+from app.services.scheduler import start_scheduler, stop_scheduler
 
 logging.basicConfig(level=logging.INFO if settings.debug else logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -30,10 +31,14 @@ async def lifespan(app: FastAPI):
             await init_data(session)
         logger.info("Initial data loaded")
 
+    # Start notification scheduler
+    start_scheduler()
+
     yield
 
     # Shutdown
     logger.info("Shutting down BodyWeight API...")
+    stop_scheduler()
     await async_engine.dispose()
 
 

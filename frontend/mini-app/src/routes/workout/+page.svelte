@@ -34,7 +34,7 @@
 	let selectedTags = $state<string[]>([]);
 
 	// Filtered exercises by all criteria
-	const filteredExercises = $derived(() => {
+	const filteredExercises = $derived.by(() => {
 		let result = exercises;
 
 		// Category filter
