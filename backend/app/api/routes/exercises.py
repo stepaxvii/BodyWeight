@@ -1,11 +1,11 @@
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
-from app.db.models import Exercise, ExerciseCategory, UserExerciseProgress
+from app.db.models import Exercise, ExerciseCategory, UserExerciseProgress, UserFavoriteExercise
 from app.services.data_loader import load_all_routines
 
 router = APIRouter()
@@ -32,6 +32,7 @@ class ExerciseResponse(BaseModel):
     name_ru: str
     description: str | None
     description_ru: str | None
+    tags: List[str] = []
     difficulty: int
     base_xp: int
     required_level: int
@@ -42,6 +43,7 @@ class ExerciseResponse(BaseModel):
     category_slug: str
     easier_exercise_slug: str | None = None
     harder_exercise_slug: str | None = None
+    is_favorite: bool = False
 
     class Config:
         from_attributes = True
@@ -86,9 +88,12 @@ async def get_categories(session: AsyncSessionDep):
 @router.get("", response_model=List[ExerciseResponse])
 async def get_exercises(
     session: AsyncSessionDep,
+    user: CurrentUser,
     category: Optional[str] = Query(None, description="Filter by category slug"),
+    tags: Optional[str] = Query(None, description="Filter by tags (comma-separated)"),
     difficulty: Optional[int] = Query(None, ge=1, le=5, description="Filter by difficulty"),
     max_level: Optional[int] = Query(None, description="Filter exercises up to required level"),
+    favorites_only: bool = Query(False, description="Show only favorite exercises"),
 ):
     """Get all exercises with optional filters."""
     query = (
@@ -111,8 +116,30 @@ async def get_exercises(
     result = await session.execute(query)
     exercises = result.scalars().all()
 
+    # Get user's favorite exercise IDs
+    favorites_result = await session.execute(
+        select(UserFavoriteExercise.exercise_id)
+        .where(UserFavoriteExercise.user_id == user.id)
+    )
+    favorite_ids = set(favorites_result.scalars().all())
+
+    # Parse tags filter
+    tag_filter = set(tags.split(",")) if tags else None
+
     response = []
     for ex in exercises:
+        is_favorite = ex.id in favorite_ids
+
+        # Filter by favorites if requested
+        if favorites_only and not is_favorite:
+            continue
+
+        # Filter by tags if provided
+        if tag_filter:
+            ex_tags = set(ex.tags or [])
+            if not tag_filter.intersection(ex_tags):
+                continue
+
         ex_response = ExerciseResponse(
             id=ex.id,
             slug=ex.slug,
@@ -120,6 +147,7 @@ async def get_exercises(
             name_ru=ex.name_ru,
             description=ex.description,
             description_ru=ex.description_ru,
+            tags=ex.tags or [],
             difficulty=ex.difficulty,
             base_xp=ex.base_xp,
             required_level=ex.required_level,
@@ -128,6 +156,7 @@ async def get_exercises(
             gif_url=ex.gif_url,
             thumbnail_url=ex.thumbnail_url,
             category_slug=ex.category.slug if ex.category else "",
+            is_favorite=is_favorite,
         )
         response.append(ex_response)
 
@@ -316,3 +345,63 @@ async def get_routine(slug: str):
         status_code=status.HTTP_404_NOT_FOUND,
         detail="Routine not found",
     )
+
+
+# ============== Favorites API ==============
+
+class FavoriteResponse(BaseModel):
+    exercise_id: int
+    is_favorite: bool
+
+
+@router.post("/{exercise_id}/favorite", response_model=FavoriteResponse)
+async def toggle_favorite(
+    exercise_id: int,
+    session: AsyncSessionDep,
+    user: CurrentUser,
+):
+    """Toggle favorite status for an exercise."""
+    # Check if exercise exists
+    exercise_result = await session.execute(
+        select(Exercise).where(Exercise.id == exercise_id)
+    )
+    exercise = exercise_result.scalar_one_or_none()
+
+    if not exercise:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Exercise not found",
+        )
+
+    # Check if already favorited
+    favorite_result = await session.execute(
+        select(UserFavoriteExercise)
+        .where(UserFavoriteExercise.user_id == user.id)
+        .where(UserFavoriteExercise.exercise_id == exercise_id)
+    )
+    existing = favorite_result.scalar_one_or_none()
+
+    if existing:
+        # Remove from favorites
+        await session.delete(existing)
+        await session.commit()
+        return FavoriteResponse(exercise_id=exercise_id, is_favorite=False)
+    else:
+        # Add to favorites
+        favorite = UserFavoriteExercise(user_id=user.id, exercise_id=exercise_id)
+        session.add(favorite)
+        await session.commit()
+        return FavoriteResponse(exercise_id=exercise_id, is_favorite=True)
+
+
+@router.get("/favorites/list", response_model=List[int])
+async def get_favorite_ids(
+    session: AsyncSessionDep,
+    user: CurrentUser,
+):
+    """Get list of favorite exercise IDs for the current user."""
+    result = await session.execute(
+        select(UserFavoriteExercise.exercise_id)
+        .where(UserFavoriteExercise.user_id == user.id)
+    )
+    return list(result.scalars().all())

@@ -14,6 +14,7 @@ from sqlalchemy import (
     UniqueConstraint,
     Index,
     CheckConstraint,
+    JSON,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -58,6 +59,8 @@ class User(Base):
     goals: Mapped[List["UserGoal"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     purchases: Mapped[List["UserPurchase"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     exercise_progress: Mapped[List["UserExerciseProgress"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    favorite_exercises: Mapped[List["UserFavoriteExercise"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    custom_routines: Mapped[List["UserCustomRoutine"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class ExerciseCategory(Base):
@@ -86,12 +89,15 @@ class Exercise(Base):
     description: Mapped[Optional[str]] = mapped_column(Text)
     description_ru: Mapped[Optional[str]] = mapped_column(Text)
 
+    # Tags for filtering (muscle groups, level, equipment, etc.)
+    tags: Mapped[List[str]] = mapped_column(JSON, default=list)
+
     # Difficulty & progression
     difficulty: Mapped[int] = mapped_column(Integer, default=1)
     base_xp: Mapped[int] = mapped_column(Integer, default=10)
     required_level: Mapped[int] = mapped_column(Integer, default=1)
 
-    # Equipment required: none, pullup-bar, dip-bars
+    # Equipment required: none, pullup-bar, dip-bars, bench, wall
     equipment: Mapped[str] = mapped_column(String(20), default="none")
 
     # True for time-based exercises (planks, stretches, etc.)
@@ -286,3 +292,72 @@ class UserExerciseProgress(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "exercise_id", name="uq_user_exercise_progress"),
     )
+
+
+class UserFavoriteExercise(Base):
+    """User's favorite exercises for quick access."""
+    __tablename__ = "user_favorite_exercises"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id", ondelete="CASCADE"))
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    # Relationships
+    user: Mapped["User"] = relationship(back_populates="favorite_exercises")
+    exercise: Mapped["Exercise"] = relationship()
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "exercise_id", name="uq_user_favorite_exercise"),
+    )
+
+
+class UserCustomRoutine(Base):
+    """User-created custom workout routines."""
+    __tablename__ = "user_custom_routines"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text)
+
+    # Routine type: morning, workout, stretch
+    routine_type: Mapped[str] = mapped_column(String(50), default="workout")
+
+    # Estimated duration in minutes
+    duration_minutes: Mapped[int] = mapped_column(Integer, default=15)
+
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    user: Mapped["User"] = relationship(back_populates="custom_routines")
+    exercises: Mapped[List["UserCustomRoutineExercise"]] = relationship(
+        back_populates="routine", cascade="all, delete-orphan", order_by="UserCustomRoutineExercise.sort_order"
+    )
+
+
+class UserCustomRoutineExercise(Base):
+    """Exercises within a user's custom routine."""
+    __tablename__ = "user_custom_routine_exercises"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    routine_id: Mapped[int] = mapped_column(ForeignKey("user_custom_routines.id", ondelete="CASCADE"), index=True)
+    exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id", ondelete="CASCADE"))
+
+    # Order in the routine
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Target reps or duration (seconds for timed exercises)
+    target_reps: Mapped[Optional[int]] = mapped_column(Integer)
+    target_duration: Mapped[Optional[int]] = mapped_column(Integer)
+
+    # Rest time after this exercise (seconds)
+    rest_seconds: Mapped[int] = mapped_column(Integer, default=30)
+
+    # Relationships
+    routine: Mapped["UserCustomRoutine"] = relationship(back_populates="exercises")
+    exercise: Mapped["Exercise"] = relationship()

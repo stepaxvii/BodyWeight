@@ -241,6 +241,127 @@
       "xp_reward": 5000,
       "coin_reward": 1000,
       "condition": { "type": "total_xp", "value": 100000 }
+    },
+    {
+      "slug": "workout_365",
+      "name": "Year of Iron",
+      "name_ru": "Год железа",
+      "description": "Complete 365 workouts",
+      "description_ru": "Завершите 365 тренировок",
+      "icon": "ach_workout_365",
+      "xp_reward": 3000,
+      "coin_reward": 750,
+      "condition": { "type": "total_workouts", "value": 365 }
+    },
+    {
+      "slug": "streak_60",
+      "name": "Iron Will",
+      "name_ru": "Железная воля",
+      "description": "Maintain a 60-day streak",
+      "description_ru": "Поддержите серию 60 дней",
+      "icon": "ach_streak_60",
+      "xp_reward": 2000,
+      "coin_reward": 500,
+      "condition": { "type": "streak", "value": 60 }
+    },
+    {
+      "slug": "streak_365",
+      "name": "Immortal",
+      "name_ru": "Бессмертный",
+      "description": "Maintain a 365-day streak",
+      "description_ru": "Поддержите серию 365 дней",
+      "icon": "ach_streak_365",
+      "xp_reward": 15000,
+      "coin_reward": 3000,
+      "condition": { "type": "streak", "value": 365 }
+    },
+    {
+      "slug": "pushup_1000",
+      "name": "Push-up Legend",
+      "name_ru": "Легенда отжиманий",
+      "description": "Do 1000 push-ups total",
+      "description_ru": "Сделайте 1000 отжиманий всего",
+      "icon": "ach_pushup_1000",
+      "xp_reward": 1000,
+      "coin_reward": 300,
+      "condition": { "type": "exercise_reps", "exercise": "pushup-regular", "value": 1000 }
+    },
+    {
+      "slug": "squat_500",
+      "name": "Squat King",
+      "name_ru": "Король приседаний",
+      "description": "Do 500 squats total",
+      "description_ru": "Сделайте 500 приседаний всего",
+      "icon": "ach_squat_500",
+      "xp_reward": 500,
+      "coin_reward": 150,
+      "condition": { "type": "exercise_reps", "exercise": "squat-regular", "value": 500 }
+    },
+    {
+      "slug": "squat_1000",
+      "name": "Squat God",
+      "name_ru": "Бог приседаний",
+      "description": "Do 1000 squats total",
+      "description_ru": "Сделайте 1000 приседаний всего",
+      "icon": "ach_squat_1000",
+      "xp_reward": 1000,
+      "coin_reward": 300,
+      "condition": { "type": "exercise_reps", "exercise": "squat-regular", "value": 1000 }
+    },
+    {
+      "slug": "burpee_100",
+      "name": "Burpee Beast",
+      "name_ru": "Бёрпи-зверь",
+      "description": "Do 100 burpees total",
+      "description_ru": "Сделайте 100 бёрпи всего",
+      "icon": "ach_burpee_100",
+      "xp_reward": 400,
+      "coin_reward": 125,
+      "condition": { "type": "exercise_reps", "exercise": "burpee", "value": 100 }
+    },
+    {
+      "slug": "burpee_500",
+      "name": "Burpee Demon",
+      "name_ru": "Бёрпи-демон",
+      "description": "Do 500 burpees total",
+      "description_ru": "Сделайте 500 бёрпи всего",
+      "icon": "ach_burpee_500",
+      "xp_reward": 1500,
+      "coin_reward": 400,
+      "condition": { "type": "exercise_reps", "exercise": "burpee", "value": 500 }
+    },
+    {
+      "slug": "pullup_100",
+      "name": "Pull-up Rookie",
+      "name_ru": "Новичок подтягиваний",
+      "description": "Do 100 pull-ups total",
+      "description_ru": "Сделайте 100 подтягиваний всего",
+      "icon": "ach_pullup_100",
+      "xp_reward": 300,
+      "coin_reward": 100,
+      "condition": { "type": "exercise_reps", "exercise": "pullup-regular", "value": 100 }
+    },
+    {
+      "slug": "pullup_500",
+      "name": "Pull-up Master",
+      "name_ru": "Мастер подтягиваний",
+      "description": "Do 500 pull-ups total",
+      "description_ru": "Сделайте 500 подтягиваний всего",
+      "icon": "ach_pullup_500",
+      "xp_reward": 1000,
+      "coin_reward": 300,
+      "condition": { "type": "exercise_reps", "exercise": "pullup-regular", "value": 500 }
+    },
+    {
+      "slug": "level_100",
+      "name": "The One",
+      "name_ru": "Избранный",
+      "description": "Reach level 100",
+      "description_ru": "Достигните 100 уровня",
+      "icon": "ach_level_100",
+      "xp_reward": 10000,
+      "coin_reward": 2500,
+      "condition": { "type": "level", "value": 100 }
     }
   ]
 }

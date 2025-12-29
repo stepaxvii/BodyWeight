@@ -1,47 +1,52 @@
 [
   {
-    "slug": "chest",
-    "name": "Chest & Triceps",
-    "name_ru": "Грудь и трицепс",
-    "icon": "cat_chest",
+    "slug": "strength",
+    "name": "Strength",
+    "name_ru": "Силовые",
+    "icon": "strength",
     "color": "#d82800",
     "sort_order": 1,
-    "tags": ["chest", "triceps", "push", "upper-body"]
+    "description": "Exercises that involve overcoming resistance",
+    "description_ru": "Упражнения на преодоление сопротивления"
   },
   {
-    "slug": "back",
-    "name": "Back",
-    "name_ru": "Спина",
-    "icon": "cat_back",
-    "color": "#0058f8",
+    "slug": "cardio",
+    "name": "Cardio",
+    "name_ru": "Кардио",
+    "icon": "cardio",
+    "color": "#ff6b35",
     "sort_order": 2,
-    "tags": ["back", "lower-back", "upper-body"]
+    "description": "Exercises that elevate heart rate and build endurance",
+    "description_ru": "Упражнения для повышения пульса и выносливости"
   },
   {
-    "slug": "legs",
-    "name": "Legs & Glutes",
-    "name_ru": "Ноги и ягодицы",
-    "icon": "cat_legs",
-    "color": "#00a800",
+    "slug": "static",
+    "name": "Static",
+    "name_ru": "Статика",
+    "icon": "static",
+    "color": "#0058f8",
     "sort_order": 3,
-    "tags": ["quads", "glutes", "lower-body"]
+    "description": "Isometric holds and position maintenance",
+    "description_ru": "Изометрические удержания позиций"
   },
   {
-    "slug": "core",
-    "name": "Core",
-    "name_ru": "Пресс и кор",
-    "icon": "cat_core",
-    "color": "#fcc800",
+    "slug": "dynamic-stretch",
+    "name": "Dynamic Stretch",
+    "name_ru": "Динамическая растяжка",
+    "icon": "dynamic",
+    "color": "#00a800",
     "sort_order": 4,
-    "tags": ["abs", "planks", "isometric"]
+    "description": "Stretching through movement",
+    "description_ru": "Растяжка в движении"
   },
   {
-    "slug": "stretch",
-    "name": "Stretch",
-    "name_ru": "Растяжка",
-    "icon": "cat_stretch",
+    "slug": "static-stretch",
+    "name": "Static Stretch",
+    "name_ru": "Статическая растяжка",
+    "icon": "stretch",
     "color": "#00a8a8",
     "sort_order": 5,
-    "tags": ["flexibility", "mobility", "cooldown"]
+    "description": "Holding stretch positions",
+    "description_ru": "Удержание поз растяжки"
   }
 ]

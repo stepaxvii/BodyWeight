@@ -1,0 +1,549 @@
+[
+  {
+    "slug": "cat-cow",
+    "category": "dynamic-stretch",
+    "name": "Cat-Cow",
+    "name_ru": "Кошка-корова",
+    "tags": [
+      "lower-back",
+      "core",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Start on hands and knees. Inhale as you arch your back, dropping belly toward floor and lifting head and tailbone (cow). Exhale as you round your spine toward ceiling, tucking chin and tailbone (cat). Flow smoothly between positions with your breath. This mobilizes the entire spine.",
+    "description_ru": "Встань на четвереньки. На вдохе прогнись в спине, опуская живот к полу и поднимая голову и копчик (корова). На выдохе округли спину к потолку, подтягивая подбородок и копчик (кошка). Плавно переходи между позициями с дыханием. Мобилизует весь позвоночник."
+  },
+  {
+    "slug": "child-pose",
+    "category": "dynamic-stretch",
+    "name": "Child's Pose",
+    "name_ru": "Поза ребёнка",
+    "tags": [
+      "lower-back",
+      "shoulders",
+      "hip-flexors",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Kneel on the floor, sit back on your heels, then fold forward, extending your arms in front of you on the floor. Rest your forehead on the ground. You can also keep arms at your sides for a different stretch. Breathe deeply and relax. This stretches the lower back, lats, and shoulders.",
+    "description_ru": "Встань на колени, сядь на пятки, затем наклонись вперёд, вытягивая руки перед собой на полу. Положи лоб на пол. Можно также держать руки вдоль тела для другой растяжки. Дыши глубоко и расслабляйся. Растягивает поясницу, широчайшие и плечи."
+  },
+  {
+    "slug": "world-greatest-stretch",
+    "category": "dynamic-stretch",
+    "name": "World's Greatest Stretch",
+    "name_ru": "Лучшая растяжка в мире",
+    "tags": [
+      "hip-flexors",
+      "hamstrings",
+      "back",
+      "shoulders",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 8,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Start in a lunge position with right foot forward. Place both hands on the floor inside your right foot. Rotate your torso and reach your right arm toward the ceiling. Return hand to floor, then straighten your front leg to stretch hamstring. Return to lunge and repeat, then switch sides.",
+    "description_ru": "Начни в выпаде с правой ногой впереди. Поставь обе руки на пол внутри правой стопы. Поверни корпус и потянись правой рукой к потолку. Верни руку на пол, затем выпрями переднюю ногу для растяжки бицепса бедра. Вернись в выпад и повтори, затем смени сторону."
+  },
+  {
+    "slug": "arm-circle-forward",
+    "category": "dynamic-stretch",
+    "name": "Forward Arm Circles",
+    "name_ru": "Круги руками вперёд",
+    "tags": [
+      "shoulders",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Stand with arms extended to sides at shoulder height. Make circular motions with both arms, rotating forward. Start with small circles and gradually increase to large ones. Keep arms straight and movement controlled. This warms up the shoulder joints and surrounding muscles.",
+    "description_ru": "Встань, руки в стороны на уровне плеч. Делай круговые движения обеими руками, вращая вперёд. Начни с маленьких кругов и постепенно увеличивай до больших. Руки прямые, движение контролируемое. Разогревает плечевые суставы и окружающие мышцы."
+  },
+  {
+    "slug": "arm-circle-backward",
+    "category": "dynamic-stretch",
+    "name": "Backward Arm Circles",
+    "name_ru": "Круги руками назад",
+    "tags": [
+      "shoulders",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Stand with arms extended to sides at shoulder height. Make circular motions with both arms, rotating backward. Start with small circles and gradually increase to large ones. Keep arms straight throughout. Backward circles emphasize the rear deltoids and help open the chest.",
+    "description_ru": "Встань, руки в стороны на уровне плеч. Делай круговые движения обеими руками, вращая назад. Начни с маленьких кругов и постепенно увеличивай до больших. Руки прямые на протяжении всего упражнения. Круги назад акцентируют задние дельты и помогают раскрыть грудь."
+  },
+  {
+    "slug": "hip-circle",
+    "category": "dynamic-stretch",
+    "name": "Hip Circles",
+    "name_ru": "Круги бёдрами",
+    "tags": [
+      "hip-flexors",
+      "glutes",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Stand with feet shoulder-width apart, hands on hips. Rotate your hips in a large circular motion, pushing them forward, to the side, back, and to the other side. Complete several circles in one direction, then reverse. This mobilizes the hip joints and lower back.",
+    "description_ru": "Встань, ноги на ширине плеч, руки на бёдрах. Вращай бёдрами по большому кругу — вперёд, в сторону, назад и в другую сторону. Сделай несколько кругов в одном направлении, затем поменяй. Мобилизует тазобедренные суставы и поясницу."
+  },
+  {
+    "slug": "leg-swing-front",
+    "category": "dynamic-stretch",
+    "name": "Front Leg Swings",
+    "name_ru": "Махи ногой вперёд-назад",
+    "tags": [
+      "hamstrings",
+      "hip-flexors",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Stand next to a wall or support for balance. Swing one leg forward and backward in a pendulum motion, keeping it relatively straight. Let momentum carry the leg, gradually increasing range of motion. This dynamically stretches hamstrings and hip flexors. Switch legs after several swings.",
+    "description_ru": "Встань рядом со стеной или опорой для баланса. Качай одну ногу вперёд и назад маятниковым движением, держа её относительно прямой. Позволь инерции нести ногу, постепенно увеличивая амплитуду. Динамически растягивает бицепсы бедра и сгибатели. Поменяй ноги после нескольких махов."
+  },
+  {
+    "slug": "leg-swing-side",
+    "category": "dynamic-stretch",
+    "name": "Side Leg Swings",
+    "name_ru": "Махи ногой в сторону",
+    "tags": [
+      "hip-flexors",
+      "glutes",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Face a wall or support and hold it with both hands. Swing one leg side to side across your body, letting it cross in front and then swing out to the side. Keep core engaged and upper body stable. This opens the hips and stretches the inner and outer thighs. Switch legs after several swings.",
+    "description_ru": "Встань лицом к стене или опоре, держись обеими руками. Качай одну ногу из стороны в сторону, позволяя ей пересекать тело и затем уходить наружу. Кор напряжён, верхняя часть тела стабильна. Раскрывает бёдра и растягивает внутреннюю и внешнюю поверхность бедра. Поменяй ноги после нескольких махов."
+  },
+  {
+    "slug": "torso-twist",
+    "category": "dynamic-stretch",
+    "name": "Torso Twists",
+    "name_ru": "Повороты корпуса",
+    "tags": [
+      "core",
+      "lower-back",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Stand with feet shoulder-width apart, arms extended to sides or bent at elbows. Rotate your torso left and right, keeping hips facing forward. Let your arms swing naturally with the rotation. Move at a controlled, rhythmic pace. This warms up the spine and obliques.",
+    "description_ru": "Встань, ноги на ширине плеч, руки в стороны или согнуты в локтях. Поворачивай корпус влево и вправо, оставляя бёдра направленными вперёд. Позволь рукам свободно двигаться с вращением. Двигайся в контролируемом ритмичном темпе. Разогревает позвоночник и косые мышцы."
+  },
+  {
+    "slug": "neck-circle",
+    "category": "dynamic-stretch",
+    "name": "Neck Circles",
+    "name_ru": "Круги головой",
+    "tags": [
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 3,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Stand or sit with good posture. Slowly roll your head in a circular motion — ear to shoulder, chin to chest, ear to other shoulder, head back. Move slowly and gently to avoid strain. Complete several circles in one direction, then reverse. This releases tension in neck muscles.",
+    "description_ru": "Встань или сядь с хорошей осанкой. Медленно вращай головой по кругу — ухо к плечу, подбородок к груди, ухо к другому плечу, голова назад. Двигайся медленно и мягко, чтобы избежать напряжения. Сделай несколько кругов в одном направлении, затем поменяй. Снимает напряжение в мышцах шеи."
+  },
+  {
+    "slug": "shoulder-roll",
+    "category": "dynamic-stretch",
+    "name": "Shoulder Rolls",
+    "name_ru": "Вращения плечами",
+    "tags": [
+      "shoulders",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 3,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Stand with arms relaxed at your sides. Roll both shoulders forward in a circular motion — up toward ears, forward, down, and back. Complete several rolls forward, then reverse direction and roll backward. This releases shoulder and upper back tension.",
+    "description_ru": "Встань с расслабленными руками вдоль тела. Вращай оба плеча вперёд по кругу — вверх к ушам, вперёд, вниз и назад. Сделай несколько кругов вперёд, затем смени направление и вращай назад. Снимает напряжение в плечах и верхней части спины."
+  },
+  {
+    "slug": "ankle-circle",
+    "category": "dynamic-stretch",
+    "name": "Ankle Circles",
+    "name_ru": "Круги голеностопом",
+    "tags": [
+      "calves",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 3,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Stand on one leg or sit down. Lift one foot off the ground and rotate the ankle in circles, moving the foot clockwise then counterclockwise. Keep the movement isolated to the ankle joint. This improves ankle mobility and is essential before running or jumping activities.",
+    "description_ru": "Встань на одну ногу или сядь. Подними одну стопу от пола и вращай голеностопом по кругу — по часовой и против часовой стрелки. Движение изолировано в голеностопном суставе. Улучшает мобильность голеностопа и необходимо перед бегом или прыжками."
+  },
+  {
+    "slug": "wrist-circle",
+    "category": "dynamic-stretch",
+    "name": "Wrist Circles",
+    "name_ru": "Круги кистями",
+    "tags": [
+      "forearms",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 3,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Extend your arms in front of you or interlace your fingers. Rotate your wrists in circular motions, moving hands clockwise then counterclockwise. This warms up the wrist joints and prepares them for exercises involving hand support like push-ups or handstands.",
+    "description_ru": "Вытяни руки перед собой или сплети пальцы в замок. Вращай запястьями по кругу — по часовой и против часовой стрелки. Разогревает лучезапястные суставы и готовит их к упражнениям с опорой на руки, таким как отжимания или стойки на руках."
+  },
+  {
+    "slug": "knee-circle",
+    "category": "dynamic-stretch",
+    "name": "Knee Circles",
+    "name_ru": "Круги коленями",
+    "tags": [
+      "quads",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 3,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Stand with feet together, hands on knees. Bend your knees slightly and rotate them in circular motions together, clockwise then counterclockwise. Keep circles controlled and smooth. This warms up the knee joints and surrounding structures before squatting or jumping.",
+    "description_ru": "Встань, ноги вместе, руки на коленях. Слегка согни колени и вращай ими вместе по кругу — по часовой и против часовой стрелки. Круги контролируемые и плавные. Разогревает коленные суставы и окружающие структуры перед приседаниями или прыжками."
+  },
+  {
+    "slug": "scorpion-stretch",
+    "category": "dynamic-stretch",
+    "name": "Scorpion Stretch",
+    "name_ru": "Растяжка скорпион",
+    "tags": [
+      "lower-back",
+      "hip-flexors",
+      "chest",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Lie face down with arms extended to sides. Lift one leg and reach it across your body toward the opposite hand, rotating your spine and hips. Keep shoulders pressed to the floor. Return and repeat with the other leg. This deeply rotates the spine and stretches hip flexors and chest.",
+    "description_ru": "Ляг лицом вниз, руки в стороны. Подними одну ногу и тяни её через тело к противоположной руке, вращая позвоночник и таз. Плечи прижаты к полу. Вернись и повтори с другой ногой. Глубоко вращает позвоночник и растягивает сгибатели бедра и грудь."
+  },
+  {
+    "slug": "thread-the-needle",
+    "category": "dynamic-stretch",
+    "name": "Thread the Needle",
+    "name_ru": "Нитка в иголку",
+    "tags": [
+      "back",
+      "shoulders",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Start on hands and knees. Reach one arm under your body, threading it through the space between your other arm and knee. Let your shoulder and head lower toward the floor. Return and reach that arm toward the ceiling, opening the chest. Repeat several times, then switch sides.",
+    "description_ru": "Встань на четвереньки. Протяни одну руку под телом, продевая её между другой рукой и коленом. Позволь плечу и голове опуститься к полу. Вернись и подними эту руку к потолку, раскрывая грудь. Повтори несколько раз, затем смени сторону."
+  },
+  {
+    "slug": "downward-dog",
+    "category": "dynamic-stretch",
+    "name": "Downward Dog",
+    "name_ru": "Собака мордой вниз",
+    "tags": [
+      "hamstrings",
+      "calves",
+      "shoulders",
+      "back",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Start on hands and knees. Lift your hips up and back, straightening your legs and arms to form an inverted V shape. Press your heels toward the floor (they don't have to touch). Keep your back straight — it's okay to bend knees if hamstrings are tight. This stretches the entire posterior chain and shoulders.",
+    "description_ru": "Встань на четвереньки. Подними таз вверх и назад, выпрямляя ноги и руки, образуя перевёрнутую V. Прижимай пятки к полу (они не обязаны касаться). Спина прямая — можно согнуть колени, если бицепсы бедра зажаты. Растягивает всю заднюю цепь и плечи."
+  },
+  {
+    "slug": "upward-dog",
+    "category": "dynamic-stretch",
+    "name": "Upward Dog",
+    "name_ru": "Собака мордой вверх",
+    "tags": [
+      "chest",
+      "core",
+      "lower-back",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie face down. Place hands under shoulders and press up, straightening arms and lifting your chest and thighs off the floor. Only your hands and tops of feet touch the ground. Open your chest and look forward or slightly up. This is a deeper backbend than cobra, stretching the entire front body.",
+    "description_ru": "Ляг лицом вниз. Поставь руки под плечи и отожмись, выпрямляя руки и поднимая грудь и бёдра от пола. Только руки и тыльные стороны стоп касаются земли. Раскрой грудь и смотри вперёд или слегка вверх. Это более глубокий прогиб, чем кобра, растягивающий всю переднюю часть тела."
+  },
+  {
+    "slug": "cobra-pose",
+    "category": "dynamic-stretch",
+    "name": "Cobra Pose",
+    "name_ru": "Поза кобры",
+    "tags": [
+      "chest",
+      "core",
+      "lower-back",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie face down with hands under shoulders, elbows close to body. Press up, lifting your chest while keeping hips on the floor. Use back muscles to lift, not just arm strength. Look forward or slightly up. This gentle backbend stretches the front body and strengthens the lower back.",
+    "description_ru": "Ляг лицом вниз, руки под плечами, локти прижаты к телу. Оттолкнись, поднимая грудь, оставляя бёдра на полу. Используй мышцы спины для подъёма, не только силу рук. Смотри вперёд или слегка вверх. Этот мягкий прогиб растягивает переднюю часть тела и укрепляет поясницу."
+  },
+  {
+    "slug": "lunge-twist",
+    "category": "dynamic-stretch",
+    "name": "Lunge with Twist",
+    "name_ru": "Выпад с поворотом",
+    "tags": [
+      "hip-flexors",
+      "core",
+      "quads",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Step into a forward lunge with front knee at 90 degrees. Once stable, rotate your torso toward the front leg side, reaching arms or extending them to increase rotation. Return to center, stand up, and repeat on the other side. Combines hip flexor stretch with thoracic spine rotation.",
+    "description_ru": "Шагни в выпад вперёд, переднее колено под 90 градусов. Стабилизировавшись, поверни корпус в сторону передней ноги, вытягивая руки для усиления вращения. Вернись в центр, встань и повтори с другой стороны. Сочетает растяжку сгибателей бедра с вращением грудного отдела."
+  },
+  {
+    "slug": "open-gate",
+    "category": "dynamic-stretch",
+    "name": "Open Gate",
+    "name_ru": "Открытые ворота",
+    "tags": [
+      "hip-flexors",
+      "glutes",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Stand on one leg. Lift the other knee to hip height, then rotate it outward and down in an arc, opening the hip. Imagine your leg is a gate swinging open. Control the movement and repeat several times before switching legs. This improves hip external rotation and mobility.",
+    "description_ru": "Встань на одну ногу. Подними другое колено до уровня бедра, затем поверни его наружу и вниз по дуге, открывая бедро. Представь, что нога — это ворота, которые открываются. Контролируй движение и повтори несколько раз, затем смени ногу. Улучшает внешнюю ротацию и мобильность бедра."
+  },
+  {
+    "slug": "close-gate",
+    "category": "dynamic-stretch",
+    "name": "Close Gate",
+    "name_ru": "Закрытые ворота",
+    "tags": [
+      "hip-flexors",
+      "glutes",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Stand on one leg. Lift the other leg out to the side, then swing it inward across your body and down, closing the hip. The opposite motion of open gate. Control the movement and repeat several times before switching legs. This works hip internal rotation and adductors.",
+    "description_ru": "Встань на одну ногу. Подними другую ногу в сторону, затем качни её внутрь через тело и вниз, закрывая бедро. Обратное движение к открытым воротам. Контролируй движение и повтори несколько раз, затем смени ногу. Работает над внутренней ротацией бедра и приводящими мышцами."
+  },
+  {
+    "slug": "spiderman-stretch",
+    "category": "dynamic-stretch",
+    "name": "Spiderman Stretch",
+    "name_ru": "Растяжка человека-паука",
+    "tags": [
+      "hip-flexors",
+      "hamstrings",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "From a push-up position, step one foot forward to the outside of your hand on the same side. Keep back leg straight and hips low. Sink into the stretch, feeling it in the hip flexor of the back leg. Step back and repeat on the other side. Excellent for hip mobility and flexibility.",
+    "description_ru": "Из позиции отжимания шагни одной ногой вперёд к внешней стороне руки на той же стороне. Задняя нога прямая, бёдра низко. Погружайся в растяжку, чувствуя её в сгибателе бедра задней ноги. Шагни назад и повтори с другой стороны. Отлично для мобильности и гибкости бёдер."
+  },
+  {
+    "slug": "inchworm-stretch",
+    "category": "dynamic-stretch",
+    "name": "Inchworm Stretch",
+    "name_ru": "Гусеница растяжка",
+    "tags": [
+      "hamstrings",
+      "shoulders",
+      "core",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Stand with feet together. Fold forward and place hands on the floor, bending knees if needed. Walk hands forward until you're in plank position. Pause, then walk feet toward hands keeping legs straight. Stand up and repeat. This dynamically stretches hamstrings and works the core.",
+    "description_ru": "Встань, ноги вместе. Наклонись вперёд и поставь руки на пол, согни колени при необходимости. Иди руками вперёд до планки. Пауза, затем иди ногами к рукам, держа ноги прямыми. Встань и повтори. Динамически растягивает бицепсы бедра и нагружает кор."
+  },
+  {
+    "slug": "windmill",
+    "category": "dynamic-stretch",
+    "name": "Windmill",
+    "name_ru": "Мельница",
+    "tags": [
+      "hamstrings",
+      "lower-back",
+      "shoulders",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Stand with feet wide and arms extended to sides. Bend forward and rotate, reaching one hand toward the opposite foot while the other arm points toward the ceiling. Return to standing and repeat to the other side. Keep legs relatively straight. This stretches hamstrings and rotates the spine.",
+    "description_ru": "Встань с широко расставленными ногами, руки в стороны. Наклонись вперёд с поворотом, тянясь одной рукой к противоположной стопе, другая рука направлена к потолку. Вернись в стойку и повтори в другую сторону. Ноги относительно прямые. Растягивает бицепсы бедра и вращает позвоночник."
+  },
+  {
+    "slug": "toy-soldier",
+    "category": "dynamic-stretch",
+    "name": "Toy Soldier",
+    "name_ru": "Солдатик",
+    "tags": [
+      "hamstrings",
+      "hip-flexors",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Walk forward, kicking each leg straight out in front of you while reaching your opposite hand toward your toes. Keep the kicking leg straight and the movement controlled. This dynamically stretches the hamstrings while walking.",
+    "description_ru": "Шагай вперёд, выбрасывая каждую ногу прямо перед собой, тянясь противоположной рукой к носку. Маховая нога прямая, движение контролируемое. Динамически растягивает заднюю поверхность бедра при ходьбе."
+  },
+  {
+    "slug": "knee-hug-walk",
+    "category": "dynamic-stretch",
+    "name": "Walking Knee Hugs",
+    "name_ru": "Ходьба с подтягиванием колена",
+    "tags": [
+      "glutes",
+      "hip-flexors",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "While walking forward, lift one knee toward your chest and hug it with both hands, pulling it tight for a brief stretch. Release and step forward, then repeat with the other leg. This dynamically stretches the glutes and hip flexors of the standing leg.",
+    "description_ru": "Шагая вперёд, подними одно колено к груди и обхвати его обеими руками, притягивая для короткой растяжки. Отпусти и шагни вперёд, затем повтори с другой ногой. Динамически растягивает ягодицы и сгибатели бедра опорной ноги."
+  },
+  {
+    "slug": "quad-pull-walk",
+    "category": "dynamic-stretch",
+    "name": "Walking Quad Pulls",
+    "name_ru": "Ходьба с растяжкой квадрицепса",
+    "tags": [
+      "quads",
+      "hip-flexors",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "While walking forward, grab one ankle and pull your heel toward your glute, briefly stretching the quadriceps. Keep your knees together and stand tall. Release and step forward, then repeat with the other leg. Great dynamic warm-up for the front of the thighs.",
+    "description_ru": "Шагая вперёд, возьмись за одну щиколотку и притяни пятку к ягодице, кратко растягивая квадрицепс. Колени вместе, стой прямо. Отпусти и шагни вперёд, затем повтори с другой ногой. Отличная динамическая разминка для передней поверхности бедра."
+  },
+  {
+    "slug": "frankensteins",
+    "category": "dynamic-stretch",
+    "name": "Frankensteins",
+    "name_ru": "Франкенштейны",
+    "tags": [
+      "hamstrings",
+      "hip-flexors",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Walk forward with arms extended straight in front of you at shoulder height. Kick one leg straight up toward your hands, keeping both legs straight. Lower and step forward, then kick the other leg. Move like Frankenstein's monster with stiff, straight-legged kicks. Dynamically stretches hamstrings.",
+    "description_ru": "Шагай вперёд с руками, вытянутыми прямо перед собой на уровне плеч. Выбрасывай одну ногу прямо вверх к рукам, обе ноги прямые. Опусти и шагни вперёд, затем выброси другую ногу. Двигайся как монстр Франкенштейна с жёсткими прямоногими ударами. Динамически растягивает бицепсы бедра."
+  },
+  {
+    "slug": "carioca",
+    "category": "dynamic-stretch",
+    "name": "Carioca",
+    "name_ru": "Кариока",
+    "tags": [
+      "hip-flexors",
+      "core",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Move laterally while crossing your feet over and behind each other. Step to the side, then cross the trailing foot in front, step side again, then cross behind. Keep hips facing forward while legs cross over. This dynamic drill improves hip mobility, coordination, and lateral movement.",
+    "description_ru": "Двигайся в сторону, перекрещивая ноги спереди и сзади друг друга. Шагни в сторону, затем перекрести отстающую ногу спереди, снова шаг в сторону, затем перекрести сзади. Бёдра направлены вперёд, пока ноги перекрещиваются. Динамическое упражнение улучшает мобильность бёдер, координацию и боковое движение."
+  }
+]

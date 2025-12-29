@@ -1,7 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir -p:*)"
+      "Bash(mkdir -p:*)",
+      "Bash(for slug in chest-stretch tricep-stretch child-pose cat-cow)",
+      "Bash(grep:*)",
+      "Bash(for slug in cat-cow shoulder-stretch squat-regular jumping-jack plank quad-stretch child-pose high-knees pushup-regular mountain-climber lunge-forward bicycle-crunch glute-bridge burpee squat-jump lunge-jump dip-bench leg-raise russian-twist)",
+      "Bash(do if grep -rq \"\"\"slug\"\": \"\"$slug\"\"\" exercises/)",
+      "Bash(then echo \"OK: $slug\")",
+      "Bash(else echo \"MISSING: $slug\")",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(for slug in jumping-jack squat-regular pushup-knee lunge-forward plank glute-bridge crunch superman child-pose high-knees squat-jump pushup-regular pushup-diamond lunge-jump mountain-climber plank-side bicycle-crunch v-up glute-bridge-single burpee pushup-archer lunge-bulgarian squat-pistol-assisted leg-raise russian-twist hollow-hold handstand-wall)",
+      "Bash(for slug in jumping-jack hang-passive pullup-negative row-inverted superman plank shoulder-stretch pullup-regular chinup pullup-close knee-raise-hanging leg-raise-hanging pullup-wide pullup-archer pullup-l-sit windshield-wiper)",
+      "Bash(python:*)"
     ]
   }
 }

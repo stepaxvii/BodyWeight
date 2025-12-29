@@ -1,0 +1,858 @@
+[
+  {
+    "slug": "chest-stretch",
+    "category": "static-stretch",
+    "name": "Chest Stretch",
+    "name_ru": "Растяжка груди",
+    "tags": [
+      "chest",
+      "shoulders",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Stand tall and interlace your fingers behind your back. Straighten your arms and lift them up away from your body while squeezing your shoulder blades together. Keep your chest open and chin neutral. Hold and breathe deeply. This opens the chest and front shoulders, counteracting hunched posture.",
+    "description_ru": "Встань прямо и сплети пальцы за спиной. Выпрями руки и подними их от тела, сводя лопатки. Грудь раскрыта, подбородок нейтрален. Удерживай и глубоко дыши. Раскрывает грудь и передние дельты, противодействуя сутулой осанке."
+  },
+  {
+    "slug": "chest-stretch-wall",
+    "category": "static-stretch",
+    "name": "Wall Chest Stretch",
+    "name_ru": "Растяжка груди у стены",
+    "tags": [
+      "chest",
+      "shoulders",
+      "beginner",
+      "home",
+      "wall"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "wall",
+    "is_timed": true,
+    "description": "Stand next to a wall or doorway. Place your forearm flat against the wall with elbow at shoulder height. Step through and rotate your body away from the wall until you feel a stretch in your chest. Adjust arm height to target different parts of the pec muscle. Hold, then switch sides.",
+    "description_ru": "Встань рядом со стеной или дверным проёмом. Поставь предплечье плоско на стену, локоть на уровне плеча. Шагни вперёд и поверни тело от стены, пока не почувствуешь растяжение в груди. Меняй высоту руки для проработки разных частей грудной мышцы. Удерживай, затем смени сторону."
+  },
+  {
+    "slug": "tricep-stretch",
+    "category": "static-stretch",
+    "name": "Tricep Stretch",
+    "name_ru": "Растяжка трицепса",
+    "tags": [
+      "triceps",
+      "shoulders",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Raise one arm overhead and bend the elbow, reaching your hand down behind your head toward the opposite shoulder blade. Use your other hand to gently push the elbow back and down for a deeper stretch. Keep your head upright and shoulders relaxed. Hold, then switch arms.",
+    "description_ru": "Подними одну руку над головой и согни локоть, тянясь кистью за голову к противоположной лопатке. Другой рукой мягко надави на локоть назад и вниз для более глубокой растяжки. Голова прямо, плечи расслаблены. Удерживай, затем смени руку."
+  },
+  {
+    "slug": "shoulder-stretch",
+    "category": "static-stretch",
+    "name": "Shoulder Stretch",
+    "name_ru": "Растяжка плеч",
+    "tags": [
+      "shoulders",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Bring one arm across your chest at shoulder height. Use your other hand to pull the arm closer to your body, pressing just above or below the elbow. Keep the stretching arm straight and shoulder down. You should feel the stretch in the back of your shoulder. Hold, then switch sides.",
+    "description_ru": "Перенеси одну руку через грудь на уровне плеча. Другой рукой притяни её ближе к телу, нажимая чуть выше или ниже локтя. Растягиваемая рука прямая, плечо опущено. Должен чувствовать растяжение в задней части плеча. Удерживай, затем смени сторону."
+  },
+  {
+    "slug": "shoulder-stretch-behind",
+    "category": "static-stretch",
+    "name": "Behind Back Shoulder Stretch",
+    "name_ru": "Растяжка плеч за спиной",
+    "tags": [
+      "shoulders",
+      "chest",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Reach one arm overhead and the other arm behind your back. Try to clasp your hands together behind your back. If you can't reach, use a towel or strap between hands. This stretches the shoulder in both directions simultaneously — the top arm stretches triceps, the bottom arm stretches the front shoulder.",
+    "description_ru": "Подними одну руку над головой, другую заведи за спину снизу. Попробуй сцепить руки за спиной. Если не достаёшь, используй полотенце или ремень между руками. Растягивает плечо в обоих направлениях одновременно — верхняя рука растягивает трицепс, нижняя — переднюю часть плеча."
+  },
+  {
+    "slug": "lat-stretch",
+    "category": "static-stretch",
+    "name": "Lat Stretch",
+    "name_ru": "Растяжка широчайших",
+    "tags": [
+      "back",
+      "shoulders",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Stand near a doorframe, pole, or sturdy object. Grab it with one hand overhead. Step to the side and push your hip out in the opposite direction, creating a \"C\" curve with your body. You should feel a stretch along your side from armpit to hip. Hold, then switch sides.",
+    "description_ru": "Встань рядом с дверной рамой, столбом или устойчивым объектом. Возьмись за него одной рукой сверху. Шагни в сторону и вытолкни бедро в противоположном направлении, создавая С-образный изгиб телом. Почувствуешь растяжение вдоль бока от подмышки до бедра. Удерживай, затем смени сторону."
+  },
+  {
+    "slug": "lat-stretch-wall",
+    "category": "static-stretch",
+    "name": "Wall Lat Stretch",
+    "name_ru": "Растяжка широчайших у стены",
+    "tags": [
+      "back",
+      "shoulders",
+      "beginner",
+      "home",
+      "wall"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "wall",
+    "is_timed": true,
+    "description": "Stand facing a wall at arm's length. Place both hands on the wall overhead and step back, hinging at the hips until your torso is parallel to the floor. Let your chest drop toward the floor while keeping arms straight. Feel the stretch through your lats and shoulders. Hold and breathe deeply.",
+    "description_ru": "Встань лицом к стене на расстоянии вытянутой руки. Поставь обе руки на стену над головой и отступи назад, сгибаясь в бёдрах до параллели торса с полом. Опусти грудь к полу, руки прямые. Почувствуй растяжение в широчайших и плечах. Удерживай и глубоко дыши."
+  },
+  {
+    "slug": "quad-stretch",
+    "category": "static-stretch",
+    "name": "Quad Stretch",
+    "name_ru": "Растяжка квадрицепса",
+    "tags": [
+      "quads",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Stand on one leg, using a wall or chair for balance if needed. Grab the ankle of your free leg and pull your heel toward your glute. Keep your knees together and hips pushed forward. Stand tall — don't lean forward. You should feel a stretch in the front of your thigh. Hold, then switch legs.",
+    "description_ru": "Встань на одну ногу, используя стену или стул для баланса при необходимости. Возьмись за щиколотку свободной ноги и притяни пятку к ягодице. Колени вместе, бёдра выдвинуты вперёд. Стой прямо — не наклоняйся вперёд. Должен чувствовать растяжение в передней части бедра. Удерживай, затем смени ногу."
+  },
+  {
+    "slug": "quad-stretch-lying",
+    "category": "static-stretch",
+    "name": "Lying Quad Stretch",
+    "name_ru": "Растяжка квадрицепса лёжа",
+    "tags": [
+      "quads",
+      "hip-flexors",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie on your side. Grab your top ankle and pull your heel toward your glute, keeping knees together. For a deeper stretch, push your hips forward. Your lower arm can support your head. This provides a deeper quad and hip flexor stretch than standing. Hold, then switch sides.",
+    "description_ru": "Ляг на бок. Возьмись за верхнюю щиколотку и притяни пятку к ягодице, колени вместе. Для более глубокой растяжки вытолкни бёдра вперёд. Нижняя рука может поддерживать голову. Обеспечивает более глубокую растяжку квадрицепса и сгибателей бедра, чем стоя. Удерживай, затем смени сторону."
+  },
+  {
+    "slug": "hamstring-stretch",
+    "category": "static-stretch",
+    "name": "Hamstring Stretch",
+    "name_ru": "Растяжка задней поверхности бедра",
+    "tags": [
+      "hamstrings",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Sit on the floor with one leg extended and the other bent with foot against inner thigh. Hinge forward from your hips, reaching toward your foot while keeping your back straight. Don't round your spine — fold from the hips. Feel the stretch along the back of your extended leg. Hold, then switch legs.",
+    "description_ru": "Сядь на пол, одна нога вытянута, другая согнута со стопой у внутренней части бедра. Наклоняйся вперёд от бёдер, тянясь к стопе, сохраняя спину прямой. Не округляй позвоночник — складывайся от бёдер. Почувствуй растяжение вдоль задней части вытянутой ноги. Удерживай, затем смени ногу."
+  },
+  {
+    "slug": "hamstring-stretch-lying",
+    "category": "static-stretch",
+    "name": "Lying Hamstring Stretch",
+    "name_ru": "Растяжка задней поверхности лёжа",
+    "tags": [
+      "hamstrings",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie on your back. Lift one leg straight up toward the ceiling. Grab behind your thigh or calf and gently pull the leg toward you, keeping it straight. Keep your other leg flat on the floor. Use a towel or strap around your foot if you can't reach. Hold, then switch legs.",
+    "description_ru": "Ляг на спину. Подними одну ногу прямо вверх к потолку. Возьмись за заднюю часть бедра или голени и мягко тяни ногу к себе, держа её прямой. Другая нога плоско на полу. Используй полотенце или ремень вокруг стопы, если не достаёшь. Удерживай, затем смени ногу."
+  },
+  {
+    "slug": "hip-flexor-stretch",
+    "category": "static-stretch",
+    "name": "Hip Flexor Stretch",
+    "name_ru": "Растяжка сгибателей бедра",
+    "tags": [
+      "hip-flexors",
+      "quads",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Kneel on one knee with the other foot flat on the floor in front (half-kneeling position). Keep your torso upright and push your hips forward until you feel a stretch in the front of your back hip. Squeeze your glutes to deepen the stretch. Hold, then switch sides.",
+    "description_ru": "Встань на одно колено, другая нога впереди со стопой на полу (позиция полуколена). Торс вертикальный, толкай бёдра вперёд, пока не почувствуешь растяжение в передней части заднего бедра. Сожми ягодицы для углубления растяжки. Удерживай, затем смени сторону."
+  },
+  {
+    "slug": "hip-flexor-stretch-deep",
+    "category": "static-stretch",
+    "name": "Deep Hip Flexor Stretch",
+    "name_ru": "Глубокая растяжка сгибателей бедра",
+    "tags": [
+      "hip-flexors",
+      "quads",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "From the basic hip flexor stretch, grab your back foot and pull it toward your glute while continuing to push hips forward. This adds a quad stretch to the hip flexor stretch. If you can't reach, place your back foot on a chair or use a strap. Hold, then switch sides.",
+    "description_ru": "Из базовой растяжки сгибателей бедра, возьмись за заднюю стопу и притяни её к ягодице, продолжая толкать бёдра вперёд. Это добавляет растяжку квадрицепса к растяжке сгибателей. Если не достаёшь, поставь заднюю ногу на стул или используй ремень. Удерживай, затем смени сторону."
+  },
+  {
+    "slug": "pigeon-stretch",
+    "category": "static-stretch",
+    "name": "Pigeon Stretch",
+    "name_ru": "Поза голубя",
+    "tags": [
+      "glutes",
+      "hip-flexors",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "From hands and knees, bring one knee forward and place it behind your wrist with your shin angled across your body. Extend your other leg straight back. Lower your hips toward the floor. For a deeper stretch, fold forward over your front leg. This intensely stretches the glute of the front leg and the hip flexor of the back leg.",
+    "description_ru": "Из положения на четвереньках, подведи одно колено вперёд и помести его за запястье, голень по диагонали через тело. Вытяни другую ногу прямо назад. Опусти бёдра к полу. Для более глубокой растяжки сложись вперёд над передней ногой. Интенсивно растягивает ягодицу передней ноги и сгибатель бедра задней ноги."
+  },
+  {
+    "slug": "pigeon-stretch-double",
+    "category": "static-stretch",
+    "name": "Double Pigeon",
+    "name_ru": "Двойной голубь",
+    "tags": [
+      "glutes",
+      "hip-flexors",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Sit with one leg bent in front of you, then stack your other leg on top with ankle on knee and knee on ankle — shins parallel and stacked. Sit tall, or fold forward for a deeper stretch. If this is too intense, keep the bottom leg extended. This deeply stretches both hips simultaneously.",
+    "description_ru": "Сядь с одной согнутой ногой перед собой, затем положи другую ногу сверху — щиколотка на колено, колено на щиколотку — голени параллельны и одна на другой. Сиди прямо или сложись вперёд для более глубокой растяжки. Если слишком интенсивно, держи нижнюю ногу вытянутой. Глубоко растягивает оба бедра одновременно."
+  },
+  {
+    "slug": "butterfly-stretch",
+    "category": "static-stretch",
+    "name": "Butterfly Stretch",
+    "name_ru": "Бабочка",
+    "tags": [
+      "hip-flexors",
+      "glutes",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Sit on the floor with the soles of your feet together, knees bent out to sides. Hold your ankles and use your elbows to gently press your knees toward the floor. Keep your back straight. For a deeper stretch, lean forward from the hips. This opens the inner thighs and hips.",
+    "description_ru": "Сядь на пол, подошвы стоп вместе, колени согнуты в стороны. Держись за щиколотки и локтями мягко прижимай колени к полу. Спина прямая. Для более глубокой растяжки наклонись вперёд от бёдер. Раскрывает внутреннюю поверхность бёдер и тазобедренные суставы."
+  },
+  {
+    "slug": "seated-forward-fold",
+    "category": "static-stretch",
+    "name": "Seated Forward Fold",
+    "name_ru": "Наклон вперёд сидя",
+    "tags": [
+      "hamstrings",
+      "lower-back",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Sit with legs extended straight in front of you. Hinge forward from your hips, reaching toward your toes while keeping your back as straight as possible. Don't force yourself to touch your toes — focus on the hip hinge rather than rounding your spine. Stretches hamstrings and lower back.",
+    "description_ru": "Сядь, ноги вытянуты прямо перед собой. Наклоняйся вперёд от бёдер, тянясь к носкам, сохраняя спину максимально прямой. Не заставляй себя касаться пальцев ног — фокусируйся на сгибе в бёдрах, а не на округлении позвоночника. Растягивает бицепсы бедра и поясницу."
+  },
+  {
+    "slug": "standing-forward-fold",
+    "category": "static-stretch",
+    "name": "Standing Forward Fold",
+    "name_ru": "Наклон вперёд стоя",
+    "tags": [
+      "hamstrings",
+      "lower-back",
+      "calves",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Stand with feet hip-width apart. Hinge at the hips and fold forward, letting your head and arms hang toward the floor. Keep a slight bend in your knees if your hamstrings are tight. Let gravity pull you deeper into the stretch. Breathe deeply and relax into the position.",
+    "description_ru": "Встань, ноги на ширине бёдер. Согнись в бёдрах и наклонись вперёд, позволяя голове и рукам свисать к полу. Держи небольшой сгиб в коленях, если бицепсы бедра зажаты. Позволь гравитации тянуть тебя глубже в растяжку. Дыши глубоко и расслабляйся в позицию."
+  },
+  {
+    "slug": "straddle-stretch",
+    "category": "static-stretch",
+    "name": "Straddle Stretch",
+    "name_ru": "Растяжка в широком угле",
+    "tags": [
+      "hamstrings",
+      "hip-flexors",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Sit on the floor with legs spread wide apart. Keeping your back straight, hinge forward from the hips as far as you can. You can walk your hands forward on the floor. Then reach toward each foot individually to stretch each side. This is the primary stretch for working toward middle splits.",
+    "description_ru": "Сядь на пол, ноги широко разведены. Сохраняя спину прямой, наклоняйся вперёд от бёдер как можно дальше. Можно переставлять руки вперёд по полу. Затем тянись к каждой стопе по отдельности. Это основная растяжка для работы над поперечным шпагатом."
+  },
+  {
+    "slug": "frog-stretch",
+    "category": "static-stretch",
+    "name": "Frog Stretch",
+    "name_ru": "Растяжка лягушка",
+    "tags": [
+      "hip-flexors",
+      "glutes",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Start on hands and knees. Spread your knees as wide as comfortable, keeping feet in line with knees (shins parallel). Lower your forearms to the floor and slowly push your hips back. You should feel a deep stretch in the inner thighs and groin. Hold and breathe, allowing the stretch to deepen naturally.",
+    "description_ru": "Встань на четвереньки. Разведи колени как можно шире, стопы на линии с коленями (голени параллельны). Опустись на предплечья и медленно отодвигай таз назад. Должен почувствовать глубокое растяжение во внутренней части бёдер и паху. Удерживай и дыши, позволяя растяжке углубляться естественно."
+  },
+  {
+    "slug": "figure-four-stretch",
+    "category": "static-stretch",
+    "name": "Figure Four Stretch",
+    "name_ru": "Растяжка четвёрка",
+    "tags": [
+      "glutes",
+      "hip-flexors",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie on your back. Cross one ankle over the opposite knee, creating a \"4\" shape. Reach through and grab behind the thigh of the bottom leg, pulling it toward your chest. Keep your head and shoulders on the floor. You'll feel a deep stretch in the glute of the crossed leg. Hold, then switch sides.",
+    "description_ru": "Ляг на спину. Положи одну щиколотку на противоположное колено, создавая форму \"4\". Протяни руки и возьмись за бедро нижней ноги, притягивая её к груди. Голова и плечи на полу. Почувствуешь глубокое растяжение в ягодице скрещенной ноги. Удерживай, затем смени сторону."
+  },
+  {
+    "slug": "pretzel-stretch",
+    "category": "static-stretch",
+    "name": "Pretzel Stretch",
+    "name_ru": "Растяжка крендель",
+    "tags": [
+      "glutes",
+      "lower-back",
+      "chest",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie on your side with bottom leg straight. Bend your top leg and grab the knee with your bottom hand, pulling it toward the floor in front of you. Bend your bottom leg back and grab that foot with your top hand. Rotate your chest toward the ceiling. This complex stretch hits glutes, hip flexors, quads, and chest.",
+    "description_ru": "Ляг на бок, нижняя нога прямая. Согни верхнюю ногу и возьми колено нижней рукой, притягивая к полу перед собой. Согни нижнюю ногу назад и возьми эту стопу верхней рукой. Поверни грудь к потолку. Эта сложная растяжка бьёт по ягодицам, сгибателям бедра, квадрицепсам и груди."
+  },
+  {
+    "slug": "hip-90-90-stretch",
+    "category": "static-stretch",
+    "name": "90/90 Stretch",
+    "name_ru": "Растяжка 90/90",
+    "tags": [
+      "hip-flexors",
+      "glutes",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Sit with one leg in front, bent at 90 degrees, and the other leg to the side, also bent at 90 degrees. Your front shin should be parallel to your torso. Lean forward over your front leg for a deeper stretch. This targets both internal and external hip rotation. Hold, then switch sides.",
+    "description_ru": "Сядь с одной ногой впереди, согнутой под 90 градусов, и другой ногой сбоку, также согнутой под 90 градусов. Передняя голень параллельна корпусу. Наклонись вперёд над передней ногой для более глубокой растяжки. Нацелена на внутреннюю и внешнюю ротацию бедра. Удерживай, затем смени сторону."
+  },
+  {
+    "slug": "calf-stretch-wall",
+    "category": "static-stretch",
+    "name": "Wall Calf Stretch",
+    "name_ru": "Растяжка икр у стены",
+    "tags": [
+      "calves",
+      "beginner",
+      "home",
+      "wall"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "wall",
+    "is_timed": true,
+    "description": "Stand facing a wall. Place hands on wall and step one foot back, keeping that leg straight and heel pressed into the floor. Bend your front knee and lean into the wall until you feel a stretch in the calf of your back leg. Hold, then switch legs. Keep back heel down throughout.",
+    "description_ru": "Встань лицом к стене. Поставь руки на стену и отступи одной ногой назад, нога прямая, пятка прижата к полу. Согни переднее колено и наклонись к стене, пока не почувствуешь растяжение в икре задней ноги. Удерживай, затем смени ногу. Задняя пятка всё время на полу."
+  },
+  {
+    "slug": "calf-stretch-step",
+    "category": "static-stretch",
+    "name": "Step Calf Stretch",
+    "name_ru": "Растяжка икр на ступеньке",
+    "tags": [
+      "calves",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Stand on a step or curb with the ball of one foot on the edge, heel hanging off. Lower your heel below the level of the step, feeling a deep stretch in your calf. Hold onto something for balance. Keep your leg straight for gastrocnemius, or slightly bent for soleus. Hold, then switch legs.",
+    "description_ru": "Встань на ступеньку или бордюр передней частью стопы на краю, пятка свисает. Опусти пятку ниже уровня ступеньки, чувствуя глубокое растяжение в икре. Держись за что-нибудь для баланса. Нога прямая для икроножной или слегка согнута для камбаловидной. Удерживай, затем смени ногу."
+  },
+  {
+    "slug": "soleus-stretch",
+    "category": "static-stretch",
+    "name": "Soleus Stretch",
+    "name_ru": "Растяжка камбаловидной",
+    "tags": [
+      "calves",
+      "beginner",
+      "home",
+      "wall"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "wall",
+    "is_timed": true,
+    "description": "Same position as wall calf stretch, but bend your back knee while keeping the heel down. This shifts the stretch from the gastrocnemius to the deeper soleus muscle. The soleus is important for activities like running and jumping. Hold, then switch legs.",
+    "description_ru": "Та же позиция, что и при растяжке икр у стены, но согни заднее колено, удерживая пятку на полу. Это переносит растяжение с икроножной мышцы на более глубокую камбаловидную. Камбаловидная мышца важна для бега и прыжков. Удерживай, затем смени ногу."
+  },
+  {
+    "slug": "it-band-stretch",
+    "category": "static-stretch",
+    "name": "IT Band Stretch",
+    "name_ru": "Растяжка IT-band",
+    "tags": [
+      "hip-flexors",
+      "glutes",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Stand and cross one leg behind the other. Lean to the side opposite of your back leg, reaching your arm overhead and pushing your hip out to the crossed leg side. You should feel a stretch along the outer thigh and hip of the back leg. Hold, then switch sides. Important stretch for runners.",
+    "description_ru": "Встань и перекрести одну ногу за другой. Наклонись в сторону, противоположную задней ноге, вытягивая руку над головой и выталкивая бедро в сторону скрещенной ноги. Должен чувствовать растяжение вдоль внешней части бедра и тазобедренного сустава задней ноги. Удерживай, затем смени сторону. Важная растяжка для бегунов."
+  },
+  {
+    "slug": "neck-stretch-side",
+    "category": "static-stretch",
+    "name": "Side Neck Stretch",
+    "name_ru": "Боковая растяжка шеи",
+    "tags": [
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 3,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Sit or stand tall. Gently tilt your head to one side, bringing your ear toward your shoulder. Place your hand on your head to add gentle pressure. Keep the opposite shoulder down and relaxed. Feel the stretch along the side of your neck. Hold, then switch sides. Move slowly and gently.",
+    "description_ru": "Сядь или встань прямо. Мягко наклони голову в сторону, приближая ухо к плечу. Положи руку на голову для лёгкого давления. Противоположное плечо опущено и расслаблено. Почувствуй растяжение вдоль боковой части шеи. Удерживай, затем смени сторону. Двигайся медленно и мягко."
+  },
+  {
+    "slug": "neck-stretch-forward",
+    "category": "static-stretch",
+    "name": "Forward Neck Stretch",
+    "name_ru": "Растяжка шеи вперёд",
+    "tags": [
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 3,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Sit or stand tall. Gently drop your chin toward your chest. Interlace your fingers behind your head and let the weight of your arms add gentle pressure — don't pull. Feel the stretch along the back of your neck. Hold and breathe. This releases tension in the neck extensors.",
+    "description_ru": "Сядь или встань прямо. Мягко опусти подбородок к груди. Сплети пальцы за головой и позволь весу рук добавить лёгкое давление — не тяни. Почувствуй растяжение вдоль задней части шеи. Удерживай и дыши. Снимает напряжение в разгибателях шеи."
+  },
+  {
+    "slug": "upper-trap-stretch",
+    "category": "static-stretch",
+    "name": "Upper Trap Stretch",
+    "name_ru": "Растяжка верхней трапеции",
+    "tags": [
+      "shoulders",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Sit or stand tall. Tilt your head to one side and slightly rotate to look toward your armpit on that side. Place the hand on that side on your head and gently pull down. Keep the opposite shoulder down. Feel the stretch in the upper trapezius. Hold, then switch sides.",
+    "description_ru": "Сядь или встань прямо. Наклони голову в сторону и слегка поверни, глядя к подмышке с той стороны. Положи руку с той стороны на голову и мягко тяни вниз. Противоположное плечо опущено. Почувствуй растяжение в верхней трапеции. Удерживай, затем смени сторону."
+  },
+  {
+    "slug": "wrist-flexor-stretch",
+    "category": "static-stretch",
+    "name": "Wrist Flexor Stretch",
+    "name_ru": "Растяжка сгибателей кисти",
+    "tags": [
+      "forearms",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 3,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Extend one arm in front of you with palm facing up. Use your other hand to gently pull your fingers down and back toward your body. Keep your arm straight. Feel the stretch in the inner forearm. Hold, then switch arms. Important for preventing wrist strain from desk work.",
+    "description_ru": "Вытяни одну руку перед собой ладонью вверх. Другой рукой мягко тяни пальцы вниз и назад к телу. Рука прямая. Почувствуй растяжение во внутренней части предплечья. Удерживай, затем смени руку. Важно для предотвращения напряжения запястья от работы за столом."
+  },
+  {
+    "slug": "wrist-extensor-stretch",
+    "category": "static-stretch",
+    "name": "Wrist Extensor Stretch",
+    "name_ru": "Растяжка разгибателей кисти",
+    "tags": [
+      "forearms",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 3,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Extend one arm in front of you with palm facing down. Use your other hand to gently push your hand down, curling your fingers toward your body. Keep your arm straight. Feel the stretch in the outer forearm. Hold, then switch arms. Helps with wrist mobility and forearm tightness.",
+    "description_ru": "Вытяни одну руку перед собой ладонью вниз. Другой рукой мягко надави на кисть вниз, сгибая пальцы к телу. Рука прямая. Почувствуй растяжение во внешней части предплечья. Удерживай, затем смени руку. Помогает с мобильностью запястья и напряжением предплечья."
+  },
+  {
+    "slug": "prayer-stretch",
+    "category": "static-stretch",
+    "name": "Prayer Stretch",
+    "name_ru": "Молитвенная растяжка",
+    "tags": [
+      "forearms",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 3,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Press your palms together in front of your chest in a prayer position, fingers pointing up. Keeping palms pressed together, slowly lower your hands until you feel a stretch in your wrists and forearms. Keep elbows out to sides. Hold and breathe. Good preparation for wrist-intensive exercises.",
+    "description_ru": "Сожми ладони вместе перед грудью в позе молитвы, пальцы направлены вверх. Удерживая ладони прижатыми, медленно опускай руки, пока не почувствуешь растяжение в запястьях и предплечьях. Локти в стороны. Удерживай и дыши. Хорошая подготовка к упражнениям с нагрузкой на запястья."
+  },
+  {
+    "slug": "reverse-prayer-stretch",
+    "category": "static-stretch",
+    "name": "Reverse Prayer Stretch",
+    "name_ru": "Обратная молитвенная растяжка",
+    "tags": [
+      "forearms",
+      "shoulders",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 5,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Bring your hands behind your back and press your palms together with fingers pointing up (like a prayer position behind your back). This requires significant wrist and shoulder flexibility. If you can't press palms together, start by pressing the backs of your hands together.",
+    "description_ru": "Заведи руки за спину и сожми ладони вместе пальцами вверх (как поза молитвы за спиной). Требует значительной гибкости запястий и плеч. Если не можешь сжать ладони, начни с прижимания тыльных сторон ладоней друг к другу."
+  },
+  {
+    "slug": "lying-spinal-twist",
+    "category": "static-stretch",
+    "name": "Lying Spinal Twist",
+    "name_ru": "Скручивание позвоночника лёжа",
+    "tags": [
+      "lower-back",
+      "glutes",
+      "chest",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie on your back. Bring one knee toward your chest, then let it fall across your body to the opposite side while keeping both shoulders flat on the floor. Extend your arm on the same side of the bent leg out to the side. Turn your head to look toward that hand. Hold, breathe, then switch sides.",
+    "description_ru": "Ляг на спину. Подтяни одно колено к груди, затем опусти его через тело на противоположную сторону, удерживая оба плеча прижатыми к полу. Вытяни руку на стороне согнутой ноги в сторону. Поверни голову, глядя на эту руку. Удерживай, дыши, затем смени сторону."
+  },
+  {
+    "slug": "seated-spinal-twist",
+    "category": "static-stretch",
+    "name": "Seated Spinal Twist",
+    "name_ru": "Скручивание позвоночника сидя",
+    "tags": [
+      "lower-back",
+      "glutes",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 5,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Sit with legs extended. Bend one knee and cross that foot over the other leg, placing it on the floor. Rotate your torso toward the bent knee, using your opposite elbow against the knee for leverage. Keep your spine tall as you twist. Hold, then switch sides. Great for spinal mobility.",
+    "description_ru": "Сядь с вытянутыми ногами. Согни одно колено и перекинь эту стопу через другую ногу, поставив на пол. Поверни корпус в сторону согнутого колена, используя противоположный локоть против колена для рычага. Спина прямая при скручивании. Удерживай, затем смени сторону. Отлично для подвижности позвоночника."
+  },
+  {
+    "slug": "knees-to-chest",
+    "category": "static-stretch",
+    "name": "Knees to Chest",
+    "name_ru": "Колени к груди",
+    "tags": [
+      "lower-back",
+      "glutes",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie on your back. Bring both knees toward your chest and hug them with your arms. Gently rock side to side to massage your lower back. Keep your head on the floor. This releases tension in the lower back and gently stretches the glutes. A great relaxation pose.",
+    "description_ru": "Ляг на спину. Подтяни оба колена к груди и обними их руками. Мягко покачивайся из стороны в сторону для массажа поясницы. Голова на полу. Снимает напряжение в пояснице и мягко растягивает ягодицы. Отличная поза для расслабления."
+  },
+  {
+    "slug": "happy-baby",
+    "category": "static-stretch",
+    "name": "Happy Baby",
+    "name_ru": "Счастливый ребёнок",
+    "tags": [
+      "hip-flexors",
+      "lower-back",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie on your back. Bring knees toward armpits, keeping them wide. Grab the outsides of your feet (or ankles if feet aren't accessible). Gently pull feet down while pushing knees toward floor. Your lower back stays on the floor. Rock side to side if it feels good. This opens the hips and releases the lower back.",
+    "description_ru": "Ляг на спину. Подтяни колени к подмышкам, держа их широко. Возьмись за внешние стороны стоп (или щиколотки, если стопы недоступны). Мягко тяни стопы вниз, толкая колени к полу. Поясница остаётся на полу. Покачивайся из стороны в сторону, если приятно. Раскрывает бёдра и расслабляет поясницу."
+  },
+  {
+    "slug": "pancake-stretch",
+    "category": "static-stretch",
+    "name": "Pancake Stretch",
+    "name_ru": "Блинчик",
+    "tags": [
+      "hamstrings",
+      "hip-flexors",
+      "lower-back",
+      "advanced",
+      "home"
+    ],
+    "difficulty": 4,
+    "base_xp": 10,
+    "required_level": 5,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Sit with legs spread very wide (straddle position). Fold forward from the hips, walking hands out and aiming to bring your chest and belly to the floor between your legs. Keep your back as straight as possible. This advanced stretch requires both hamstring flexibility and hip mobility.",
+    "description_ru": "Сядь, ноги широко разведены (поперечный шпагат сидя). Наклоняйся вперёд от бёдер, переставляя руки вперёд и стремясь опустить грудь и живот на пол между ног. Спина максимально прямая. Эта продвинутая растяжка требует гибкости бицепсов бедра и подвижности бёдер."
+  },
+  {
+    "slug": "middle-split",
+    "category": "static-stretch",
+    "name": "Middle Split",
+    "name_ru": "Поперечный шпагат",
+    "tags": [
+      "hip-flexors",
+      "hamstrings",
+      "glutes",
+      "advanced",
+      "home"
+    ],
+    "difficulty": 5,
+    "base_xp": 15,
+    "required_level": 8,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Stand with feet wide apart and slowly slide them wider until your inner thighs are resting on the floor (or as close as you can get). Keep your torso upright and toes pointing up. This is an advanced flexibility goal that requires months of training in hip openers and inner thigh stretches.",
+    "description_ru": "Встань с широко расставленными ногами и медленно разводи их шире, пока внутренняя часть бёдер не ляжет на пол (или как можно ближе). Торс вертикальный, носки направлены вверх. Продвинутая цель гибкости, требующая месяцев тренировки раскрытия бёдер и растяжки внутренней части бедра."
+  },
+  {
+    "slug": "front-split",
+    "category": "static-stretch",
+    "name": "Front Split",
+    "name_ru": "Продольный шпагат",
+    "tags": [
+      "hamstrings",
+      "hip-flexors",
+      "quads",
+      "advanced",
+      "home"
+    ],
+    "difficulty": 5,
+    "base_xp": 15,
+    "required_level": 8,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "From a kneeling lunge position, slide your front foot forward and back leg backward until both legs are flat on the floor in a split. Front leg straight ahead, back leg straight behind, both legs touching the floor. Keep hips squared. Requires extensive hamstring and hip flexor flexibility.",
+    "description_ru": "Из позиции выпада на колене, скользи передней ногой вперёд и задней ногой назад, пока обе ноги не лягут на пол в шпагате. Передняя нога прямо вперёд, задняя прямо назад, обе ноги касаются пола. Бёдра направлены вперёд. Требует обширной гибкости бицепсов бедра и сгибателей."
+  },
+  {
+    "slug": "bridge-stretch",
+    "category": "static-stretch",
+    "name": "Bridge Stretch",
+    "name_ru": "Мостик растяжка",
+    "tags": [
+      "chest",
+      "shoulders",
+      "hip-flexors",
+      "core",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 3,
+    "base_xp": 8,
+    "required_level": 3,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie on your back with knees bent and feet flat on the floor. Place hands by your ears with fingers pointing toward shoulders. Press through hands and feet to lift your body into a backbend arch. Push your chest toward the wall behind you. This deep backbend opens the entire front body and shoulders.",
+    "description_ru": "Ляг на спину, колени согнуты, стопы на полу. Поставь руки у ушей, пальцы направлены к плечам. Оттолкнись руками и ногами, чтобы поднять тело в прогиб. Толкай грудь к стене позади себя. Этот глубокий прогиб раскрывает всю переднюю часть тела и плечи."
+  },
+  {
+    "slug": "puppy-pose",
+    "category": "static-stretch",
+    "name": "Puppy Pose",
+    "name_ru": "Поза щенка",
+    "tags": [
+      "shoulders",
+      "back",
+      "chest",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Start on hands and knees. Walk your hands forward while keeping your hips over your knees. Lower your chest and forehead toward the floor, creating a deep arch in your upper back. Arms stay extended with palms flat. This stretches the shoulders, chest, and spine intensely.",
+    "description_ru": "Начни на четвереньках. Иди руками вперёд, держа бёдра над коленями. Опускай грудь и лоб к полу, создавая глубокий прогиб в верхней части спины. Руки вытянуты, ладони плоско. Интенсивно растягивает плечи, грудь и позвоночник."
+  },
+  {
+    "slug": "seal-stretch",
+    "category": "static-stretch",
+    "name": "Seal Stretch",
+    "name_ru": "Растяжка тюленя",
+    "tags": [
+      "core",
+      "hip-flexors",
+      "lower-back",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 6,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie face down. Place hands under your shoulders and press up fully, straightening your arms while keeping your hips on the ground. Let your head fall back slightly. This is a deeper backbend than cobra, stretching the abs, hip flexors, and opening the chest.",
+    "description_ru": "Ляг лицом вниз. Поставь руки под плечи и отожмись полностью, выпрямляя руки, оставляя бёдра на полу. Позволь голове слегка запрокинуться назад. Это более глубокий прогиб, чем кобра, растягивающий пресс, сгибатели бедра и раскрывающий грудь."
+  },
+  {
+    "slug": "bow-pose",
+    "category": "static-stretch",
+    "name": "Bow Pose",
+    "name_ru": "Поза лука",
+    "tags": [
+      "chest",
+      "quads",
+      "hip-flexors",
+      "shoulders",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 3,
+    "base_xp": 8,
+    "required_level": 3,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie face down. Bend your knees and reach back to grab your ankles. Kick your legs into your hands while lifting your chest, creating a bow shape with your body. Only your belly touches the floor. This deeply stretches the front body — quads, hip flexors, abs, and chest.",
+    "description_ru": "Ляг лицом вниз. Согни колени и потянись назад, чтобы взяться за щиколотки. Толкай ноги в руки, поднимая грудь, создавая форму лука телом. Только живот касается пола. Глубоко растягивает переднюю часть тела — квадрицепсы, сгибатели бедра, пресс и грудь."
+  }
+]

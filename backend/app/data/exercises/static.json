@@ -1,0 +1,706 @@
+[
+  {
+    "slug": "plank",
+    "category": "static",
+    "name": "Plank",
+    "name_ru": "Планка",
+    "tags": [
+      "core",
+      "shoulders",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 8,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "harder": "plank-side",
+    "description": "Start on forearms and toes, elbows directly under shoulders. Keep your body in a straight line from head to heels — don't let hips sag or pike up. Engage your core, squeeze your glutes, and look at the floor. Breathe normally and hold the position. This foundational exercise builds core stability and endurance.",
+    "description_ru": "Встань на предплечья и носки, локти строго под плечами. Держи тело прямой линией от головы до пяток — не провисай в бёдрах и не поднимай таз. Напряги кор, сожми ягодицы, смотри в пол. Дыши ровно и удерживай позицию. Это базовое упражнение развивает стабильность и выносливость кора."
+  },
+  {
+    "slug": "plank-side",
+    "category": "static",
+    "name": "Side Plank",
+    "name_ru": "Боковая планка",
+    "tags": [
+      "core",
+      "shoulders",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "easier": "plank",
+    "harder": "plank-arm-leg",
+    "description": "Lie on your side, then prop yourself up on one forearm with elbow under shoulder. Stack feet on top of each other and lift hips off the ground, forming a straight line from head to feet. Hold. Free hand can rest on hip or reach toward ceiling. This targets obliques and lateral core stability.",
+    "description_ru": "Ляг на бок, затем обопрись на одно предплечье, локоть под плечом. Стопы одна на другой, подними бёдра от пола, образуя прямую линию от головы до стоп. Удерживай. Свободная рука на бедре или тянется вверх. Нагружает косые мышцы живота и боковую стабильность кора."
+  },
+  {
+    "slug": "plank-arm-leg",
+    "category": "static",
+    "name": "Plank with Arm/Leg Raise",
+    "name_ru": "Планка с подъёмом руки/ноги",
+    "tags": [
+      "core",
+      "shoulders",
+      "glutes",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 3,
+    "base_xp": 12,
+    "required_level": 3,
+    "equipment": "none",
+    "is_timed": true,
+    "easier": "plank-side",
+    "description": "Start in a high plank position. Simultaneously raise one arm straight forward and the opposite leg straight back, forming a straight line from fingertips to toes. Hold this position while keeping hips level and core tight. This advanced plank variation challenges balance and anti-rotation stability.",
+    "description_ru": "Начни в высокой планке. Одновременно подними одну руку прямо вперёд и противоположную ногу прямо назад, образуя прямую линию от пальцев руки до носка. Удерживай позицию, сохраняя бёдра на одном уровне и кор напряжённым. Эта продвинутая вариация планки бросает вызов балансу и антиротационной стабильности."
+  },
+  {
+    "slug": "plank-high",
+    "category": "static",
+    "name": "High Plank",
+    "name_ru": "Высокая планка",
+    "tags": [
+      "core",
+      "shoulders",
+      "triceps",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 8,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Start in the top of a push-up position — hands under shoulders, arms straight, body forming a straight line from head to heels. Engage your core and glutes. Don't let your hips sag or rise. Keep shoulders away from ears. This variation puts more load on shoulders and arms than forearm plank.",
+    "description_ru": "Встань в верхнюю точку отжимания — руки под плечами, руки прямые, тело образует прямую линию от головы до пяток. Напряги кор и ягодицы. Не провисай и не поднимай таз. Плечи опущены, не подтянуты к ушам. Эта вариация больше нагружает плечи и руки, чем планка на предплечьях."
+  },
+  {
+    "slug": "plank-reverse",
+    "category": "static",
+    "name": "Reverse Plank",
+    "name_ru": "Обратная планка",
+    "tags": [
+      "core",
+      "triceps",
+      "glutes",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Sit with legs extended. Place hands behind you, fingers pointing forward or toward feet. Press through your hands and heels to lift hips until body forms a straight line from head to heels. Keep core engaged and chest open. This strengthens posterior chain, opens shoulders, and works triceps.",
+    "description_ru": "Сядь с вытянутыми ногами. Поставь руки за собой, пальцы направлены вперёд или к ногам. Оттолкнись руками и пятками, подними таз, пока тело не образует прямую линию от головы до пяток. Кор напряжён, грудь раскрыта. Укрепляет заднюю цепь, раскрывает плечи, нагружает трицепсы."
+  },
+  {
+    "slug": "plank-star",
+    "category": "static",
+    "name": "Star Plank",
+    "name_ru": "Звёздная планка",
+    "tags": [
+      "core",
+      "shoulders",
+      "advanced",
+      "home"
+    ],
+    "difficulty": 4,
+    "base_xp": 15,
+    "required_level": 5,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Start in a side plank position on one hand. Lift your top arm toward the ceiling and your top leg up, forming a star shape with your body. Hold this position while keeping hips elevated and core engaged. This extremely challenging variation targets obliques and requires significant shoulder and hip stability.",
+    "description_ru": "Начни в боковой планке на одной руке. Подними верхнюю руку к потолку и верхнюю ногу вверх, образуя форму звезды телом. Удерживай позицию, сохраняя бёдра поднятыми и кор напряжённым. Эта крайне сложная вариация нагружает косые мышцы и требует значительной стабильности плеча и бедра."
+  },
+  {
+    "slug": "plank-copenhagen",
+    "category": "static",
+    "name": "Copenhagen Plank",
+    "name_ru": "Копенгагенская планка",
+    "tags": [
+      "core",
+      "hip-flexors",
+      "advanced",
+      "home",
+      "bench"
+    ],
+    "difficulty": 4,
+    "base_xp": 15,
+    "required_level": 5,
+    "equipment": "bench",
+    "is_timed": true,
+    "description": "Side plank position with top leg resting on a bench and bottom leg suspended. The inside of your top foot rests on the bench while you hold a side plank on your elbow. Keep hips elevated and body straight. This specifically targets adductors (inner thigh muscles) and is used for groin injury prevention.",
+    "description_ru": "Боковая планка с верхней ногой на скамье и нижней ногой в воздухе. Внутренняя часть верхней стопы лежит на скамье, пока ты держишь боковую планку на локте. Бёдра подняты, тело прямое. Специфически нагружает приводящие мышцы (внутренняя поверхность бедра) и используется для профилактики травм паха."
+  },
+  {
+    "slug": "wall-sit",
+    "category": "static",
+    "name": "Wall Sit",
+    "name_ru": "Стульчик у стены",
+    "tags": [
+      "quads",
+      "intermediate",
+      "home",
+      "wall"
+    ],
+    "difficulty": 2,
+    "base_xp": 8,
+    "required_level": 1,
+    "equipment": "wall",
+    "is_timed": true,
+    "description": "Stand with your back against a wall. Slide down until your thighs are parallel to the floor, knees bent at 90 degrees. Keep your back flat against the wall, feet shoulder-width apart. Hold this seated position. Your quads will burn! Don't let knees extend past toes.",
+    "description_ru": "Встань спиной к стене. Скользи вниз, пока бёдра не станут параллельны полу, колени согнуты под 90 градусов. Спина прижата к стене, ноги на ширине плеч. Удерживай это сидячее положение. Квадрицепсы будут гореть! Колени не выходят за носки."
+  },
+  {
+    "slug": "hollow-body-hold",
+    "category": "static",
+    "name": "Hollow Body Hold",
+    "name_ru": "Лодочка",
+    "tags": [
+      "core",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 3,
+    "base_xp": 12,
+    "required_level": 3,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie on your back. Raise legs and arms off the ground with arms reaching overhead and legs straight. Press lower back firmly into the floor, creating a \"hollow\" or curved position — your body looks like a shallow dish or banana. Hold this position. The key is keeping the lower back pressed down.",
+    "description_ru": "Ляг на спину. Подними ноги и руки от пола — руки вытянуты за головой, ноги прямые. Прижми поясницу к полу, создавая \"полую\" или изогнутую позицию — тело выглядит как неглубокая миска или банан. Удерживай позицию. Ключевой момент — поясница прижата к полу."
+  },
+  {
+    "slug": "arch-hold",
+    "category": "static",
+    "name": "Arch Hold",
+    "name_ru": "Супермен удержание",
+    "tags": [
+      "lower-back",
+      "glutes",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie face down with arms extended overhead. Simultaneously lift your arms, chest, and legs off the floor, creating an arched position. Keep your neck neutral (look at the floor). Hold this position. This strengthens the entire posterior chain — lower back, glutes, and upper back.",
+    "description_ru": "Ляг лицом вниз, руки вытянуты за голову. Одновременно подними руки, грудь и ноги от пола, создавая прогнутую позицию. Шея в нейтральном положении (смотри в пол). Удерживай позицию. Укрепляет всю заднюю цепь — поясницу, ягодицы и верх спины."
+  },
+  {
+    "slug": "l-sit",
+    "category": "static",
+    "name": "L-Sit",
+    "name_ru": "L-сидение",
+    "tags": [
+      "core",
+      "triceps",
+      "hip-flexors",
+      "advanced",
+      "outdoor",
+      "dip-bars"
+    ],
+    "difficulty": 4,
+    "base_xp": 15,
+    "required_level": 6,
+    "equipment": "dip-bars",
+    "is_timed": true,
+    "description": "Sit on the floor or place hands on parallettes/dip bars. Press down through your hands to lift your entire body off the ground, keeping legs straight and extended in front of you so your body forms an L shape. Hold this position. This requires significant core, hip flexor, and tricep strength. Start with tucked knees if you can't hold straight legs.",
+    "description_ru": "Сядь на пол или расположи руки на паралетсах/брусьях. Оттолкнись руками, чтобы поднять всё тело от земли, держа ноги прямыми и вытянутыми перед собой — тело образует букву L. Удерживай позицию. Требуется значительная сила кора, сгибателей бедра и трицепсов. Начни с согнутыми коленями, если не можешь удержать прямые ноги."
+  },
+  {
+    "slug": "l-sit-floor",
+    "category": "static",
+    "name": "Floor L-Sit",
+    "name_ru": "L-сидение на полу",
+    "tags": [
+      "core",
+      "triceps",
+      "hip-flexors",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 3,
+    "base_xp": 12,
+    "required_level": 4,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Sit on the floor with legs extended. Place hands flat on the floor beside your hips, fingers pointing forward. Press down and lift your entire body off the ground, keeping legs straight and horizontal. Hold this L-shaped position. More challenging than using parallettes due to less clearance from the floor.",
+    "description_ru": "Сядь на пол с вытянутыми ногами. Поставь руки ладонями на пол рядом с бёдрами, пальцы направлены вперёд. Оттолкнись и подними всё тело от пола, держа ноги прямыми и горизонтальными. Удерживай L-образную позицию. Сложнее, чем на паралетсах, из-за меньшего зазора от пола."
+  },
+  {
+    "slug": "v-sit",
+    "category": "static",
+    "name": "V-Sit",
+    "name_ru": "V-сидение",
+    "tags": [
+      "core",
+      "hip-flexors",
+      "advanced",
+      "home"
+    ],
+    "difficulty": 4,
+    "base_xp": 15,
+    "required_level": 6,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "From an L-sit position, raise your legs higher until they form a V shape with your torso, aiming for a 90-degree angle or more between legs and torso. Keep legs straight and core fully engaged. This requires exceptional hip flexor strength and hamstring flexibility. Progress from L-sit.",
+    "description_ru": "Из позиции L-сидения подними ноги выше, пока они не образуют V-форму с туловищем, стремясь к углу 90 градусов или больше между ногами и корпусом. Ноги прямые, кор полностью напряжён. Требует исключительной силы сгибателей бедра и гибкости задней поверхности бедра. Прогрессия от L-сидения."
+  },
+  {
+    "slug": "handstand-wall",
+    "category": "static",
+    "name": "Wall Handstand",
+    "name_ru": "Стойка на руках у стены",
+    "tags": [
+      "shoulders",
+      "triceps",
+      "core",
+      "intermediate",
+      "home",
+      "wall"
+    ],
+    "difficulty": 3,
+    "base_xp": 12,
+    "required_level": 4,
+    "equipment": "wall",
+    "is_timed": true,
+    "description": "Kick up into a handstand with your back facing the wall, using the wall for balance. Your body should be as straight as possible — stack shoulders over wrists, hips over shoulders, feet over hips. Engage your core and squeeze your glutes. Hold as long as you can maintain good form. Start with chest-to-wall handstands if back-to-wall feels unstable.",
+    "description_ru": "Выйди в стойку на руках спиной к стене, используя стену для баланса. Тело должно быть максимально прямым — плечи над запястьями, таз над плечами, ноги над тазом. Напряги кор и ягодицы. Удерживай позицию, пока сохраняется хорошая форма. Начни со стойки грудью к стене, если спиной к стене нестабильно."
+  },
+  {
+    "slug": "handstand-free",
+    "category": "static",
+    "name": "Freestanding Handstand",
+    "name_ru": "Свободная стойка на руках",
+    "tags": [
+      "shoulders",
+      "triceps",
+      "core",
+      "elite",
+      "home"
+    ],
+    "difficulty": 5,
+    "base_xp": 25,
+    "required_level": 10,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Hold a handstand without any wall support, balancing entirely on your hands. Body should be perfectly straight — shoulders stacked over wrists, hips over shoulders. Balance comes from subtle wrist and finger adjustments. This requires years of practice and exceptional body awareness. Master wall handstands first.",
+    "description_ru": "Удерживай стойку на руках без опоры на стену, балансируя полностью на руках. Тело должно быть идеально прямым — плечи над запястьями, таз над плечами. Баланс достигается тонкими корректировками запястий и пальцев. Требует лет практики и исключительного владения телом. Сначала освой стойку у стены."
+  },
+  {
+    "slug": "crow-pose",
+    "category": "static",
+    "name": "Crow Pose",
+    "name_ru": "Поза вороны",
+    "tags": [
+      "shoulders",
+      "triceps",
+      "core",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 3,
+    "base_xp": 12,
+    "required_level": 4,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Squat with feet together, hands on floor. Place knees against the backs of your arms. Lean forward, lifting feet off floor and balancing entirely on your hands. Arms slightly bent. Keep looking forward (not down) to maintain balance. Core stays engaged. Progress from frog stand.",
+    "description_ru": "Присядь, ноги вместе, руки на полу. Упри колени в заднюю часть верхних частей рук. Наклонись вперёд, отрывая ноги от пола и балансируя полностью на руках. Руки слегка согнуты. Смотри вперёд (не вниз) для сохранения баланса. Кор напряжён. Прогрессия от позы лягушки."
+  },
+  {
+    "slug": "frog-stand",
+    "category": "static",
+    "name": "Frog Stand",
+    "name_ru": "Стойка лягушки",
+    "tags": [
+      "shoulders",
+      "triceps",
+      "core",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 3,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Squat down and place hands on the floor in front of you, shoulder-width apart. Place your knees on the backs of your upper arms (triceps area). Lean forward, shifting weight onto your hands until feet lift off. Balance in this position. This is the first step toward crow pose and arm balances.",
+    "description_ru": "Присядь и поставь руки на пол перед собой на ширине плеч. Помести колени на заднюю часть верхних частей рук (область трицепсов). Наклонись вперёд, перенося вес на руки, пока ноги не оторвутся от пола. Балансируй в этой позиции. Первый шаг к позе вороны и балансам на руках."
+  },
+  {
+    "slug": "single-leg-stand",
+    "category": "static",
+    "name": "Single Leg Stand",
+    "name_ru": "Стояние на одной ноге",
+    "tags": [
+      "glutes",
+      "calves",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Stand on one leg with the other foot lifted off the ground (bent behind you or in front). Keep your standing leg slightly bent and core engaged. Look at a fixed point to help balance. Hold as long as possible, then switch legs. This basic balance exercise is great for ankle stability and proprioception.",
+    "description_ru": "Встань на одну ногу, другая оторвана от пола (согнута позади или перед собой). Опорная нога слегка согнута, кор напряжён. Смотри в фиксированную точку для помощи в балансе. Удерживай как можно дольше, затем смени ногу. Базовое упражнение на баланс, отличное для стабильности голеностопа и проприоцепции."
+  },
+  {
+    "slug": "single-leg-stand-eyes-closed",
+    "category": "static",
+    "name": "Single Leg Stand Eyes Closed",
+    "name_ru": "Стояние на одной ноге с закрытыми глазами",
+    "tags": [
+      "glutes",
+      "calves",
+      "core",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 8,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Stand on one leg and close your eyes. Without visual input, your balance becomes much more challenging, forcing deeper proprioceptive engagement. Keep core tight and micro-adjust to maintain balance. This greatly improves balance and body awareness.",
+    "description_ru": "Встань на одну ногу и закрой глаза. Без визуального контроля балансировать гораздо сложнее, что заставляет глубже включать проприоцепцию. Держи кор напряжённым и делай микро-корректировки для баланса. Значительно улучшает баланс и осознание тела."
+  },
+  {
+    "slug": "dead-hang",
+    "category": "static",
+    "name": "Passive Hang",
+    "name_ru": "Пассивный вис",
+    "tags": [
+      "forearms",
+      "shoulders",
+      "back",
+      "beginner",
+      "outdoor",
+      "pullup-bar"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "pullup-bar",
+    "is_timed": true,
+    "description": "Grab a pull-up bar with palms facing away (overhand grip) and simply hang with arms fully extended. Keep shoulders engaged (not completely passive — pull shoulder blades slightly down and back). Breathe normally. This builds grip strength, decompresses the spine, and prepares you for pull-ups.",
+    "description_ru": "Возьмись за турник хватом сверху (ладони от себя) и просто виси с полностью выпрямленными руками. Плечи слегка активны (не полностью пассивны — слегка опусти и отведи лопатки назад). Дыши ровно. Развивает силу хвата, декомпрессирует позвоночник и готовит к подтягиваниям."
+  },
+  {
+    "slug": "active-hang",
+    "category": "static",
+    "name": "Active Hang",
+    "name_ru": "Активный вис",
+    "tags": [
+      "back",
+      "shoulders",
+      "forearms",
+      "intermediate",
+      "outdoor",
+      "pullup-bar"
+    ],
+    "difficulty": 2,
+    "base_xp": 8,
+    "required_level": 2,
+    "equipment": "pullup-bar",
+    "is_timed": true,
+    "description": "Hang from a bar, then engage your shoulders by pulling shoulder blades down and back (scapular depression and retraction). Your body will rise slightly and shoulders will move away from ears. Hold this engaged position. This builds shoulder stability and the starting strength for pull-ups.",
+    "description_ru": "Повисни на турнике, затем активируй плечи, опуская и сводя лопатки назад. Тело слегка приподнимется, плечи отдалятся от ушей. Удерживай это активное положение. Развивает стабильность плеч и начальную силу для подтягиваний."
+  },
+  {
+    "slug": "hang-one-arm",
+    "category": "static",
+    "name": "One Arm Hang",
+    "name_ru": "Вис на одной руке",
+    "tags": [
+      "forearms",
+      "shoulders",
+      "back",
+      "advanced",
+      "outdoor",
+      "pullup-bar"
+    ],
+    "difficulty": 4,
+    "base_xp": 15,
+    "required_level": 6,
+    "equipment": "pullup-bar",
+    "is_timed": true,
+    "description": "Hang from a bar using only one arm. Keep the working shoulder engaged (not fully passive) to protect the joint. Free arm can hang at your side or rest on your hip. This doubles the grip strength requirement and significantly challenges shoulder stability. Essential progression for one-arm pull-up training.",
+    "description_ru": "Повисни на турнике, используя только одну руку. Плечо рабочей руки активно (не полностью пассивно) для защиты сустава. Свободная рука висит вдоль тела или лежит на бедре. Требование к силе хвата удваивается, значительно нагружает стабильность плеча. Необходимая прогрессия для тренировки подтягиваний на одной руке."
+  },
+  {
+    "slug": "tuck-front-lever",
+    "category": "static",
+    "name": "Tuck Front Lever",
+    "name_ru": "Передний вис в группировке",
+    "tags": [
+      "back",
+      "core",
+      "shoulders",
+      "advanced",
+      "outdoor",
+      "pullup-bar"
+    ],
+    "difficulty": 4,
+    "base_xp": 18,
+    "required_level": 7,
+    "equipment": "pullup-bar",
+    "is_timed": true,
+    "description": "Hang from a bar. Pull your knees to your chest in a tucked position, then rotate your body backward until your back is parallel to the ground, arms straight. Your body forms a straight line from hands to knees. Hold this horizontal position. This is the first progression toward the full front lever.",
+    "description_ru": "Повисни на турнике. Подтяни колени к груди в группировке, затем поверни тело назад, пока спина не станет параллельна земле, руки прямые. Тело образует прямую линию от рук до колен. Удерживай это горизонтальное положение. Это первая прогрессия к полному переднему вису."
+  },
+  {
+    "slug": "front-lever",
+    "category": "static",
+    "name": "Front Lever",
+    "name_ru": "Передний вис",
+    "tags": [
+      "back",
+      "core",
+      "shoulders",
+      "elite",
+      "outdoor",
+      "pullup-bar"
+    ],
+    "difficulty": 5,
+    "base_xp": 30,
+    "required_level": 12,
+    "equipment": "pullup-bar",
+    "is_timed": true,
+    "description": "Hang from a bar and raise your entire body until it's horizontal, face up, with arms straight. Your body forms one straight line from hands to toes. This elite gymnastic move requires exceptional back and core strength. Progress through tuck, advanced tuck, one-leg, and straddle variations.",
+    "description_ru": "Повисни на турнике и подними всё тело до горизонтального положения лицом вверх, руки прямые. Тело образует одну прямую линию от рук до носков. Этот элитный гимнастический элемент требует исключительной силы спины и кора. Прогрессируй через группировку, продвинутую группировку, одноногий и \"стрэдл\" варианты."
+  },
+  {
+    "slug": "tuck-back-lever",
+    "category": "static",
+    "name": "Tuck Back Lever",
+    "name_ru": "Задний вис в группировке",
+    "tags": [
+      "back",
+      "shoulders",
+      "core",
+      "advanced",
+      "outdoor",
+      "pullup-bar"
+    ],
+    "difficulty": 4,
+    "base_xp": 18,
+    "required_level": 7,
+    "equipment": "pullup-bar",
+    "is_timed": true,
+    "description": "Hang from a bar, pull through (skin the cat motion) until you're inverted, then lower until your back is horizontal with knees tucked to chest. Arms are straight behind you. Hold this position. This is the starting progression for the back lever.",
+    "description_ru": "Повисни на турнике, выполни перехват (движение \"кожа кошки\"), пока не окажешься вниз головой, затем опустись до горизонтального положения спиной вниз с коленями, прижатыми к груди. Руки прямые позади тебя. Удерживай позицию. Это начальная прогрессия для заднего виса."
+  },
+  {
+    "slug": "back-lever",
+    "category": "static",
+    "name": "Back Lever",
+    "name_ru": "Задний вис",
+    "tags": [
+      "back",
+      "shoulders",
+      "core",
+      "elite",
+      "outdoor",
+      "pullup-bar"
+    ],
+    "difficulty": 5,
+    "base_xp": 30,
+    "required_level": 12,
+    "equipment": "pullup-bar",
+    "is_timed": true,
+    "description": "From a hanging position, pull through until inverted, then lower your body until horizontal, face down, with arms straight. Your body forms one line from hands to toes. Requires exceptional shoulder strength and flexibility. Progress through tuck and straddle variations.",
+    "description_ru": "Из виса выполни перехват до положения вниз головой, затем опусти тело до горизонтального положения лицом вниз, руки прямые. Тело образует одну линию от рук до носков. Требует исключительной силы и гибкости плеч. Прогрессируй через группировку и \"стрэдл\" варианты."
+  },
+  {
+    "slug": "human-flag-tuck",
+    "category": "static",
+    "name": "Tuck Human Flag",
+    "name_ru": "Флаг в группировке",
+    "tags": [
+      "core",
+      "shoulders",
+      "back",
+      "advanced",
+      "outdoor",
+      "pullup-bar"
+    ],
+    "difficulty": 4,
+    "base_xp": 20,
+    "required_level": 8,
+    "equipment": "pullup-bar",
+    "is_timed": true,
+    "description": "Grip a vertical pole or stall bars with hands shoulder-width apart vertically. Push with bottom arm, pull with top arm, and lift your body sideways until parallel to ground with knees tucked to chest. Hold this horizontal position. First progression toward the full human flag.",
+    "description_ru": "Возьмись за вертикальный столб или шведскую стенку руками на ширине плеч вертикально. Толкай нижней рукой, тяни верхней и подними тело вбок до горизонтального положения с коленями, прижатыми к груди. Удерживай горизонтальную позицию. Первая прогрессия к полному флагу человека."
+  },
+  {
+    "slug": "human-flag",
+    "category": "static",
+    "name": "Human Flag",
+    "name_ru": "Флаг человека",
+    "tags": [
+      "core",
+      "shoulders",
+      "back",
+      "elite",
+      "outdoor",
+      "pullup-bar"
+    ],
+    "difficulty": 5,
+    "base_xp": 35,
+    "required_level": 15,
+    "equipment": "pullup-bar",
+    "is_timed": true,
+    "description": "Hold your body horizontally sideways from a vertical pole, supported only by your arms. Top arm pulls, bottom arm pushes. Body forms a straight line parallel to the ground, like a flag. This elite skill requires exceptional oblique, shoulder, and lat strength. One of the most impressive bodyweight moves.",
+    "description_ru": "Удерживай тело горизонтально боком от вертикального столба, опираясь только на руки. Верхняя рука тянет, нижняя толкает. Тело образует прямую линию параллельно земле, как флаг. Этот элитный навык требует исключительной силы косых мышц, плеч и широчайших. Один из самых впечатляющих элементов с собственным весом."
+  },
+  {
+    "slug": "planche-lean",
+    "category": "static",
+    "name": "Planche Lean",
+    "name_ru": "Наклон планш",
+    "tags": [
+      "shoulders",
+      "core",
+      "triceps",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 3,
+    "base_xp": 12,
+    "required_level": 4,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Start in a high plank or push-up position with hands turned slightly outward. Lean your body forward, shifting weight onto hands until shoulders are in front of wrists. Keep arms straight and core tight. Hold this forward-leaning position. Builds the specific shoulder strength and forward lean needed for planche.",
+    "description_ru": "Начни в высокой планке или позиции отжимания с руками, слегка развёрнутыми наружу. Наклони тело вперёд, перенося вес на руки, пока плечи не окажутся впереди запястий. Руки прямые, кор напряжён. Удерживай наклонённую вперёд позицию. Развивает специфическую силу плеч и наклон вперёд, необходимые для планша."
+  },
+  {
+    "slug": "tuck-planche",
+    "category": "static",
+    "name": "Tuck Planche",
+    "name_ru": "Планш в группировке",
+    "tags": [
+      "shoulders",
+      "core",
+      "triceps",
+      "advanced",
+      "home"
+    ],
+    "difficulty": 4,
+    "base_xp": 20,
+    "required_level": 8,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "From a push-up position or parallettes, lean forward shifting weight onto hands, lift feet off the ground and tuck knees to chest. Your arms are straight and body horizontal, supported only by your hands. Hold this position. First step in planche progression.",
+    "description_ru": "Из позиции отжимания или на паралетсах наклонись вперёд, перенося вес на руки, оторви ноги от пола и подтяни колени к груди. Руки прямые, тело горизонтально, опора только на руки. Удерживай позицию. Первый шаг в прогрессии планша."
+  },
+  {
+    "slug": "planche",
+    "category": "static",
+    "name": "Planche",
+    "name_ru": "Планш",
+    "tags": [
+      "shoulders",
+      "core",
+      "triceps",
+      "elite",
+      "home"
+    ],
+    "difficulty": 5,
+    "base_xp": 40,
+    "required_level": 15,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Hold your body horizontally face-down, parallel to the ground, supported only by your hands with arms straight. Legs are extended and together. Your entire body floats above the ground. This elite gymnastics skill requires exceptional pushing strength, especially in the shoulders. Progress through planche lean, tuck, advanced tuck, and straddle.",
+    "description_ru": "Удерживай тело горизонтально лицом вниз, параллельно земле, опираясь только на руки с прямыми локтями. Ноги вытянуты и вместе. Всё тело парит над землёй. Этот элитный гимнастический навык требует исключительной толкающей силы, особенно плеч. Прогрессируй через наклон, группировку, продвинутую группировку и \"стрэдл\"."
+  },
+  {
+    "slug": "dip-support-hold",
+    "category": "static",
+    "name": "Support Hold",
+    "name_ru": "Упор на брусьях",
+    "tags": [
+      "triceps",
+      "shoulders",
+      "core",
+      "beginner",
+      "outdoor",
+      "dip-bars"
+    ],
+    "difficulty": 1,
+    "base_xp": 6,
+    "required_level": 1,
+    "equipment": "dip-bars",
+    "is_timed": true,
+    "description": "Mount parallel bars or dip bars and hold yourself at the top of a dip position — arms straight, shoulders down and back, body vertical. Keep core engaged and don't let shoulders shrug up toward ears. This builds the strength and stability needed for dips.",
+    "description_ru": "Поднимись на брусья и удерживай себя в верхней точке отжиманий на брусьях — руки прямые, плечи опущены и отведены назад, тело вертикально. Кор напряжён, плечи не подтягиваются к ушам. Развивает силу и стабильность, необходимые для отжиманий на брусьях."
+  },
+  {
+    "slug": "horse-stance",
+    "category": "static",
+    "name": "Horse Stance",
+    "name_ru": "Стойка всадника",
+    "tags": [
+      "quads",
+      "glutes",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Stand with feet very wide (2-3 shoulder widths apart), toes pointing forward or slightly out. Bend knees and sink hips down until thighs are parallel to the floor. Keep your back straight and upright — don't lean forward. Hold this wide squat position. Traditional martial arts stance for building leg strength.",
+    "description_ru": "Встань с очень широко расставленными ногами (2-3 ширины плеч), носки направлены вперёд или слегка наружу. Согни колени и опусти таз, пока бёдра не станут параллельны полу. Спина прямая и вертикальная — не наклоняйся вперёд. Удерживай эту широкую позицию. Традиционная стойка боевых искусств для развития силы ног."
+  },
+  {
+    "slug": "squat-hold",
+    "category": "static",
+    "name": "Squat Hold",
+    "name_ru": "Удержание приседа",
+    "tags": [
+      "quads",
+      "glutes",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 8,
+    "required_level": 2,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lower into a squat position with thighs parallel to the floor or lower. Hold this position with arms extended in front for balance. Keep weight on heels, chest up, and knees tracking over toes. This builds leg endurance and tests squat mobility.",
+    "description_ru": "Опустись в присед, бёдра параллельны полу или ниже. Удерживай позицию с вытянутыми вперёд руками для баланса. Вес на пятках, грудь поднята, колени направлены по линии носков. Развивает выносливость ног и проверяет мобильность в приседе."
+  },
+  {
+    "slug": "glute-bridge-hold",
+    "category": "static",
+    "name": "Glute Bridge Hold",
+    "name_ru": "Удержание ягодичного мостика",
+    "tags": [
+      "glutes",
+      "hamstrings",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 6,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie on your back with knees bent and feet flat on the floor. Push through your heels to lift hips until body forms a straight line from shoulders to knees. Squeeze your glutes at the top and hold this position. Keep core engaged and don't arch your lower back. Excellent for activating and strengthening glutes.",
+    "description_ru": "Ляг на спину, колени согнуты, стопы на полу. Оттолкнись пятками и подними таз, пока тело не образует прямую линию от плеч до колен. Сожми ягодицы в верхней точке и удерживай позицию. Кор напряжён, не прогибай поясницу. Отлично для активации и укрепления ягодиц."
+  }
+]

@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Hydra - multi-headed serpent with toxic green -->
+  <!-- Swamp background -->
+  <rect width="32" height="32" fill="#0a1a0a"/>
+
+  <!-- Poison mist -->
+  <rect x="2" y="26" width="28" height="6" fill="#22c55e" opacity="0.2"/>
+  <rect x="6" y="24" width="20" height="4" fill="#4ade80" opacity="0.15"/>
+
+  <!-- Left neck -->
+  <rect x="2" y="12" width="6" height="14" fill="#15803d"/>
+  <rect x="3" y="14" width="4" height="10" fill="#22c55e"/>
+  <!-- Left head -->
+  <rect x="0" y="6" width="10" height="10" fill="#15803d"/>
+  <rect x="1" y="7" width="8" height="8" fill="#22c55e"/>
+  <!-- Left eye -->
+  <rect x="3" y="9" width="3" height="3" fill="#0f0f0f"/>
+  <rect x="4" y="10" width="2" height="2" fill="#fbbf24"/>
+  <rect x="4" y="10" width="1" height="1" fill="#fef3c7"/>
+  <!-- Left fangs -->
+  <rect x="2" y="14" width="2" height="3" fill="#e7e5e4"/>
+  <rect x="6" y="14" width="2" height="2" fill="#e7e5e4"/>
+  <!-- Left mouth -->
+  <rect x="3" y="13" width="5" height="2" fill="#0f0f0f"/>
+
+  <!-- Right neck -->
+  <rect x="24" y="12" width="6" height="14" fill="#15803d"/>
+  <rect x="25" y="14" width="4" height="10" fill="#22c55e"/>
+  <!-- Right head -->
+  <rect x="22" y="6" width="10" height="10" fill="#15803d"/>
+  <rect x="23" y="7" width="8" height="8" fill="#22c55e"/>
+  <!-- Right eye -->
+  <rect x="26" y="9" width="3" height="3" fill="#0f0f0f"/>
+  <rect x="26" y="10" width="2" height="2" fill="#fbbf24"/>
+  <rect x="27" y="10" width="1" height="1" fill="#fef3c7"/>
+  <!-- Right fangs -->
+  <rect x="24" y="14" width="2" height="2" fill="#e7e5e4"/>
+  <rect x="28" y="14" width="2" height="3" fill="#e7e5e4"/>
+  <!-- Right mouth -->
+  <rect x="24" y="13" width="5" height="2" fill="#0f0f0f"/>
+
+  <!-- Center head (main, larger) -->
+  <rect x="9" y="2" width="14" height="16" fill="#15803d"/>
+  <rect x="11" y="4" width="10" height="12" fill="#22c55e"/>
+  <!-- Scale pattern -->
+  <rect x="12" y="5" width="2" height="2" fill="#4ade80"/>
+  <rect x="18" y="5" width="2" height="2" fill="#4ade80"/>
+  <rect x="15" y="4" width="2" height="2" fill="#4ade80"/>
+
+  <!-- Center eyes - menacing -->
+  <rect x="11" y="8" width="4" height="4" fill="#0f0f0f"/>
+  <rect x="17" y="8" width="4" height="4" fill="#0f0f0f"/>
+  <rect x="12" y="9" width="3" height="3" fill="#fbbf24"/>
+  <rect x="18" y="9" width="3" height="3" fill="#fbbf24"/>
+  <rect x="13" y="9" width="1" height="1" fill="#fef3c7"/>
+  <rect x="19" y="9" width="1" height="1" fill="#fef3c7"/>
+  <!-- Slit pupils -->
+  <rect x="13" y="10" width="1" height="2" fill="#0f0f0f"/>
+  <rect x="19" y="10" width="1" height="2" fill="#0f0f0f"/>
+
+  <!-- Center snout -->
+  <rect x="13" y="13" width="6" height="5" fill="#15803d"/>
+  <rect x="14" y="14" width="4" height="3" fill="#22c55e"/>
+  <!-- Nostrils -->
+  <rect x="14" y="14" width="1" height="1" fill="#0f0f0f"/>
+  <rect x="17" y="14" width="1" height="1" fill="#0f0f0f"/>
+  <!-- Center fangs -->
+  <rect x="13" y="17" width="2" height="4" fill="#e7e5e4"/>
+  <rect x="17" y="17" width="2" height="4" fill="#e7e5e4"/>
+  <!-- Mouth -->
+  <rect x="14" y="16" width="4" height="2" fill="#0f0f0f"/>
+  <!-- Poison drip -->
+  <rect x="15" y="18" width="2" height="2" fill="#4ade80"/>
+  <rect x="15" y="20" width="1" height="2" fill="#22c55e" opacity="0.7"/>
+
+  <!-- Center neck -->
+  <rect x="12" y="18" width="8" height="10" fill="#15803d"/>
+  <rect x="14" y="20" width="4" height="8" fill="#22c55e"/>
+
+  <!-- Toxic particles -->
+  <rect x="4" y="2" width="2" height="2" fill="#4ade80" opacity="0.4"/>
+  <rect x="26" y="2" width="2" height="2" fill="#22c55e" opacity="0.4"/>
+  <rect x="0" y="20" width="2" height="2" fill="#4ade80" opacity="0.3"/>
+  <rect x="30" y="18" width="2" height="2" fill="#4ade80" opacity="0.3"/>
+</svg>

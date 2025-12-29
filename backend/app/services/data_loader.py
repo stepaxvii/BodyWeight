@@ -102,6 +102,9 @@ async def load_exercises(session: AsyncSession) -> None:
         # Use is_timed from JSON, default to False
         is_timed = ex_data.get("is_timed", False)
 
+        # Get tags from data or default empty list
+        tags = ex_data.get("tags", [])
+
         if not exercise:
             exercise = Exercise(
                 slug=ex_data["slug"],
@@ -110,6 +113,7 @@ async def load_exercises(session: AsyncSession) -> None:
                 name_ru=ex_data["name_ru"],
                 description=ex_data.get("description"),
                 description_ru=ex_data.get("description_ru"),
+                tags=tags,
                 difficulty=ex_data.get("difficulty", 1),
                 base_xp=ex_data.get("base_xp", 10),
                 required_level=ex_data.get("required_level", 1),
@@ -120,8 +124,10 @@ async def load_exercises(session: AsyncSession) -> None:
             session.add(exercise)
             await session.flush()
         else:
-            # Update existing exercise with is_timed flag
+            # Update existing exercise
             exercise.is_timed = is_timed
+            exercise.tags = tags
+            exercise.category_id = category_id
 
         slug_to_id[exercise.slug] = exercise.id
 

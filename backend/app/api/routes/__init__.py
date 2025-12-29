@@ -1,4 +1,4 @@
-from . import auth, users, exercises, workouts, achievements, leaderboard, friends, goals, shop
+from . import auth, users, exercises, workouts, achievements, leaderboard, friends, goals, shop, custom_routines
 
 __all__ = [
     "auth",
@@ -10,4 +10,5 @@ __all__ = [
     "friends",
     "goals",
     "shop",
+    "custom_routines",
 ]

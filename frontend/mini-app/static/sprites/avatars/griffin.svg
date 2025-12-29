@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Griffin - noble eagle head with lion mane -->
+  <!-- Royal background -->
+  <rect width="32" height="32" fill="#1a1a2e"/>
+
+  <!-- Lion mane behind -->
+  <rect x="3" y="14" width="4" height="12" fill="#b45309"/>
+  <rect x="25" y="14" width="4" height="12" fill="#b45309"/>
+  <rect x="5" y="12" width="3" height="14" fill="#d97706"/>
+  <rect x="24" y="12" width="3" height="14" fill="#d97706"/>
+  <rect x="7" y="18" width="2" height="10" fill="#f59e0b"/>
+  <rect x="23" y="18" width="2" height="10" fill="#f59e0b"/>
+  <!-- Mane tufts -->
+  <rect x="2" y="18" width="2" height="3" fill="#92400e"/>
+  <rect x="28" y="18" width="2" height="3" fill="#92400e"/>
+
+  <!-- Ear tufts / feather crests -->
+  <rect x="6" y="2" width="4" height="8" fill="#78716c"/>
+  <rect x="22" y="2" width="4" height="8" fill="#78716c"/>
+  <rect x="8" y="4" width="2" height="5" fill="#a8a29e"/>
+  <rect x="24" y="4" width="2" height="5" fill="#a8a29e"/>
+  <rect x="7" y="1" width="2" height="3" fill="#d6d3d1"/>
+  <rect x="25" y="1" width="2" height="3" fill="#d6d3d1"/>
+
+  <!-- Eagle head -->
+  <rect x="7" y="8" width="18" height="16" fill="#78716c"/>
+  <rect x="9" y="10" width="14" height="12" fill="#a8a29e"/>
+
+  <!-- Feather markings -->
+  <rect x="10" y="10" width="4" height="2" fill="#d6d3d1"/>
+  <rect x="18" y="10" width="4" height="2" fill="#d6d3d1"/>
+
+  <!-- Eyes - piercing gold -->
+  <rect x="9" y="12" width="5" height="5" fill="#1c1917"/>
+  <rect x="18" y="12" width="5" height="5" fill="#1c1917"/>
+  <rect x="10" y="13" width="3" height="3" fill="#f59e0b"/>
+  <rect x="19" y="13" width="3" height="3" fill="#f59e0b"/>
+  <rect x="11" y="14" width="2" height="2" fill="#fbbf24"/>
+  <rect x="20" y="14" width="2" height="2" fill="#fbbf24"/>
+  <!-- Eye highlight -->
+  <rect x="10" y="13" width="1" height="1" fill="#ffffff"/>
+  <rect x="19" y="13" width="1" height="1" fill="#ffffff"/>
+  <!-- Pupil -->
+  <rect x="11" y="14" width="1" height="1" fill="#0f0f0f"/>
+  <rect x="20" y="14" width="1" height="1" fill="#0f0f0f"/>
+
+  <!-- Beak - powerful curved -->
+  <rect x="12" y="17" width="8" height="8" fill="#f59e0b"/>
+  <rect x="13" y="18" width="6" height="4" fill="#fbbf24"/>
+  <rect x="14" y="22" width="4" height="3" fill="#d97706"/>
+  <rect x="15" y="24" width="2" height="2" fill="#92400e"/>
+  <!-- Beak curve detail -->
+  <rect x="14" y="19" width="4" height="1" fill="#fde047"/>
+  <!-- Nostril -->
+  <rect x="14" y="20" width="1" height="1" fill="#92400e"/>
+
+  <!-- Royal glow -->
+  <rect x="0" y="10" width="2" height="2" fill="#fbbf24" opacity="0.3"/>
+  <rect x="30" y="12" width="2" height="2" fill="#fbbf24" opacity="0.3"/>
+</svg>

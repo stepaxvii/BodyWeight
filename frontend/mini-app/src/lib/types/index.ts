@@ -1,7 +1,11 @@
 // Avatar types
+// Animals (free/cheap) and Mythical Creatures (premium)
 export type AvatarId =
-	| 'wolf' | 'bear' | 'fox' | 'cat' | 'dog' | 'lion'
-	| 'panda' | 'owl' | 'rabbit' | 'tiger' | 'monkey' | 'dragon';
+	// Free animals (level 1)
+	| 'shadow-wolf' | 'iron-bear' | 'fire-fox' | 'night-panther'
+	// Paid mythical (increasing price/level)
+	| 'phoenix' | 'griffin' | 'cerberus' | 'hydra'
+	| 'minotaur' | 'kraken' | 'leviathan' | 'titan';
 
 export interface Avatar {
 	id: AvatarId;
@@ -54,7 +58,7 @@ export interface ExerciseCategory {
 	sort_order: number;
 }
 
-export type EquipmentType = 'none' | 'pullup-bar' | 'dip-bars';
+export type EquipmentType = 'none' | 'pullup-bar' | 'dip-bars' | 'bench' | 'wall';
 
 export interface Exercise {
 	id: number;
@@ -65,6 +69,7 @@ export interface Exercise {
 	name_ru: string;
 	description?: string;
 	description_ru?: string;
+	tags: string[]; // Tags for filtering (muscle groups, level, equipment)
 	difficulty: 1 | 2 | 3 | 4 | 5;
 	base_xp: number;
 	required_level: number;
@@ -74,6 +79,7 @@ export interface Exercise {
 	thumbnail_url?: string;
 	easier_exercise_slug?: string;
 	harder_exercise_slug?: string;
+	is_favorite: boolean; // Whether user has favorited this exercise
 }
 
 export interface ExerciseProgress {
@@ -246,4 +252,49 @@ export interface Routine {
 	duration_minutes: number;
 	difficulty: 1 | 2 | 3;
 	exercises: RoutineExercise[];
+}
+
+// Custom routine types (user-created)
+export type CustomRoutineType = 'morning' | 'workout' | 'stretch';
+
+export interface CustomRoutineExercise {
+	id: number;
+	exercise_id: number;
+	exercise_slug: string;
+	exercise_name_ru: string;
+	is_timed: boolean;
+	sort_order: number;
+	target_reps?: number;
+	target_duration?: number;
+	rest_seconds: number;
+}
+
+export interface CustomRoutine {
+	id: number;
+	name: string;
+	description?: string;
+	routine_type: CustomRoutineType;
+	duration_minutes: number;
+	is_active: boolean;
+	exercises: CustomRoutineExercise[];
+}
+
+export interface CustomRoutineListItem {
+	id: number;
+	name: string;
+	routine_type: CustomRoutineType;
+	duration_minutes: number;
+	exercises_count: number;
+}
+
+export interface CustomRoutineCreate {
+	name: string;
+	description?: string;
+	routine_type: CustomRoutineType;
+	exercises: {
+		exercise_id: number;
+		target_reps?: number;
+		target_duration?: number;
+		rest_seconds?: number;
+	}[];
 }

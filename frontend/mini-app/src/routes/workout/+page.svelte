@@ -29,13 +29,13 @@
 		routines.filter(r => r.category === activeRoutineCategory)
 	);
 
-	// Category colors
+	// Category colors (by load type)
 	const categoryColors: Record<string, string> = {
-		chest: '#d82800',
-		back: '#0058f8',
-		legs: '#00a800',
-		core: '#fcc800',
-		stretch: '#00a8a8'
+		strength: '#d82800',
+		cardio: '#ff6b35',
+		static: '#0058f8',
+		'dynamic-stretch': '#00a800',
+		'static-stretch': '#00a8a8'
 	};
 
 	const routineCategoryTabs: { id: RoutineCategory; name: string }[] = [

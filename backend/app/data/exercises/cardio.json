@@ -1,0 +1,554 @@
+[
+  {
+    "slug": "jumping-jack",
+    "category": "cardio",
+    "name": "Jumping Jacks",
+    "name_ru": "Прыжки с разведением рук и ног",
+    "tags": [
+      "full-body",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 6,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Stand with feet together and arms at your sides. Jump and simultaneously spread your legs wider than hip-width while raising your arms overhead. Jump again and return to the starting position. Keep a steady rhythm. This classic exercise elevates heart rate quickly and works as great warm-up or cardio.",
+    "description_ru": "Встань прямо, ноги вместе, руки вдоль тела. Подпрыгни и одновременно расставь ноги шире бёдер, подняв руки над головой. Подпрыгни снова и вернись в исходное положение. Держи ровный ритм. Классическое упражнение, которое быстро повышает пульс и отлично подходит для разминки или кардио."
+  },
+  {
+    "slug": "burpee",
+    "category": "cardio",
+    "name": "Burpees",
+    "name_ru": "Бёрпи",
+    "tags": [
+      "full-body",
+      "chest",
+      "core",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 3,
+    "base_xp": 15,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Stand with feet shoulder-width apart. Drop into a squat, place hands on the floor, and jump or step your feet back into a plank. Perform a push-up (optional for easier version). Jump or step feet forward to hands, then explosively jump up with arms overhead. That's one rep. This full-body exercise builds endurance and strength simultaneously.",
+    "description_ru": "Встань, ноги на ширине плеч. Опустись в присед, поставь руки на пол и прыжком или шагом переведи ноги в планку. Сделай отжимание (необязательно для лёгкой версии). Прыжком или шагом верни ноги к рукам, затем мощно выпрыгни вверх, подняв руки над головой. Это один повтор. Комплексное упражнение для всего тела, развивает выносливость и силу одновременно."
+  },
+  {
+    "slug": "burpee-half",
+    "category": "cardio",
+    "name": "Half Burpees",
+    "name_ru": "Полубёрпи (без отжимания)",
+    "tags": [
+      "full-body",
+      "core",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "A simplified version of the burpee without push-up and jump. Stand with feet shoulder-width apart. Drop into a squat, place hands on floor, and jump feet back into plank. Immediately jump feet forward to hands and stand up. No push-up at the bottom and no jump at the top — just the squat-to-plank movement. Great for beginners building toward full burpees.",
+    "description_ru": "Упрощённая версия бёрпи без отжимания и прыжка. Встань, ноги на ширине плеч. Опустись в присед, поставь руки на пол и прыжком переведи ноги в планку. Сразу прыжком верни ноги к рукам и встань. Без отжимания внизу и без прыжка вверху — только движение присед-планка. Отлично подходит для начинающих, которые готовятся к полным бёрпи."
+  },
+  {
+    "slug": "high-knees",
+    "category": "cardio",
+    "name": "High Knees",
+    "name_ru": "Бег с высоким подниманием колен",
+    "tags": [
+      "quads",
+      "hip-flexors",
+      "core",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 8,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Run in place while lifting your knees as high as possible — ideally to hip level or higher. Pump your arms in opposition to your legs. Land softly on the balls of your feet. Maintain a fast pace for cardio effect. This strengthens hip flexors and core while building cardiovascular endurance.",
+    "description_ru": "Беги на месте, поднимая колени как можно выше — в идеале до уровня бёдер или выше. Работай руками в противофазе с ногами. Приземляйся мягко на носки. Держи быстрый темп для кардио-эффекта. Укрепляет сгибатели бедра и кор, развивает выносливость сердечно-сосудистой системы."
+  },
+  {
+    "slug": "butt-kicks",
+    "category": "cardio",
+    "name": "Butt Kicks",
+    "name_ru": "Бег с захлёстом голени",
+    "tags": [
+      "hamstrings",
+      "glutes",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 6,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Run in place while kicking your heels up toward your glutes with each step. Try to touch your glutes with your heels. Keep your thighs relatively stationary — the movement is in the lower leg. Pump your arms naturally. This warms up hamstrings and increases heart rate.",
+    "description_ru": "Беги на месте, захлёстывая пятки к ягодицам каждый шаг. Старайся коснуться пятками ягодиц. Бёдра относительно неподвижны — движение происходит в голени. Руки работают естественно. Разогревает заднюю поверхность бедра и повышает пульс."
+  },
+  {
+    "slug": "box-jump",
+    "category": "cardio",
+    "name": "Box Jumps",
+    "name_ru": "Запрыгивания на тумбу",
+    "tags": [
+      "quads",
+      "glutes",
+      "calves",
+      "intermediate",
+      "home",
+      "bench"
+    ],
+    "difficulty": 3,
+    "base_xp": 12,
+    "required_level": 3,
+    "equipment": "bench",
+    "description": "Stand facing a sturdy box or platform. Bend your knees and swing your arms back, then explosively jump onto the box, landing softly with both feet. Stand up fully on the box, then step down (don't jump down — this protects your joints). Start with a lower box and increase height as you gain confidence.",
+    "description_ru": "Встань лицом к устойчивой тумбе или платформе. Согни колени, отведи руки назад, затем мощно запрыгни на тумбу, приземляясь мягко на обе ноги. Полностью выпрямись на тумбе, затем спустись шагом (не спрыгивай — береги суставы). Начни с низкой тумбы и увеличивай высоту по мере роста уверенности."
+  },
+  {
+    "slug": "squat-thrust",
+    "category": "cardio",
+    "name": "Squat Thrusts",
+    "name_ru": "Присед-упор",
+    "tags": [
+      "full-body",
+      "core",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Stand with feet shoulder-width apart. Drop into a squat, place hands on floor, and jump feet back into a plank. Immediately jump feet back to hands and stand up. Unlike a burpee, there's no push-up and no jump at the end — just the explosive squat-to-plank movement. Fast and effective for cardio.",
+    "description_ru": "Встань, ноги на ширине плеч. Опустись в присед, поставь руки на пол и прыжком переведи ноги в планку. Сразу прыжком верни ноги к рукам и встань. В отличие от бёрпи, здесь нет отжимания и прыжка в конце — только взрывное движение присед-планка. Быстро и эффективно для кардио."
+  },
+  {
+    "slug": "skater-jump",
+    "category": "cardio",
+    "name": "Skater Jumps",
+    "name_ru": "Прыжки конькобежца",
+    "tags": [
+      "quads",
+      "glutes",
+      "hip-flexors",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Stand on one foot. Jump laterally to the opposite side, landing on the other foot while the free leg swings behind you (like a speed skater). Immediately push off and jump back to the starting side. Keep low and use your arms for balance. Great for lateral power and agility.",
+    "description_ru": "Встань на одну ногу. Прыгни в сторону, приземляясь на другую ногу, свободная нога уходит назад (как у конькобежца). Сразу оттолкнись и прыгни обратно на другую сторону. Держись низко, используй руки для баланса. Отлично для боковой силы и ловкости."
+  },
+  {
+    "slug": "tuck-jump",
+    "category": "cardio",
+    "name": "Tuck Jumps",
+    "name_ru": "Прыжки с группировкой",
+    "tags": [
+      "quads",
+      "core",
+      "advanced",
+      "home"
+    ],
+    "difficulty": 3,
+    "base_xp": 12,
+    "required_level": 3,
+    "equipment": "none",
+    "description": "Stand with feet shoulder-width apart. Jump explosively, bringing both knees up toward your chest at the peak of the jump. Grab your knees briefly if possible. Land softly with bent knees. This high-intensity jump builds explosive power and challenges core strength.",
+    "description_ru": "Встань, ноги на ширине плеч. Мощно выпрыгни, подтягивая оба колена к груди в высшей точке прыжка. Можно кратко обхватить колени руками. Приземляйся мягко на согнутые ноги. Этот высокоинтенсивный прыжок развивает взрывную силу и нагружает кор."
+  },
+  {
+    "slug": "star-jump",
+    "category": "cardio",
+    "name": "Star Jumps",
+    "name_ru": "Прыжки звездой",
+    "tags": [
+      "full-body",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Start in a slight squat position with arms at your sides. Explosively jump up, spreading your arms and legs out wide to form a star shape in the air. Land softly with feet together, immediately dropping into the next squat. This is a high-intensity variation of the jumping jack.",
+    "description_ru": "Начни в небольшом приседе, руки вдоль тела. Мощно выпрыгни, разводя руки и ноги в стороны, образуя в воздухе форму звезды. Приземлись мягко, ноги вместе, сразу переходя в следующий присед. Это высокоинтенсивная вариация прыжков с разведением рук и ног."
+  },
+  {
+    "slug": "seal-jack",
+    "category": "cardio",
+    "name": "Seal Jacks",
+    "name_ru": "Прыжки тюленя",
+    "tags": [
+      "full-body",
+      "shoulders",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 8,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Like a jumping jack, but arms move horizontally instead of overhead. Start with feet together and arms extended to sides. Jump and spread feet wide while clapping hands together in front of your chest. Jump back to start with arms out to sides. Works chest and shoulders more than traditional jumping jacks.",
+    "description_ru": "Как прыжки с разведением рук и ног, но руки двигаются горизонтально, а не вверх. Начни с ногами вместе, руки в стороны. Подпрыгни, расставляя ноги широко и хлопая ладонями перед грудью. Подпрыгни обратно в исходное положение с руками в стороны. Больше нагружает грудь и плечи, чем обычные прыжки."
+  },
+  {
+    "slug": "cross-jack",
+    "category": "cardio",
+    "name": "Cross Jacks",
+    "name_ru": "Перекрёстные прыжки",
+    "tags": [
+      "full-body",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 8,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Start like a jumping jack with feet together. Jump and spread feet wide while crossing arms in front of your body at shoulder height. Jump again, bringing feet together while spreading arms to sides. Continue alternating the arm cross with each jump. Adds coordination challenge to basic jumping jacks.",
+    "description_ru": "Начни как в обычных прыжках с разведением — ноги вместе. Подпрыгни, расставляя ноги широко и скрещивая руки перед собой на уровне плеч. Подпрыгни снова, сводя ноги и разводя руки в стороны. Продолжай чередовать скрещивание рук с каждым прыжком. Добавляет координационную сложность к базовым прыжкам."
+  },
+  {
+    "slug": "jumping-lunge",
+    "category": "cardio",
+    "name": "Jumping Lunges",
+    "name_ru": "Прыжковые выпады",
+    "tags": [
+      "quads",
+      "glutes",
+      "advanced",
+      "home"
+    ],
+    "difficulty": 3,
+    "base_xp": 12,
+    "required_level": 3,
+    "equipment": "none",
+    "description": "Start in a lunge position with one foot forward and one back, both knees bent at 90 degrees. Explosively jump up and switch legs in the air, landing softly in a lunge with the opposite leg forward. Immediately jump again and continue alternating. Keep your torso upright and use your arms for momentum. High-intensity exercise for leg power and cardio.",
+    "description_ru": "Начни в позиции выпада — одна нога впереди, другая сзади, оба колена согнуты под 90 градусов. Мощно выпрыгни и поменяй ноги в воздухе, приземляясь мягко в выпад с другой ногой впереди. Сразу прыгай снова и продолжай чередовать. Держи корпус прямо, используй руки для импульса. Высокоинтенсивное упражнение для силы ног и кардио."
+  },
+  {
+    "slug": "power-skip",
+    "category": "cardio",
+    "name": "Power Skips",
+    "name_ru": "Силовые скипы",
+    "tags": [
+      "quads",
+      "glutes",
+      "calves",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Skip forward with exaggerated height and power. Drive one knee up explosively while pushing off the ground with the opposite foot, getting as much height as possible. Swing the opposite arm up for momentum. Land softly and immediately drive the other knee up. Focus on vertical height rather than forward distance. Builds explosive leg power.",
+    "description_ru": "Скипы вперёд с преувеличенной высотой и силой. Мощно выноси одно колено вверх, отталкиваясь от земли другой ногой, стремясь к максимальной высоте. Маши противоположной рукой для импульса. Приземляйся мягко и сразу выноси другое колено. Фокус на вертикальной высоте, а не на дальности. Развивает взрывную силу ног."
+  },
+  {
+    "slug": "broad-jump",
+    "category": "cardio",
+    "name": "Broad Jumps",
+    "name_ru": "Прыжки в длину",
+    "tags": [
+      "quads",
+      "glutes",
+      "hamstrings",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Stand with feet shoulder-width apart. Swing your arms back while bending your knees, then explosively swing arms forward and jump as far as you can horizontally. Land softly with bent knees, absorbing the impact. Walk back and repeat. Develops explosive horizontal power.",
+    "description_ru": "Встань, ноги на ширине плеч. Отведи руки назад, сгибая колени, затем мощно махни руками вперёд и прыгни как можно дальше горизонтально. Приземлись мягко на согнутые ноги, амортизируя удар. Вернись пешком и повтори. Развивает взрывную горизонтальную силу."
+  },
+  {
+    "slug": "lateral-jump",
+    "category": "cardio",
+    "name": "Lateral Jumps",
+    "name_ru": "Боковые прыжки",
+    "tags": [
+      "quads",
+      "glutes",
+      "hip-flexors",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Stand with feet together. Jump sideways to the left, landing on both feet softly with bent knees. Immediately jump back to the right. Keep jumps controlled and land softly. You can imagine jumping over an invisible line or object. Use your arms for balance. Great for developing lateral power and agility.",
+    "description_ru": "Встань, ноги вместе. Прыгни в сторону влево, приземляясь на обе ноги мягко с согнутыми коленями. Сразу прыгни обратно вправо. Держи прыжки контролируемыми, приземляйся мягко. Можно представить, что перепрыгиваешь через невидимую линию или предмет. Используй руки для баланса. Отлично для развития боковой силы и ловкости."
+  },
+  {
+    "slug": "run-in-place",
+    "category": "cardio",
+    "name": "Running in Place",
+    "name_ru": "Бег на месте",
+    "tags": [
+      "quads",
+      "calves",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 6,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Simply run on the spot, lifting your feet off the ground in a running motion. Swing your arms naturally as if you were running forward. Land on the balls of your feet to reduce impact. Vary the intensity by changing speed. Great for warming up or when outdoor running isn't an option.",
+    "description_ru": "Просто беги на месте, отрывая ноги от пола беговым движением. Махи руками естественные, как при обычном беге. Приземляйся на носки для снижения ударной нагрузки. Меняй интенсивность, регулируя скорость. Отлично для разминки или когда нет возможности бегать на улице."
+  },
+  {
+    "slug": "sprint-in-place",
+    "category": "cardio",
+    "name": "Sprint in Place",
+    "name_ru": "Спринт на месте",
+    "tags": [
+      "quads",
+      "hip-flexors",
+      "calves",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Run in place at maximum speed, as if sprinting on a track. Drive your knees up high, pump your arms vigorously, and stay on the balls of your feet. Go all-out for short bursts. This is high-intensity cardio that spikes your heart rate quickly. Focus on speed and explosive leg movement.",
+    "description_ru": "Беги на месте на максимальной скорости, как будто спринтуешь на дорожке. Высоко поднимай колени, энергично работай руками, оставайся на носках. Давай максимум на коротких интервалах. Это высокоинтенсивное кардио, которое быстро поднимает пульс. Фокусируйся на скорости и взрывной работе ног."
+  },
+  {
+    "slug": "jump-rope",
+    "category": "cardio",
+    "name": "Invisible Jump Rope",
+    "name_ru": "Прыжки на воображаемой скакалке",
+    "tags": [
+      "calves",
+      "shoulders",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 6,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Hold a jump rope with handles in each hand. Swing the rope overhead and jump over it as it passes under your feet. Land softly on the balls of your feet with knees slightly bent. Start with basic two-foot jumps, then progress to alternating feet, double-unders, or cross-overs. Keep elbows close to your body; wrists do most of the work.",
+    "description_ru": "Держи скакалку за рукоятки. Вращай скакалку над головой и перепрыгивай через неё, когда она проходит под ногами. Приземляйся мягко на носки со слегка согнутыми коленями. Начни с базовых прыжков на двух ногах, затем переходи к прыжкам со сменой ног, двойным прокручиваниям или скрестным прыжкам. Локти близко к телу; основная работа запястьями."
+  },
+  {
+    "slug": "fast-feet",
+    "category": "cardio",
+    "name": "Fast Feet",
+    "name_ru": "Быстрые ноги",
+    "tags": [
+      "quads",
+      "calves",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 8,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Stand in an athletic stance with knees slightly bent. Run in place as fast as possible with tiny steps, barely lifting your feet off the ground. Keep your weight on the balls of your feet and stay low. Move your feet as quickly as you can while maintaining control. Used by athletes to develop quick footwork and agility.",
+    "description_ru": "Встань в атлетическую стойку со слегка согнутыми коленями. Беги на месте максимально быстро мелкими шагами, едва отрывая ноги от пола. Держи вес на носках и оставайся низко. Двигай ногами как можно быстрее, сохраняя контроль. Используется спортсменами для развития быстрой работы ног и ловкости."
+  },
+  {
+    "slug": "a-skip",
+    "category": "cardio",
+    "name": "A-Skips",
+    "name_ru": "А-скипы",
+    "tags": [
+      "quads",
+      "hip-flexors",
+      "calves",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 8,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "A running drill that emphasizes high knee drive. Skip forward by driving one knee up to hip level while pushing off the ground with the opposite foot. The movement should be rhythmic — lift knee, hop, lift other knee, hop. Keep your ankle dorsiflexed (toes up) on the lifted leg. Excellent for improving running form and hip flexor strength.",
+    "description_ru": "Беговое упражнение с акцентом на высокий вынос колена. Скипы вперёд — выноси одно колено до уровня бедра, отталкиваясь другой ногой. Движение ритмичное — колено вверх, подскок, другое колено, подскок. Стопа поднятой ноги натянута на себя (носок вверх). Отлично для улучшения техники бега и силы сгибателей бедра."
+  },
+  {
+    "slug": "b-skip",
+    "category": "cardio",
+    "name": "B-Skips",
+    "name_ru": "Б-скипы",
+    "tags": [
+      "quads",
+      "hamstrings",
+      "calves",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 8,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "An advanced running drill building on A-skips. Drive your knee up like an A-skip, then extend your leg forward and pull it back down in a pawing motion, striking the ground under your hip. This teaches the proper ground contact for efficient running. The movement mimics cycling your leg through the running stride.",
+    "description_ru": "Продвинутое беговое упражнение, развивающее А-скипы. Выноси колено вверх как в А-скипах, затем вытяни ногу вперёд и потяни её назад загребающим движением, ударяя по земле под бедром. Это учит правильному контакту с землёй для эффективного бега. Движение имитирует проведение ноги через беговой цикл."
+  },
+  {
+    "slug": "lateral-shuffle",
+    "category": "cardio",
+    "name": "Lateral Shuffle",
+    "name_ru": "Боковые шаги",
+    "tags": [
+      "quads",
+      "glutes",
+      "hip-flexors",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 8,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Stand in an athletic stance with knees bent and hips back. Step to the side with one foot, then bring the other foot to meet it. Continue shuffling in one direction, then reverse. Stay low with your chest up. Don't let your feet cross or come together completely. Works lateral movement patterns.",
+    "description_ru": "Встань в атлетическую стойку — колени согнуты, таз отведён назад. Шагни в сторону одной ногой, затем приставь другую. Продолжай двигаться в одном направлении, затем смени. Оставайся низко, грудь поднята. Ноги не скрещиваются и не сводятся полностью. Тренирует боковое движение."
+  },
+  {
+    "slug": "inchworm",
+    "category": "cardio",
+    "name": "Inchworm",
+    "name_ru": "Гусеница",
+    "tags": [
+      "full-body",
+      "core",
+      "hamstrings",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Stand with feet hip-width apart. Bend forward and place hands on the floor (bend knees if needed). Walk your hands forward until you're in a plank position. Then walk your feet toward your hands, keeping legs as straight as possible. Stand up and repeat. Great for warming up the whole body and stretching hamstrings.",
+    "description_ru": "Встань, ноги на ширине бёдер. Наклонись вперёд и поставь руки на пол (согни колени при необходимости). Иди руками вперёд, пока не окажешься в планке. Затем иди ногами к рукам, держа ноги максимально прямыми. Выпрямись и повтори. Отлично для разминки всего тела и растяжки задней поверхности бедра."
+  },
+  {
+    "slug": "plank-jack",
+    "category": "cardio",
+    "name": "Plank Jacks",
+    "name_ru": "Прыжки в планке",
+    "tags": [
+      "core",
+      "shoulders",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Start in a high plank position with hands under shoulders and feet together. Jump your feet out wide, then jump them back together — like a horizontal jumping jack. Keep your core tight and hips stable; don't let your back sag. Maintain a steady rhythm. Combines core stability with cardio for a challenging exercise.",
+    "description_ru": "Начни в высокой планке — руки под плечами, ноги вместе. Прыжком разведи ноги широко, затем прыжком верни вместе — как горизонтальный прыжок с разведением. Держи кор напряжённым, бёдра стабильными; не прогибай поясницу. Держи ровный ритм. Сочетает стабильность кора с кардио для сложного упражнения."
+  },
+  {
+    "slug": "squat-to-jump",
+    "category": "cardio",
+    "name": "Squat to Jump",
+    "name_ru": "Присед в прыжок",
+    "tags": [
+      "quads",
+      "glutes",
+      "calves",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Stand with feet shoulder-width apart. Lower into a full squat with thighs parallel to the floor. From the bottom of the squat, explosively jump up as high as you can, extending your arms overhead. Land softly, immediately descending into the next squat. Focus on explosive power from the bottom position.",
+    "description_ru": "Встань, ноги на ширине плеч. Опустись в полный присед — бёдра параллельны полу. Из нижней точки мощно выпрыгни как можно выше, вытягивая руки вверх. Приземляйся мягко, сразу переходя в следующий присед. Фокусируйся на взрывной силе из нижнего положения."
+  },
+  {
+    "slug": "frog-jump",
+    "category": "cardio",
+    "name": "Frog Jumps",
+    "name_ru": "Лягушачьи прыжки",
+    "tags": [
+      "quads",
+      "glutes",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Start in a deep squat position with feet wider than shoulder-width and toes pointed out, hands touching the floor between your feet. Explosively jump forward and up, extending your body fully. Land softly back in the deep squat position with hands touching the floor. Repeat, jumping forward like a frog. Great for lower body power.",
+    "description_ru": "Начни в глубоком приседе — ноги шире плеч, носки наружу, руки касаются пола между стоп. Мощно прыгни вперёд и вверх, полностью выпрямляя тело. Приземлись мягко обратно в глубокий присед с руками на полу. Повторяй, прыгая вперёд как лягушка. Отлично для силы нижней части тела."
+  },
+  {
+    "slug": "jump-180",
+    "category": "cardio",
+    "name": "180 Jumps",
+    "name_ru": "Прыжки с разворотом на 180°",
+    "tags": [
+      "quads",
+      "core",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Stand with feet shoulder-width apart. Jump explosively while rotating your body 180 degrees in the air. Land softly facing the opposite direction. Immediately jump again, rotating back to the starting direction. Use your arms to help generate rotation. Keep your core engaged for stability. Develops rotational power and coordination.",
+    "description_ru": "Встань, ноги на ширине плеч. Мощно прыгни, разворачивая тело на 180 градусов в воздухе. Приземлись мягко, лицом в противоположную сторону. Сразу прыгай снова, разворачиваясь обратно в начальное направление. Используй руки для создания вращения. Держи кор напряжённым для стабильности. Развивает вращательную силу и координацию."
+  },
+  {
+    "slug": "switch-kick",
+    "category": "cardio",
+    "name": "Switch Kicks",
+    "name_ru": "Переключающие удары ногами",
+    "tags": [
+      "quads",
+      "hip-flexors",
+      "core",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Stand on one leg and kick the other leg straight out in front of you at hip height. Hop and switch legs, kicking the opposite leg forward while the first leg lands. Continue alternating in a rhythmic hopping motion. Keep kicks controlled and core tight. Improves hip flexor strength, balance, and cardiovascular fitness.",
+    "description_ru": "Встань на одну ногу и выброси другую прямую ногу вперёд на уровень бедра. Подпрыгни и поменяй ноги, выбрасывая противоположную ногу вперёд, пока первая приземляется. Продолжай чередовать в ритмичном прыгающем движении. Держи удары контролируемыми, кор напряжённым. Улучшает силу сгибателей бедра, баланс и кардио."
+  },
+  {
+    "slug": "sprawl",
+    "category": "cardio",
+    "name": "Sprawls",
+    "name_ru": "Спраул",
+    "tags": [
+      "full-body",
+      "core",
+      "intermediate",
+      "home"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "none",
+    "description": "Stand with feet shoulder-width apart. Drop your hands to the floor and kick your legs back into a plank, letting your hips drop toward the floor (like a snake or yoga upward dog). Quickly reverse the movement by jumping feet back to hands and standing up. Unlike a burpee, there's no push-up and no jump at the top — just the explosive drop and recovery.",
+    "description_ru": "Встань, ноги на ширине плеч. Опусти руки на пол и откинь ноги назад в планку, позволяя бёдрам опуститься к полу (как в \"собаке мордой вверх\"). Быстро выполни обратное движение — прыжком верни ноги к рукам и встань. В отличие от бёрпи, здесь нет отжимания и прыжка вверху — только взрывной сброс и подъём."
+  }
+]

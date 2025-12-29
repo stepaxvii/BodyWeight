@@ -12,7 +12,10 @@ import type {
 	Friend,
 	ShopItem,
 	AuthResponse,
-	Routine
+	Routine,
+	CustomRoutine,
+	CustomRoutineListItem,
+	CustomRoutineCreate
 } from '$lib/types';
 
 const API_BASE = '/bodyweight/api';
@@ -47,77 +50,66 @@ const MOCK_CATEGORIES: ExerciseCategory[] = [
 ];
 
 const MOCK_EXERCISES: Exercise[] = [
-	// Chest
+	// Strength exercises
 	{
-		id: 1, slug: 'pushup-regular', category_id: 1, category_slug: 'chest',
+		id: 1, slug: 'pushup-regular', category_id: 1, category_slug: 'strength',
 		name: 'Push-up', name_ru: 'Классические отжимания',
-		description: 'Lie face down, hands shoulder-width apart. Tighten your core, lower chest to the floor by bending elbows, then push back up.',
-		description_ru: 'Лягте лицом вниз, руки на ширине плеч. Напрягите корпус, опуститесь до касания грудью пола. Выжмите вверх.',
-		difficulty: 2, base_xp: 5, required_level: 1, equipment: 'none', is_timed: false,
+		description: 'Lie face down, hands shoulder-width apart.',
+		description_ru: 'Лягте лицом вниз, руки на ширине плеч.',
+		tags: ['chest', 'triceps', 'shoulders', 'home', 'intermediate'],
+		difficulty: 2, base_xp: 5, required_level: 1, equipment: 'none', is_timed: false, is_favorite: false,
 		easier_exercise_slug: 'pushup-knee', harder_exercise_slug: 'pushup-diamond'
 	},
 	{
-		id: 2, slug: 'pushup-knee', category_id: 1, category_slug: 'chest',
+		id: 2, slug: 'pushup-knee', category_id: 1, category_slug: 'strength',
 		name: 'Knee Push-up', name_ru: 'Отжимания с колен',
-		difficulty: 1, base_xp: 3, required_level: 1, equipment: 'none', is_timed: false,
+		tags: ['chest', 'triceps', 'home', 'beginner'],
+		difficulty: 1, base_xp: 3, required_level: 1, equipment: 'none', is_timed: false, is_favorite: false,
 		harder_exercise_slug: 'pushup-regular'
 	},
 	{
-		id: 3, slug: 'pushup-diamond', category_id: 1, category_slug: 'chest',
+		id: 3, slug: 'pushup-diamond', category_id: 1, category_slug: 'strength',
 		name: 'Diamond Push-up', name_ru: 'Отжимания узким хватом',
-		difficulty: 3, base_xp: 6, required_level: 1, equipment: 'none', is_timed: false,
+		tags: ['chest', 'triceps', 'home', 'advanced'],
+		difficulty: 3, base_xp: 6, required_level: 1, equipment: 'none', is_timed: false, is_favorite: false,
 		easier_exercise_slug: 'pushup-regular'
 	},
-	// Back
 	{
-		id: 4, slug: 'superman', category_id: 2, category_slug: 'back',
+		id: 4, slug: 'superman', category_id: 1, category_slug: 'strength',
 		name: 'Superman', name_ru: 'Супермен',
-		difficulty: 1, base_xp: 4, required_level: 1, equipment: 'none', is_timed: false
+		tags: ['back', 'lower-back', 'home', 'beginner'],
+		difficulty: 1, base_xp: 4, required_level: 1, equipment: 'none', is_timed: false, is_favorite: false
 	},
 	{
-		id: 5, slug: 'superman-twist', category_id: 2, category_slug: 'back',
-		name: 'Superman with Twist', name_ru: 'Супермен с поворотом',
-		difficulty: 2, base_xp: 5, required_level: 1, equipment: 'none', is_timed: false
-	},
-	// Legs
-	{
-		id: 6, slug: 'squat-regular', category_id: 3, category_slug: 'legs',
+		id: 5, slug: 'squat-regular', category_id: 1, category_slug: 'strength',
 		name: 'Squat', name_ru: 'Классические приседания',
-		difficulty: 1, base_xp: 4, required_level: 1, equipment: 'none', is_timed: false
+		tags: ['quads', 'glutes', 'home', 'beginner'],
+		difficulty: 1, base_xp: 4, required_level: 1, equipment: 'none', is_timed: false, is_favorite: false
 	},
+	// Static exercises
 	{
-		id: 7, slug: 'squat-sumo', category_id: 3, category_slug: 'legs',
-		name: 'Sumo Squat', name_ru: 'Приседания сумо',
-		difficulty: 2, base_xp: 5, required_level: 1, equipment: 'none', is_timed: false
-	},
-	{
-		id: 8, slug: 'lunge-stationary', category_id: 3, category_slug: 'legs',
-		name: 'Stationary Lunges', name_ru: 'Выпады на месте',
-		difficulty: 2, base_xp: 5, required_level: 1, equipment: 'none', is_timed: false
-	},
-	// Core
-	{
-		id: 9, slug: 'plank', category_id: 4, category_slug: 'core',
+		id: 6, slug: 'plank', category_id: 3, category_slug: 'static',
 		name: 'Plank', name_ru: 'Классическая планка',
-		difficulty: 1, base_xp: 4, required_level: 1, equipment: 'none', is_timed: true
+		tags: ['core', 'home', 'beginner'],
+		difficulty: 1, base_xp: 4, required_level: 1, equipment: 'none', is_timed: true, is_favorite: false
 	},
 	{
-		id: 10, slug: 'plank-side', category_id: 4, category_slug: 'core',
+		id: 7, slug: 'plank-side', category_id: 3, category_slug: 'static',
 		name: 'Side Plank', name_ru: 'Боковая планка',
-		difficulty: 2, base_xp: 5, required_level: 1, equipment: 'none', is_timed: true
+		tags: ['core', 'home', 'intermediate'],
+		difficulty: 2, base_xp: 5, required_level: 1, equipment: 'none', is_timed: true, is_favorite: false
 	},
-	// Stretch
+	// Static stretch
 	{
-		id: 11, slug: 'bird-dog', category_id: 5, category_slug: 'stretch',
-		name: 'Bird Dog', name_ru: 'Птичий пёс',
-		difficulty: 1, base_xp: 3, required_level: 1, equipment: 'none', is_timed: false
-	},
-	{
-		id: 12, slug: 'child-pose', category_id: 5, category_slug: 'stretch',
+		id: 8, slug: 'child-pose', category_id: 5, category_slug: 'static-stretch',
 		name: "Child's Pose", name_ru: 'Поза ребёнка',
-		difficulty: 1, base_xp: 2, required_level: 1, equipment: 'none', is_timed: true
+		tags: ['lower-back', 'hip-flexors', 'home', 'beginner'],
+		difficulty: 1, base_xp: 2, required_level: 1, equipment: 'none', is_timed: true, is_favorite: false
 	}
 ];
+
+// Track favorite exercise IDs in mock mode
+let mockFavoriteIds: Set<number> = new Set();
 
 const MOCK_ACHIEVEMENTS: Achievement[] = [
 	{
@@ -591,6 +583,70 @@ class ApiClient {
 			return routines.filter(r => r.category === category);
 		}
 		return this.request<Routine[]>(`/exercises/routines/all?category=${category}`);
+	}
+
+	// ============== Favorites ==============
+
+	async toggleFavorite(exerciseId: number): Promise<{ exercise_id: number; is_favorite: boolean }> {
+		if (this.useMocks) {
+			if (mockFavoriteIds.has(exerciseId)) {
+				mockFavoriteIds.delete(exerciseId);
+				return { exercise_id: exerciseId, is_favorite: false };
+			} else {
+				mockFavoriteIds.add(exerciseId);
+				return { exercise_id: exerciseId, is_favorite: true };
+			}
+		}
+		return this.request<{ exercise_id: number; is_favorite: boolean }>(`/exercises/${exerciseId}/favorite`, {
+			method: 'POST'
+		});
+	}
+
+	async getFavoriteIds(): Promise<number[]> {
+		if (this.useMocks) {
+			return Array.from(mockFavoriteIds);
+		}
+		return this.request<number[]>('/exercises/favorites/list');
+	}
+
+	// ============== Custom Routines ==============
+
+	async getCustomRoutines(routineType?: string): Promise<CustomRoutineListItem[]> {
+		if (this.useMocks) {
+			return [];
+		}
+		const query = routineType ? `?routine_type=${routineType}` : '';
+		return this.request<CustomRoutineListItem[]>(`/custom-routines${query}`);
+	}
+
+	async getCustomRoutine(routineId: number): Promise<CustomRoutine> {
+		return this.request<CustomRoutine>(`/custom-routines/${routineId}`);
+	}
+
+	async createCustomRoutine(data: CustomRoutineCreate): Promise<CustomRoutine> {
+		return this.request<CustomRoutine>('/custom-routines', {
+			method: 'POST',
+			body: JSON.stringify(data)
+		});
+	}
+
+	async updateCustomRoutine(routineId: number, data: Partial<CustomRoutineCreate>): Promise<CustomRoutine> {
+		return this.request<CustomRoutine>(`/custom-routines/${routineId}`, {
+			method: 'PUT',
+			body: JSON.stringify(data)
+		});
+	}
+
+	async deleteCustomRoutine(routineId: number): Promise<void> {
+		await this.request(`/custom-routines/${routineId}`, {
+			method: 'DELETE'
+		});
+	}
+
+	async duplicateCustomRoutine(routineId: number): Promise<CustomRoutine> {
+		return this.request<CustomRoutine>(`/custom-routines/${routineId}/duplicate`, {
+			method: 'POST'
+		});
 	}
 }
 
