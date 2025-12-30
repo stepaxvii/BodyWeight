@@ -275,6 +275,7 @@ class ApiClient {
 				current_streak: 3,
 				achievements: ['first-blood'],
 				is_friend: false,
+				friendship_pending: false,
 			};
 		}
 		return this.request<UserProfile>(`/users/${userId}/profile`);

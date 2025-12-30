@@ -35,15 +35,32 @@ export function calculateXp(
 }
 
 /**
- * Calculate coins earned from XP
+ * Calculate coins earned from a workout.
+ * Coins are rare and valuable!
+ *
+ * Sources:
+ * - Workout XP threshold: 1 coin only if earned 500+ XP
+ * - Streak bonus: 1 coin per 7 days of streak (max 4 coins at 28+ days)
+ * - Long workout bonus: 1 coin if workout > 45 min
  */
-export function calculateCoins(xpEarned: number, hasAchievement: boolean = false): number {
-	// Base: 1 coin per 10 XP
-	let coins = Math.floor(xpEarned / 10);
+export function calculateCoins(
+	xpEarned: number,
+	streakDays: number = 0,
+	workoutDurationMinutes: number = 0
+): number {
+	let coins = 0;
 
-	// Achievement bonus
-	if (hasAchievement) {
-		coins += 50;
+	// XP threshold bonus - only for really good workouts
+	if (xpEarned >= 500) {
+		coins += 1;
+	}
+
+	// Streak bonus (1 coin per week of streak, max 4 at 28+ days)
+	coins += Math.min(Math.floor(streakDays / 7), 4);
+
+	// Long workout bonus - only for serious sessions
+	if (workoutDurationMinutes >= 45) {
+		coins += 1;
 	}
 
 	return coins;
