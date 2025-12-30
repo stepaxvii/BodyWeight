@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { PixelCard, PixelIcon, PixelAvatar } from '$lib/components/ui';
+	import UserProfileModal from '$lib/components/UserProfileModal.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { LeaderboardEntry, LeaderboardType } from '$lib/types';
@@ -9,6 +10,7 @@
 	let activeTab = $state<LeaderboardType>('global');
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
+	let selectedUserId = $state<number | null>(null);
 
 	const tabs: { id: LeaderboardType; label: string }[] = [
 		{ id: 'global', label: 'Все' },
@@ -55,6 +57,12 @@
 		if (rank <= 3) return 'trophy';
 		return '';
 	}
+
+	function openUserProfile(entry: LeaderboardEntry) {
+		if (entry.is_current_user) return; // Don't open own profile
+		selectedUserId = entry.user_id;
+		telegram.hapticImpact('light');
+	}
 </script>
 
 <div class="page container">
@@ -96,7 +104,11 @@
 		{#if activeTab !== 'friends' && entries.length >= 3}
 			<div class="podium">
 				<!-- 2nd Place -->
-				<div class="podium-item second">
+				<button
+					class="podium-item second"
+					class:clickable={!entries[1].is_current_user}
+					onclick={() => openUserProfile(entries[1])}
+				>
 					<PixelAvatar
 						avatarId={entries[1].avatar_id || 'shadow-wolf'}
 						size="lg"
@@ -105,10 +117,14 @@
 					<span class="podium-name">{entries[1].username ? `@${entries[1].username}` : entries[1].first_name}</span>
 					<span class="podium-xp">{entries[1].total_xp} XP</span>
 					<div class="podium-rank">2</div>
-				</div>
+				</button>
 
 				<!-- 1st Place -->
-				<div class="podium-item first">
+				<button
+					class="podium-item first"
+					class:clickable={!entries[0].is_current_user}
+					onclick={() => openUserProfile(entries[0])}
+				>
 					<div class="podium-crown">
 						<PixelIcon name="trophy" color="var(--pixel-yellow)" />
 					</div>
@@ -120,10 +136,14 @@
 					<span class="podium-name">{entries[0].username ? `@${entries[0].username}` : entries[0].first_name}</span>
 					<span class="podium-xp">{entries[0].total_xp} XP</span>
 					<div class="podium-rank">1</div>
-				</div>
+				</button>
 
 				<!-- 3rd Place -->
-				<div class="podium-item third">
+				<button
+					class="podium-item third"
+					class:clickable={!entries[2].is_current_user}
+					onclick={() => openUserProfile(entries[2])}
+				>
 					<PixelAvatar
 						avatarId={entries[2].avatar_id || 'shadow-wolf'}
 						size="lg"
@@ -132,7 +152,7 @@
 					<span class="podium-name">{entries[2].username ? `@${entries[2].username}` : entries[2].first_name}</span>
 					<span class="podium-xp">{entries[2].total_xp} XP</span>
 					<div class="podium-rank">3</div>
-				</div>
+				</button>
 			</div>
 		{/if}
 
@@ -142,7 +162,12 @@
 				{@const hasPodium = activeTab !== 'friends' && entries.length >= 3}
 				{@const showInList = activeTab === 'friends' || !hasPodium || i >= 3}
 				{#if showInList}
-					<PixelCard variant={entry.is_current_user ? 'accent' : 'default'} padding="sm">
+					<button
+						class="entry-card"
+						class:accent={entry.is_current_user}
+						class:clickable={!entry.is_current_user}
+						onclick={() => openUserProfile(entry)}
+					>
 						<div class="entry" class:current-user={entry.is_current_user}>
 							<div class="entry-rank" style="color: {getRankColor(entry.rank)}">
 								{#if getRankIcon(entry.rank)}
@@ -177,12 +202,18 @@
 								<span>{entry.current_streak}</span>
 							</div>
 						</div>
-					</PixelCard>
+					</button>
 				{/if}
 			{/each}
 		</div>
 	{/if}
 </div>
+
+<!-- User Profile Modal -->
+<UserProfileModal
+	userId={selectedUserId}
+	onclose={() => selectedUserId = null}
+/>
 
 <style>
 	.page {
@@ -268,6 +299,14 @@
 		background: var(--pixel-card);
 		border: 2px solid var(--border-color);
 		position: relative;
+		cursor: pointer;
+		font-family: var(--font-pixel);
+		color: var(--text-primary);
+		transition: transform var(--transition-fast);
+	}
+
+	.podium-item.clickable:hover {
+		transform: scale(1.05);
 	}
 
 	.podium-item.first {
@@ -327,6 +366,27 @@
 		gap: var(--spacing-sm);
 	}
 
+	.entry-card {
+		width: 100%;
+		padding: var(--spacing-sm);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		font-family: var(--font-pixel);
+		color: var(--text-primary);
+		cursor: pointer;
+		text-align: left;
+		transition: border-color var(--transition-fast);
+	}
+
+	.entry-card.clickable:hover {
+		border-color: var(--pixel-accent);
+	}
+
+	.entry-card.accent {
+		border-color: var(--pixel-accent);
+		background: rgba(233, 69, 96, 0.1);
+	}
+
 	.entry {
 		display: flex;
 		align-items: center;
@@ -334,7 +394,7 @@
 	}
 
 	.entry.current-user {
-		background: rgba(233, 69, 96, 0.1);
+		background: transparent;
 	}
 
 	.entry-rank {

@@ -15,7 +15,8 @@
 		achievements = await api.getAchievements();
 	});
 
-	const unlockedCount = $derived(achievements.filter(a => a.unlocked).length);
+	const unlockedAchievements = $derived(achievements.filter(a => a.unlocked));
+	const unlockedCount = $derived(unlockedAchievements.length);
 
 	// Level XP calculation - use store computed values
 	const xpInLevel = $derived(userStore.xp - userStore.xpForCurrentLevel);
@@ -106,6 +107,29 @@
 			</PixelCard>
 		</div>
 	</section>
+
+	<!-- Unlocked Badges -->
+	{#if unlockedAchievements.length > 0}
+		<section class="badges-section">
+			<h3 class="section-title">Значки</h3>
+			<div class="badges-grid">
+				{#each unlockedAchievements as achievement}
+					<div class="badge-item" title={achievement.name_ru}>
+						<img
+							src="{base}/sprites/badges/{achievement.slug}.svg"
+							alt={achievement.name_ru}
+							class="badge-icon"
+						/>
+					</div>
+				{/each}
+			</div>
+			{#if achievements.length > unlockedAchievements.length}
+				<a href="{base}/achievements" class="badges-more">
+					+{achievements.length - unlockedAchievements.length} ещё
+				</a>
+			{/if}
+		</section>
+	{/if}
 
 	<!-- Detailed Stats -->
 	{#if userStore.stats}
@@ -309,6 +333,53 @@
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
 		text-transform: uppercase;
+	}
+
+	/* Badges Section */
+	.badges-section {
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.badges-grid {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-sm);
+		justify-content: center;
+	}
+
+	.badge-item {
+		width: 48px;
+		height: 48px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+		transition: transform var(--transition-fast);
+	}
+
+	.badge-item:hover {
+		transform: scale(1.1);
+		border-color: var(--pixel-accent);
+	}
+
+	.badge-icon {
+		width: 32px;
+		height: 32px;
+		image-rendering: pixelated;
+	}
+
+	.badges-more {
+		display: block;
+		text-align: center;
+		margin-top: var(--spacing-sm);
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		text-decoration: none;
+	}
+
+	.badges-more:hover {
+		color: var(--pixel-accent);
 	}
 
 	/* Detailed Stats */

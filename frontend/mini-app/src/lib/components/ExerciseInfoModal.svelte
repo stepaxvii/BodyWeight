@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { PixelModal, PixelIcon, PixelCard } from '$lib/components/ui';
-	import ExercisePreview from '$lib/components/ui/ExercisePreview.svelte';
 	import type { Exercise } from '$lib/types';
 
 	interface Props {
@@ -56,16 +55,6 @@
 <PixelModal {open} title={exercise?.name_ru || 'Упражнение'} {onclose}>
 	{#if exercise}
 		<div class="exercise-info">
-			<!-- Exercise Preview -->
-			<div class="demo-section">
-				<ExercisePreview
-					gifUrl={exercise.gif_url}
-					exercise={exercise.slug}
-					size="lg"
-					version="v4"
-				/>
-			</div>
-
 			<!-- Stats row -->
 			<div class="stats-row">
 				<div class="stat">
@@ -147,14 +136,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
-	}
-
-	.demo-section {
-		display: flex;
-		justify-content: center;
-		padding: var(--spacing-sm);
-		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
 	}
 
 	.stats-row {

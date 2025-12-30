@@ -176,6 +176,20 @@ async def get_current_user_stats(
     )
 
 
+class UserProfileResponse(BaseModel):
+    """Public user profile with achievements."""
+    id: int
+    username: str | None
+    first_name: str
+    avatar_id: str
+    level: int
+    total_xp: int
+    coins: int
+    current_streak: int
+    achievements: list[str]  # List of unlocked achievement slugs
+    is_friend: bool
+
+
 @router.get("/{user_id}", response_model=UserResponse)
 async def get_user_by_id(
     user_id: int,
@@ -195,3 +209,58 @@ async def get_user_by_id(
         )
 
     return UserResponse.model_validate(user)
+
+
+@router.get("/{user_id}/profile", response_model=UserProfileResponse)
+async def get_user_profile(
+    user_id: int,
+    session: AsyncSessionDep,
+    current_user: CurrentUser,
+):
+    """Get user profile with achievements and friendship status."""
+    from app.db.models import Friendship
+
+    # Get user
+    result = await session.execute(
+        select(User).where(User.id == user_id)
+    )
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    # Get unlocked achievements
+    achievements_result = await session.execute(
+        select(UserAchievement.achievement_slug)
+        .where(UserAchievement.user_id == user_id)
+    )
+    achievements = [row[0] for row in achievements_result.all()]
+
+    # Check if they are friends
+    is_friend = False
+    if current_user.id != user_id:
+        friendship_result = await session.execute(
+            select(Friendship)
+            .where(
+                ((Friendship.user_id == current_user.id) & (Friendship.friend_id == user_id)) |
+                ((Friendship.user_id == user_id) & (Friendship.friend_id == current_user.id))
+            )
+            .where(Friendship.status == "accepted")
+        )
+        is_friend = friendship_result.scalar_one_or_none() is not None
+
+    return UserProfileResponse(
+        id=user.id,
+        username=user.username,
+        first_name=user.first_name or "Пользователь",
+        avatar_id=user.avatar_id or "shadow-wolf",
+        level=user.level,
+        total_xp=user.total_xp,
+        coins=user.coins,
+        current_streak=user.current_streak,
+        achievements=achievements,
+        is_friend=is_friend,
+    )

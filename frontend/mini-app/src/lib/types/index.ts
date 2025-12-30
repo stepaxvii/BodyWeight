@@ -69,6 +69,19 @@ export interface UserStats {
 	this_week_xp: number;
 }
 
+export interface UserProfile {
+	id: number;
+	username?: string;
+	first_name: string;
+	avatar_id: AvatarId;
+	level: number;
+	total_xp: number;
+	coins: number;
+	current_streak: number;
+	achievements: string[];  // List of unlocked achievement slugs
+	is_friend: boolean;
+}
+
 // Exercise types
 export interface ExerciseCategory {
 	id: number;

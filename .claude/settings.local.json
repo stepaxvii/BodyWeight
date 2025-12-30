@@ -15,7 +15,10 @@
       "Bash(python:*)",
       "Bash(cat:*)",
       "Bash(ls:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(wc:*)",
+      "Bash(while read f)",
+      "Bash(for file in frontend/mini-app/src/lib/components/*.svelte)"
     ]
   }
 }

@@ -1,6 +1,7 @@
 import type {
 	User,
 	UserStats,
+	UserProfile,
 	Exercise,
 	ExerciseCategory,
 	WorkoutSession,
@@ -259,6 +260,24 @@ class ApiClient {
 		return this.request<User>('/users/me/complete-onboarding', {
 			method: 'POST'
 		});
+	}
+
+	async getUserProfile(userId: number): Promise<UserProfile> {
+		if (this.useMocks) {
+			return {
+				id: userId,
+				username: 'mock_user',
+				first_name: 'Mock User',
+				avatar_id: 'shadow-wolf',
+				level: 5,
+				total_xp: 1500,
+				coins: 200,
+				current_streak: 3,
+				achievements: ['first-blood'],
+				is_friend: false,
+			};
+		}
+		return this.request<UserProfile>(`/users/${userId}/profile`);
 	}
 
 	// Exercises

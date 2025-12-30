@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { PixelButton, PixelCard, PixelIcon, PixelProgress } from '$lib/components/ui';
-	import ExercisePreview from '$lib/components/ui/ExercisePreview.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -333,18 +332,6 @@
 					<div class="exercise-content">
 						<h3 class="current-exercise-name">{exerciseData?.name_ru || currentExercise?.slug}</h3>
 
-						<!-- Exercise animation -->
-						{#if exerciseData?.gif_url || currentExercise?.slug}
-							<div class="exercise-demo">
-								<ExercisePreview
-									gifUrl={exerciseData?.gif_url}
-									exercise={currentExercise?.slug}
-									size="lg"
-									version="v4"
-								/>
-							</div>
-						{/if}
-
 						{#if exerciseData?.description_ru}
 							<p class="exercise-description">{exerciseData.description_ru}</p>
 						{/if}
@@ -589,12 +576,6 @@
 		font-size: var(--font-size-lg);
 		margin: 0 0 var(--spacing-sm) 0;
 		color: var(--pixel-accent);
-	}
-
-	.exercise-demo {
-		display: flex;
-		justify-content: center;
-		margin: var(--spacing-md) 0;
 	}
 
 	.exercise-description {

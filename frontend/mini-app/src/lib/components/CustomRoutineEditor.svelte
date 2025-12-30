@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { PixelButton, PixelCard, PixelIcon } from '$lib/components/ui';
-	import ExercisePreview from '$lib/components/ui/ExercisePreview.svelte';
 	import ExerciseInfoModal from '$lib/components/ExerciseInfoModal.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
@@ -346,9 +345,6 @@
 							onclick={() => { addExercise(exercise); showExercisePicker = false; }}
 							disabled={isAdded}
 						>
-							<div class="picker-item-demo">
-								<ExercisePreview exercise={exercise.slug} size="sm" version="v4" />
-							</div>
 							<div class="picker-item-info">
 								<span class="picker-item-name">{exercise.name_ru}</span>
 								<span class="picker-item-type">
@@ -833,10 +829,6 @@
 		cursor: not-allowed;
 	}
 
-	.picker-item-demo {
-		flex-shrink: 0;
-	}
-
 	.picker-item-info {
 		flex: 1;
 		min-width: 0;
@@ -844,11 +836,13 @@
 
 	.picker-item-name {
 		display: block;
-		font-size: var(--font-size-xs);
+		font-size: var(--font-size-sm);
+		font-weight: 500;
+		margin-bottom: 2px;
 	}
 
 	.picker-item-type {
-		font-size: 10px;
+		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
 	}
 

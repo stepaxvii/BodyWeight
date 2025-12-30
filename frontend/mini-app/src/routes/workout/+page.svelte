@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { PixelButton, PixelCard, PixelIcon } from '$lib/components/ui';
-	import ExercisePreview from '$lib/components/ui/ExercisePreview.svelte';
 	import RoutinePlayer from '$lib/components/RoutinePlayer.svelte';
 	import ExerciseCard from '$lib/components/ExerciseCard.svelte';
 	import FilterModal from '$lib/components/FilterModal.svelte';
@@ -173,16 +172,8 @@
 	// Cancel workout state
 	let showCancelConfirm = $state(false);
 
-	// Animation demo state - track which exercise demo is shown
-	let showDemoForExercise = $state<number | null>(null);
-
 	// Exercise info modal state
 	let showInfoForExercise = $state<Exercise | null>(null);
-
-	function toggleExerciseDemo(exerciseId: number) {
-		showDemoForExercise = showDemoForExercise === exerciseId ? null : exerciseId;
-		telegram.hapticImpact('light');
-	}
 
 	function openExerciseInfo(exercise: Exercise) {
 		showInfoForExercise = exercise;
@@ -191,12 +182,6 @@
 
 	function closeExerciseInfo() {
 		showInfoForExercise = null;
-	}
-
-	// Map exercise slug to animation name - all exercises have animations
-	function getAnimationSlug(exerciseSlug: string): string {
-		// All slugs match directly, just return the slug
-		return exerciseSlug;
 	}
 
 	function requestCancelWorkout() {
@@ -365,7 +350,6 @@
 				<!-- New workout with selected exercises -->
 				{#each workoutStore.selectedExercises as exercise (exercise.id)}
 					{@const data = workoutStore.getExerciseData(exercise.id)}
-					{@const animationSlug = getAnimationSlug(exercise.slug)}
 					{@const isFavorite = favoritesStore.isFavorite(exercise.id)}
 					<PixelCard padding="md">
 						<div class="exercise-card">
@@ -390,28 +374,11 @@
 									>
 										?
 									</button>
-									{#if animationSlug}
-										<button
-											class="demo-toggle"
-											class:active={showDemoForExercise === exercise.id}
-											onclick={() => toggleExerciseDemo(exercise.id)}
-											title="Показать технику"
-										>
-											<PixelIcon name="play" size="sm" color={showDemoForExercise === exercise.id ? "var(--pixel-bg)" : "var(--pixel-accent)"} />
-										</button>
-									{/if}
 									<span class="exercise-difficulty" style="color: {categoryColors[exercise.category_slug]}">
 										{getDifficultyStars(exercise.difficulty)}
 									</span>
 								</div>
 							</div>
-
-							<!-- Animation demo -->
-							{#if showDemoForExercise === exercise.id && animationSlug}
-								<div class="demo-container">
-									<ExercisePreview exercise={animationSlug} size="md" version="v4" />
-								</div>
-							{/if}
 
 							{#if data && data.sets.length > 0}
 								<div class="sets-list">
@@ -454,7 +421,6 @@
 				<!-- Restored workout from server - show exercises with add set controls -->
 				{#each workoutStore.session.exercises as we (we.exercise_id)}
 					{@const data = workoutStore.getExerciseData(we.exercise_id)}
-					{@const animationSlug = we.exercise_slug}
 					{@const fullExercise = exercises.find(e => e.slug === we.exercise_slug)}
 					{@const isFavorite = favoritesStore.isFavorite(we.exercise_id)}
 					<PixelCard padding="md">
@@ -482,23 +448,8 @@
 											?
 										</button>
 									{/if}
-									<button
-										class="demo-toggle"
-										class:active={showDemoForExercise === we.exercise_id}
-										onclick={() => toggleExerciseDemo(we.exercise_id)}
-										title="Показать технику"
-									>
-										<PixelIcon name="play" size="sm" color={showDemoForExercise === we.exercise_id ? "var(--pixel-bg)" : "var(--pixel-accent)"} />
-									</button>
 								</div>
 							</div>
-
-							<!-- Animation demo -->
-							{#if showDemoForExercise === we.exercise_id}
-								<div class="demo-container">
-									<ExercisePreview exercise={animationSlug} size="md" version="v4" />
-								</div>
-							{/if}
 
 							<!-- Show previous totals -->
 							<div class="sets-list">
@@ -827,11 +778,6 @@
 					<button class="close-btn" onclick={closeExerciseInfo}>&#10005;</button>
 				</div>
 
-				<!-- Animation -->
-				<div class="info-demo-container">
-					<ExercisePreview exercise={exercise.slug} size="lg" version="v4" />
-				</div>
-
 				<!-- Description -->
 				<div class="info-description">
 					<p>{exercise.description_ru || exercise.description || 'Описание отсутствует'}</p>
@@ -1092,34 +1038,6 @@
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-sm);
-	}
-
-	.demo-toggle {
-		width: 28px;
-		height: 28px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: var(--pixel-card);
-		border: 2px solid var(--pixel-accent);
-		cursor: pointer;
-		transition: background 0.15s;
-	}
-
-	.demo-toggle:hover {
-		background: rgba(var(--pixel-accent-rgb), 0.2);
-	}
-
-	.demo-toggle.active {
-		background: var(--pixel-accent);
-	}
-
-	.demo-container {
-		display: flex;
-		justify-content: center;
-		padding: var(--spacing-sm) 0;
-		border-bottom: 1px solid var(--border-color);
-		margin-bottom: var(--spacing-xs);
 	}
 
 	.exercise-name {
@@ -1387,14 +1305,6 @@
 	.close-btn:hover {
 		border-color: var(--pixel-accent);
 		color: var(--pixel-accent);
-	}
-
-	.info-demo-container {
-		display: flex;
-		justify-content: center;
-		padding: var(--spacing-md) 0;
-		background: rgba(0, 0, 0, 0.2);
-		margin-bottom: var(--spacing-md);
 	}
 
 	.info-description {
