@@ -72,7 +72,7 @@ export interface UserStats {
 export interface UserProfile {
 	id: number;
 	username?: string;
-	first_name: string;
+	first_name?: string;
 	avatar_id: AvatarId;
 	level: number;
 	total_xp: number;

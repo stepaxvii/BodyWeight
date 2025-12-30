@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import { PixelButton, PixelCard, PixelIcon, PixelAvatar } from '$lib/components/ui';
+	import { PixelButton, PixelIcon, PixelAvatar } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { UserProfile } from '$lib/types';
@@ -87,7 +87,7 @@
 						borderColor="var(--pixel-accent)"
 					/>
 					<h2 class="username">
-						{profile.username ? `@${profile.username}` : profile.first_name}
+						{profile.username ? `@${profile.username}` : (profile.first_name || 'Пользователь')}
 					</h2>
 					<div class="level-badge">Ур.{profile.level}</div>
 				</div>

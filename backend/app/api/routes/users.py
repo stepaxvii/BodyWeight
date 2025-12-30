@@ -180,7 +180,7 @@ class UserProfileResponse(BaseModel):
     """Public user profile with achievements."""
     id: int
     username: str | None
-    first_name: str
+    first_name: str | None
     avatar_id: str
     level: int
     total_xp: int
@@ -255,7 +255,7 @@ async def get_user_profile(
     return UserProfileResponse(
         id=user.id,
         username=user.username,
-        first_name=user.first_name or "Пользователь",
+        first_name=user.first_name,
         avatar_id=user.avatar_id or "shadow-wolf",
         level=user.level,
         total_xp=user.total_xp,
