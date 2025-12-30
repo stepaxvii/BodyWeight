@@ -180,6 +180,7 @@ async def scheduled_notification_job():
     async with async_session_maker() as session:
         try:
             results = await run_notification_checks(session)
+            await session.commit()
             if results["daily_reminders"] > 0 or results["inactivity_reminders"] > 0:
                 logger.info(f"Notification check results: {results}")
         except Exception as e:

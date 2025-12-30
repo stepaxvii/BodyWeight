@@ -1,10 +1,13 @@
+<!-- v3.0 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40">
   <style>
     :root {
       --pixel-skin: #FFD5B8;
+      --pixel-skin-shadow: #E8C4A0;
       --pixel-dark: #2D2D2D;
       --pixel-hair: #4A3728;
       --pixel-shirt: #4CAF50;
+      --pixel-shirt-shadow: #3D8B40;
       --pixel-shorts: #1E88E5;
       --pixel-shoes: #424242;
     }
@@ -14,18 +17,37 @@
     .frame3 { animation: frame3 1.2s steps(1) infinite; }
     .frame4 { animation: frame4 1.2s steps(1) infinite; }
 
-    @keyframes frame1 { 0%, 100% { opacity: 1; } 12.5% { opacity: 0; } }
-    @keyframes frame2 { 0% { opacity: 0; } 12.5%, 87.5% { opacity: 1; } 25%, 75% { opacity: 0; } }
-    @keyframes frame3 { 0% { opacity: 0; } 25%, 75% { opacity: 1; } 37.5%, 62.5% { opacity: 0; } }
-    @keyframes frame4 { 0% { opacity: 0; } 37.5%, 62.5% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes frame1 {
+      0% { opacity: 1; }
+      25%, 100% { opacity: 0; }
+    }
+    @keyframes frame2 {
+      0%, 25% { opacity: 0; }
+      25.01%, 50% { opacity: 1; }
+      50.01%, 100% { opacity: 0; }
+    }
+    @keyframes frame3 {
+      0%, 50% { opacity: 0; }
+      50.01%, 75% { opacity: 1; }
+      75.01%, 100% { opacity: 0; }
+    }
+    @keyframes frame4 {
+      0%, 75% { opacity: 0; }
+      75.01%, 100% { opacity: 1; }
+    }
   </style>
+
+  <!-- Flutter Kicks - ножницы лёжа на спине -->
 
   <!-- Кадр 1: Левая нога вверх -->
   <g class="frame frame1">
+    <!-- Голова лёжа -->
     <rect x="2" y="18" width="12" height="10" fill="var(--pixel-skin)"/>
     <rect x="8" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
     <rect x="2" y="16" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Тело лёжа -->
     <rect x="14" y="20" width="20" height="10" fill="var(--pixel-shirt)"/>
+    <!-- Шорты -->
     <rect x="34" y="22" width="10" height="8" fill="var(--pixel-shorts)"/>
     <!-- Левая нога вверх -->
     <rect x="44" y="10" width="18" height="6" fill="var(--pixel-skin)"/>
@@ -33,29 +55,38 @@
     <!-- Правая нога внизу -->
     <rect x="44" y="28" width="18" height="6" fill="var(--pixel-skin)"/>
     <rect x="60" y="28" width="8" height="6" fill="var(--pixel-shoes)"/>
+    <!-- Пол -->
     <rect x="0" y="36" width="80" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
   </g>
 
-  <!-- Кадр 2: Ноги посередине -->
+  <!-- Кадр 2: Ноги посередине (сходятся) -->
   <g class="frame frame2">
+    <!-- Голова лёжа -->
     <rect x="2" y="18" width="12" height="10" fill="var(--pixel-skin)"/>
     <rect x="8" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
     <rect x="2" y="16" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Тело лёжа -->
     <rect x="14" y="20" width="20" height="10" fill="var(--pixel-shirt)"/>
+    <!-- Шорты -->
     <rect x="34" y="22" width="10" height="8" fill="var(--pixel-shorts)"/>
+    <!-- Ноги посередине -->
     <rect x="44" y="16" width="18" height="6" fill="var(--pixel-skin)"/>
     <rect x="60" y="14" width="8" height="6" fill="var(--pixel-shoes)"/>
     <rect x="44" y="22" width="18" height="6" fill="var(--pixel-skin)"/>
     <rect x="60" y="22" width="8" height="6" fill="var(--pixel-shoes)"/>
+    <!-- Пол -->
     <rect x="0" y="36" width="80" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
   </g>
 
   <!-- Кадр 3: Правая нога вверх -->
   <g class="frame frame3">
+    <!-- Голова лёжа -->
     <rect x="2" y="18" width="12" height="10" fill="var(--pixel-skin)"/>
     <rect x="8" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
     <rect x="2" y="16" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Тело лёжа -->
     <rect x="14" y="20" width="20" height="10" fill="var(--pixel-shirt)"/>
+    <!-- Шорты -->
     <rect x="34" y="22" width="10" height="8" fill="var(--pixel-shorts)"/>
     <!-- Левая нога внизу -->
     <rect x="44" y="28" width="18" height="6" fill="var(--pixel-skin)"/>
@@ -63,20 +94,26 @@
     <!-- Правая нога вверх -->
     <rect x="44" y="10" width="18" height="6" fill="var(--pixel-skin)"/>
     <rect x="60" y="8" width="8" height="6" fill="var(--pixel-shoes)"/>
+    <!-- Пол -->
     <rect x="0" y="36" width="80" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
   </g>
 
-  <!-- Кадр 4: Ноги посередине -->
+  <!-- Кадр 4: Ноги посередине (сходятся) -->
   <g class="frame frame4">
+    <!-- Голова лёжа -->
     <rect x="2" y="18" width="12" height="10" fill="var(--pixel-skin)"/>
     <rect x="8" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
     <rect x="2" y="16" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Тело лёжа -->
     <rect x="14" y="20" width="20" height="10" fill="var(--pixel-shirt)"/>
+    <!-- Шорты -->
     <rect x="34" y="22" width="10" height="8" fill="var(--pixel-shorts)"/>
+    <!-- Ноги посередине -->
     <rect x="44" y="22" width="18" height="6" fill="var(--pixel-skin)"/>
     <rect x="60" y="22" width="8" height="6" fill="var(--pixel-shoes)"/>
     <rect x="44" y="16" width="18" height="6" fill="var(--pixel-skin)"/>
     <rect x="60" y="14" width="8" height="6" fill="var(--pixel-shoes)"/>
+    <!-- Пол -->
     <rect x="0" y="36" width="80" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
   </g>
 </svg>

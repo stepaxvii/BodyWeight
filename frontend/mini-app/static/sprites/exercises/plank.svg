@@ -46,5 +46,5 @@
   <rect x="0" y="38" width="80" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
 
   <!-- Пульсирующий индикатор -->
-  <circle class="pulse" cx="40" cy="6" r="3" fill="var(--pixel-accent)"/>
+  <rect class="pulse" x="36" y="2" width="8" height="4" fill="var(--pixel-accent)"/>
 </svg>

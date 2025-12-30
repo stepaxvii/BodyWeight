@@ -1,10 +1,13 @@
+<!-- v3.0 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 48">
   <style>
     :root {
       --pixel-skin: #FFD5B8;
+      --pixel-skin-shadow: #E8C4A0;
       --pixel-dark: #2D2D2D;
       --pixel-hair: #4A3728;
       --pixel-shirt: #4CAF50;
+      --pixel-shirt-shadow: #3D8B40;
       --pixel-shorts: #1E88E5;
       --pixel-shoes: #424242;
     }
@@ -12,40 +15,63 @@
     .frame1 { animation: frame1 2s steps(1) infinite; }
     .frame2 { animation: frame2 2s steps(1) infinite; }
 
-    @keyframes frame1 { 0%, 50% { opacity: 1; } 50%, 100% { opacity: 0; } }
-    @keyframes frame2 { 0%, 50% { opacity: 0; } 50%, 100% { opacity: 1; } }
+    @keyframes frame1 {
+      0% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+    @keyframes frame2 {
+      0%, 50% { opacity: 0; }
+      50.01%, 100% { opacity: 1; }
+    }
   </style>
+
+  <!-- Donkey Kick - на четвереньках, удар ногой назад-вверх -->
 
   <!-- Кадр 1: На четвереньках -->
   <g class="frame frame1">
+    <!-- Голова -->
     <rect x="8" y="12" width="12" height="10" fill="var(--pixel-skin)"/>
     <rect x="10" y="16" width="2" height="2" fill="var(--pixel-dark)"/>
     <rect x="8" y="10" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Руки на полу -->
     <rect x="6" y="22" width="6" height="10" fill="var(--pixel-skin)"/>
     <rect x="14" y="22" width="6" height="10" fill="var(--pixel-skin)"/>
+    <!-- Тело -->
     <rect x="16" y="18" width="20" height="12" fill="var(--pixel-shirt)"/>
+    <rect x="16" y="28" width="20" height="2" fill="var(--pixel-shirt-shadow)"/>
+    <!-- Шорты -->
     <rect x="34" y="24" width="12" height="8" fill="var(--pixel-shorts)"/>
+    <!-- Ноги на коленях -->
     <rect x="44" y="28" width="6" height="8" fill="var(--pixel-skin)"/>
     <rect x="50" y="28" width="6" height="8" fill="var(--pixel-skin)"/>
     <rect x="42" y="34" width="8" height="4" fill="var(--pixel-shoes)"/>
     <rect x="50" y="34" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <!-- Пол -->
     <rect x="0" y="40" width="64" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
   </g>
 
-  <!-- Кадр 2: Нога поднята -->
+  <!-- Кадр 2: Нога поднята назад-вверх -->
   <g class="frame frame2">
+    <!-- Голова -->
     <rect x="8" y="12" width="12" height="10" fill="var(--pixel-skin)"/>
     <rect x="10" y="16" width="2" height="2" fill="var(--pixel-dark)"/>
     <rect x="8" y="10" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Руки на полу -->
     <rect x="6" y="22" width="6" height="10" fill="var(--pixel-skin)"/>
     <rect x="14" y="22" width="6" height="10" fill="var(--pixel-skin)"/>
+    <!-- Тело -->
     <rect x="16" y="18" width="20" height="12" fill="var(--pixel-shirt)"/>
+    <rect x="16" y="28" width="20" height="2" fill="var(--pixel-shirt-shadow)"/>
+    <!-- Шорты -->
     <rect x="34" y="24" width="12" height="8" fill="var(--pixel-shorts)"/>
+    <!-- Опорная нога на колене -->
     <rect x="44" y="28" width="6" height="8" fill="var(--pixel-skin)"/>
     <rect x="42" y="34" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <!-- Поднятая нога назад-вверх -->
     <rect x="44" y="18" width="6" height="8" fill="var(--pixel-skin)"/>
     <rect x="48" y="10" width="8" height="6" fill="var(--pixel-skin)"/>
     <rect x="54" y="8" width="6" height="6" fill="var(--pixel-shoes)"/>
+    <!-- Пол -->
     <rect x="0" y="40" width="64" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
   </g>
 </svg>

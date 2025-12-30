@@ -1,24 +1,24 @@
+<!-- v3.0 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 80">
   <style>
     :root {
       --pixel-skin: #FFD5B8;
+      --pixel-skin-shadow: #E8C4A0;
       --pixel-dark: #2D2D2D;
       --pixel-hair: #4A3728;
       --pixel-shirt: #4CAF50;
+      --pixel-shirt-shadow: #3D8B40;
       --pixel-shorts: #1E88E5;
       --pixel-shoes: #424242;
       --pixel-bar: #666666;
-      --pixel-accent: #FF9800;
+      --pixel-hold: #FF5722;
     }
-    .pulse { animation: pulse 1.6s ease-in-out infinite; }
+    .pulse {
+      animation: pulse 1.6s ease-in-out infinite;
+    }
     @keyframes pulse {
-      0%, 100% { opacity: 0.8; r: 4; }
-      50% { opacity: 0.5; r: 3; }
-    }
-    .sway { animation: sway 2s ease-in-out infinite; }
-    @keyframes sway {
-      0%, 100% { transform: translateX(0); }
-      50% { transform: translateX(2px); }
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
     }
   </style>
 
@@ -27,38 +27,39 @@
   <rect x="0" y="0" width="4" height="10" fill="var(--pixel-bar)"/>
   <rect x="44" y="0" width="4" height="10" fill="var(--pixel-bar)"/>
 
-  <g class="sway">
-    <!-- Руки на турнике -->
-    <rect x="14" y="10" width="6" height="8" fill="var(--pixel-skin)"/>
-    <rect x="28" y="10" width="6" height="8" fill="var(--pixel-skin)"/>
+  <!-- Руки на турнике -->
+  <rect x="14" y="10" width="6" height="6" fill="var(--pixel-skin)"/>
+  <rect x="28" y="10" width="6" height="6" fill="var(--pixel-skin)"/>
 
-    <!-- Предплечья -->
-    <rect x="16" y="18" width="4" height="8" fill="var(--pixel-skin)"/>
-    <rect x="28" y="18" width="4" height="8" fill="var(--pixel-skin)"/>
+  <!-- Предплечья -->
+  <rect x="16" y="16" width="4" height="8" fill="var(--pixel-skin)"/>
+  <rect x="28" y="16" width="4" height="8" fill="var(--pixel-skin)"/>
 
-    <!-- Плечи и тело -->
-    <rect x="14" y="26" width="6" height="4" fill="var(--pixel-shirt)"/>
-    <rect x="28" y="26" width="6" height="4" fill="var(--pixel-shirt)"/>
-    <rect x="16" y="30" width="16" height="16" fill="var(--pixel-shirt)"/>
+  <!-- Плечи -->
+  <rect x="14" y="24" width="6" height="4" fill="var(--pixel-shirt)"/>
+  <rect x="28" y="24" width="6" height="4" fill="var(--pixel-shirt)"/>
 
-    <!-- Голова -->
-    <rect x="18" y="26" width="12" height="12" fill="var(--pixel-skin)"/>
-    <rect x="20" y="30" width="2" height="2" fill="var(--pixel-dark)"/>
-    <rect x="26" y="30" width="2" height="2" fill="var(--pixel-dark)"/>
-    <rect x="18" y="24" width="12" height="4" fill="var(--pixel-hair)"/>
+  <!-- Голова -->
+  <rect x="18" y="24" width="12" height="12" fill="var(--pixel-skin)"/>
+  <rect x="20" y="28" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="26" y="28" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="18" y="22" width="12" height="4" fill="var(--pixel-hair)"/>
 
-    <!-- Шорты -->
-    <rect x="18" y="46" width="12" height="8" fill="var(--pixel-shorts)"/>
+  <!-- Тело -->
+  <rect x="16" y="28" width="16" height="16" fill="var(--pixel-shirt)"/>
+  <rect x="16" y="42" width="16" height="2" fill="var(--pixel-shirt-shadow)"/>
 
-    <!-- Ноги -->
-    <rect x="18" y="54" width="5" height="16" fill="var(--pixel-skin)"/>
-    <rect x="25" y="54" width="5" height="16" fill="var(--pixel-skin)"/>
+  <!-- Шорты -->
+  <rect x="18" y="44" width="12" height="8" fill="var(--pixel-shorts)"/>
 
-    <!-- Обувь -->
-    <rect x="16" y="70" width="8" height="4" fill="var(--pixel-shoes)"/>
-    <rect x="24" y="70" width="8" height="4" fill="var(--pixel-shoes)"/>
-  </g>
+  <!-- Ноги -->
+  <rect x="18" y="52" width="5" height="14" fill="var(--pixel-skin)"/>
+  <rect x="25" y="52" width="5" height="14" fill="var(--pixel-skin)"/>
 
-  <!-- Таймер (статическое упражнение) -->
-  <circle class="pulse" cx="24" cy="78" r="4" fill="var(--pixel-accent)"/>
+  <!-- Обувь -->
+  <rect x="16" y="66" width="8" height="4" fill="var(--pixel-shoes)"/>
+  <rect x="24" y="66" width="8" height="4" fill="var(--pixel-shoes)"/>
+
+  <!-- Пульсирующий индикатор -->
+  <rect class="pulse" x="20" y="74" width="8" height="4" fill="var(--pixel-hold)"/>
 </svg>

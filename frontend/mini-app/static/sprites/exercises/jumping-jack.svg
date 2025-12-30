@@ -17,10 +17,24 @@
     .frame3 { animation: frame3 1.4s steps(1) infinite; }
     .frame4 { animation: frame4 1.4s steps(1) infinite; }
 
-    @keyframes frame1 { 0%, 100% { opacity: 1; } 25% { opacity: 0; } }
-    @keyframes frame2 { 0% { opacity: 0; } 25% { opacity: 1; } 50% { opacity: 0; } }
-    @keyframes frame3 { 0% { opacity: 0; } 50% { opacity: 1; } 75% { opacity: 0; } }
-    @keyframes frame4 { 0% { opacity: 0; } 75% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes frame1 {
+      0% { opacity: 1; }
+      25%, 100% { opacity: 0; }
+    }
+    @keyframes frame2 {
+      0%, 25% { opacity: 0; }
+      25.01%, 50% { opacity: 1; }
+      50.01%, 100% { opacity: 0; }
+    }
+    @keyframes frame3 {
+      0%, 50% { opacity: 0; }
+      50.01%, 75% { opacity: 1; }
+      75.01%, 100% { opacity: 0; }
+    }
+    @keyframes frame4 {
+      0%, 75% { opacity: 0; }
+      75.01%, 100% { opacity: 1; }
+    }
   </style>
 
   <!-- Кадр 1: Стоит, ноги вместе, руки вниз -->

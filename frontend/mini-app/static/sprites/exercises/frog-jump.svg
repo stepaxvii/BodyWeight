@@ -1,10 +1,13 @@
+<!-- v3.0 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 72">
   <style>
     :root {
       --pixel-skin: #FFD5B8;
+      --pixel-skin-shadow: #E8C4A0;
       --pixel-dark: #2D2D2D;
       --pixel-hair: #4A3728;
       --pixel-shirt: #4CAF50;
+      --pixel-shirt-shadow: #3D8B40;
       --pixel-shorts: #1E88E5;
       --pixel-shoes: #424242;
     }
@@ -12,39 +15,67 @@
     .frame1 { animation: frame1 2s steps(1) infinite; }
     .frame2 { animation: frame2 2s steps(1) infinite; }
 
-    @keyframes frame1 { 0%, 50% { opacity: 1; } 50%, 100% { opacity: 0; } }
-    @keyframes frame2 { 0%, 50% { opacity: 0; } 50%, 100% { opacity: 1; } }
+    @keyframes frame1 {
+      0% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+    @keyframes frame2 {
+      0%, 50% { opacity: 0; }
+      50.01%, 100% { opacity: 1; }
+    }
   </style>
+
+  <!-- Frog Jump - лягушачьи прыжки -->
 
   <!-- Кадр 1: Присед (лягушка) -->
   <g class="frame frame1">
-    <rect x="22" y="20" width="12" height="12" fill="var(--pixel-skin)"/>
+    <!-- Голова -->
+    <rect x="22" y="20" width="12" height="10" fill="var(--pixel-skin)"/>
     <rect x="24" y="24" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="30" y="24" width="2" height="2" fill="var(--pixel-dark)"/>
     <rect x="22" y="18" width="12" height="4" fill="var(--pixel-hair)"/>
-    <rect x="20" y="32" width="16" height="12" fill="var(--pixel-shirt)"/>
+    <!-- Шея -->
+    <rect x="26" y="30" width="4" height="2" fill="var(--pixel-skin)"/>
+    <!-- Тело -->
+    <rect x="20" y="32" width="16" height="10" fill="var(--pixel-shirt)"/>
+    <rect x="20" y="40" width="16" height="2" fill="var(--pixel-shirt-shadow)"/>
+    <!-- Руки вперёд на полу -->
     <rect x="16" y="36" width="6" height="8" fill="var(--pixel-skin)"/>
     <rect x="34" y="36" width="6" height="8" fill="var(--pixel-skin)"/>
+    <!-- Шорты -->
     <rect x="18" y="42" width="20" height="8" fill="var(--pixel-shorts)"/>
+    <!-- Ноги согнуты широко -->
     <rect x="6" y="48" width="16" height="6" fill="var(--pixel-skin)"/>
     <rect x="34" y="48" width="16" height="6" fill="var(--pixel-skin)"/>
     <rect x="2" y="52" width="8" height="4" fill="var(--pixel-shoes)"/>
     <rect x="46" y="52" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <!-- Пол -->
     <rect x="0" y="58" width="56" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
   </g>
 
   <!-- Кадр 2: Прыжок -->
   <g class="frame frame2">
-    <rect x="22" y="4" width="12" height="12" fill="var(--pixel-skin)"/>
+    <!-- Голова -->
+    <rect x="22" y="4" width="12" height="10" fill="var(--pixel-skin)"/>
     <rect x="24" y="8" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="30" y="8" width="2" height="2" fill="var(--pixel-dark)"/>
     <rect x="22" y="2" width="12" height="4" fill="var(--pixel-hair)"/>
-    <rect x="20" y="16" width="16" height="14" fill="var(--pixel-shirt)"/>
+    <!-- Шея -->
+    <rect x="26" y="14" width="4" height="2" fill="var(--pixel-skin)"/>
+    <!-- Тело -->
+    <rect x="20" y="16" width="16" height="12" fill="var(--pixel-shirt)"/>
+    <rect x="20" y="26" width="16" height="2" fill="var(--pixel-shirt-shadow)"/>
+    <!-- Руки вверх -->
     <rect x="14" y="14" width="6" height="10" fill="var(--pixel-skin)"/>
     <rect x="36" y="14" width="6" height="10" fill="var(--pixel-skin)"/>
-    <rect x="22" y="30" width="12" height="8" fill="var(--pixel-shorts)"/>
-    <rect x="14" y="38" width="6" height="14" fill="var(--pixel-skin)"/>
-    <rect x="36" y="38" width="6" height="14" fill="var(--pixel-skin)"/>
+    <!-- Шорты -->
+    <rect x="22" y="28" width="12" height="8" fill="var(--pixel-shorts)"/>
+    <!-- Ноги прямые в прыжке -->
+    <rect x="14" y="36" width="6" height="14" fill="var(--pixel-skin)"/>
+    <rect x="36" y="36" width="6" height="14" fill="var(--pixel-skin)"/>
     <rect x="12" y="50" width="8" height="4" fill="var(--pixel-shoes)"/>
     <rect x="36" y="50" width="8" height="4" fill="var(--pixel-shoes)"/>
+    <!-- Пол -->
     <rect x="0" y="58" width="56" height="2" fill="var(--pixel-dark)" opacity="0.3"/>
   </g>
 </svg>

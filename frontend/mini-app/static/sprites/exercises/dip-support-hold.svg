@@ -1,15 +1,16 @@
-<!-- v2.0 -->
+<!-- v3.0 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 64">
   <style>
-    .skin { fill: #FFD5B8; }
-    .dark { fill: #2D2D2D; }
-    .hair { fill: #4A3728; }
-    .shirt { fill: #4CAF50; }
-    .shorts { fill: #1E88E5; }
-    .shoes { fill: #424242; }
-    .bar { fill: #666666; }
-    .accent { fill: #FF5722; }
-
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shorts: #1E88E5;
+      --pixel-shoes: #424242;
+      --pixel-bar: #666666;
+      --pixel-hold: #FF5722;
+    }
     .pulse { animation: pulse 1.6s ease-in-out infinite; }
     @keyframes pulse {
       0%, 100% { opacity: 0.9; }
@@ -18,33 +19,33 @@
   </style>
 
   <!-- Parallel bars -->
-  <rect x="0" y="16" width="6" height="46" class="bar"/>
-  <rect x="46" y="16" width="6" height="46" class="bar"/>
+  <rect x="0" y="16" width="6" height="46" fill="var(--pixel-bar)"/>
+  <rect x="46" y="16" width="6" height="46" fill="var(--pixel-bar)"/>
 
   <!-- Static support position -->
   <!-- Hands on bars -->
-  <rect x="4" y="12" width="10" height="6" class="skin"/>
-  <rect x="38" y="12" width="10" height="6" class="skin"/>
+  <rect x="4" y="12" width="10" height="6" fill="var(--pixel-skin)"/>
+  <rect x="38" y="12" width="10" height="6" fill="var(--pixel-skin)"/>
 
   <!-- Head -->
-  <rect x="20" y="2" width="10" height="8" class="skin"/>
-  <rect x="22" y="5" width="2" height="2" class="dark"/>
-  <rect x="26" y="5" width="2" height="2" class="dark"/>
-  <rect x="20" y="0" width="10" height="3" class="hair"/>
+  <rect x="20" y="2" width="10" height="8" fill="var(--pixel-skin)"/>
+  <rect x="22" y="5" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="26" y="5" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="20" y="0" width="10" height="3" fill="var(--pixel-hair)"/>
 
   <!-- Torso -->
-  <rect x="12" y="10" width="26" height="18" class="shirt"/>
+  <rect x="12" y="10" width="26" height="18" fill="var(--pixel-shirt)"/>
 
   <!-- Shorts -->
-  <rect x="18" y="28" width="14" height="8" class="shorts"/>
+  <rect x="18" y="28" width="14" height="8" fill="var(--pixel-shorts)"/>
 
   <!-- Legs -->
-  <rect x="18" y="36" width="6" height="16" class="skin"/>
-  <rect x="26" y="36" width="6" height="16" class="skin"/>
+  <rect x="18" y="36" width="6" height="16" fill="var(--pixel-skin)"/>
+  <rect x="26" y="36" width="6" height="16" fill="var(--pixel-skin)"/>
   <!-- Shoes -->
-  <rect x="16" y="52" width="8" height="4" class="shoes"/>
-  <rect x="26" y="52" width="8" height="4" class="shoes"/>
+  <rect x="16" y="52" width="8" height="4" fill="var(--pixel-shoes)"/>
+  <rect x="26" y="52" width="8" height="4" fill="var(--pixel-shoes)"/>
 
   <!-- Timer indicator -->
-  <circle class="pulse" cx="26" cy="60" r="2" class="accent"/>
+  <rect class="pulse" x="22" y="58" width="8" height="4" fill="var(--pixel-hold)"/>
 </svg>

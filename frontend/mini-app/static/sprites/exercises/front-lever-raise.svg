@@ -1,3 +1,4 @@
+<!-- v3.0 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 80">
   <style>
     :root {
@@ -13,38 +14,59 @@
     .frame1 { animation: frame1 3s steps(1) infinite; }
     .frame2 { animation: frame2 3s steps(1) infinite; }
 
-    @keyframes frame1 { 0%, 50% { opacity: 1; } 50%, 100% { opacity: 0; } }
-    @keyframes frame2 { 0%, 50% { opacity: 0; } 50%, 100% { opacity: 1; } }
+    @keyframes frame1 {
+      0% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+    @keyframes frame2 {
+      0%, 50% { opacity: 0; }
+      50.01%, 100% { opacity: 1; }
+    }
   </style>
+
+  <!-- Front lever raise / Подъём в передний вис -->
 
   <!-- Турник -->
   <rect x="0" y="4" width="48" height="6" fill="var(--pixel-bar)"/>
 
   <!-- Кадр 1: Вис -->
   <g class="frame frame1">
+    <!-- Руки -->
     <rect x="16" y="8" width="6" height="10" fill="var(--pixel-skin)"/>
     <rect x="26" y="8" width="6" height="10" fill="var(--pixel-skin)"/>
+    <!-- Голова -->
     <rect x="18" y="18" width="12" height="12" fill="var(--pixel-skin)"/>
     <rect x="20" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
+    <rect x="26" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
     <rect x="18" y="16" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Тело -->
     <rect x="16" y="30" width="16" height="16" fill="var(--pixel-shirt)"/>
+    <!-- Шорты -->
     <rect x="18" y="46" width="12" height="8" fill="var(--pixel-shorts)"/>
+    <!-- Ноги -->
     <rect x="18" y="54" width="6" height="16" fill="var(--pixel-skin)"/>
     <rect x="24" y="54" width="6" height="16" fill="var(--pixel-skin)"/>
+    <!-- Обувь -->
     <rect x="16" y="68" width="8" height="4" fill="var(--pixel-shoes)"/>
     <rect x="24" y="68" width="8" height="4" fill="var(--pixel-shoes)"/>
   </g>
 
   <!-- Кадр 2: Подъём в горизонталь -->
   <g class="frame frame2">
+    <!-- Руки -->
     <rect x="16" y="8" width="6" height="10" fill="var(--pixel-skin)"/>
     <rect x="26" y="8" width="6" height="10" fill="var(--pixel-skin)"/>
+    <!-- Голова -->
     <rect x="18" y="18" width="12" height="12" fill="var(--pixel-skin)"/>
     <rect x="20" y="22" width="2" height="2" fill="var(--pixel-dark)"/>
     <rect x="18" y="16" width="12" height="4" fill="var(--pixel-hair)"/>
+    <!-- Тело горизонтально -->
     <rect x="16" y="30" width="16" height="14" fill="var(--pixel-shirt)"/>
+    <!-- Шорты -->
     <rect x="18" y="42" width="12" height="6" fill="var(--pixel-shorts)"/>
+    <!-- Ноги горизонтально -->
     <rect x="28" y="40" width="16" height="6" fill="var(--pixel-skin)"/>
+    <!-- Обувь -->
     <rect x="42" y="38" width="6" height="6" fill="var(--pixel-shoes)"/>
   </g>
 </svg>
