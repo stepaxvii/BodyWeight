@@ -241,21 +241,34 @@ async def get_user_profile(
     achievements = [row[0] for row in achievements_result.all()]
 
     # Check friendship status
-    # is_friend = true if accepted, friendship_pending = true if request sent/received
+    # For accepted friendships, there are 2 records (bidirectional).
+    # For pending, only 1 record exists (from requester to target).
+    # We check from current user's perspective first.
     is_friend = False
     friendship_pending = False
     if current_user.id != user_id:
+        # Check friendship from current user's side
         friendship_result = await session.execute(
             select(Friendship)
-            .where(
-                ((Friendship.user_id == current_user.id) & (Friendship.friend_id == user_id)) |
-                ((Friendship.user_id == user_id) & (Friendship.friend_id == current_user.id))
-            )
+            .where(Friendship.user_id == current_user.id)
+            .where(Friendship.friend_id == user_id)
         )
         friendship = friendship_result.scalar_one_or_none()
+
         if friendship:
             is_friend = friendship.status == "accepted"
             friendship_pending = friendship.status == "pending"
+        else:
+            # Check if there's a pending request from the other user to current user
+            reverse_result = await session.execute(
+                select(Friendship)
+                .where(Friendship.user_id == user_id)
+                .where(Friendship.friend_id == current_user.id)
+                .where(Friendship.status == "pending")
+            )
+            reverse_friendship = reverse_result.scalar_one_or_none()
+            if reverse_friendship:
+                friendship_pending = True
 
     return UserProfileResponse(
         id=user.id,
