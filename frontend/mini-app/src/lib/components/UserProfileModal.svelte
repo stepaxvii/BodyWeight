@@ -44,7 +44,8 @@
 		isAddingFriend = true;
 		try {
 			await api.addFriend(profile.username);
-			profile = { ...profile, is_friend: true };
+			// Заявка отправлена, но ещё не подтверждена
+			profile = { ...profile, friendship_pending: true };
 			telegram.hapticNotification('success');
 		} catch (err) {
 			console.error('Failed to add friend:', err);
