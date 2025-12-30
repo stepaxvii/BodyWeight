@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 
 from app.api.deps import AsyncSessionDep, validate_telegram_init_data
-from app.db.models import User
+from app.db.models import User, Notification
 from app.config import settings
 
 router = APIRouter()
@@ -115,6 +115,16 @@ async def validate_auth(
         await session.flush()
         await session.refresh(user)
         is_new = True
+
+        # Create welcome notification
+        welcome_notification = Notification(
+            user_id=user.id,
+            notification_type="welcome",
+            title="Добро пожаловать!",
+            message="Рады видеть тебя в BodyWeight! Начни первую тренировку прямо сейчас.",
+        )
+        session.add(welcome_notification)
+        await session.flush()
     else:
         # Update existing user info
         user.username = username

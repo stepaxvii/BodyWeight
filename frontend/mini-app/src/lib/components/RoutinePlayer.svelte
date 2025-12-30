@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { PixelButton, PixelCard, PixelIcon, PixelProgress } from '$lib/components/ui';
-	import PixelExerciseDemo from '$lib/components/ui/PixelExerciseDemo.svelte';
+	import ExercisePreview from '$lib/components/ui/ExercisePreview.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -332,10 +332,11 @@
 						<!-- Exercise animation -->
 						{#if exerciseData?.gif_url || currentExercise?.slug}
 							<div class="exercise-demo">
-								<PixelExerciseDemo
+								<ExercisePreview
 									gifUrl={exerciseData?.gif_url}
 									exercise={currentExercise?.slug}
 									size="lg"
+									version="v4"
 								/>
 							</div>
 						{/if}

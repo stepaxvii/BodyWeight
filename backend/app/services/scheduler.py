@@ -1,19 +1,22 @@
 """
-Notification scheduler for sending reminders.
+Notification scheduler for sending Telegram push reminders.
 
-This module provides functions to check and send notifications:
+This module provides functions to send Telegram notifications:
 - Daily workout reminders (based on user's notification_time setting)
 - Inactivity reminders (after 3 days without workout)
+
+Note: In-app notifications (bell icon) are created separately in API routes.
+Telegram pushes respect user's notification preferences.
 
 Includes built-in APScheduler integration for automatic scheduling.
 """
 
 import logging
-from datetime import datetime, date, timedelta, time
-from sqlalchemy import select, and_
+from datetime import datetime, date, timedelta
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.cron import CronTrigger
 
 from app.db.models import User
 from app.services.notifications import send_daily_reminder, send_inactivity_reminder, save_notification
@@ -26,23 +29,21 @@ scheduler: AsyncIOScheduler | None = None
 
 async def check_daily_reminders(session: AsyncSession) -> int:
     """
-    Check and send daily workout reminders.
+    Check and send daily workout reminders via Telegram.
 
-    Sends reminders to users who:
-    - Have notifications_enabled = True
-    - Have notification_time set
-    - notification_time matches current hour:minute (within 1 minute window)
+    Sends to users who:
+    - Have notifications_enabled = True (opted in for Telegram pushes)
+    - Have notification_time set matching current hour
     - Haven't worked out today
 
     Returns:
         Number of reminders sent
     """
     now = datetime.now()
-    current_time = now.time()
+    current_hour = now.hour
     today = now.date()
 
-    # Find users whose notification time is now (within 1 minute window)
-    # We check if notification_time hour and minute match current time
+    # Find users whose notification_time hour matches current hour
     result = await session.execute(
         select(User)
         .where(User.notifications_enabled == True)
@@ -56,36 +57,36 @@ async def check_daily_reminders(session: AsyncSession) -> int:
         if user.notification_time is None:
             continue
 
-        # Check if it's time to send notification (same hour and minute)
-        if (user.notification_time.hour == current_time.hour and
-            user.notification_time.minute == current_time.minute):
+        # Check if it's the right hour for this user
+        if user.notification_time.hour != current_hour:
+            continue
 
-            # Don't send if already worked out today
-            if user.last_workout_date == today:
-                continue
+        # Don't send if already worked out today
+        if user.last_workout_date == today:
+            continue
 
-            # Send reminder
-            success = await send_daily_reminder(
-                telegram_id=user.telegram_id,
-                streak=user.current_streak,
+        # Send Telegram push
+        success = await send_daily_reminder(
+            telegram_id=user.telegram_id,
+            streak=user.current_streak,
+        )
+
+        if success:
+            sent_count += 1
+            # Also save as in-app notification
+            if user.current_streak > 0:
+                title = "Время тренировки!"
+                message = f"Твой streak: {user.current_streak} дней подряд! Не останавливайся!"
+            else:
+                title = "Время тренировки!"
+                message = "Начни свой день с упражнений. Даже 10 минут — это уже прогресс!"
+            await save_notification(
+                session=session,
+                user_id=user.id,
+                notification_type="daily_reminder",
+                title=title,
+                message=message,
             )
-
-            if success:
-                sent_count += 1
-                # Save notification to database
-                if user.current_streak > 0:
-                    title = "Время тренировки!"
-                    message = f"Твой streak: {user.current_streak} дней подряд! Не останавливайся!"
-                else:
-                    title = "Время тренировки!"
-                    message = "Начни свой день с упражнений. Даже 10 минут — это уже прогресс!"
-                await save_notification(
-                    session=session,
-                    user_id=user.id,
-                    notification_type="daily_reminder",
-                    title=title,
-                    message=message,
-                )
 
     if sent_count > 0:
         logger.info(f"Sent {sent_count} daily reminders")
@@ -95,12 +96,12 @@ async def check_daily_reminders(session: AsyncSession) -> int:
 
 async def check_inactivity_reminders(session: AsyncSession) -> int:
     """
-    Check and send inactivity reminders.
+    Check and send inactivity reminders via Telegram.
 
-    Sends reminders to users who:
+    Sends to users who:
     - Have notifications_enabled = True
-    - Haven't worked out in exactly 3 days
-    - Have done at least one workout before (last_workout_date is not None)
+    - Haven't worked out in 3+ days
+    - Have done at least one workout before
 
     Returns:
         Number of reminders sent
@@ -108,31 +109,35 @@ async def check_inactivity_reminders(session: AsyncSession) -> int:
     today = date.today()
     three_days_ago = today - timedelta(days=3)
 
-    # Find users who last worked out exactly 3 days ago
+    # Find users who last worked out 3+ days ago
     result = await session.execute(
         select(User)
         .where(User.notifications_enabled == True)
-        .where(User.last_workout_date == three_days_ago)
+        .where(User.last_workout_date.isnot(None))
+        .where(User.last_workout_date <= three_days_ago)
     )
     users = result.scalars().all()
 
     sent_count = 0
 
     for user in users:
+        days_inactive = (today - user.last_workout_date).days
+
+        # Send Telegram push
         success = await send_inactivity_reminder(
             telegram_id=user.telegram_id,
-            days_inactive=3,
+            days_inactive=days_inactive,
         )
 
         if success:
             sent_count += 1
-            # Save notification to database
+            # Also save as in-app notification
             await save_notification(
                 session=session,
                 user_id=user.id,
                 notification_type="inactivity_reminder",
                 title="Мы скучаем!",
-                message="Прошло уже 3 дня без тренировок. Твои мышцы тоже скучают!",
+                message=f"Прошло уже {days_inactive} дней без тренировок. Вернись к занятиям!",
             )
 
     if sent_count > 0:
@@ -141,50 +146,38 @@ async def check_inactivity_reminders(session: AsyncSession) -> int:
     return sent_count
 
 
-async def run_notification_checks(session: AsyncSession) -> dict:
+async def hourly_notification_job():
     """
-    Run all notification checks.
-
-    Call this function periodically (every minute) to send notifications.
-
-    Returns:
-        Dict with counts of sent notifications by type
-    """
-    results = {
-        "daily_reminders": 0,
-        "inactivity_reminders": 0,
-    }
-
-    try:
-        results["daily_reminders"] = await check_daily_reminders(session)
-    except Exception as e:
-        logger.error(f"Error checking daily reminders: {e}")
-
-    # Only check inactivity once per day (at noon)
-    if datetime.now().hour == 12 and datetime.now().minute == 0:
-        try:
-            results["inactivity_reminders"] = await check_inactivity_reminders(session)
-        except Exception as e:
-            logger.error(f"Error checking inactivity reminders: {e}")
-
-    return results
-
-
-async def scheduled_notification_job():
-    """
-    Job function called by APScheduler every minute.
-    Creates its own database session.
+    Job function called by APScheduler every hour.
+    Checks daily reminders for users whose notification_time matches current hour.
     """
     from app.db.database import async_session_maker
 
     async with async_session_maker() as session:
         try:
-            results = await run_notification_checks(session)
+            count = await check_daily_reminders(session)
             await session.commit()
-            if results["daily_reminders"] > 0 or results["inactivity_reminders"] > 0:
-                logger.info(f"Notification check results: {results}")
+            if count > 0:
+                logger.info(f"Hourly job: sent {count} daily reminders")
         except Exception as e:
-            logger.error(f"Error in scheduled notification job: {e}")
+            logger.error(f"Error in hourly notification job: {e}")
+
+
+async def daily_inactivity_job():
+    """
+    Job function called by APScheduler once per day at noon.
+    Checks for inactive users and sends reminders.
+    """
+    from app.db.database import async_session_maker
+
+    async with async_session_maker() as session:
+        try:
+            count = await check_inactivity_reminders(session)
+            await session.commit()
+            if count > 0:
+                logger.info(f"Daily job: sent {count} inactivity reminders")
+        except Exception as e:
+            logger.error(f"Error in daily inactivity job: {e}")
 
 
 def start_scheduler():
@@ -200,17 +193,26 @@ def start_scheduler():
 
     scheduler = AsyncIOScheduler()
 
-    # Run notification checks every minute
+    # Check daily reminders every hour at :00
     scheduler.add_job(
-        scheduled_notification_job,
-        trigger=IntervalTrigger(minutes=1),
-        id="notification_checks",
-        name="Check and send notifications",
+        hourly_notification_job,
+        trigger=CronTrigger(minute=0),
+        id="hourly_reminders",
+        name="Check daily reminders (hourly)",
+        replace_existing=True,
+    )
+
+    # Check inactivity once per day at 12:00
+    scheduler.add_job(
+        daily_inactivity_job,
+        trigger=CronTrigger(hour=12, minute=0),
+        id="daily_inactivity",
+        name="Check inactivity reminders (daily)",
         replace_existing=True,
     )
 
     scheduler.start()
-    logger.info("Notification scheduler started (running every minute)")
+    logger.info("Notification scheduler started (hourly + daily jobs)")
 
 
 def stop_scheduler():

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { PixelButton, PixelCard, PixelIcon } from '$lib/components/ui';
-	import PixelExerciseDemo from '$lib/components/ui/PixelExerciseDemo.svelte';
+	import ExercisePreview from '$lib/components/ui/ExercisePreview.svelte';
 	import RoutinePlayer from '$lib/components/RoutinePlayer.svelte';
 	import ExerciseCard from '$lib/components/ExerciseCard.svelte';
 	import FilterModal from '$lib/components/FilterModal.svelte';
@@ -403,7 +403,7 @@
 							<!-- Animation demo -->
 							{#if showDemoForExercise === exercise.id && animationSlug}
 								<div class="demo-container">
-									<PixelExerciseDemo exercise={animationSlug} size="md" autoplay={true} />
+									<ExercisePreview exercise={animationSlug} size="md" version="v4" />
 								</div>
 							{/if}
 
@@ -490,7 +490,7 @@
 							<!-- Animation demo -->
 							{#if showDemoForExercise === we.exercise_id}
 								<div class="demo-container">
-									<PixelExerciseDemo exercise={animationSlug} size="md" autoplay={true} />
+									<ExercisePreview exercise={animationSlug} size="md" version="v4" />
 								</div>
 							{/if}
 
@@ -821,7 +821,7 @@
 
 				<!-- Animation -->
 				<div class="info-demo-container">
-					<PixelExerciseDemo exercise={exercise.slug} size="lg" autoplay={true} />
+					<ExercisePreview exercise={exercise.slug} size="lg" version="v4" />
 				</div>
 
 				<!-- Description -->

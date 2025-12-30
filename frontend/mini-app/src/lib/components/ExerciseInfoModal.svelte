@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { PixelModal, PixelIcon, PixelCard } from '$lib/components/ui';
-	import PixelExerciseDemo from '$lib/components/ui/PixelExerciseDemo.svelte';
+	import ExercisePreview from '$lib/components/ui/ExercisePreview.svelte';
+	import ExerciseFrameViewer from '$lib/components/ui/ExerciseFrameViewer.svelte';
 	import type { Exercise } from '$lib/types';
 
 	interface Props {
@@ -10,6 +11,7 @@
 	}
 
 	let { exercise, open, onclose }: Props = $props();
+	let showFrameViewer = $state(false);
 
 	function getDifficultyStars(difficulty: number): string {
 		return '\u2605'.repeat(difficulty) + '\u2606'.repeat(5 - difficulty);
@@ -56,13 +58,27 @@
 <PixelModal {open} title={exercise?.name_ru || 'Упражнение'} {onclose}>
 	{#if exercise}
 		<div class="exercise-info">
-			<!-- Animation -->
+			<!-- Animation/Frame Viewer Toggle -->
 			<div class="demo-section">
-				<PixelExerciseDemo
-					gifUrl={exercise.gif_url}
-					exercise={exercise.slug}
-					size="lg"
-				/>
+				{#if showFrameViewer}
+					<ExerciseFrameViewer
+						exercise={exercise.slug}
+						currentFrame={1}
+					/>
+					<button class="view-toggle" on:click={() => showFrameViewer = false}>
+						Показать превью
+					</button>
+				{:else}
+					<ExercisePreview
+						gifUrl={exercise.gif_url}
+						exercise={exercise.slug}
+						size="lg"
+						version="v4"
+					/>
+					<button class="view-toggle" on:click={() => showFrameViewer = true}>
+						Покадровый просмотр →
+					</button>
+				{/if}
 			</div>
 
 			<!-- Stats row -->
@@ -150,10 +166,33 @@
 
 	.demo-section {
 		display: flex;
-		justify-content: center;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--spacing-sm);
 		padding: var(--spacing-sm);
 		background: var(--pixel-bg-dark);
 		border: 2px solid var(--border-color);
+	}
+
+	.view-toggle {
+		padding: var(--spacing-xs) var(--spacing-md);
+		background: var(--pixel-bg);
+		border: 2px solid var(--border-color);
+		color: var(--pixel-accent);
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		cursor: pointer;
+		transition: all var(--transition-fast);
+	}
+
+	.view-toggle:hover {
+		border-color: var(--pixel-accent);
+		background: var(--pixel-accent);
+		color: var(--pixel-bg);
+	}
+
+	.view-toggle:active {
+		transform: scale(0.98);
 	}
 
 	.stats-row {

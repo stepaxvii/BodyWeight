@@ -69,6 +69,9 @@
 			case 'friend_accepted': return 'check';
 			case 'daily_reminder': return 'bell';
 			case 'inactivity_reminder': return 'warning';
+			case 'level_up': return 'level';
+			case 'achievement': return 'trophy';
+			case 'welcome': return 'star';
 			default: return 'bell';
 		}
 	}

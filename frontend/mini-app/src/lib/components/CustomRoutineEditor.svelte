@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { PixelButton, PixelCard, PixelIcon } from '$lib/components/ui';
-	import PixelExerciseDemo from '$lib/components/ui/PixelExerciseDemo.svelte';
+	import ExercisePreview from '$lib/components/ui/ExercisePreview.svelte';
 	import ExerciseInfoModal from '$lib/components/ExerciseInfoModal.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
@@ -347,7 +347,7 @@
 							disabled={isAdded}
 						>
 							<div class="picker-item-demo">
-								<PixelExerciseDemo exercise={exercise.slug} size="sm" />
+								<ExercisePreview exercise={exercise.slug} size="sm" version="v4" />
 							</div>
 							<div class="picker-item-info">
 								<span class="picker-item-name">{exercise.name_ru}</span>

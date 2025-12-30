@@ -7,3 +7,5 @@ export { default as PixelModal } from './PixelModal.svelte';
 export { default as PixelAvatar } from './PixelAvatar.svelte';
 export { default as AvatarPicker } from './AvatarPicker.svelte';
 export { default as PixelExerciseDemo } from './PixelExerciseDemo.svelte';
+export { default as ExercisePreview } from './ExercisePreview.svelte';
+export { default as ExerciseFrameViewer } from './ExerciseFrameViewer.svelte';

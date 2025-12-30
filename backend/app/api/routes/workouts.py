@@ -11,6 +11,7 @@ from app.db.models import (
     WorkoutExercise,
     Exercise,
     UserExerciseProgress,
+    Notification,
 )
 from app.services.xp_calculator import (
     calculate_xp,
@@ -449,6 +450,25 @@ async def complete_workout(
         workout.total_coins_earned += bonus_coins
         user.coins += bonus_coins
 
+    # Create in-app notifications for level up and achievements
+    if level_up:
+        notification = Notification(
+            user_id=user.id,
+            notification_type="level_up",
+            title="Новый уровень!",
+            message=f"Поздравляем! Ты достиг {new_level} уровня!",
+        )
+        session.add(notification)
+
+    for achievement in new_achievements:
+        notification = Notification(
+            user_id=user.id,
+            notification_type="achievement",
+            title="Новое достижение!",
+            message=f"Получено: {achievement.get('name_ru', achievement.get('name', 'Достижение'))}",
+        )
+        session.add(notification)
+
     await session.flush()
 
     return WorkoutSummaryResponse(
@@ -657,6 +677,25 @@ async def submit_workout(
         bonus_coins = sum(a.get("coin_reward", 0) for a in new_achievements)
         workout.total_coins_earned += bonus_coins
         user.coins += bonus_coins
+
+    # Create in-app notifications for level up and achievements
+    if level_up:
+        notification = Notification(
+            user_id=user.id,
+            notification_type="level_up",
+            title="Новый уровень!",
+            message=f"Поздравляем! Ты достиг {new_level} уровня!",
+        )
+        session.add(notification)
+
+    for achievement in new_achievements:
+        notification = Notification(
+            user_id=user.id,
+            notification_type="achievement",
+            title="Новое достижение!",
+            message=f"Получено: {achievement.get('name_ru', achievement.get('name', 'Достижение'))}",
+        )
+        session.add(notification)
 
     await session.flush()
 

@@ -74,7 +74,13 @@ async def update_current_user(
     """Update current user's settings."""
     if request.avatar_id is not None:
         # Validate avatar_id is a valid option
-        valid_avatars = ['wolf', 'bear', 'fox', 'cat', 'dog', 'rabbit', 'panda', 'owl', 'tiger', 'lion', 'monkey', 'dragon']
+        valid_avatars = [
+            # Free animals (level 1)
+            'shadow-wolf', 'iron-bear', 'fire-fox', 'night-panther',
+            # Paid mythical (increasing price/level)
+            'phoenix', 'griffin', 'cerberus', 'thunder-fang', 'cyber-ape', 'hydra',
+            'minotaur', 'kraken', 'leviathan', 'titan',
+        ]
         if request.avatar_id in valid_avatars:
             user.avatar_id = request.avatar_id
     if request.notification_time is not None:
