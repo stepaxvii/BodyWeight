@@ -1,0 +1,90 @@
+<!-- v4.0 - Detailed frame-based visualization -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <style>
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-skin-dark: #E8C4A8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-hair-dark: #3A2718;
+      --pixel-shirt: #4CAF50;
+      --pixel-shirt-dark: #388E3C;
+      --pixel-shorts: #1E88E5;
+      --pixel-shorts-dark: #1565C0;
+      --pixel-shoes: #424242;
+      --pixel-shoes-dark: #212121;
+      --pixel-floor: #8D6E63;
+      --pixel-floor-light: #A1887F;
+    }
+  </style>
+
+  <!-- Jumping Jack - Frame 3: Peak (feet wide apart, arms overhead) -->
+
+  <!-- Floor -->
+  <rect x="0" y="72" width="80" height="8" fill="var(--pixel-floor)"/>
+  <rect x="0" y="72" width="80" height="2" fill="var(--pixel-floor-light)"/>
+
+  <!-- Head (at peak height) -->
+  <rect x="34" y="4" width="12" height="12" fill="var(--pixel-skin)"/>
+  <rect x="34" y="4" width="12" height="2" fill="var(--pixel-skin-dark)"/>
+  <!-- Eyes -->
+  <rect x="36" y="9" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="42" y="9" width="2" height="2" fill="var(--pixel-dark)"/>
+  <!-- Hair (bouncing up) -->
+  <rect x="34" y="2" width="12" height="4" fill="var(--pixel-hair)"/>
+  <rect x="32" y="4" width="2" height="2" fill="var(--pixel-hair)"/>
+  <rect x="46" y="4" width="2" height="2" fill="var(--pixel-hair)"/>
+  <rect x="35" y="3" width="10" height="2" fill="var(--pixel-hair-dark)"/>
+
+  <!-- Neck -->
+  <rect x="38" y="16" width="4" height="3" fill="var(--pixel-skin)"/>
+
+  <!-- Torso/Shirt -->
+  <rect x="32" y="19" width="16" height="20" fill="var(--pixel-shirt)"/>
+  <rect x="34" y="17" width="12" height="2" fill="var(--pixel-shirt-dark)"/>
+  <rect x="32" y="37" width="16" height="2" fill="var(--pixel-shirt-dark)"/>
+  <rect x="33" y="20" width="3" height="18" fill="var(--pixel-shirt-dark)"/>
+
+  <!-- Arms overhead (spread wide) -->
+  <!-- Left arm -->
+  <rect x="24" y="13" width="8" height="4" fill="var(--pixel-shirt)"/>
+  <rect x="25" y="14" width="6" height="2" fill="var(--pixel-shirt-dark)"/>
+  <rect x="18" y="7" width="6" height="7" fill="var(--pixel-skin)"/>
+  <rect x="19" y="8" width="4" height="5" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Right arm -->
+  <rect x="48" y="13" width="8" height="4" fill="var(--pixel-shirt)"/>
+  <rect x="49" y="14" width="6" height="2" fill="var(--pixel-shirt-dark)"/>
+  <rect x="56" y="7" width="6" height="7" fill="var(--pixel-skin)"/>
+  <rect x="57" y="8" width="4" height="5" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Shorts -->
+  <rect x="34" y="39" width="12" height="10" fill="var(--pixel-shorts)"/>
+  <rect x="34" y="47" width="12" height="2" fill="var(--pixel-shorts-dark)"/>
+  <rect x="35" y="40" width="3" height="8" fill="var(--pixel-shorts-dark)"/>
+
+  <!-- Thighs (wide spread) -->
+  <rect x="26" y="49" width="8" height="5" fill="var(--pixel-skin)"/>
+  <rect x="27" y="50" width="6" height="3" fill="var(--pixel-skin-dark)"/>
+  <rect x="46" y="49" width="8" height="5" fill="var(--pixel-skin)"/>
+  <rect x="47" y="50" width="6" height="3" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Left Leg (wide apart) -->
+  <rect x="20" y="54" width="5" height="11" fill="var(--pixel-skin)"/>
+  <rect x="21" y="54" width="3" height="11" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Right Leg (wide apart) -->
+  <rect x="55" y="54" width="5" height="11" fill="var(--pixel-skin)"/>
+  <rect x="56" y="54" width="3" height="11" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Left Foot -->
+  <rect x="16" y="65" width="8" height="5" fill="var(--pixel-shoes)"/>
+  <rect x="16" y="65" width="8" height="2" fill="var(--pixel-shoes-dark)"/>
+
+  <!-- Right Foot -->
+  <rect x="56" y="65" width="8" height="5" fill="var(--pixel-shoes)"/>
+  <rect x="56" y="65" width="8" height="2" fill="var(--pixel-shoes-dark)"/>
+
+  <!-- Phase Label -->
+  <text x="40" y="1" font-family="monospace" font-size="3" fill="var(--pixel-dark)" text-anchor="middle" font-weight="bold">PEAK</text>
+</svg>

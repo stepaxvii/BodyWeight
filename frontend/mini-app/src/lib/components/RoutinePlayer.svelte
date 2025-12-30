@@ -9,14 +9,15 @@
 
 	interface Props {
 		routine: Routine;
+		exercises?: Exercise[];
 		onclose?: () => void;
 		oncomplete?: (xp: number, coins: number) => void;
 	}
 
-	let { routine, onclose, oncomplete }: Props = $props();
+	let { routine, exercises: exercisesProp = [], onclose, oncomplete }: Props = $props();
 
 	// All exercises data for descriptions
-	let allExercises = $state<Exercise[]>([]);
+	let allExercises = $state<Exercise[]>(exercisesProp);
 
 	// Current step in the routine
 	let currentStep = $state(0);
@@ -54,7 +55,10 @@
 	const formattedExerciseTime = $derived(formatTime(exerciseTimerSeconds));
 
 	onMount(async () => {
-		allExercises = await api.getExercises();
+		// Only fetch if exercises weren't passed as prop
+		if (allExercises.length === 0) {
+			allExercises = await api.getExercises();
+		}
 	});
 
 	onDestroy(() => {

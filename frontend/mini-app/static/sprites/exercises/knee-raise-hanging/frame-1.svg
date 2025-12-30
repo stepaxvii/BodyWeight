@@ -1,0 +1,94 @@
+<!-- v4.0 - Detailed frame-based visualization -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 88">
+  <style>
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-skin-dark: #E8C4A8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-hair-dark: #3A2718;
+      --pixel-shirt: #4CAF50;
+      --pixel-shirt-dark: #388E3C;
+      --pixel-shorts: #1E88E5;
+      --pixel-shorts-dark: #1565C0;
+      --pixel-shoes: #424242;
+      --pixel-shoes-dark: #212121;
+      --pixel-bar: #795548;
+      --pixel-bar-dark: #5D4037;
+    }
+  </style>
+
+  <!-- Knee Raise Hanging - Frame 1: Dead hang (starting position) -->
+
+  <!-- Pull-up bar -->
+  <rect x="0" y="6" width="64" height="6" fill="var(--pixel-bar)"/>
+  <rect x="0" y="6" width="64" height="2" fill="var(--pixel-bar-dark)"/>
+  <!-- Bar supports -->
+  <rect x="0" y="0" width="4" height="12" fill="var(--pixel-bar)"/>
+  <rect x="60" y="0" width="4" height="12" fill="var(--pixel-bar)"/>
+
+  <!-- Left hand gripping bar -->
+  <rect x="24" y="10" width="4" height="3" fill="var(--pixel-skin-dark)"/>
+  <rect x="23" y="13" width="2" height="2" fill="var(--pixel-skin)"/>
+  <rect x="27" y="13" width="2" height="2" fill="var(--pixel-skin)"/>
+
+  <!-- Right hand gripping bar -->
+  <rect x="36" y="10" width="4" height="3" fill="var(--pixel-skin-dark)"/>
+  <rect x="35" y="13" width="2" height="2" fill="var(--pixel-skin)"/>
+  <rect x="39" y="13" width="2" height="2" fill="var(--pixel-skin)"/>
+
+  <!-- Left arm (straight down) -->
+  <rect x="24" y="13" width="4" height="4" fill="var(--pixel-skin-dark)"/>
+  <rect x="25" y="17" width="3" height="8" fill="var(--pixel-skin)"/>
+  <rect x="26" y="17" width="2" height="8" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Right arm (straight down) -->
+  <rect x="36" y="13" width="4" height="4" fill="var(--pixel-skin-dark)"/>
+  <rect x="37" y="17" width="3" height="8" fill="var(--pixel-skin)"/>
+  <rect x="38" y="17" width="2" height="8" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Head -->
+  <rect x="26" y="26" width="12" height="12" fill="var(--pixel-skin)"/>
+  <rect x="26" y="26" width="12" height="2" fill="var(--pixel-skin-dark)"/>
+  <!-- Eyes looking forward -->
+  <rect x="28" y="31" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="34" y="31" width="2" height="2" fill="var(--pixel-dark)"/>
+  <!-- Hair -->
+  <rect x="26" y="24" width="12" height="4" fill="var(--pixel-hair)"/>
+  <rect x="24" y="26" width="2" height="3" fill="var(--pixel-hair)"/>
+  <rect x="38" y="26" width="2" height="3" fill="var(--pixel-hair)"/>
+  <rect x="27" y="25" width="10" height="2" fill="var(--pixel-hair-dark)"/>
+
+  <!-- Neck -->
+  <rect x="30" y="38" width="4" height="2" fill="var(--pixel-skin)"/>
+
+  <!-- Torso/Shirt -->
+  <rect x="24" y="40" width="16" height="18" fill="var(--pixel-shirt)"/>
+  <rect x="26" y="38" width="12" height="2" fill="var(--pixel-shirt-dark)"/>
+  <rect x="24" y="56" width="16" height="2" fill="var(--pixel-shirt-dark)"/>
+  <rect x="25" y="41" width="3" height="16" fill="var(--pixel-shirt-dark)"/>
+
+  <!-- Shorts -->
+  <rect x="26" y="58" width="12" height="10" fill="var(--pixel-shorts)"/>
+  <rect x="26" y="66" width="12" height="2" fill="var(--pixel-shorts-dark)"/>
+  <rect x="27" y="59" width="3" height="8" fill="var(--pixel-shorts-dark)"/>
+
+  <!-- Left leg (hanging straight) -->
+  <rect x="26" y="68" width="5" height="16" fill="var(--pixel-skin)"/>
+  <rect x="27" y="68" width="3" height="16" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Right leg (hanging straight) -->
+  <rect x="33" y="68" width="5" height="16" fill="var(--pixel-skin)"/>
+  <rect x="34" y="68" width="3" height="16" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Left foot -->
+  <rect x="24" y="82" width="7" height="4" fill="var(--pixel-shoes)"/>
+  <rect x="24" y="82" width="7" height="2" fill="var(--pixel-shoes-dark)"/>
+
+  <!-- Right foot -->
+  <rect x="33" y="82" width="7" height="4" fill="var(--pixel-shoes)"/>
+  <rect x="33" y="82" width="7" height="2" fill="var(--pixel-shoes-dark)"/>
+
+  <!-- Phase Label -->
+  <text x="32" y="4" font-family="monospace" font-size="3" fill="var(--pixel-dark)" text-anchor="middle" font-weight="bold">HANG</text>
+</svg>

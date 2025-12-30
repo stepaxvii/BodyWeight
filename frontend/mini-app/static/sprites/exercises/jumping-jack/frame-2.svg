@@ -1,0 +1,90 @@
+<!-- v4.0 - Detailed frame-based visualization -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 80">
+  <style>
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-skin-dark: #E8C4A8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-hair-dark: #3A2718;
+      --pixel-shirt: #4CAF50;
+      --pixel-shirt-dark: #388E3C;
+      --pixel-shorts: #1E88E5;
+      --pixel-shorts-dark: #1565C0;
+      --pixel-shoes: #424242;
+      --pixel-shoes-dark: #212121;
+      --pixel-floor: #8D6E63;
+      --pixel-floor-light: #A1887F;
+    }
+  </style>
+
+  <!-- Jumping Jack - Frame 2: Mid-motion (feet spreading, arms rising) -->
+
+  <!-- Floor -->
+  <rect x="0" y="72" width="72" height="8" fill="var(--pixel-floor)"/>
+  <rect x="0" y="72" width="72" height="2" fill="var(--pixel-floor-light)"/>
+
+  <!-- Head (slightly higher - jump starting) -->
+  <rect x="30" y="6" width="12" height="12" fill="var(--pixel-skin)"/>
+  <rect x="30" y="6" width="12" height="2" fill="var(--pixel-skin-dark)"/>
+  <!-- Eyes -->
+  <rect x="32" y="11" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="38" y="11" width="2" height="2" fill="var(--pixel-dark)"/>
+  <!-- Hair -->
+  <rect x="30" y="4" width="12" height="4" fill="var(--pixel-hair)"/>
+  <rect x="28" y="6" width="2" height="3" fill="var(--pixel-hair)"/>
+  <rect x="42" y="6" width="2" height="3" fill="var(--pixel-hair)"/>
+  <rect x="31" y="5" width="10" height="2" fill="var(--pixel-hair-dark)"/>
+
+  <!-- Neck -->
+  <rect x="34" y="18" width="4" height="3" fill="var(--pixel-skin)"/>
+
+  <!-- Torso/Shirt -->
+  <rect x="28" y="21" width="16" height="20" fill="var(--pixel-shirt)"/>
+  <rect x="30" y="19" width="12" height="2" fill="var(--pixel-shirt-dark)"/>
+  <rect x="28" y="39" width="16" height="2" fill="var(--pixel-shirt-dark)"/>
+  <rect x="29" y="22" width="3" height="18" fill="var(--pixel-shirt-dark)"/>
+
+  <!-- Arms rising diagonally -->
+  <!-- Left arm (diagonal up) -->
+  <rect x="20" y="21" width="8" height="4" fill="var(--pixel-shirt)"/>
+  <rect x="21" y="22" width="6" height="2" fill="var(--pixel-shirt-dark)"/>
+  <rect x="15" y="17" width="6" height="5" fill="var(--pixel-skin)"/>
+  <rect x="16" y="18" width="4" height="3" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Right arm (diagonal up) -->
+  <rect x="44" y="21" width="8" height="4" fill="var(--pixel-shirt)"/>
+  <rect x="45" y="22" width="6" height="2" fill="var(--pixel-shirt-dark)"/>
+  <rect x="51" y="17" width="6" height="5" fill="var(--pixel-skin)"/>
+  <rect x="52" y="18" width="4" height="3" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Shorts -->
+  <rect x="30" y="41" width="12" height="10" fill="var(--pixel-shorts)"/>
+  <rect x="30" y="49" width="12" height="2" fill="var(--pixel-shorts-dark)"/>
+  <rect x="31" y="42" width="3" height="8" fill="var(--pixel-shorts-dark)"/>
+
+  <!-- Thighs connecting shorts to legs (spreading) -->
+  <rect x="26" y="51" width="6" height="4" fill="var(--pixel-skin)"/>
+  <rect x="27" y="52" width="4" height="2" fill="var(--pixel-skin-dark)"/>
+  <rect x="40" y="51" width="6" height="4" fill="var(--pixel-skin)"/>
+  <rect x="41" y="52" width="4" height="2" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Left Leg (spreading out) -->
+  <rect x="22" y="55" width="5" height="12" fill="var(--pixel-skin)"/>
+  <rect x="23" y="55" width="3" height="12" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Right Leg (spreading out) -->
+  <rect x="45" y="55" width="5" height="12" fill="var(--pixel-skin)"/>
+  <rect x="46" y="55" width="3" height="12" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Left Foot -->
+  <rect x="19" y="67" width="7" height="5" fill="var(--pixel-shoes)"/>
+  <rect x="19" y="67" width="7" height="2" fill="var(--pixel-shoes-dark)"/>
+
+  <!-- Right Foot -->
+  <rect x="46" y="67" width="7" height="5" fill="var(--pixel-shoes)"/>
+  <rect x="46" y="67" width="7" height="2" fill="var(--pixel-shoes-dark)"/>
+
+  <!-- Phase Label -->
+  <text x="36" y="2" font-family="monospace" font-size="3" fill="var(--pixel-dark)" text-anchor="middle" font-weight="bold">RISING</text>
+</svg>

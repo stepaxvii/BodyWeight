@@ -761,6 +761,7 @@
 {#if showRoutinePlayer && selectedRoutine}
 	<RoutinePlayer
 		routine={selectedRoutine}
+		{exercises}
 		onclose={handleRoutineClose}
 		oncomplete={handleRoutineComplete}
 	/>
@@ -782,6 +783,7 @@
 	}}
 	<RoutinePlayer
 		routine={convertedRoutine}
+		{exercises}
 		onclose={handleRoutineClose}
 		oncomplete={handleRoutineComplete}
 	/>
