@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { PixelButton, PixelCard, PixelIcon } from '$lib/components/ui';
 	import ExerciseInfoModal from '$lib/components/ExerciseInfoModal.svelte';
+	import FilterModal from '$lib/components/FilterModal.svelte';
+	import type { FilterState } from '$lib/components/FilterModal.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
-	import type { Exercise, CustomRoutine, CustomRoutineType, CustomRoutineCreate } from '$lib/types';
+	import type { Exercise, CustomRoutine, CustomRoutineType, CustomRoutineCreate, ExerciseCategory } from '$lib/types';
 
 	interface RoutineExerciseItem {
 		exercise: Exercise;
@@ -14,12 +16,13 @@
 
 	interface Props {
 		exercises: Exercise[];
+		categories?: ExerciseCategory[];
 		editingRoutine?: CustomRoutine | null;
 		onclose: () => void;
 		onsave: (routine: CustomRoutine) => void;
 	}
 
-	let { exercises, editingRoutine = null, onclose, onsave }: Props = $props();
+	let { exercises, categories = [], editingRoutine = null, onclose, onsave }: Props = $props();
 
 	// Form state
 	let name = $state(editingRoutine?.name || '');
@@ -35,6 +38,27 @@
 	let searchQuery = $state('');
 	let editingExerciseIndex = $state<number | null>(null);
 	let showInfoExercise = $state<Exercise | null>(null);
+
+	// Picker filter state
+	let pickerActiveCategory = $state<string | null>(null);
+	let showPickerFilterModal = $state(false);
+	let pickerSelectedEquipment = $state<string[]>([]);
+	let pickerSelectedDifficulties = $state<number[]>([]);
+	let pickerSelectedTags = $state<string[]>([]);
+
+	// Category colors (by load type)
+	const categoryColors: Record<string, string> = {
+		strength: '#d82800',
+		cardio: '#ff6b35',
+		static: '#0058f8',
+		'dynamic-stretch': '#00a800',
+		'static-stretch': '#00a8a8'
+	};
+
+	// Active filter count for picker
+	const pickerActiveFilterCount = $derived(
+		pickerSelectedEquipment.length + pickerSelectedDifficulties.length + pickerSelectedTags.length
+	);
 
 	// Initialize from editing routine
 	$effect(() => {
@@ -53,12 +77,38 @@
 
 	// Filter exercises for picker
 	const filteredExercises = $derived.by(() => {
-		if (!searchQuery.trim()) return exercises;
-		const query = searchQuery.toLowerCase();
-		return exercises.filter(e =>
-			e.name_ru.toLowerCase().includes(query) ||
-			e.name.toLowerCase().includes(query)
-		);
+		let result = exercises;
+
+		// Search query filter
+		if (searchQuery.trim()) {
+			const query = searchQuery.toLowerCase();
+			result = result.filter(e =>
+				e.name_ru.toLowerCase().includes(query) ||
+				e.name.toLowerCase().includes(query)
+			);
+		}
+
+		// Category filter
+		if (pickerActiveCategory) {
+			result = result.filter(e => e.category_slug === pickerActiveCategory);
+		}
+
+		// Equipment filter
+		if (pickerSelectedEquipment.length > 0) {
+			result = result.filter(e => pickerSelectedEquipment.includes(e.equipment));
+		}
+
+		// Difficulty filter
+		if (pickerSelectedDifficulties.length > 0) {
+			result = result.filter(e => pickerSelectedDifficulties.includes(e.difficulty));
+		}
+
+		// Tags filter (OR logic)
+		if (pickerSelectedTags.length > 0) {
+			result = result.filter(e => e.tags.some(t => pickerSelectedTags.includes(t)));
+		}
+
+		return result;
 	});
 
 	// Estimate duration
@@ -92,6 +142,26 @@
 			target_duration: exercise.is_timed ? 30 : undefined,
 			rest_seconds: 30
 		}];
+		telegram.hapticImpact('light');
+	}
+
+	function selectPickerCategory(slug: string) {
+		pickerActiveCategory = pickerActiveCategory === slug ? null : slug;
+		telegram.hapticImpact('light');
+	}
+
+	function handlePickerFilterApply(filters: FilterState) {
+		pickerSelectedEquipment = filters.equipment;
+		pickerSelectedDifficulties = filters.difficulties;
+		pickerSelectedTags = filters.tags;
+	}
+
+	function clearPickerFilters() {
+		pickerSelectedEquipment = [];
+		pickerSelectedDifficulties = [];
+		pickerSelectedTags = [];
+		pickerActiveCategory = null;
+		searchQuery = '';
 		telegram.hapticImpact('light');
 	}
 
@@ -336,6 +406,43 @@
 				/>
 			</div>
 
+			<!-- Filter header -->
+			<div class="picker-filter-header">
+				<span class="picker-filter-label">
+					{filteredExercises.length} упражнений
+				</span>
+				<div class="picker-filter-actions">
+					{#if pickerActiveFilterCount > 0 || pickerActiveCategory || searchQuery}
+						<button class="picker-clear-btn" onclick={clearPickerFilters}>
+							Сбросить
+						</button>
+					{/if}
+					<button class="picker-filter-btn" onclick={() => showPickerFilterModal = true}>
+						<PixelIcon name="settings" size="sm" />
+						Фильтр
+						{#if pickerActiveFilterCount > 0}
+							<span class="picker-filter-badge">{pickerActiveFilterCount}</span>
+						{/if}
+					</button>
+				</div>
+			</div>
+
+			<!-- Category tabs -->
+			{#if categories.length > 0}
+				<div class="picker-category-tabs">
+					{#each categories as category}
+						<button
+							class="picker-category-tab"
+							class:active={pickerActiveCategory === category.slug}
+							style="--cat-color: {categoryColors[category.slug]}"
+							onclick={() => selectPickerCategory(category.slug)}
+						>
+							{category.name_ru}
+						</button>
+					{/each}
+				</div>
+			{/if}
+
 			<div class="picker-list">
 				{#each filteredExercises as exercise (exercise.id)}
 					{@const isAdded = selectedExercises.some(e => e.exercise.id === exercise.id)}
@@ -452,6 +559,18 @@
 	exercise={showInfoExercise}
 	open={showInfoExercise !== null}
 	onclose={() => showInfoExercise = null}
+/>
+
+<!-- Filter Modal for Picker -->
+<FilterModal
+	open={showPickerFilterModal}
+	initialFilters={{
+		equipment: pickerSelectedEquipment,
+		difficulties: pickerSelectedDifficulties,
+		tags: pickerSelectedTags
+	}}
+	onClose={() => showPickerFilterModal = false}
+	onApply={handlePickerFilterApply}
 />
 
 <style>
@@ -786,6 +905,87 @@
 		background: var(--pixel-card);
 		border: 2px solid var(--border-color);
 		color: var(--text-primary);
+	}
+
+	/* Picker filter header */
+	.picker-filter-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: var(--spacing-xs) var(--spacing-md);
+		border-bottom: 2px solid var(--border-color);
+	}
+
+	.picker-filter-label {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+
+	.picker-filter-actions {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+	}
+
+	.picker-filter-btn {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		color: var(--text-secondary);
+		cursor: pointer;
+	}
+
+	.picker-filter-btn:hover {
+		border-color: var(--pixel-accent);
+		color: var(--text-primary);
+	}
+
+	.picker-filter-badge {
+		background: var(--pixel-accent);
+		color: var(--pixel-bg);
+		padding: 1px 4px;
+		font-size: 8px;
+		min-width: 12px;
+		text-align: center;
+	}
+
+	.picker-clear-btn {
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		background: none;
+		border: none;
+		color: var(--text-secondary);
+		cursor: pointer;
+		text-decoration: underline;
+	}
+
+	/* Picker category tabs */
+	.picker-category-tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-xs);
+		padding: var(--spacing-sm) var(--spacing-md);
+		border-bottom: 2px solid var(--border-color);
+	}
+
+	.picker-category-tab {
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		background: var(--pixel-card);
+		border: 2px solid var(--cat-color);
+		color: var(--cat-color);
+		cursor: pointer;
+	}
+
+	.picker-category-tab.active {
+		background: var(--cat-color);
+		color: var(--pixel-bg);
 	}
 
 	.picker-list {

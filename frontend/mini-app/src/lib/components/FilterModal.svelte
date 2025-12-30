@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { PixelButton, PixelModal } from '$lib/components/ui';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { getTagName } from '$lib/utils';
 
 	export interface FilterState {
 		equipment: string[];
@@ -40,16 +41,10 @@
 		{ id: 'wall', label: 'Стена' }
 	];
 
-	const MUSCLE_TAGS = [
-		{ id: 'chest', label: 'Грудь' },
-		{ id: 'back', label: 'Спина' },
-		{ id: 'shoulders', label: 'Плечи' },
-		{ id: 'triceps', label: 'Трицепс' },
-		{ id: 'core', label: 'Кор' },
-		{ id: 'quads', label: 'Ноги' },
-		{ id: 'glutes', label: 'Ягодицы' },
-		{ id: 'calves', label: 'Икры' },
-		{ id: 'full-body', label: 'Всё тело' }
+	// Muscle tag IDs - labels come from getTagName()
+	const MUSCLE_TAG_IDS = [
+		'chest', 'back', 'shoulders', 'triceps', 'core',
+		'quads', 'glutes', 'calves', 'full-body'
 	];
 
 	function toggleEquipment(id: string) {
@@ -139,13 +134,13 @@
 		<div class="filter-section">
 			<h4 class="section-label">Группы мышц</h4>
 			<div class="filter-chips">
-				{#each MUSCLE_TAGS as tag}
+				{#each MUSCLE_TAG_IDS as tagId}
 					<button
 						class="filter-chip"
-						class:active={selectedTags.includes(tag.id)}
-						onclick={() => toggleTag(tag.id)}
+						class:active={selectedTags.includes(tagId)}
+						onclick={() => toggleTag(tagId)}
 					>
-						{tag.label}
+						{getTagName(tagId)}
 					</button>
 				{/each}
 			</div>

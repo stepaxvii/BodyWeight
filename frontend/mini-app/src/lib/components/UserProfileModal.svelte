@@ -44,14 +44,45 @@
 		isAddingFriend = true;
 		try {
 			await api.addFriend(profile.username);
-			// Заявка отправлена, но ещё не подтверждена
-			profile = { ...profile, friendship_pending: true };
+			profile = { ...profile, friend_request_sent: true };
 			telegram.hapticNotification('success');
 		} catch (err) {
 			console.error('Failed to add friend:', err);
 			telegram.hapticNotification('error');
 		} finally {
 			isAddingFriend = false;
+		}
+	}
+
+	async function handleAcceptRequest() {
+		if (!profile?.friendship_id) return;
+
+		isLoading = true;
+		try {
+			await api.acceptFriendRequest(profile.friendship_id);
+			profile = { ...profile, is_friend: true, friend_request_received: false, friend_request_sent: false };
+			telegram.hapticNotification('success');
+		} catch (err) {
+			console.error('Failed to accept friend request:', err);
+			telegram.hapticNotification('error');
+		} finally {
+			isLoading = false;
+		}
+	}
+
+	async function handleDeclineRequest() {
+		if (!profile?.friendship_id) return;
+
+		isLoading = true;
+		try {
+			await api.removeFriend(profile.friendship_id);
+			profile = { ...profile, friend_request_received: false };
+			telegram.hapticNotification('success');
+		} catch (err) {
+			console.error('Failed to decline friend request:', err);
+			telegram.hapticNotification('error');
+		} finally {
+			isLoading = false;
 		}
 	}
 
@@ -142,7 +173,27 @@
 							<PixelIcon name="friend" size="sm" color="var(--pixel-green)" />
 							<span>Друг</span>
 						</div>
-					{:else if profile.friendship_pending}
+					{:else if profile.friend_request_received}
+						<!-- Incoming request - show Accept/Decline buttons -->
+						<div class="request-actions">
+							<PixelButton
+								variant="primary"
+								fullWidth
+								onclick={handleAcceptRequest}
+								disabled={isLoading}
+							>
+								Принять
+							</PixelButton>
+							<PixelButton
+								variant="secondary"
+								fullWidth
+								onclick={handleDeclineRequest}
+								disabled={isLoading}
+							>
+								Отклонить
+							</PixelButton>
+						</div>
+					{:else if profile.friend_request_sent}
 						<div class="friend-status pending">
 							<PixelIcon name="time" size="sm" color="var(--pixel-yellow)" />
 							<span>Заявка отправлена</span>
@@ -346,6 +397,11 @@
 		background: rgba(255, 204, 0, 0.2);
 		border-color: var(--pixel-yellow);
 		color: var(--pixel-yellow);
+	}
+
+	.request-actions {
+		display: flex;
+		gap: var(--spacing-sm);
 	}
 
 	.no-username {

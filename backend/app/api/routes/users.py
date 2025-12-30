@@ -188,7 +188,9 @@ class UserProfileResponse(BaseModel):
     current_streak: int
     achievements: list[str]  # List of unlocked achievement slugs
     is_friend: bool
-    friendship_pending: bool = False  # True if friend request sent/received but not accepted
+    friend_request_sent: bool = False      # Current user sent request to this user
+    friend_request_received: bool = False  # This user sent request to current user
+    friendship_id: int | None = None       # Friendship ID for accept/decline actions
 
 
 @router.get("/{user_id}", response_model=UserResponse)
@@ -243,11 +245,13 @@ async def get_user_profile(
     # Check friendship status
     # For accepted friendships, there are 2 records (bidirectional).
     # For pending, only 1 record exists (from requester to target).
-    # We check from current user's perspective first.
     is_friend = False
-    friendship_pending = False
+    friend_request_sent = False
+    friend_request_received = False
+    friendship_id = None
+
     if current_user.id != user_id:
-        # Check friendship from current user's side
+        # Check friendship from current user's side (I → them)
         friendship_result = await session.execute(
             select(Friendship)
             .where(Friendship.user_id == current_user.id)
@@ -257,9 +261,10 @@ async def get_user_profile(
 
         if friendship:
             is_friend = friendship.status == "accepted"
-            friendship_pending = friendship.status == "pending"
+            friend_request_sent = friendship.status == "pending"
+            friendship_id = friendship.id
         else:
-            # Check if there's a pending request from the other user to current user
+            # Check reverse direction (them → me)
             reverse_result = await session.execute(
                 select(Friendship)
                 .where(Friendship.user_id == user_id)
@@ -268,7 +273,8 @@ async def get_user_profile(
             )
             reverse_friendship = reverse_result.scalar_one_or_none()
             if reverse_friendship:
-                friendship_pending = True
+                friend_request_received = True
+                friendship_id = reverse_friendship.id
 
     return UserProfileResponse(
         id=user.id,
@@ -281,5 +287,7 @@ async def get_user_profile(
         current_streak=user.current_streak,
         achievements=achievements,
         is_friend=is_friend,
-        friendship_pending=friendship_pending,
+        friend_request_sent=friend_request_sent,
+        friend_request_received=friend_request_received,
+        friendship_id=friendship_id,
     )
