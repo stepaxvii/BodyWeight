@@ -14,7 +14,8 @@
       "Bash(for slug in jumping-jack hang-passive pullup-negative row-inverted superman plank shoulder-stretch pullup-regular chinup pullup-close knee-raise-hanging leg-raise-hanging pullup-wide pullup-archer pullup-l-sit windshield-wiper)",
       "Bash(python:*)",
       "Bash(cat:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(find:*)"
     ]
   }
 }

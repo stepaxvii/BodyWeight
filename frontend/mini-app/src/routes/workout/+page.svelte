@@ -35,6 +35,9 @@
 	let showCustomRoutineEditor = $state(false);
 	let editingCustomRoutine = $state<CustomRoutine | null>(null);
 
+	// Page loading state
+	let isPageLoading = $state(true);
+
 	// Filter state
 	let showFilterModal = $state(false);
 	let selectedEquipment = $state<string[]>([]);
@@ -116,23 +119,20 @@
 	}
 
 	onMount(async () => {
-		// Check for active workout first
-		await workoutStore.loadActiveWorkout();
-
-		// Load data in parallel
-		const [cats, exs, rts, customRts] = await Promise.all([
+		// Load ALL data in parallel for faster page load
+		const [cats, exs, rts, customRts, _, __] = await Promise.all([
 			api.getCategories(),
 			api.getExercises(),
 			api.getRoutines(),
-			api.getCustomRoutines()
+			api.getCustomRoutines(),
+			workoutStore.loadActiveWorkout(),
+			favoritesStore.loadFavorites()
 		]);
 		categories = cats;
 		exercises = exs;
 		routines = rts;
 		customRoutines = customRts;
-
-		// Load favorites
-		await favoritesStore.loadFavorites();
+		isPageLoading = false;
 
 		// Listen for page visibility changes
 		document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -325,7 +325,13 @@
 </script>
 
 <div class="page container">
-	{#if workoutStore.isActive}
+	{#if isPageLoading}
+		<!-- Loading state -->
+		<div class="loading-container">
+			<div class="loading-spinner"></div>
+			<p class="loading-text">Загрузка...</p>
+		</div>
+	{:else if workoutStore.isActive}
 		<!-- ACTIVE WORKOUT VIEW -->
 		<header class="workout-header">
 			<h1>Тренировка</h1>
@@ -1401,5 +1407,32 @@
 		line-height: 1.6;
 		color: var(--text-primary);
 		white-space: pre-wrap;
+	}
+
+	/* Loading state */
+	.loading-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		min-height: 50vh;
+		gap: var(--spacing-md);
+	}
+
+	.loading-spinner {
+		width: 32px;
+		height: 32px;
+		border: 3px solid var(--border-color);
+		border-top-color: var(--pixel-accent);
+		animation: spin 0.8s linear infinite;
+	}
+
+	@keyframes spin {
+		to { transform: rotate(360deg); }
+	}
+
+	.loading-text {
+		color: var(--text-secondary);
+		font-size: var(--font-size-sm);
 	}
 </style>

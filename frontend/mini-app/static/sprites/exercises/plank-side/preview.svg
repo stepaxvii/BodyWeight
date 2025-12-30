@@ -1,0 +1,91 @@
+<!-- v4.0 - Static hold exercise -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 80">
+  <style>
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-skin-dark: #E8C4A8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shirt-dark: #388E3C;
+      --pixel-shorts: #1E88E5;
+      --pixel-shorts-dark: #1565C0;
+      --pixel-shoes: #424242;
+      --pixel-floor: #8D6E63;
+      --pixel-floor-light: #A1887F;
+      --pixel-hold: #FF5722;
+      --pixel-check: #4CAF50;
+    }
+    .pulse {
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 0.4; }
+    }
+  </style>
+
+  <!-- Side Plank - Static Hold -->
+
+  <!-- Floor -->
+  <rect x="0" y="72" width="100" height="8" fill="var(--pixel-floor)"/>
+  <rect x="0" y="72" width="100" height="2" fill="var(--pixel-floor-light)"/>
+
+  <!-- Bottom forearm (on floor) -->
+  <rect x="20" y="54" width="4" height="18" fill="var(--pixel-skin)"/>
+  <rect x="21" y="54" width="2" height="18" fill="var(--pixel-skin-dark)"/>
+  <!-- Fist -->
+  <rect x="18" y="48" width="6" height="6" fill="var(--pixel-skin)"/>
+  <rect x="19" y="49" width="4" height="4" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Body (side view, straight line) -->
+  <!-- Legs stacked -->
+  <rect x="24" y="58" width="40" height="6" fill="var(--pixel-shorts)"/>
+  <rect x="24" y="62" width="40" height="2" fill="var(--pixel-shorts-dark)"/>
+  <rect x="64" y="56" width="14" height="8" fill="var(--pixel-skin)"/>
+  <rect x="64" y="57" width="14" height="4" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Feet stacked -->
+  <rect x="76" y="54" width="8" height="10" fill="var(--pixel-shoes)"/>
+  <rect x="76" y="54" width="8" height="2" fill="var(--pixel-shoes-dark)"/>
+
+  <!-- Torso/shirt (side view) -->
+  <rect x="24" y="42" width="28" height="16" fill="var(--pixel-shirt)"/>
+  <rect x="24" y="42" width="28" height="2" fill="var(--pixel-shirt-dark)"/>
+  <rect x="24" y="56" width="28" height="2" fill="var(--pixel-shirt-dark)"/>
+
+  <!-- Top arm raised (balance) -->
+  <rect x="26" y="24" width="6" height="18" fill="var(--pixel-skin)"/>
+  <rect x="27" y="24" width="4" height="18" fill="var(--pixel-skin-dark)"/>
+  <rect x="26" y="18" width="8" height="6" fill="var(--pixel-skin)"/>
+
+  <!-- Head (side view) -->
+  <rect x="40" y="30" width="12" height="12" fill="var(--pixel-skin)"/>
+  <rect x="40" y="30" width="12" height="2" fill="var(--pixel-skin-dark)"/>
+  <!-- Eye -->
+  <rect x="48" y="35" width="2" height="2" fill="var(--pixel-dark)"/>
+  <!-- Hair -->
+  <rect x="40" y="28" width="12" height="4" fill="var(--pixel-hair)"/>
+  <rect x="38" y="30" width="2" height="3" fill="var(--pixel-hair)"/>
+
+  <!-- Alignment line (showing straight body) -->
+  <line x1="22" y1="52" x2="78" y2="60" stroke="var(--pixel-check)" stroke-width="0.8" stroke-dasharray="2,2" opacity="0.6"/>
+
+  <!-- Core engagement point -->
+  <circle cx="40" cy="50" r="2" fill="var(--pixel-check)" opacity="0.7"/>
+
+  <!-- Hold indicator -->
+  <rect class="pulse" x="42" y="68" width="16" height="5" rx="2" fill="var(--pixel-hold)"/>
+  <text x="50" y="71.5" font-family="monospace" font-size="3.5" fill="white" text-anchor="middle" font-weight="bold">HOLD</text>
+
+  <!-- Title and Instructions -->
+  <text x="50" y="10" font-family="monospace" font-size="7" fill="var(--pixel-dark)" text-anchor="middle" font-weight="bold">SIDE PLANK</text>
+  <text x="50" y="16" font-family="monospace" font-size="3.5" fill="var(--pixel-dark)" text-anchor="middle">Straight line • Core tight • Hips up</text>
+
+  <!-- Form cues -->
+  <g transform="translate(6, 8)">
+    <text font-family="monospace" font-size="3" fill="var(--pixel-check)" font-weight="bold">✓ Do:</text>
+    <text y="4" font-family="monospace" font-size="2.5" fill="var(--pixel-dark)">• Stack hips</text>
+    <text y="7" font-family="monospace" font-size="2.5" fill="var(--pixel-dark)">• Engage core</text>
+  </g>
+</svg>
