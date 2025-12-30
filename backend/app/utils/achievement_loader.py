@@ -21,7 +21,8 @@ def load_achievements() -> List[Dict]:
     achievements_file = Path(__file__).parent.parent / "data" / "achievements.json"
 
     with open(achievements_file, "r", encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+        return data.get("achievements", [])
 
 
 def get_achievement_by_slug(slug: str) -> Optional[Dict]:
