@@ -1,0 +1,87 @@
+<!-- v4.0 - Detailed frame-based visualization -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 80">
+  <style>
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-skin-dark: #E8C4A8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shirt-dark: #388E3C;
+      --pixel-shorts: #1E88E5;
+      --pixel-shorts-dark: #1565C0;
+      --pixel-shoes: #424242;
+      --pixel-shoes-dark: #212121;
+      --pixel-floor: #8D6E63;
+      --pixel-floor-light: #A1887F;
+      --pixel-accent: #FF5722;
+    }
+  </style>
+
+  <!-- Squat - Phase 3: Full Depth -->
+
+  <!-- Floor -->
+  <rect x="0" y="72" width="56" height="8" fill="var(--pixel-floor)"/>
+  <rect x="0" y="72" width="56" height="2" fill="var(--pixel-floor-light)"/>
+
+  <!-- Head -->
+  <rect x="22" y="26" width="12" height="12" fill="var(--pixel-skin)"/>
+  <rect x="22" y="26" width="12" height="2" fill="var(--pixel-skin-dark)"/>
+  <!-- Eyes -->
+  <rect x="24" y="31" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="30" y="31" width="2" height="2" fill="var(--pixel-dark)"/>
+  <!-- Hair -->
+  <rect x="22" y="24" width="12" height="4" fill="var(--pixel-hair)"/>
+  <rect x="20" y="26" width="2" height="3" fill="var(--pixel-hair)"/>
+  <rect x="34" y="26" width="2" height="3" fill="var(--pixel-hair)"/>
+
+  <!-- Neck -->
+  <rect x="26" y="38" width="4" height="2" fill="var(--pixel-skin)"/>
+
+  <!-- Torso/Shirt (more forward lean) -->
+  <rect x="20" y="40" width="16" height="16" fill="var(--pixel-shirt)"/>
+  <rect x="22" y="38" width="12" height="2" fill="var(--pixel-shirt-dark)"/>
+  <rect x="20" y="54" width="16" height="2" fill="var(--pixel-shirt-dark)"/>
+
+  <!-- Arms extended forward for balance -->
+  <rect x="8" y="42" width="12" height="4" fill="var(--pixel-skin)"/>
+  <rect x="8" y="40" width="4" height="4" fill="var(--pixel-skin-dark)"/>
+  <rect x="36" y="42" width="12" height="4" fill="var(--pixel-skin)"/>
+  <rect x="44" y="40" width="4" height="4" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Shorts -->
+  <rect x="22" y="56" width="12" height="8" fill="var(--pixel-shorts)"/>
+  <rect x="22" y="62" width="12" height="2" fill="var(--pixel-shorts-dark)"/>
+
+  <!-- Left Thigh (deep squat) -->
+  <rect x="18" y="62" width="7" height="6" fill="var(--pixel-skin)"/>
+  <rect x="19" y="62" width="5" height="6" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Right Thigh (deep squat) -->
+  <rect x="31" y="62" width="7" height="6" fill="var(--pixel-skin)"/>
+  <rect x="32" y="62" width="5" height="6" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Left Shin (vertical) -->
+  <rect x="20" y="64" width="5" height="3" fill="var(--pixel-skin)"/>
+  <rect x="21" y="64" width="3" height="3" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Right Shin (vertical) -->
+  <rect x="31" y="64" width="5" height="3" fill="var(--pixel-skin)"/>
+  <rect x="32" y="64" width="3" height="3" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Left Foot -->
+  <rect x="18" y="67" width="7" height="5" fill="var(--pixel-shoes)"/>
+  <rect x="18" y="67" width="7" height="2" fill="var(--pixel-shoes-dark)"/>
+
+  <!-- Right Foot -->
+  <rect x="31" y="67" width="7" height="5" fill="var(--pixel-shoes)"/>
+  <rect x="31" y="67" width="7" height="2" fill="var(--pixel-shoes-dark)"/>
+
+  <!-- Hip depth line -->
+  <line x1="10" y1="64" x2="46" y2="64" stroke="var(--pixel-accent)" stroke-width="0.5" stroke-dasharray="1,1"/>
+  <text x="8" y="66" font-family="monospace" font-size="2.5" fill="var(--pixel-accent)">parallel</text>
+
+  <!-- Phase Label -->
+  <text x="28" y="18" font-family="monospace" font-size="3" fill="var(--pixel-dark)" text-anchor="middle" font-weight="bold">FULL DEPTH</text>
+  <text x="28" y="21" font-family="monospace" font-size="2.5" fill="var(--pixel-dark)" text-anchor="middle">Hips below knees</text>
+</svg>

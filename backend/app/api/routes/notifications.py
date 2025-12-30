@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -6,6 +7,7 @@ from sqlalchemy import select, func, update
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import Notification
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -38,6 +40,7 @@ async def get_unread_count(
         .where(Notification.is_read == False)
     )
     count = result.scalar() or 0
+    logger.info(f"Unread count for user {user.id}: {count}")
     return UnreadCountResponse(count=count)
 
 
@@ -55,6 +58,7 @@ async def get_notifications(
         .limit(limit)
     )
     notifications = result.scalars().all()
+    logger.info(f"Get notifications for user {user.id}: found {len(notifications)}")
     return [NotificationResponse.model_validate(n) for n in notifications]
 
 

@@ -1,0 +1,125 @@
+<!-- v4.0 - Static hold exercise -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 70">
+  <style>
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-skin-dark: #E8C4A8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shirt-dark: #388E3C;
+      --pixel-shorts: #1E88E5;
+      --pixel-shorts-dark: #1565C0;
+      --pixel-shoes: #424242;
+      --pixel-shoes-dark: #212121;
+      --pixel-floor: #8D6E63;
+      --pixel-floor-light: #A1887F;
+      --pixel-hold: #FF5722;
+      --pixel-check: #4CAF50;
+    }
+    .pulse {
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 0.4; }
+    }
+  </style>
+
+  <!-- Plank - Static Hold Position -->
+
+  <!-- Floor -->
+  <rect x="0" y="58" width="120" height="12" fill="var(--pixel-floor)"/>
+  <rect x="0" y="58" width="120" height="2" fill="var(--pixel-floor-light)"/>
+
+  <!-- Left Forearm -->
+  <rect x="15" y="48" width="4" height="3" fill="var(--pixel-skin-dark)"/>
+  <rect x="15" y="51" width="4" height="7" fill="var(--pixel-skin)"/>
+  <!-- Fist -->
+  <rect x="13" y="54" width="3" height="3" fill="var(--pixel-skin)"/>
+  <rect x="18" y="54" width="3" height="3" fill="var(--pixel-skin)"/>
+
+  <!-- Right Forearm -->
+  <rect x="101" y="48" width="4" height="3" fill="var(--pixel-skin-dark)"/>
+  <rect x="101" y="51" width="4" height="7" fill="var(--pixel-skin)"/>
+  <!-- Fist -->
+  <rect x="99" y="54" width="3" height="3" fill="var(--pixel-skin)"/>
+  <rect x="104" y="54" width="3" height="3" fill="var(--pixel-skin)"/>
+
+  <!-- Left Upper Arm -->
+  <rect x="19" y="42" width="5" height="6" fill="var(--pixel-skin)"/>
+  <rect x="20" y="40" width="4" height="2" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Right Upper Arm -->
+  <rect x="96" y="42" width="5" height="6" fill="var(--pixel-skin)"/>
+  <rect x="96" y="40" width="4" height="2" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Torso/Shirt (perfectly straight) -->
+  <rect x="24" y="36" width="72" height="10" fill="var(--pixel-shirt)"/>
+  <rect x="26" y="34" width="68" height="2" fill="var(--pixel-shirt-dark)"/>
+  <rect x="24" y="44" width="72" height="2" fill="var(--pixel-shirt-dark)"/>
+
+  <!-- Shorts -->
+  <rect x="48" y="46" width="24" height="8" fill="var(--pixel-shorts)"/>
+  <rect x="48" y="52" width="24" height="2" fill="var(--pixel-shorts-dark)"/>
+
+  <!-- Left Leg (straight) -->
+  <rect x="48" y="54" width="10" height="4" fill="var(--pixel-skin)"/>
+  <rect x="49" y="54" width="8" height="4" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Right Leg (straight) -->
+  <rect x="62" y="54" width="10" height="4" fill="var(--pixel-skin)"/>
+  <rect x="63" y="54" width="8" height="4" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Left Foot -->
+  <rect x="45" y="56" width="8" height="4" fill="var(--pixel-shoes)"/>
+  <rect x="45" y="56" width="8" height="2" fill="var(--pixel-shoes-dark)"/>
+
+  <!-- Right Foot -->
+  <rect x="67" y="56" width="8" height="4" fill="var(--pixel-shoes)"/>
+  <rect x="67" y="56" width="8" height="2" fill="var(--pixel-shoes-dark)"/>
+
+  <!-- Head -->
+  <rect x="54" y="24" width="12" height="12" fill="var(--pixel-skin)"/>
+  <rect x="54" y="24" width="12" height="2" fill="var(--pixel-skin-dark)"/>
+  <!-- Eyes looking down -->
+  <rect x="56" y="29" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="62" y="29" width="2" height="2" fill="var(--pixel-dark)"/>
+  <!-- Hair -->
+  <rect x="54" y="22" width="12" height="4" fill="var(--pixel-hair)"/>
+  <rect x="52" y="24" width="2" height="3" fill="var(--pixel-hair)"/>
+  <rect x="66" y="24" width="2" height="3" fill="var(--pixel-hair)"/>
+
+  <!-- Neck -->
+  <rect x="58" y="36" width="4" height="2" fill="var(--pixel-skin)"/>
+
+  <!-- Alignment line (showing straight body) -->
+  <line x1="60" y1="30" x2="60" y2="56" stroke="var(--pixel-check)" stroke-width="0.6" stroke-dasharray="2,2" opacity="0.6"/>
+
+  <!-- Key Points (correct form indicators) -->
+  <!-- Core tight -->
+  <circle cx="60" cy="40" r="1.5" fill="var(--pixel-check)" opacity="0.7"/>
+  <!-- Hips aligned -->
+  <circle cx="60" cy="50" r="1.5" fill="var(--pixel-check)" opacity="0.7"/>
+
+  <!-- Hold indicator (pulsing) -->
+  <rect class="pulse" x="54" y="64" width="12" height="4" rx="2" fill="var(--pixel-hold)"/>
+  <text x="60" y="67.5" font-family="monospace" font-size="3" fill="white" text-anchor="middle" font-weight="bold">HOLD</text>
+
+  <!-- Title and Instructions -->
+  <text x="60" y="10" font-family="monospace" font-size="8" fill="var(--pixel-dark)" text-anchor="middle" font-weight="bold">PLANK</text>
+  <text x="60" y="17" font-family="monospace" font-size="4" fill="var(--pixel-dark)" text-anchor="middle">Keep body straight • Core engaged • Don't sag hips</text>
+
+  <!-- Common Mistakes (icons) -->
+  <g transform="translate(10, 10)">
+    <text font-family="monospace" font-size="3" fill="#F44336" font-weight="bold">✗ Don't:</text>
+    <text y="4" font-family="monospace" font-size="2.5" fill="var(--pixel-dark)">• Sag hips</text>
+    <text y="7" font-family="monospace" font-size="2.5" fill="var(--pixel-dark)">• Raise butt</text>
+  </g>
+
+  <g transform="translate(90, 10)">
+    <text font-family="monospace" font-size="3" fill="var(--pixel-check)" font-weight="bold">✓ Do:</text>
+    <text y="4" font-family="monospace" font-size="2.5" fill="var(--pixel-dark)">• Straight line</text>
+    <text y="7" font-family="monospace" font-size="2.5" fill="var(--pixel-dark)">• Squeeze core</text>
+  </g>
+</svg>

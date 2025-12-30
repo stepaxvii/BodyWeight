@@ -1,0 +1,95 @@
+<!-- v4.0 - Detailed frame-based visualization -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 64">
+  <style>
+    :root {
+      --pixel-skin: #FFD5B8;
+      --pixel-skin-dark: #E8C4A8;
+      --pixel-dark: #2D2D2D;
+      --pixel-hair: #4A3728;
+      --pixel-shirt: #4CAF50;
+      --pixel-shirt-dark: #388E3C;
+      --pixel-shorts: #1E88E5;
+      --pixel-shorts-dark: #1565C0;
+      --pixel-shoes: #424242;
+      --pixel-shoes-dark: #212121;
+      --pixel-floor: #8D6E63;
+      --pixel-floor-light: #A1887F;
+      --pixel-accent: #FF5722;
+    }
+  </style>
+
+  <!-- Pushup - Phase 2: Midway Down -->
+
+  <!-- Floor -->
+  <rect x="0" y="56" width="80" height="8" fill="var(--pixel-floor)"/>
+  <rect x="0" y="56" width="80" height="2" fill="var(--pixel-floor-light)"/>
+
+  <!-- Left Hand -->
+  <rect x="12" y="48" width="3" height="2" fill="var(--pixel-skin-dark)"/>
+  <rect x="12" y="50" width="3" height="6" fill="var(--pixel-skin)"/>
+  <rect x="10" y="52" width="2" height="2" fill="var(--pixel-skin)"/>
+  <rect x="15" y="52" width="2" height="2" fill="var(--pixel-skin)"/>
+
+  <!-- Right Hand -->
+  <rect x="65" y="48" width="3" height="2" fill="var(--pixel-skin-dark)"/>
+  <rect x="65" y="50" width="3" height="6" fill="var(--pixel-skin)"/>
+  <rect x="63" y="52" width="2" height="2" fill="var(--pixel-skin)"/>
+  <rect x="68" y="52" width="2" height="2" fill="var(--pixel-skin)"/>
+
+  <!-- Left Arm (bent at elbow) -->
+  <rect x="15" y="46" width="4" height="3" fill="var(--pixel-skin)"/>
+  <rect x="17" y="43" width="4" height="3" fill="var(--pixel-skin-dark)"/>
+  <rect x="19" y="40" width="3" height="3" fill="var(--pixel-skin)"/>
+
+  <!-- Right Arm (bent at elbow) -->
+  <rect x="61" y="46" width="4" height="3" fill="var(--pixel-skin)"/>
+  <rect x="59" y="43" width="4" height="3" fill="var(--pixel-skin-dark)"/>
+  <rect x="58" y="40" width="3" height="3" fill="var(--pixel-skin)"/>
+
+  <!-- Torso/Shirt (lower position) -->
+  <rect x="22" y="38" width="36" height="8" fill="var(--pixel-shirt)"/>
+  <rect x="24" y="36" width="32" height="2" fill="var(--pixel-shirt-dark)"/>
+  <rect x="22" y="44" width="36" height="2" fill="var(--pixel-shirt-dark)"/>
+
+  <!-- Shorts -->
+  <rect x="30" y="46" width="20" height="6" fill="var(--pixel-shorts)"/>
+  <rect x="30" y="50" width="20" height="2" fill="var(--pixel-shorts-dark)"/>
+
+  <!-- Left Leg -->
+  <rect x="30" y="52" width="8" height="4" fill="var(--pixel-skin)"/>
+  <rect x="32" y="52" width="4" height="4" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Right Leg -->
+  <rect x="42" y="52" width="8" height="4" fill="var(--pixel-skin)"/>
+  <rect x="44" y="52" width="4" height="4" fill="var(--pixel-skin-dark)"/>
+
+  <!-- Left Foot -->
+  <rect x="28" y="54" width="6" height="4" fill="var(--pixel-shoes)"/>
+  <rect x="28" y="54" width="6" height="2" fill="var(--pixel-shoes-dark)"/>
+
+  <!-- Right Foot -->
+  <rect x="46" y="54" width="6" height="4" fill="var(--pixel-shoes)"/>
+  <rect x="46" y="54" width="6" height="2" fill="var(--pixel-shoes-dark)"/>
+
+  <!-- Head (lower) -->
+  <rect x="34" y="28" width="12" height="10" fill="var(--pixel-skin)"/>
+  <rect x="34" y="28" width="12" height="2" fill="var(--pixel-skin-dark)"/>
+  <!-- Eyes looking down -->
+  <rect x="36" y="32" width="2" height="2" fill="var(--pixel-dark)"/>
+  <rect x="42" y="32" width="2" height="2" fill="var(--pixel-dark)"/>
+  <!-- Hair -->
+  <rect x="34" y="26" width="12" height="4" fill="var(--pixel-hair)"/>
+  <rect x="32" y="28" width="2" height="2" fill="var(--pixel-hair)"/>
+  <rect x="46" y="28" width="2" height="2" fill="var(--pixel-hair)"/>
+
+  <!-- Neck -->
+  <rect x="38" y="38" width="4" height="2" fill="var(--pixel-skin)"/>
+
+  <!-- Elbow angle indicator (left) -->
+  <path d="M 19 43 L 19 40 L 22 40" stroke="var(--pixel-accent)" stroke-width="0.5" fill="none"/>
+  <text x="23" y="41" font-family="monospace" font-size="5" fill="var(--pixel-accent)">90°</text>
+
+  <!-- Phase Label -->
+  <text x="40" y="12" font-family="monospace" font-size="8" fill="var(--pixel-dark)" text-anchor="middle" font-weight="bold">MIDWAY</text>
+  <text x="40" y="20" font-family="monospace" font-size="6" fill="var(--pixel-dark)" text-anchor="middle">Elbows ~90°</text>
+</svg>
