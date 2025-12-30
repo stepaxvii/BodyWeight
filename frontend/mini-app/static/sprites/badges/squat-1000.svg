@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Squat 1000 - legendary legs -->
+  <rect x="0" y="0" width="32" height="32" fill="#a855f7"/>
+  <rect x="2" y="2" width="28" height="28" fill="#1a1a2e"/>
+
+  <!-- Epic legs -->
+  <rect x="6" y="8" width="8" height="16" fill="#fbbf24"/>
+  <rect x="18" y="8" width="8" height="16" fill="#fbbf24"/>
+  <rect x="6" y="6" width="20" height="2" fill="#f59e0b"/>
+
+  <!-- Power -->
+  <rect x="10" y="16" width="12" height="4" fill="#fef3c7"/>
+</svg>

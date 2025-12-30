@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Streak 365 - legendary flame -->
+  <rect x="0" y="0" width="32" height="32" fill="#a855f7"/>
+  <rect x="2" y="2" width="28" height="28" fill="#1a1a2e"/>
+
+  <!-- Legendary flame -->
+  <rect x="14" y="6" width="4" height="2" fill="#fbbf24"/>
+  <rect x="10" y="8" width="12" height="6" fill="#f59e0b"/>
+  <rect x="8" y="14" width="16" height="8" fill="#ea580c"/>
+  <rect x="10" y="22" width="12" height="2" fill="#c2410c"/>
+
+  <!-- Crown on top -->
+  <rect x="12" y="4" width="2" height="2" fill="#fbbf24"/>
+  <rect x="18" y="4" width="2" height="2" fill="#fbbf24"/>
+  <rect x="15" y="3" width="2" height="3" fill="#fbbf24"/>
+</svg>

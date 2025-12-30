@@ -188,6 +188,7 @@ class UserProfileResponse(BaseModel):
     current_streak: int
     achievements: list[str]  # List of unlocked achievement slugs
     is_friend: bool
+    friendship_pending: bool = False  # True if friend request sent/received but not accepted
 
 
 @router.get("/{user_id}", response_model=UserResponse)
@@ -239,8 +240,10 @@ async def get_user_profile(
     )
     achievements = [row[0] for row in achievements_result.all()]
 
-    # Check if they are friends
+    # Check friendship status
+    # is_friend = true if accepted, friendship_pending = true if request sent/received
     is_friend = False
+    friendship_pending = False
     if current_user.id != user_id:
         friendship_result = await session.execute(
             select(Friendship)
@@ -248,9 +251,11 @@ async def get_user_profile(
                 ((Friendship.user_id == current_user.id) & (Friendship.friend_id == user_id)) |
                 ((Friendship.user_id == user_id) & (Friendship.friend_id == current_user.id))
             )
-            .where(Friendship.status == "accepted")
         )
-        is_friend = friendship_result.scalar_one_or_none() is not None
+        friendship = friendship_result.scalar_one_or_none()
+        if friendship:
+            is_friend = friendship.status == "accepted"
+            friendship_pending = friendship.status == "pending"
 
     return UserProfileResponse(
         id=user.id,
@@ -263,4 +268,5 @@ async def get_user_profile(
         current_streak=user.current_streak,
         achievements=achievements,
         is_friend=is_friend,
+        friendship_pending=friendship_pending,
     )

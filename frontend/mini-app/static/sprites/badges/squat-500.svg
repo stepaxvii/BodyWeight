@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Squat 500 - strong legs -->
+  <rect x="0" y="0" width="32" height="32" fill="#3b82f6"/>
+  <rect x="2" y="2" width="28" height="28" fill="#1a1a2e"/>
+
+  <!-- Strong legs -->
+  <rect x="8" y="10" width="6" height="14" fill="#60a5fa"/>
+  <rect x="18" y="10" width="6" height="14" fill="#60a5fa"/>
+  <rect x="8" y="8" width="16" height="2" fill="#3b82f6"/>
+
+  <!-- Muscles -->
+  <rect x="10" y="14" width="3" height="4" fill="#2563eb"/>
+  <rect x="19" y="14" width="3" height="4" fill="#2563eb"/>
+</svg>

@@ -105,6 +105,7 @@ export interface UserProfile {
 	current_streak: number;
 	achievements: string[];  // List of unlocked achievement slugs
 	is_friend: boolean;
+	friendship_pending: boolean;  // True if friend request sent/received but not accepted
 }
 
 // Exercise types

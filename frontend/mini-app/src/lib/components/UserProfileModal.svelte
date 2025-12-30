@@ -141,6 +141,11 @@
 							<PixelIcon name="friend" size="sm" color="var(--pixel-green)" />
 							<span>Друг</span>
 						</div>
+					{:else if profile.friendship_pending}
+						<div class="friend-status pending">
+							<PixelIcon name="time" size="sm" color="var(--pixel-yellow)" />
+							<span>Заявка отправлена</span>
+						</div>
 					{:else if profile.username}
 						<PixelButton
 							variant="primary"
@@ -334,6 +339,12 @@
 		color: var(--pixel-green);
 		font-size: var(--font-size-sm);
 		text-transform: uppercase;
+	}
+
+	.friend-status.pending {
+		background: rgba(255, 204, 0, 0.2);
+		border-color: var(--pixel-yellow);
+		color: var(--pixel-yellow);
 	}
 
 	.no-username {
