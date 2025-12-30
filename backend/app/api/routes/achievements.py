@@ -1,5 +1,3 @@
-import json
-from pathlib import Path
 from typing import List
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
@@ -7,6 +5,7 @@ from sqlalchemy import select
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import UserAchievement
+from app.utils.achievement_loader import load_achievements, get_achievement_by_slug
 
 router = APIRouter()
 
@@ -33,15 +32,6 @@ class RecentAchievementResponse(BaseModel):
     unlocked_at: str
 
 
-def load_achievements() -> dict:
-    """Load achievements definitions from JSON file."""
-    achievements_path = Path(__file__).parent.parent.parent / "data" / "achievements.json"
-    if achievements_path.exists():
-        with open(achievements_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {"achievements": []}
-
-
 @router.get("", response_model=List[AchievementResponse])
 async def get_achievements(
     session: AsyncSessionDep,
@@ -58,7 +48,7 @@ async def get_achievements(
     user_achievements = {ua.achievement_slug: ua for ua in result.scalars().all()}
 
     response = []
-    for ach in achievements_data.get("achievements", []):
+    for ach in achievements_data:
         user_ach = user_achievements.get(ach["slug"])
         response.append(AchievementResponse(
             slug=ach["slug"],
@@ -85,7 +75,7 @@ async def get_recent_achievements(
 ):
     """Get recently unlocked achievements."""
     achievements_data = load_achievements()
-    achievements_by_slug = {a["slug"]: a for a in achievements_data.get("achievements", [])}
+    achievements_by_slug = {a["slug"]: a for a in achievements_data}
 
     result = await session.execute(
         select(UserAchievement)

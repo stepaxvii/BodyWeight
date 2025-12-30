@@ -1,15 +1,40 @@
 // Badge types (unlocked via achievements)
+// Badge slugs use kebab-case to match SVG filenames
 export type BadgeId =
 	| 'first-blood'      // First workout
-	| 'week-warrior'     // 7 day streak
-	| 'month-master'     // 30 day streak
+	| 'workout-10'       // 10 workouts
+	| 'workout-50'       // 50 workouts
 	| 'centurion'        // 100 workouts total
-	| 'iron-will'        // 1000 total reps
+	| 'workout-365'      // 365 workouts
+	| 'streak-3'         // 3 day streak
+	| 'week-warrior'     // 7 day streak
+	| 'streak-14'        // 14 day streak
+	| 'month-master'     // 30 day streak
+	| 'iron-will'        // 60 day streak
+	| 'unstoppable'      // 100 day streak
+	| 'streak-365'       // 365 day streak
+	| 'level-5'          // Level 5
+	| 'level-10'         // Level 10
+	| 'legend'           // Level 25
+	| 'level-50'         // Level 50
+	| 'level-100'        // Level 100
 	| 'early-bird'       // Workout before 7am
 	| 'night-owl'        // Workout after 10pm
-	| 'perfectionist'    // Complete 10 workouts without skipping
-	| 'legend'           // Reach level 25
-	| 'unstoppable';     // 100 day streak
+	| 'perfectionist'    // Complete 10 perfect workouts
+	| 'pushup-100'       // 100 pushups total
+	| 'pushup-500'       // 500 pushups total
+	| 'pushup-1000'      // 1000 pushups total
+	| 'squat-100'        // 100 squats total
+	| 'squat-500'        // 500 squats total
+	| 'squat-1000'       // 1000 squats total
+	| 'burpee-50'        // 50 burpees total
+	| 'burpee-100'       // 100 burpees total
+	| 'burpee-500'       // 500 burpees total
+	| 'pullup-100'       // 100 pullups total
+	| 'pullup-500'       // 500 pullups total
+	| 'xp-1000'          // 1000 XP total
+	| 'xp-10000'         // 10000 XP total
+	| 'xp-100000';       // 100000 XP total
 
 export interface Badge {
 	id: BadgeId;

@@ -167,6 +167,44 @@ async def update_goal_progress(
     )
 
 
+@router.get("/progress", response_model=List[GoalResponse])
+async def get_goals_progress(
+    session: AsyncSessionDep,
+    user: CurrentUser,
+):
+    """
+    Get detailed progress for all active goals.
+    Includes completed and incomplete goals.
+    """
+    today = date.today()
+
+    # Get all active goals (not expired)
+    query = (
+        select(UserGoal)
+        .where(UserGoal.user_id == user.id)
+        .where(UserGoal.end_date >= today)
+        .order_by(UserGoal.completed.asc(), UserGoal.end_date.asc())
+    )
+
+    result = await session.execute(query)
+    goals = result.scalars().all()
+
+    return [
+        GoalResponse(
+            id=g.id,
+            goal_type=g.goal_type,
+            target_value=g.target_value,
+            current_value=g.current_value,
+            start_date=g.start_date,
+            end_date=g.end_date,
+            completed=g.completed,
+            completed_at=g.completed_at,
+            progress_percent=min((g.current_value / g.target_value) * 100, 100) if g.target_value > 0 else 0,
+        )
+        for g in goals
+    ]
+
+
 @router.delete("/{goal_id}")
 async def delete_goal(
     goal_id: int,

@@ -12,6 +12,7 @@ from app.db.models import (
     Exercise,
     UserExerciseProgress,
     Notification,
+    UserGoal,
 )
 from app.services.xp_calculator import (
     calculate_xp,
@@ -666,6 +667,58 @@ async def submit_workout(
 
     user.max_streak = max(user.max_streak, user.current_streak)
     user.last_workout_date = today
+
+    await session.flush()
+
+    # Update user goals
+    goals_result = await session.execute(
+        select(UserGoal)
+        .where(UserGoal.user_id == user.id)
+        .where(UserGoal.completed == False)
+        .where(UserGoal.end_date >= today)
+    )
+    active_goals = goals_result.scalars().all()
+
+    for goal in active_goals:
+        if goal.goal_type == "total_workouts":
+            goal.current_value += 1
+        elif goal.goal_type == "total_reps":
+            goal.current_value += workout.total_reps
+        elif goal.goal_type == "total_xp":
+            goal.current_value += workout.total_xp_earned
+        elif goal.goal_type == "workout_streak":
+            goal.current_value = user.current_streak
+        elif goal.goal_type.startswith("exercise_"):
+            parts = goal.goal_type.split("_", 2)
+            if len(parts) >= 3:
+                target_slug = parts[1]
+                metric = parts[2] if len(parts) > 2 else "reps"
+                for ex_data in request.exercises:
+                    if ex_data.exercise_slug == target_slug:
+                        if metric == "reps":
+                            goal.current_value += sum(ex_data.sets)
+                        elif metric == "times":
+                            goal.current_value += 1
+                        break
+
+        # Check if goal completed
+        if goal.current_value >= goal.target_value and not goal.completed:
+            goal.completed = True
+            goal.completed_at = now
+
+            # Create notification
+            notification = Notification(
+                user_id=user.id,
+                notification_type="goal_completed",
+                title="Цель достигнута!",
+                message=f"Цель выполнена: {goal.target_value} {goal.goal_type}",
+            )
+            session.add(notification)
+
+            # Award bonus coins
+            bonus_goal_coins = 5
+            user.coins += bonus_goal_coins
+            workout.total_coins_earned += bonus_goal_coins
 
     await session.flush()
 
