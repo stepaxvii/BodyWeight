@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime, timedelta
-from typing import List
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 from sqlalchemy import select, func, and_
@@ -25,7 +24,7 @@ class LeaderboardEntry(BaseModel):
 
 
 class LeaderboardResponse(BaseModel):
-    entries: List[LeaderboardEntry]
+    entries: list[LeaderboardEntry]
     current_user_rank: int | None = None
 
 

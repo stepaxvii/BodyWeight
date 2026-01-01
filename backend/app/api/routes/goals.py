@@ -1,5 +1,4 @@
 from datetime import date, datetime, timedelta
-from typing import List
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -31,7 +30,7 @@ class GoalResponse(BaseModel):
         from_attributes = True
 
 
-@router.get("", response_model=List[GoalResponse])
+@router.get("", response_model=list[GoalResponse])
 async def get_goals(
     session: AsyncSessionDep,
     user: CurrentUser,
@@ -167,7 +166,7 @@ async def update_goal_progress(
     )
 
 
-@router.get("/progress", response_model=List[GoalResponse])
+@router.get("/progress", response_model=list[GoalResponse])
 async def get_goals_progress(
     session: AsyncSessionDep,
     user: CurrentUser,

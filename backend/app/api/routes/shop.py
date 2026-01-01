@@ -1,4 +1,3 @@
-from typing import List
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -35,7 +34,7 @@ class InventoryItemResponse(BaseModel):
         from_attributes = True
 
 
-@router.get("", response_model=List[ShopItemResponse])
+@router.get("", response_model=list[ShopItemResponse])
 async def get_shop_items(
     session: AsyncSessionDep,
     user: CurrentUser,
@@ -150,7 +149,7 @@ async def purchase_item(
     )
 
 
-@router.get("/inventory", response_model=List[InventoryItemResponse])
+@router.get("/inventory", response_model=list[InventoryItemResponse])
 async def get_inventory(
     session: AsyncSessionDep,
     user: CurrentUser,

@@ -1,4 +1,3 @@
-from typing import List
 from fastapi import APIRouter, HTTPException, Query, status, BackgroundTasks
 from pydantic import BaseModel
 from sqlalchemy import select, or_, and_
@@ -30,7 +29,7 @@ class AddFriendRequest(BaseModel):
     username: str | None = None
 
 
-@router.get("", response_model=List[FriendResponse])
+@router.get("", response_model=list[FriendResponse])
 async def get_friends(
     session: AsyncSessionDep,
     user: CurrentUser,
@@ -65,7 +64,7 @@ async def get_friends(
     ]
 
 
-@router.get("/requests", response_model=List[FriendResponse])
+@router.get("/requests", response_model=list[FriendResponse])
 async def get_friend_requests(
     session: AsyncSessionDep,
     user: CurrentUser,
@@ -302,7 +301,7 @@ async def remove_friend(
     return {"message": "Friend removed"}
 
 
-@router.get("/search", response_model=List[FriendResponse])
+@router.get("/search", response_model=list[FriendResponse])
 async def search_users(
     session: AsyncSessionDep,
     user: CurrentUser,

@@ -11,7 +11,7 @@ This module contains the core business logic for completing workouts:
 """
 
 from datetime import datetime, date, timedelta
-from typing import List, Dict, Any
+from typing import Any
 from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,7 +39,7 @@ from app.services.notifications import save_notification
 class ExerciseSetData:
     """Data for a single exercise in a completed workout."""
     exercise_slug: str
-    sets: List[int]  # Array of reps per set (or seconds for timed exercises)
+    sets: list[int]  # Array of reps per set (or seconds for timed exercises)
     is_timed: bool = False
 
 
@@ -49,7 +49,7 @@ class WorkoutCompletionData:
     user_id: int
     started_at: datetime
     finished_at: datetime
-    exercises: List[ExerciseSetData]
+    exercises: list[ExerciseSetData]
     workout_session_id: int | None = None  # If None, will create new session
 
 
@@ -62,9 +62,9 @@ class WorkoutCompletionResult:
     level_up: bool
     old_level: int
     new_level: int
-    new_achievements: List[Dict[str, Any]]
+    new_achievements: list[dict[str, Any]]
     streak: int
-    workout_summary: Dict[str, Any]
+    workout_summary: dict[str, Any]
 
 
 async def process_workout_completion(
