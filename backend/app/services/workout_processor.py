@@ -143,26 +143,33 @@ async def process_workout_completion(
             continue  # Skip unknown exercises
 
         # Calculate totals
-        total_value = sum(ex_data.sets)
         sets_count = len(ex_data.sets)
+        total_reps = 0
+        total_duration = 0
+        xp_earned = 0
 
-        if ex_data.is_timed:
-            total_reps = 0
-            total_duration = total_value
-            xp_value = max(1, total_duration // 10)  # 10 sec = 1 rep equivalent
-        else:
-            total_reps = total_value
-            total_duration = 0
-            xp_value = total_reps
+        # Calculate XP for EACH set separately
+        # This ensures each set contributes fairly to XP
+        for set_value in ex_data.sets:
+            if ex_data.is_timed:
+                # For timed exercises, convert seconds to rep equivalent
+                set_duration = set_value
+                total_duration += set_duration
+                reps_for_xp = max(1, set_duration // 10)  # 10 sec = 1 rep equivalent
+            else:
+                # For rep-based exercises, use reps directly
+                total_reps += set_value
+                reps_for_xp = set_value
 
-        # Calculate XP
-        xp_earned = calculate_xp(
-            base_xp=exercise.base_xp,
-            difficulty=exercise.difficulty,
-            reps=xp_value,
-            streak_days=user.current_streak,
-            is_first_today=is_first_today,
-        )
+            # Calculate XP for this set
+            set_xp = calculate_xp(
+                base_xp=exercise.base_xp,
+                difficulty=exercise.difficulty,
+                reps=reps_for_xp,
+                streak_days=user.current_streak,
+                is_first_today=is_first_today,
+            )
+            xp_earned += set_xp
 
         # Create workout exercise entry
         workout_exercise = WorkoutExercise(
