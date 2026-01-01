@@ -55,24 +55,33 @@
 	 * Note: Frontend doesn't know streak/first_bonus, so shows approximate value
 	 */
 	const estimatedXp = $derived.by(() => {
+		// CRITICAL: For active workouts, NEVER use session.total_xp_earned
+		// Always recalculate from current exerciseData
+		if (!workoutStore.isActive) {
+			// Only for completed workouts, use backend value
+			if (workoutStore.session?.total_xp_earned) {
+				return workoutStore.session.total_xp_earned;
+			}
+			return 0;
+		}
+		
+		// For active workouts: calculate from current exerciseData
 		// No sets = no XP
 		if (workoutStore.totalSets === 0) {
 			return 0;
 		}
 		
-		// For completed workouts (not active), use backend value
-		// For active workouts, always recalculate from current exerciseData
-		if (!workoutStore.isActive && workoutStore.session?.total_xp_earned) {
-			return workoutStore.session.total_xp_earned;
-		}
-		
 		// Calculate XP for active workout
 		let total = 0;
 		
-		workoutStore.exerciseData.forEach(data => {
+		// CRITICAL: Convert Map to Array to ensure reactivity in Svelte 5
+		// Direct forEach on Map may not trigger reactivity properly
+		const exerciseDataArray = Array.from(workoutStore.exerciseData.values());
+		
+		for (const data of exerciseDataArray) {
 			// Skip if no exercise data or no sets
 			if (!data.exercise || data.sets.length === 0) {
-				return;
+				continue;
 			}
 			
 			const baseXp = data.exercise.base_xp;
@@ -80,7 +89,9 @@
 			const difficultyMult = 1 + (difficulty - 1) * 0.25;
 
 			// ALGORITHM: Calculate XP for EACH set separately
-			data.sets.forEach(setValue => {
+			// Access sets array to ensure reactivity
+			const sets = data.sets;
+			for (const setValue of sets) {
 				// Step 1: Convert timed exercises (10 sec = 1 rep)
 				let repsValue: number;
 				if (data.isTimed) {
@@ -102,8 +113,8 @@
 				// (without streak/first_bonus - frontend doesn't know these)
 				const setXp = baseXp * difficultyMult * volumeMult;
 				total += setXp;
-			});
-		});
+			}
+		}
 		
 		return Math.floor(total);
 	});
@@ -410,13 +421,13 @@
 					<span class="stat-label">Повторов</span>
 				</div>
 				<div class="stat">
-					{#if workoutStore.totalSets === 0}
-						<!-- No sets yet - show nothing or dash -->
-						<span class="stat-value text-green">—</span>
-					{:else if !workoutStore.isActive && workoutStore.session?.total_xp_earned}
+					{#if !workoutStore.isActive && workoutStore.session?.total_xp_earned}
 						<!-- Completed workout - show actual XP from backend -->
 						<span class="stat-value text-green">+{workoutStore.totalXp}</span>
-					{:else if estimatedXp > 0}
+					{:else if workoutStore.totalSets === 0}
+						<!-- No sets yet - show dash -->
+						<span class="stat-value text-green">—</span>
+					{:else if workoutStore.isActive && estimatedXp > 0}
 						<!-- Active workout with sets - show estimated XP -->
 						<span class="stat-value text-green">~{estimatedXp}</span>
 					{:else}
