@@ -48,6 +48,12 @@
 		if (workoutStore.session?.total_xp_earned) {
 			return workoutStore.session.total_xp_earned;
 		}
+		
+		// CRITICAL: If no sets at all, return 0 immediately
+		if (workoutStore.totalSets === 0) {
+			return 0;
+		}
+		
 		// Simplified estimate (without streak/first bonus) for preview only
 		// Only count exercises that have at least one set
 		let total = 0;
@@ -381,9 +387,14 @@
 					<span class="stat-label">Повторов</span>
 				</div>
 				<div class="stat">
-					{#if workoutStore.session?.total_xp_earned}
+					{#if workoutStore.totalSets === 0}
+						<!-- No sets yet - show nothing or dash -->
+						<span class="stat-value text-green">—</span>
+					{:else if workoutStore.session?.total_xp_earned}
+						<!-- Completed workout - show actual XP from backend -->
 						<span class="stat-value text-green">+{workoutStore.totalXp}</span>
 					{:else if estimatedXp > 0}
+						<!-- Active workout with sets - show estimated XP -->
 						<span class="stat-value text-green">~{estimatedXp}</span>
 					{:else}
 						<span class="stat-value text-green">—</span>
