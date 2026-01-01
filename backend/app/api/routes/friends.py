@@ -11,13 +11,21 @@ from app.schemas import FriendResponse, AddFriendRequest
 router = APIRouter()
 
 
-@router.get("", response_model=list[FriendResponse])
+@router.get(
+    "",
+    response_model=list[FriendResponse],
+    summary="Получить список друзей",
+    description="Возвращает список друзей пользователя с возможностью фильтрации по статусу.",
+    tags=["Friends"]
+)
 async def get_friends(
     session: AsyncSessionDep,
     user: CurrentUser,
-    status_filter: str = Query("accepted", description="Filter by status: accepted, pending, all"),
+    status_filter: str = Query(
+        "accepted",
+        description="Фильтр по статусу: accepted, pending, all"
+    ),
 ):
-    """Get list of friends."""
     query = (
         select(Friendship, User)
         .join(User, Friendship.friend_id == User.id)
@@ -46,7 +54,13 @@ async def get_friends(
     ]
 
 
-@router.get("/requests", response_model=list[FriendResponse])
+@router.get(
+    "/requests",
+    response_model=list[FriendResponse],
+    summary="Получить запросы в друзья",
+    description="Возвращает список входящих запросов в друзья.",
+    tags=["Friends"]
+)
 async def get_friend_requests(
     session: AsyncSessionDep,
     user: CurrentUser,

@@ -11,14 +11,19 @@ from app.schemas import (
 router = APIRouter()
 
 
-@router.get("", response_model=PaginatedResponse[AchievementResponse])
+@router.get(
+    "",
+    response_model=PaginatedResponse[AchievementResponse],
+    summary="Получить достижения",
+    description="Возвращает список всех достижений с информацией о статусе разблокировки для текущего пользователя. Поддерживает пагинацию.",
+    tags=["Achievements"]
+)
 async def get_achievements(
     session: AsyncSessionDep,
     user: CurrentUser,
-    skip: int = Query(0, ge=0, description="Number of items to skip"),
-    limit: int = Query(50, ge=1, le=100, description="Maximum number of items to return"),
+    skip: int = Query(0, ge=0, description="Количество пропущенных элементов"),
+    limit: int = Query(50, ge=1, le=100, description="Максимальное количество элементов"),
 ):
-    """Get achievements with unlock status for current user, with pagination."""
     achievements_data = load_achievements()
 
     # Get user's unlocked achievements
@@ -61,13 +66,18 @@ async def get_achievements(
     )
 
 
-@router.get("/recent", response_model=list[RecentAchievementResponse])
+@router.get(
+    "/recent",
+    response_model=list[RecentAchievementResponse],
+    summary="Последние достижения",
+    description="Возвращает список недавно разблокированных достижений пользователя.",
+    tags=["Achievements"]
+)
 async def get_recent_achievements(
     session: AsyncSessionDep,
     user: CurrentUser,
-    limit: int = Query(5, ge=1, le=20),
+    limit: int = Query(5, ge=1, le=20, description="Максимальное количество достижений"),
 ):
-    """Get recently unlocked achievements."""
     achievements_data = load_achievements()
     achievements_by_slug = {a["slug"]: a for a in achievements_data}
 

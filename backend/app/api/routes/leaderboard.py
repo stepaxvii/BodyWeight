@@ -11,19 +11,24 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.get("", response_model=LeaderboardResponse)
+@router.get(
+    "",
+    response_model=LeaderboardResponse,
+    summary="Глобальный рейтинг",
+    description="Возвращает глобальный рейтинг пользователей по общему количеству XP.",
+    tags=["Leaderboard"]
+)
 async def get_global_leaderboard(
     session: AsyncSessionDep,
     user: CurrentUser,
-    limit: int = Query(50, ge=1, le=100),
+    limit: int = Query(50, ge=1, le=100, description="Максимальное количество пользователей в рейтинге"),
 ):
-    """Get global leaderboard by total XP."""
-    logger.warning(f"[Leaderboard/Global] === REQUEST RECEIVED === user_id={user.id}, limit={limit}")
+    logger.debug(f"[Leaderboard/Global] Request received: user_id={user.id}, limit={limit}")
 
     # Debug: count all users
     count_result = await session.execute(select(func.count(User.id)))
     total_count = count_result.scalar()
-    logger.info(f"[Leaderboard] Total users in database: {total_count}")
+    logger.debug(f"[Leaderboard] Total users in database: {total_count}")
 
     result = await session.execute(
         select(User)
@@ -32,9 +37,9 @@ async def get_global_leaderboard(
     )
     users = list(result.scalars().all())
 
-    logger.info(f"[Leaderboard] Found {len(users)} users in query result")
+    logger.debug(f"[Leaderboard] Found {len(users)} users in query result")
     for u in users[:3]:  # Log first 3 users for debug
-        logger.info(f"[Leaderboard] User: id={u.id}, username={u.username}, xp={u.total_xp}")
+        logger.debug(f"[Leaderboard] User: id={u.id}, username={u.username}, xp={u.total_xp}")
 
     entries = []
     current_user_rank = None
@@ -70,13 +75,18 @@ async def get_global_leaderboard(
     )
 
 
-@router.get("/weekly", response_model=LeaderboardResponse)
+@router.get(
+    "/weekly",
+    response_model=LeaderboardResponse,
+    summary="Недельный рейтинг",
+    description="Возвращает рейтинг пользователей по XP, заработанным на текущей неделе (с понедельника).",
+    tags=["Leaderboard"]
+)
 async def get_weekly_leaderboard(
     session: AsyncSessionDep,
     user: CurrentUser,
-    limit: int = Query(50, ge=1, le=100),
+    limit: int = Query(50, ge=1, le=100, description="Максимальное количество пользователей в рейтинге"),
 ):
-    """Get weekly leaderboard by XP earned this week."""
     # Calculate week start (Monday)
     today = datetime.utcnow().date()
     week_start = today - timedelta(days=today.weekday())
@@ -128,13 +138,18 @@ async def get_weekly_leaderboard(
     )
 
 
-@router.get("/friends", response_model=LeaderboardResponse)
+@router.get(
+    "/friends",
+    response_model=LeaderboardResponse,
+    summary="Рейтинг друзей",
+    description="Возвращает рейтинг среди друзей текущего пользователя по общему количеству XP.",
+    tags=["Leaderboard"]
+)
 async def get_friends_leaderboard(
     session: AsyncSessionDep,
     user: CurrentUser,
 ):
-    """Get leaderboard among friends with optimized JOIN query."""
-    logger.info(f"[Leaderboard/Friends] Getting friends leaderboard, user_id={user.id}")
+    logger.debug(f"[Leaderboard/Friends] Getting friends leaderboard, user_id={user.id}")
 
     # Optimized: One JOIN query instead of two separate queries
     # Get friends where current user is the requester
@@ -154,7 +169,7 @@ async def get_friends_leaderboard(
 
     result = await session.execute(stmt)
     friends = list(result.scalars().all())
-    logger.info(f"[Leaderboard/Friends] Found {len(friends)} friends via JOIN")
+    logger.debug(f"[Leaderboard/Friends] Found {len(friends)} friends via JOIN")
 
     # Add current user to the list
     friends_with_me = [user] + friends

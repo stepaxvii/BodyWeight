@@ -1,16 +1,20 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 import logging
 
 from app.config import settings
 from app.api import api_router
-from app.db.database import async_engine, Base, async_session_maker
+from app.db.database import async_engine, async_session_maker
 from app.services.data_loader import init_data
 from app.services.scheduler import start_scheduler, stop_scheduler
 
-logging.basicConfig(level=logging.INFO if settings.debug else logging.WARNING)
+# Configure logging based on settings
+log_level = getattr(logging, settings.log_level.upper(), logging.INFO)
+logging.basicConfig(
+    level=log_level,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -46,9 +50,30 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="BodyWeight API",
-    description="API for BodyWeight Telegram Mini App",
-    version="1.0.0",
+    title="BodyWeight Fitness API",
+    description="""
+    API для Telegram Mini App фитнес-трекера с геймификацией.
+
+    ## Основные возможности:
+
+    * 🏋️ **Тренировки** - создание, отслеживание и завершение тренировок
+    * 💪 **Упражнения** - каталог упражнений с фильтрацией и избранным
+    * 🏆 **Достижения** - система достижений и наград
+    * 📊 **Статистика** - отслеживание прогресса, XP, уровней и монет
+    * 👥 **Социальные функции** - друзья, рейтинг, лидерборды
+    * 🎯 **Цели** - постановка и отслеживание целей
+    * 🛒 **Магазин** - покупка аватаров и предметов за монеты
+
+    ## Аутентификация
+
+    Все запросы требуют заголовок:
+    ```
+    Authorization: tma <telegram_init_data>
+    ```
+
+    Где `telegram_init_data` - данные от Telegram WebApp.
+    """,
+    version="2.0.0",
     lifespan=lifespan,
     docs_url="/api/docs" if settings.debug else None,
     redoc_url="/api/redoc" if settings.debug else None,

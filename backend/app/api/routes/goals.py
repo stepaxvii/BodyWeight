@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import select
 
 from app.api.deps import AsyncSessionDep, CurrentUser
@@ -9,13 +9,18 @@ from app.schemas import CreateGoalRequest, GoalResponse
 router = APIRouter()
 
 
-@router.get("", response_model=list[GoalResponse])
+@router.get(
+    "",
+    response_model=list[GoalResponse],
+    summary="Получить цели пользователя",
+    description="Возвращает список целей пользователя. По умолчанию показываются только активные цели.",
+    tags=["Goals"]
+)
 async def get_goals(
     session: AsyncSessionDep,
     user: CurrentUser,
-    active_only: bool = True,
+    active_only: bool = Query(True, description="Показывать только активные цели"),
 ):
-    """Get user's goals."""
     query = select(UserGoal).where(UserGoal.user_id == user.id)
 
     if active_only:
@@ -43,7 +48,14 @@ async def get_goals(
     ]
 
 
-@router.post("", response_model=GoalResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=GoalResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Создать цель",
+    description="Создаёт новую цель для пользователя.",
+    tags=["Goals"]
+)
 async def create_goal(
     request: CreateGoalRequest,
     session: AsyncSessionDep,

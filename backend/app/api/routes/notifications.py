@@ -10,29 +10,39 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/unread-count", response_model=UnreadCountResponse)
+@router.get(
+    "/unread-count",
+    response_model=UnreadCountResponse,
+    summary="Количество непрочитанных уведомлений",
+    description="Возвращает количество непрочитанных уведомлений для текущего пользователя.",
+    tags=["Notifications"]
+)
 async def get_unread_count(
     user: CurrentUser,
     session: AsyncSessionDep,
 ):
-    """Get count of unread notifications."""
     result = await session.execute(
         select(func.count(Notification.id))
         .where(Notification.user_id == user.id)
         .where(Notification.is_read == False)
     )
     count = result.scalar() or 0
-    logger.info(f"Unread count for user {user.id}: {count}")
+    logger.debug(f"Unread count for user {user.id}: {count}")
     return UnreadCountResponse(count=count)
 
 
-@router.get("", response_model=list[NotificationResponse])
+@router.get(
+    "",
+    response_model=list[NotificationResponse],
+    summary="Получить уведомления",
+    description="Возвращает список уведомлений пользователя, отсортированных по дате создания (новые первыми).",
+    tags=["Notifications"]
+)
 async def get_notifications(
     user: CurrentUser,
     session: AsyncSessionDep,
-    limit: int = 20,
+    limit: int = Query(20, ge=1, le=100, description="Максимальное количество уведомлений"),
 ):
-    """Get user notifications."""
     result = await session.execute(
         select(Notification)
         .where(Notification.user_id == user.id)
@@ -40,7 +50,7 @@ async def get_notifications(
         .limit(limit)
     )
     notifications = result.scalars().all()
-    logger.info(f"Get notifications for user {user.id}: found {len(notifications)}")
+    logger.debug(f"Get notifications for user {user.id}: found {len(notifications)}")
     return [NotificationResponse.model_validate(n) for n in notifications]
 
 

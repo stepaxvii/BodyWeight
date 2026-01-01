@@ -47,18 +47,28 @@ AVATAR_DATA = {
 router = APIRouter()
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    summary="Получить профиль текущего пользователя",
+    description="Возвращает полную информацию о текущем аутентифицированном пользователе.",
+    tags=["Users"]
+)
 async def get_current_user_profile(user: CurrentUser):
-    """Get current user's profile."""
     return UserResponse.model_validate(user)
 
 
-@router.get("/me/purchased-avatars", response_model=list[str])
+@router.get(
+    "/me/purchased-avatars",
+    response_model=list[str],
+    summary="Получить купленные аватары",
+    description="Возвращает список ID аватаров, купленных текущим пользователем.",
+    tags=["Users"]
+)
 async def get_purchased_avatars(
     user: CurrentUser,
     session: AsyncSessionDep,
 ):
-    """Get list of purchased avatar IDs for current user."""
     result = await session.execute(
         select(UserAvatarPurchase.avatar_id)
         .where(UserAvatarPurchase.user_id == user.id)
@@ -67,13 +77,18 @@ async def get_purchased_avatars(
     return purchased_avatar_ids
 
 
-@router.put("/me", response_model=UserResponse)
+@router.put(
+    "/me",
+    response_model=UserResponse,
+    summary="Обновить профиль пользователя",
+    description="Обновляет настройки текущего пользователя (аватар, уведомления).",
+    tags=["Users"]
+)
 async def update_current_user(
     user: CurrentUser,
     request: UpdateUserRequest,
     session: AsyncSessionDep,
 ):
-    """Update current user's settings."""
     if request.avatar_id is not None:
         # Validate avatar_id is a valid option
         if request.avatar_id not in AVATAR_DATA:
@@ -146,12 +161,17 @@ async def complete_onboarding(
     return UserResponse.model_validate(user)
 
 
-@router.get("/me/stats", response_model=UserStatsResponse)
+@router.get(
+    "/me/stats",
+    response_model=UserStatsResponse,
+    summary="Получить статистику пользователя",
+    description="Возвращает подробную статистику пользователя: тренировки, XP, уровень, streak, достижения, монеты и т.д.",
+    tags=["Users"]
+)
 async def get_current_user_stats(
     user: CurrentUser,
     session: AsyncSessionDep,
 ):
-    """Get detailed statistics for current user."""
     # Total workouts
     workouts_result = await session.execute(
         select(func.count(WorkoutSession.id))

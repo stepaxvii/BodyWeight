@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import select
 
 from app.api.deps import AsyncSessionDep, CurrentUser
@@ -8,13 +8,20 @@ from app.schemas import ShopItemResponse, InventoryItemResponse
 router = APIRouter()
 
 
-@router.get("", response_model=list[ShopItemResponse])
+@router.get(
+    "",
+    response_model=list[ShopItemResponse],
+    summary="Получить товары магазина",
+    description="Возвращает список товаров магазина с информацией о владении пользователем.",
+    tags=["Shop"]
+)
 async def get_shop_items(
     session: AsyncSessionDep,
     user: CurrentUser,
-    item_type: str | None = None,
+    item_type: str | None = Query(
+        None, description="Фильтр по типу товара"
+    ),
 ):
-    """Get all shop items."""
     query = select(ShopItem).where(ShopItem.is_active == True)
 
     if item_type:

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
@@ -12,7 +12,12 @@ from app.db.models import (
 )
 from app.services.data_loader import load_all_routines
 from app.utils.cache import timed_cache
-from app.schemas import PaginatedResponse, ExerciseResponse
+from app.schemas import (
+    PaginatedResponse,
+    ExerciseResponse,
+    ExerciseWithProgressResponse,
+    ExerciseProgressResponse,
+)
 
 router = APIRouter()
 
@@ -31,45 +36,18 @@ class CategoryResponse(BaseModel):
         from_attributes = True
 
 
-class ExerciseResponse(BaseModel):
-    id: int
-    slug: str
-    name: str
-    name_ru: str
-    description: str | None
-    description_ru: str | None
-    tags: list[str] = []
-    difficulty: int
-    base_xp: int
-    required_level: int
-    equipment: str = "none"  # none, pullup-bar, dip-bars
-    is_timed: bool = False  # True for time-based exercises (planks, stretches)
-    gif_url: str | None
-    thumbnail_url: str | None
-    category_slug: str
-    easier_exercise_slug: str | None = None
-    harder_exercise_slug: str | None = None
-    is_favorite: bool = False
-
-    class Config:
-        from_attributes = True
-
-
-class ExerciseProgressResponse(BaseModel):
-    total_reps_ever: int
-    best_single_set: int
-    times_performed: int
-    recommended_upgrade: bool
-
-
-class ExerciseWithProgressResponse(ExerciseResponse):
-    user_progress: ExerciseProgressResponse | None = None
-
-
-@router.get("/categories", response_model=list[CategoryResponse])
+@router.get(
+    "/categories",
+    response_model=list[CategoryResponse],
+    summary="Получить категории упражнений",
+    description=(
+        "Возвращает все категории упражнений с количеством "
+        "упражнений в каждой. Данные кэшируются на 10 минут."
+    ),
+    tags=["Exercises"]
+)
 @timed_cache(seconds=600)  # Cache for 10 minutes
 async def get_categories(session: AsyncSessionDep):
-    """Get all exercise categories with caching."""
     result = await session.execute(
         select(ExerciseCategory)
         .options(selectinload(ExerciseCategory.exercises))
@@ -92,27 +70,57 @@ async def get_categories(session: AsyncSessionDep):
     ]
 
 
-@router.get("", response_model=PaginatedResponse[ExerciseResponse])
+@router.get(
+    "",
+    response_model=PaginatedResponse[ExerciseResponse],
+    summary="Получить упражнения",
+    description="""
+    Возвращает список упражнений с поддержкой фильтрации и пагинации.
+
+    **Фильтры:**
+    * `category` - фильтр по slug категории
+    * `tags` - фильтр по тегам (через запятую)
+    * `difficulty` - фильтр по сложности (1-5)
+    * `max_level` - показывать только упражнения до указанного уровня
+    * `favorites_only` - показывать только избранные упражнения
+
+    **Пагинация:**
+    * `skip` - количество пропущенных элементов
+    * `limit` - максимальное количество элементов (1-100)
+    """,
+    tags=["Exercises"]
+)
 async def get_exercises(
     session: AsyncSessionDep,
     user: CurrentUser,
-    category: str | None = Query(None, description="Filter by category slug"),
-    tags: str | None = Query(None, description="Filter by tags (comma-separated)"),
-    difficulty: int | None = Query(None, ge=1, le=5, description="Filter by difficulty"),
-    max_level: int | None = Query(None, description="Filter exercises up to required level"),
-    favorites_only: bool = Query(False, description="Show only favorite exercises"),
-    skip: int = Query(0, ge=0, description="Number of items to skip"),
-    limit: int = Query(50, ge=1, le=100, description="Maximum number of items to return"),
+    category: str | None = Query(
+        None, description="Фильтр по slug категории"
+    ),
+    tags: str | None = Query(
+        None, description="Фильтр по тегам (через запятую)"
+    ),
+    difficulty: int | None = Query(
+        None, ge=1, le=5, description="Фильтр по сложности (1-5)"
+    ),
+    max_level: int | None = Query(
+        None, description="Показывать упражнения до указанного уровня"
+    ),
+    favorites_only: bool = Query(
+        False, description="Показывать только избранные упражнения"
+    ),
+    skip: int = Query(0, ge=0, description="Количество пропущенных"),
+    limit: int = Query(50, ge=1, le=100, description="Максимум элементов"),
 ):
-    """Get exercises with optional filters and pagination."""
     query = (
         select(Exercise)
         .options(selectinload(Exercise.category))
-        .where(Exercise.is_active == True)
+        .where(Exercise.is_active.is_(True))
     )
 
     if category:
-        query = query.join(Exercise.category).where(ExerciseCategory.slug == category)
+        query = query.join(Exercise.category).where(
+            ExerciseCategory.slug == category
+        )
 
     if difficulty:
         query = query.where(Exercise.difficulty == difficulty)
@@ -191,13 +199,21 @@ async def get_exercises(
     )
 
 
-@router.get("/{slug}", response_model=ExerciseWithProgressResponse)
+@router.get(
+    "/{slug}",
+    response_model=ExerciseWithProgressResponse,
+    summary="Получить упражнение по slug",
+    description=(
+        "Возвращает детальную информацию об упражнении, "
+        "включая прогресс пользователя."
+    ),
+    tags=["Exercises"]
+)
 async def get_exercise(
     slug: str,
     session: AsyncSessionDep,
     user: CurrentUser,
 ):
-    """Get exercise details with user progress."""
     result = await session.execute(
         select(Exercise)
         .options(
@@ -206,7 +222,7 @@ async def get_exercise(
             selectinload(Exercise.harder_exercise),
         )
         .where(Exercise.slug == slug)
-        .where(Exercise.is_active == True)
+        .where(Exercise.is_active.is_(True))
     )
     exercise = result.scalar_one_or_none()
 
@@ -248,19 +264,34 @@ async def get_exercise(
         gif_url=exercise.gif_url,
         thumbnail_url=exercise.thumbnail_url,
         category_slug=exercise.category.slug if exercise.category else "",
-        easier_exercise_slug=exercise.easier_exercise.slug if exercise.easier_exercise else None,
-        harder_exercise_slug=exercise.harder_exercise.slug if exercise.harder_exercise else None,
+        easier_exercise_slug=(
+            exercise.easier_exercise.slug
+            if exercise.easier_exercise
+            else None
+        ),
+        harder_exercise_slug=(
+            exercise.harder_exercise.slug
+            if exercise.harder_exercise
+            else None
+        ),
         user_progress=user_progress,
     )
 
 
-@router.get("/{slug}/progress", response_model=ExerciseProgressResponse)
+@router.get(
+    "/{slug}/progress",
+    response_model=ExerciseProgressResponse,
+    summary="Получить прогресс по упражнению",
+    description=(
+        "Возвращает прогресс пользователя по конкретному упражнению."
+    ),
+    tags=["Exercises"]
+)
 async def get_exercise_progress(
     slug: str,
     session: AsyncSessionDep,
     user: CurrentUser,
 ):
-    """Get user's progress for a specific exercise."""
     # First get the exercise
     exercise_result = await session.execute(
         select(Exercise).where(Exercise.slug == slug)
@@ -417,7 +448,9 @@ async def toggle_favorite(
         return {"exercise_slug": exercise.slug, "is_favorite": False}
     else:
         # Add to favorites
-        favorite = UserFavoriteExercise(user_id=user.id, exercise_id=exercise_id)
+        favorite = UserFavoriteExercise(
+            user_id=user.id, exercise_id=exercise_id
+        )
         session.add(favorite)
         await session.commit()
         return {"exercise_slug": exercise.slug, "is_favorite": True}

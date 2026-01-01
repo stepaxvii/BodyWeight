@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # Debug mode
     debug: bool = False
 
+    # Logging
+    log_level: str = "INFO"  # DEBUG, INFO, WARNING, ERROR
+
     # CORS
     cors_origins: list[str] = ["*"]
 

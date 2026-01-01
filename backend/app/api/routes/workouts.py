@@ -62,12 +62,17 @@ def _make_workout_response(workout: WorkoutSession) -> WorkoutResponse:
     )
 
 
-@router.get("/active", response_model=WorkoutResponse | None)
+@router.get(
+    "/active",
+    response_model=WorkoutResponse | None,
+    summary="Получить активную тренировку",
+    description="Возвращает текущую активную тренировку пользователя, если она существует.",
+    tags=["Workouts"]
+)
 async def get_active_workout(
     session: AsyncSessionDep,
     user: CurrentUser,
 ):
-    """Get current active workout if exists."""
     result = await session.execute(
         select(WorkoutSession)
         .options(
@@ -84,12 +89,18 @@ async def get_active_workout(
     return _make_workout_response(workout)
 
 
-@router.post("", response_model=WorkoutResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=WorkoutResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Начать новую тренировку",
+    description="Создаёт новую активную тренировку. Если уже есть активная тренировка, возвращает её.",
+    tags=["Workouts"]
+)
 async def start_workout(
     session: AsyncSessionDep,
     user: CurrentUser,
 ):
-    """Start a new workout session."""
     # Check if there's an active workout
     active_result = await session.execute(
         select(WorkoutSession)
@@ -195,17 +206,38 @@ async def cancel_workout(
     return {"message": "Workout cancelled"}
 
 
-@router.post("/submit", response_model=WorkoutSummaryResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/submit",
+    response_model=WorkoutSummaryResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Завершить тренировку",
+    description="""
+    Единственный эндпоинт для завершения тренировки.
+
+    Принимает все данные о тренировке сразу:
+    * Время выполнения (duration_seconds)
+    * Список упражнений с подходами и повторениями
+
+    Автоматически выполняет:
+    * Расчёт XP и монет для каждого подхода
+    * Обновление streak пользователя
+    * Проверку и начисление достижений
+    * Обновление прогресса целей
+    * Создание уведомлений (level up, achievements)
+    * Повышение уровня при достижении порога XP
+
+    Возвращает полную информацию о тренировке, включая:
+    * Общий заработанный XP и монеты
+    * Новые достижения
+    * Информацию о повышении уровня (если было)
+    """,
+    tags=["Workouts"]
+)
 async def submit_workout(
     request: CompleteWorkoutRequest,
     session: AsyncSessionDep,
     user: CurrentUser,
 ):
-    """
-    Submit a completed workout with all exercise data.
-    This is the unified endpoint - frontend sends all data at once.
-    Uses workout_processor for all business logic.
-    """
     if len(request.exercises) == 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -259,14 +291,19 @@ async def submit_workout(
     )
 
 
-@router.get("/history", response_model=PaginatedResponse[WorkoutResponse])
+@router.get(
+    "/history",
+    response_model=PaginatedResponse[WorkoutResponse],
+    summary="История тренировок",
+    description="Возвращает историю завершённых тренировок пользователя с пагинацией.",
+    tags=["Workouts"]
+)
 async def get_workout_history(
     session: AsyncSessionDep,
     user: CurrentUser,
-    skip: int = Query(0, ge=0, description="Number of items to skip"),
-    limit: int = Query(20, ge=1, le=100, description="Maximum number of items to return"),
+    skip: int = Query(0, ge=0, description="Количество пропущенных элементов"),
+    limit: int = Query(20, ge=1, le=100, description="Максимальное количество элементов для возврата"),
 ):
-    """Get user's workout history with pagination."""
     # Count total workouts
     count_stmt = (
         select(func.count(WorkoutSession.id))
@@ -299,12 +336,17 @@ async def get_workout_history(
     )
 
 
-@router.get("/today", response_model=TodayStatsResponse)
+@router.get(
+    "/today",
+    response_model=TodayStatsResponse,
+    summary="Статистика за сегодня",
+    description="Возвращает статистику тренировок пользователя за сегодняшний день.",
+    tags=["Workouts"]
+)
 async def get_today_stats(
     session: AsyncSessionDep,
     user: CurrentUser,
 ):
-    """Get today's workout statistics."""
     today = date.today()
     today_start = datetime.combine(today, datetime.min.time())
     today_end = datetime.combine(today, datetime.max.time())

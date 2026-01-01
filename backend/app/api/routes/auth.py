@@ -9,15 +9,29 @@ from app.schemas import AuthRequest, AuthResponse, UserResponse
 router = APIRouter()
 
 
-@router.post("/validate", response_model=AuthResponse)
+@router.post(
+    "/validate",
+    response_model=AuthResponse,
+    summary="Аутентификация через Telegram",
+    description="""
+    Валидирует данные от Telegram WebApp и создаёт/обновляет пользователя.
+
+    Это основной эндпоинт аутентификации, вызываемый при открытии Mini App.
+
+    **Процесс:**
+    1. Валидация `init_data` от Telegram
+    2. Извлечение данных пользователя из `init_data`
+    3. Поиск или создание пользователя в БД
+    4. Возврат информации о пользователе
+
+    **В режиме debug:** поддерживается упрощённая аутентификация для тестирования.
+    """,
+    tags=["Auth"]
+)
 async def validate_auth(
     request: AuthRequest,
     session: AsyncSessionDep,
 ):
-    """
-    Validate Telegram init data and create/update user.
-    This is the main auth endpoint called when Mini App opens.
-    """
     # In debug mode, allow mock auth
     if settings.debug and request.init_data.startswith("debug_"):
         try:
