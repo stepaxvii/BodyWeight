@@ -108,7 +108,7 @@ class Exercise(Base):
 
     # Progression chain
     easier_exercise_id: Mapped[int | None] = mapped_column(ForeignKey("exercises.id"))
-    harder_exercise_id: Mapped[int None] = mapped_column(ForeignKey("exercises.id"))
+    harder_exercise_id: Mapped[int | None] = mapped_column(ForeignKey("exercises.id"))
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
