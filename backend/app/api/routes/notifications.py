@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from sqlalchemy import select, func, update
 
 from app.api.deps import AsyncSessionDep, CurrentUser
