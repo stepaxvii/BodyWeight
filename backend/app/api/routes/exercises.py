@@ -1,12 +1,17 @@
-from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
-from sqlalchemy import select, delete
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
-from app.db.models import Exercise, ExerciseCategory, UserExerciseProgress, UserFavoriteExercise
+from app.db.models import (
+    Exercise,
+    ExerciseCategory,
+    UserExerciseProgress,
+    UserFavoriteExercise
+)
 from app.services.data_loader import load_all_routines
+from app.utils.cache import timed_cache
 
 router = APIRouter()
 
@@ -32,7 +37,7 @@ class ExerciseResponse(BaseModel):
     name_ru: str
     description: str | None
     description_ru: str | None
-    tags: List[str] = []
+    tags: list[str] = []
     difficulty: int
     base_xp: int
     required_level: int
@@ -60,9 +65,10 @@ class ExerciseWithProgressResponse(ExerciseResponse):
     user_progress: ExerciseProgressResponse | None = None
 
 
-@router.get("/categories", response_model=List[CategoryResponse])
+@router.get("/categories", response_model=list[CategoryResponse])
+@timed_cache(seconds=600)  # Cache for 10 minutes
 async def get_categories(session: AsyncSessionDep):
-    """Get all exercise categories."""
+    """Get all exercise categories with caching."""
     result = await session.execute(
         select(ExerciseCategory)
         .options(selectinload(ExerciseCategory.exercises))
@@ -85,21 +91,21 @@ async def get_categories(session: AsyncSessionDep):
     ]
 
 
-@router.get("", response_model=List[ExerciseResponse])
+@router.get("", response_model=list[ExerciseResponse])
 async def get_exercises(
     session: AsyncSessionDep,
     user: CurrentUser,
-    category: Optional[str] = Query(None, description="Filter by category slug"),
-    tags: Optional[str] = Query(None, description="Filter by tags (comma-separated)"),
-    difficulty: Optional[int] = Query(None, ge=1, le=5, description="Filter by difficulty"),
-    max_level: Optional[int] = Query(None, description="Filter exercises up to required level"),
+    category: str | None = Query(None, description="Filter by category slug"),
+    tags: str | None = Query(None, description="Filter by tags (comma-separated)"),
+    difficulty: int | None = Query(None, ge=1, le=5, description="Filter by difficulty"),
+    max_level: int | None = Query(None, description="Filter exercises up to required level"),
     favorites_only: bool = Query(False, description="Show only favorite exercises"),
 ):
-    """Get all exercises with optional filters."""
+    """Get all exercises with optional filters and caching."""
     query = (
         select(Exercise)
         .options(selectinload(Exercise.category))
-        .where(Exercise.is_active == True)
+        .where(Exercise.is_active is True)
     )
 
     if category:
@@ -178,7 +184,7 @@ async def get_exercise(
             selectinload(Exercise.harder_exercise),
         )
         .where(Exercise.slug == slug)
-        .where(Exercise.is_active == True)
+        .where(Exercise.is_active is True)
     )
     exercise = result.scalar_one_or_none()
 
@@ -283,10 +289,10 @@ class RoutineResponse(BaseModel):
     category: str  # morning, home, pullup-bar, dip-bars
     duration_minutes: int
     difficulty: int
-    exercises: List[RoutineExerciseResponse]
+    exercises: list[RoutineExerciseResponse]
 
 
-@router.get("/routines/all", response_model=List[RoutineResponse])
+@router.get("/routines/all", response_model=list[RoutineResponse])
 async def get_routines(
     category: str | None = Query(None, description="Filter by category: morning, home, pullup-bar, dip-bars")
 ):
@@ -394,7 +400,7 @@ async def toggle_favorite(
         return FavoriteResponse(exercise_id=exercise_id, is_favorite=True)
 
 
-@router.get("/favorites/list", response_model=List[int])
+@router.get("/favorites/list", response_model=list[int])
 async def get_favorite_ids(
     session: AsyncSessionDep,
     user: CurrentUser,

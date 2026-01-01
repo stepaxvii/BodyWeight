@@ -151,34 +151,38 @@ async def get_friends_leaderboard(
     session: AsyncSessionDep,
     user: CurrentUser,
 ):
-    """Get leaderboard among friends."""
+    """Get leaderboard among friends with optimized JOIN query."""
     logger.info(f"[Leaderboard/Friends] Getting friends leaderboard, user_id={user.id}")
 
-    # Get friend IDs
-    friends_result = await session.execute(
-        select(Friendship.friend_id)
-        .where(Friendship.user_id == user.id)
-        .where(Friendship.status == "accepted")
-    )
-    friend_ids = [row[0] for row in friends_result.all()]
-    logger.info(f"[Leaderboard/Friends] Found {len(friend_ids)} friends: {friend_ids}")
-
-    # Include current user
-    all_ids = friend_ids + [user.id]
-    logger.info(f"[Leaderboard/Friends] All IDs to fetch: {all_ids}")
-
-    result = await session.execute(
+    # Optimized: One JOIN query instead of two separate queries
+    # Get friends where current user is the requester
+    stmt = (
         select(User)
-        .where(User.id.in_(all_ids))
+        .join(
+            Friendship,
+            and_(
+                Friendship.friend_id == User.id,
+                Friendship.user_id == user.id,
+                Friendship.status == "accepted"
+            )
+        )
         .order_by(User.total_xp.desc())
+        .limit(50)
     )
-    users = result.scalars().all()
-    logger.info(f"[Leaderboard/Friends] Found {len(users)} users")
+
+    result = await session.execute(stmt)
+    friends = list(result.scalars().all())
+    logger.info(f"[Leaderboard/Friends] Found {len(friends)} friends via JOIN")
+
+    # Add current user to the list
+    friends_with_me = [user] + friends
+    # Re-sort to include current user in correct position
+    friends_with_me.sort(key=lambda u: u.total_xp, reverse=True)
 
     entries = []
     current_user_rank = None
 
-    for rank, u in enumerate(users, 1):
+    for rank, u in enumerate(friends_with_me, 1):
         is_current = u.id == user.id
         if is_current:
             current_user_rank = rank

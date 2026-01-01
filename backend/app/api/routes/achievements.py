@@ -1,4 +1,3 @@
-from typing import List
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -32,7 +31,7 @@ class RecentAchievementResponse(BaseModel):
     unlocked_at: str
 
 
-@router.get("", response_model=List[AchievementResponse])
+@router.get("", response_model=list[AchievementResponse])
 async def get_achievements(
     session: AsyncSessionDep,
     user: CurrentUser,
@@ -67,7 +66,7 @@ async def get_achievements(
     return response
 
 
-@router.get("/recent", response_model=List[RecentAchievementResponse])
+@router.get("/recent", response_model=list[RecentAchievementResponse])
 async def get_recent_achievements(
     session: AsyncSessionDep,
     user: CurrentUser,
