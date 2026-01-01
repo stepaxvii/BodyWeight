@@ -120,6 +120,14 @@ class ApiClient {
 		return this.request<User>('/users/me');
 	}
 
+	async getPurchasedAvatars(): Promise<string[]> {
+		if (this.useMocks) {
+			// Return empty array for mocks
+			return [];
+		}
+		return this.request<string[]>('/users/me/purchased-avatars');
+	}
+
 	async getUserStats(): Promise<UserStats> {
 		if (this.useMocks) {
 			return {

@@ -53,6 +53,20 @@ async def get_current_user_profile(user: CurrentUser):
     return UserResponse.model_validate(user)
 
 
+@router.get("/me/purchased-avatars", response_model=list[str])
+async def get_purchased_avatars(
+    user: CurrentUser,
+    session: AsyncSessionDep,
+):
+    """Get list of purchased avatar IDs for current user."""
+    result = await session.execute(
+        select(UserAvatarPurchase.avatar_id)
+        .where(UserAvatarPurchase.user_id == user.id)
+    )
+    purchased_avatar_ids = [row[0] for row in result.all()]
+    return purchased_avatar_ids
+
+
 @router.put("/me", response_model=UserResponse)
 async def update_current_user(
     user: CurrentUser,
