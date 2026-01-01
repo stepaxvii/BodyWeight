@@ -32,7 +32,8 @@
 	];
 
 	onMount(async () => {
-		exercises = await api.getExercises();
+		const response = await api.getAllExercises();
+		exercises = response;
 	});
 
 	function selectEquipment(eq: EquipmentType) {

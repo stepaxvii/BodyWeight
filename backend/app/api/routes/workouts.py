@@ -1,6 +1,6 @@
 from datetime import datetime, date, timedelta
 from fastapi import APIRouter, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
@@ -22,6 +22,7 @@ from app.schemas import (
     WorkoutResponse,
     WorkoutSummaryResponse,
     TodayStatsResponse,
+    PaginatedResponse,
 )
 
 router = APIRouter()
@@ -258,14 +259,24 @@ async def submit_workout(
     )
 
 
-@router.get("/history", response_model=list[WorkoutResponse])
+@router.get("/history", response_model=PaginatedResponse[WorkoutResponse])
 async def get_workout_history(
     session: AsyncSessionDep,
     user: CurrentUser,
-    limit: int = Query(20, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(20, ge=1, le=100, description="Maximum number of items to return"),
 ):
-    """Get user's workout history."""
+    """Get user's workout history with pagination."""
+    # Count total workouts
+    count_stmt = (
+        select(func.count(WorkoutSession.id))
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "completed")
+    )
+    total_result = await session.execute(count_stmt)
+    total = total_result.scalar() or 0
+
+    # Get paginated workouts
     result = await session.execute(
         select(WorkoutSession)
         .options(
@@ -274,11 +285,18 @@ async def get_workout_history(
         .where(WorkoutSession.user_id == user.id)
         .where(WorkoutSession.status == "completed")
         .order_by(WorkoutSession.finished_at.desc())
+        .offset(skip)
         .limit(limit)
-        .offset(offset)
     )
     workouts = result.scalars().all()
-    return [_make_workout_response(w) for w in workouts]
+
+    return PaginatedResponse(
+        items=[_make_workout_response(w) for w in workouts],
+        total=total,
+        skip=skip,
+        limit=limit,
+        has_more=skip + limit < total,
+    )
 
 
 @router.get("/today", response_model=TodayStatsResponse)

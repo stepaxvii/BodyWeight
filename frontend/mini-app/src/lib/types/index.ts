@@ -1,3 +1,12 @@
+// Pagination
+export interface PaginatedResponse<T> {
+	items: T[];
+	total: number;
+	skip: number;
+	limit: number;
+	has_more: boolean;
+}
+
 // Badge types (unlocked via achievements)
 // Badge slugs use kebab-case to match SVG filenames
 export type BadgeId =

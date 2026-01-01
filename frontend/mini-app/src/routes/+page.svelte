@@ -17,8 +17,8 @@
 
 	onMount(async () => {
 		await userStore.loadStats();
-		const achievements = await api.getAchievements();
-		recentAchievements = achievements.filter(a => a.unlocked).slice(0, 3);
+		const response = await api.getAllAchievements();
+		recentAchievements = response.filter(a => a.unlocked).slice(0, 3);
 
 		// Load unread notifications count
 		try {

@@ -9,7 +9,8 @@
 	let filter = $state<'all' | 'unlocked' | 'locked'>('all');
 
 	onMount(async () => {
-		achievements = await api.getAchievements();
+		const response = await api.getAllAchievements();
+		achievements = response;
 	});
 
 	const filteredAchievements = $derived(() => {

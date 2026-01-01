@@ -1,5 +1,6 @@
 """Pydantic schemas for API requests and responses."""
 
+from .common import PaginatedResponse
 from .users import (
     UserResponse,
     UserStatsResponse,
@@ -40,6 +41,8 @@ from .custom_routines import (
 )
 
 __all__ = [
+    # Common
+    "PaginatedResponse",
     # Users
     "UserResponse",
     "UserStatsResponse",
@@ -89,4 +92,3 @@ __all__ = [
     "CustomRoutineResponse",
     "CustomRoutineListItem",
 ]
-

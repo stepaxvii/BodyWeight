@@ -12,7 +12,8 @@
 
 	onMount(async () => {
 		await userStore.loadStats();
-		achievements = await api.getAchievements();
+		const response = await api.getAllAchievements();
+		achievements = response;
 	});
 
 	const unlockedAchievements = $derived(achievements.filter(a => a.unlocked));

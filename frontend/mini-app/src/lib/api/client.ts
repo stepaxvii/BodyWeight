@@ -17,7 +17,8 @@ import type {
 	CustomRoutine,
 	CustomRoutineListItem,
 	CustomRoutineCreate,
-	Notification
+	Notification,
+	PaginatedResponse
 } from '$lib/types';
 
 const API_BASE = '/bodyweight/api';
@@ -108,9 +109,36 @@ class ApiClient {
 		return this.request<ExerciseCategory[]>('/exercises/categories');
 	}
 
-	async getExercises(category?: string): Promise<Exercise[]> {
-		const query = category ? `?category=${category}` : '';
-		return this.request<Exercise[]>(`/exercises${query}`);
+	async getExercises(
+		category?: string,
+		options?: { skip?: number; limit?: number }
+	): Promise<PaginatedResponse<Exercise>> {
+		const params = new URLSearchParams();
+		if (category) params.append('category', category);
+		if (options?.skip !== undefined) params.append('skip', options.skip.toString());
+		if (options?.limit !== undefined) params.append('limit', options.limit.toString());
+		const query = params.toString() ? `?${params.toString()}` : '';
+		return this.request<PaginatedResponse<Exercise>>(`/exercises${query}`);
+	}
+
+	/**
+	 * Get all exercises (for backward compatibility).
+	 * This method loads all exercises by making multiple paginated requests.
+	 */
+	async getAllExercises(category?: string): Promise<Exercise[]> {
+		const allExercises: Exercise[] = [];
+		let skip = 0;
+		const limit = 100;
+		let hasMore = true;
+
+		while (hasMore) {
+			const response = await this.getExercises(category, { skip, limit });
+			allExercises.push(...response.items);
+			hasMore = response.has_more;
+			skip += limit;
+		}
+
+		return allExercises;
 	}
 
 	async getExercise(slug: string): Promise<Exercise | undefined> {
@@ -137,8 +165,32 @@ class ApiClient {
 	}
 
 	// Achievements
-	async getAchievements(): Promise<Achievement[]> {
-		return this.request<Achievement[]>('/achievements');
+	async getAchievements(options?: { skip?: number; limit?: number }): Promise<PaginatedResponse<Achievement>> {
+		const params = new URLSearchParams();
+		if (options?.skip !== undefined) params.append('skip', options.skip.toString());
+		if (options?.limit !== undefined) params.append('limit', options.limit.toString());
+		const query = params.toString() ? `?${params.toString()}` : '';
+		return this.request<PaginatedResponse<Achievement>>(`/achievements${query}`);
+	}
+
+	/**
+	 * Get all achievements (for backward compatibility).
+	 * This method loads all achievements by making multiple paginated requests.
+	 */
+	async getAllAchievements(): Promise<Achievement[]> {
+		const allAchievements: Achievement[] = [];
+		let skip = 0;
+		const limit = 100;
+		let hasMore = true;
+
+		while (hasMore) {
+			const response = await this.getAchievements({ skip, limit });
+			allAchievements.push(...response.items);
+			hasMore = response.has_more;
+			skip += limit;
+		}
+
+		return allAchievements;
 	}
 
 	// Leaderboard

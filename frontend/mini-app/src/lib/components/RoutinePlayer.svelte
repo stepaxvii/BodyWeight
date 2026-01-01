@@ -61,7 +61,7 @@
 	onMount(async () => {
 		// Only fetch if exercises weren't passed as prop
 		if (allExercises.length === 0) {
-			allExercises = await api.getExercises();
+			allExercises = await api.getAllExercises();
 		}
 	});
 

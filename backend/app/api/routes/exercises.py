@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
@@ -12,6 +12,7 @@ from app.db.models import (
 )
 from app.services.data_loader import load_all_routines
 from app.utils.cache import timed_cache
+from app.schemas import PaginatedResponse, ExerciseResponse
 
 router = APIRouter()
 
@@ -91,7 +92,7 @@ async def get_categories(session: AsyncSessionDep):
     ]
 
 
-@router.get("", response_model=list[ExerciseResponse])
+@router.get("", response_model=PaginatedResponse[ExerciseResponse])
 async def get_exercises(
     session: AsyncSessionDep,
     user: CurrentUser,
@@ -100,8 +101,10 @@ async def get_exercises(
     difficulty: int | None = Query(None, ge=1, le=5, description="Filter by difficulty"),
     max_level: int | None = Query(None, description="Filter exercises up to required level"),
     favorites_only: bool = Query(False, description="Show only favorite exercises"),
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(50, ge=1, le=100, description="Maximum number of items to return"),
 ):
-    """Get all exercises with optional filters and caching."""
+    """Get exercises with optional filters and pagination."""
     query = (
         select(Exercise)
         .options(selectinload(Exercise.category))
@@ -132,7 +135,8 @@ async def get_exercises(
     # Parse tags filter
     tag_filter = set(tags.split(",")) if tags else None
 
-    response = []
+    # Apply Python-level filters (tags, favorites)
+    filtered_exercises = []
     for ex in exercises:
         is_favorite = ex.id in favorite_ids
 
@@ -146,6 +150,18 @@ async def get_exercises(
             if not tag_filter.intersection(ex_tags):
                 continue
 
+        filtered_exercises.append(ex)
+
+    # Calculate total before pagination
+    total = len(filtered_exercises)
+
+    # Apply pagination
+    paginated_exercises = filtered_exercises[skip:skip + limit]
+
+    # Build response
+    response_items = []
+    for ex in paginated_exercises:
+        is_favorite = ex.id in favorite_ids
         ex_response = ExerciseResponse(
             id=ex.id,
             slug=ex.slug,
@@ -164,9 +180,15 @@ async def get_exercises(
             category_slug=ex.category.slug if ex.category else "",
             is_favorite=is_favorite,
         )
-        response.append(ex_response)
+        response_items.append(ex_response)
 
-    return response
+    return PaginatedResponse(
+        items=response_items,
+        total=total,
+        skip=skip,
+        limit=limit,
+        has_more=skip + limit < total,
+    )
 
 
 @router.get("/{slug}", response_model=ExerciseWithProgressResponse)

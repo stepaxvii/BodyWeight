@@ -197,7 +197,7 @@
 		// Load ALL data in parallel for faster page load
 		const [cats, exs, rts, customRts, _, __] = await Promise.all([
 			api.getCategories(),
-			api.getExercises(),
+			api.getAllExercises(),
 			api.getRoutines(),
 			api.getCustomRoutines(),
 			workoutStore.loadActiveWorkout(),

@@ -4,17 +4,21 @@ from sqlalchemy import select
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import UserAchievement
 from app.utils.achievement_loader import load_achievements
-from app.schemas import AchievementResponse, RecentAchievementResponse
+from app.schemas import (
+    AchievementResponse, RecentAchievementResponse, PaginatedResponse
+)
 
 router = APIRouter()
 
 
-@router.get("", response_model=list[AchievementResponse])
+@router.get("", response_model=PaginatedResponse[AchievementResponse])
 async def get_achievements(
     session: AsyncSessionDep,
     user: CurrentUser,
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(50, ge=1, le=100, description="Maximum number of items to return"),
 ):
-    """Get all achievements with unlock status for current user."""
+    """Get achievements with unlock status for current user, with pagination."""
     achievements_data = load_achievements()
 
     # Get user's unlocked achievements
@@ -24,10 +28,11 @@ async def get_achievements(
     )
     user_achievements = {ua.achievement_slug: ua for ua in result.scalars().all()}
 
-    response = []
+    # Build all achievements
+    all_achievements = []
     for ach in achievements_data:
         user_ach = user_achievements.get(ach["slug"])
-        response.append(AchievementResponse(
+        all_achievements.append(AchievementResponse(
             slug=ach["slug"],
             name=ach["name"],
             name_ru=ach["name_ru"],
@@ -41,7 +46,19 @@ async def get_achievements(
             condition=ach.get("condition", {}),
         ))
 
-    return response
+    # Calculate total
+    total = len(all_achievements)
+
+    # Apply pagination
+    paginated_achievements = all_achievements[skip:skip + limit]
+
+    return PaginatedResponse(
+        items=paginated_achievements,
+        total=total,
+        skip=skip,
+        limit=limit,
+        has_more=skip + limit < total,
+    )
 
 
 @router.get("/recent", response_model=list[RecentAchievementResponse])
