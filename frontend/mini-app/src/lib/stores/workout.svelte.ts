@@ -39,32 +39,46 @@ class WorkoutStore {
 	}
 
 	get totalXp() {
-		// If workout completed, use session total
+		// If workout completed, use session total from backend
 		if (this.session?.total_xp_earned) {
 			return this.session.total_xp_earned;
 		}
-		// Otherwise calculate locally from exercise data (simplified version of backend formula)
-		// Full formula on backend: base_xp × difficulty_mult × streak_mult × volume_mult × first_bonus
-		// Here we use simplified: base_xp × difficulty_mult × volume_mult (no streak/first bonus)
+		// During workout: return 0 or estimated value
+		// NOTE: Accurate XP calculation requires backend data (streak, isFirstToday)
+		// We don't calculate locally to avoid showing incorrect values
+		// Frontend will show XP only after workout completion
+		return 0;
+	}
+
+	/**
+	 * Get estimated XP for preview (approximate, not accurate)
+	 * Uses simplified formula without streak and first workout bonuses
+	 * Only for display purposes - actual XP comes from backend
+	 */
+	get estimatedXp(): number {
+		if (this.session?.total_xp_earned) {
+			return this.session.total_xp_earned;
+		}
+		// Simplified estimate (without streak/first bonus) for preview only
 		let total = 0;
 		this.exerciseData.forEach(data => {
 			if (data.exercise && data.sets.length > 0) {
 				const baseXp = data.exercise.base_xp;
 				const difficulty = data.exercise.difficulty || 1;
-				// Difficulty multiplier: 1.0, 1.25, 1.5, 1.75, 2.0 for difficulty 1-5
 				const difficultyMult = 1 + (difficulty - 1) * 0.25;
 
-				// Calculate XP per set based on reps
-				for (const reps of data.sets) {
-					// Volume multiplier with diminishing returns after 20 reps
-					let volumeMult: number;
-					if (reps <= 20) {
-						volumeMult = 1 + reps * 0.02; // 1.0 to 1.4
-					} else {
-						volumeMult = 1.4 + (reps - 20) * 0.01; // slower growth
-					}
-					total += baseXp * difficultyMult * volumeMult;
+				// Sum all reps for this exercise
+				const totalReps = data.sets.reduce((sum, reps) => sum + reps, 0);
+				
+				// Volume multiplier
+				let volumeMult: number;
+				if (totalReps <= 20) {
+					volumeMult = 1 + totalReps * 0.02;
+				} else {
+					volumeMult = 1.4 + (totalReps - 20) * 0.01;
 				}
+				
+				total += baseXp * difficultyMult * volumeMult;
 			}
 		});
 		return Math.floor(total);

@@ -338,7 +338,13 @@
 					<span class="stat-label">Повторов</span>
 				</div>
 				<div class="stat">
-					<span class="stat-value text-green">+{workoutStore.totalXp}</span>
+					{#if workoutStore.session?.total_xp_earned}
+						<span class="stat-value text-green">+{workoutStore.totalXp}</span>
+					{:else if workoutStore.estimatedXp > 0}
+						<span class="stat-value text-green">~{workoutStore.estimatedXp}</span>
+					{:else}
+						<span class="stat-value text-green">—</span>
+					{/if}
 					<span class="stat-label">XP</span>
 				</div>
 			</div>

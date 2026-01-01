@@ -234,6 +234,14 @@ async def process_workout_completion(
     user.level = new_level
     level_up = new_level > old_level
 
+    # Award bonus coins for level up (5 coins per level gained)
+    if level_up:
+        levels_gained = new_level - old_level
+        level_up_bonus = levels_gained * 5
+        user.coins += level_up_bonus
+        workout.total_coins_earned += level_up_bonus
+        total_coins += level_up_bonus
+
     # 9. Update streak
     if user.last_workout_date is None:
         user.current_streak = 1
@@ -253,11 +261,13 @@ async def process_workout_completion(
     # 11. Check achievements
     new_achievements = await check_achievements(session, user)
 
-    # Add bonus coins for achievements
+    # Note: Coins and XP from achievements are already awarded in check_achievements()
+    # We just track them in workout summary for display
     if new_achievements:
         bonus_coins = sum(a.get("coin_reward", 0) for a in new_achievements)
+        # Add to workout total for display, but don't add to user.coins again
+        # (already added in check_achievements)
         workout.total_coins_earned += bonus_coins
-        user.coins += bonus_coins
         total_coins += bonus_coins
 
     await session.flush()
