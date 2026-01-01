@@ -31,8 +31,13 @@
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 	let isExerciseTimerStarted = $state(false); // User must start timer manually for time-based exercises
 
-	// Workout session
-	let workoutSessionId = $state<number | null>(null);
+	// Workout session - collect exercises to submit at the end
+	let workoutStartTime = $state<Date | null>(null);
+	let completedExercises = $state<Array<{
+		exercise_slug: string;
+		sets: number[];
+		is_timed: boolean;
+	}>>([]);
 	let totalXpEarned = $state(0);
 	let totalCoinsEarned = $state(0);
 	let completedExercisesCount = $state(0);
@@ -94,20 +99,13 @@
 
 	async function startRoutine() {
 		isStarted = true;
+		workoutStartTime = new Date();
+		completedExercises = [];
 		telegram.hapticImpact('medium');
 
 		// Start the total workout timer immediately
 		startTimer();
 		resetExerciseTimer();
-
-		try {
-			// Start a workout session on the server
-			const session = await api.startWorkout();
-			workoutSessionId = session.id;
-		} catch (err) {
-			console.error('Failed to start routine:', err);
-			telegram.hapticNotification('error');
-		}
 	}
 
 	function resetExerciseTimer() {
@@ -125,47 +123,55 @@
 	}
 
 	async function completeExercise() {
-		if (!workoutSessionId || !currentExercise) return;
+		if (!currentExercise) return;
 
 		telegram.hapticImpact('medium');
 
-		try {
-			// Record the exercise
-			const value = isTimeBased
-				? Math.ceil((currentExercise.duration || 0) / 10)
-				: (currentExercise.reps || 0);
+		// Record the exercise locally
+		const exerciseData = allExercises.find(e => e.slug === currentExercise.slug);
+		const isTimed = exerciseData?.is_timed || !!currentExercise.duration;
 
-			const result = await api.addExerciseToWorkout(
-				workoutSessionId,
-				currentExercise.slug,
-				value,
-				1
-			);
+		let sets: number[];
+		if (isTimed) {
+			// For timed exercises, use the target duration
+			const duration = currentExercise.duration || 0;
+			sets = [duration];
+		} else {
+			// For rep-based exercises, use the target reps
+			const reps = currentExercise.reps || 0;
+			sets = [reps];
+		}
 
-			totalXpEarned = result.total_xp_earned;
-			totalCoinsEarned = result.total_coins_earned;
-			completedExercisesCount++;
+		completedExercises.push({
+			exercise_slug: currentExercise.slug,
+			sets,
+			is_timed: isTimed,
+		});
 
-			// Move to next exercise or complete
-			if (currentStep < routine.exercises.length - 1) {
-				currentStep++;
-				resetExerciseTimer();
-			} else {
-				await finishRoutine();
-			}
-		} catch (err) {
-			console.error('Failed to record exercise:', err);
-			telegram.hapticNotification('error');
+		completedExercisesCount++;
+
+		// Move to next exercise or complete
+		if (currentStep < routine.exercises.length - 1) {
+			currentStep++;
+			resetExerciseTimer();
+		} else {
+			await finishRoutine();
 		}
 	}
 
 	async function finishRoutine() {
-		if (!workoutSessionId) return;
+		if (!workoutStartTime || completedExercises.length === 0) return;
 
 		isSubmitting = true;
+		stopTimer();
+
 		try {
-			const completed = await api.completeWorkout(workoutSessionId);
-			stopTimer();
+			const durationSeconds = timerSeconds;
+			const completed = await api.submitWorkout({
+				duration_seconds: durationSeconds,
+				exercises: completedExercises,
+			});
+
 			isCompleted = true;
 			totalXpEarned = completed.workout.total_xp_earned;
 			totalCoinsEarned = completed.workout.total_coins_earned;

@@ -1,4 +1,3 @@
-from typing import List, Optional
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -14,8 +13,8 @@ router = APIRouter()
 
 class RoutineExerciseCreate(BaseModel):
     exercise_id: int
-    target_reps: Optional[int] = None
-    target_duration: Optional[int] = None
+    target_reps: int | None = None
+    target_duration: int | None = None
     rest_seconds: int = 30
 
 
@@ -26,8 +25,8 @@ class RoutineExerciseResponse(BaseModel):
     exercise_name_ru: str
     is_timed: bool
     sort_order: int
-    target_reps: Optional[int]
-    target_duration: Optional[int]
+    target_reps: int | None
+    target_duration: int | None
     rest_seconds: int
 
     class Config:
@@ -36,26 +35,26 @@ class RoutineExerciseResponse(BaseModel):
 
 class CustomRoutineCreate(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     routine_type: str = "workout"  # morning, workout, stretch
-    exercises: List[RoutineExerciseCreate] = []
+    exercises: list[RoutineExerciseCreate] = []
 
 
 class CustomRoutineUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    routine_type: Optional[str] = None
-    exercises: Optional[List[RoutineExerciseCreate]] = None
+    name: str | None= None
+    description: str | None = None
+    routine_type: str | None = None
+    exercises: list[RoutineExerciseCreate] | None = None
 
 
 class CustomRoutineResponse(BaseModel):
     id: int
     name: str
-    description: Optional[str]
+    description: str | None
     routine_type: str
     duration_minutes: int
     is_active: bool
-    exercises: List[RoutineExerciseResponse]
+    exercises: list[RoutineExerciseResponse]
 
     class Config:
         from_attributes = True
@@ -74,18 +73,18 @@ class CustomRoutineListItem(BaseModel):
 
 # ============== Endpoints ==============
 
-@router.get("", response_model=List[CustomRoutineListItem])
+@router.get("", response_model=list[CustomRoutineListItem])
 async def list_custom_routines(
     session: AsyncSessionDep,
     user: CurrentUser,
-    routine_type: Optional[str] = None,
+    routine_type: str | None = None,
 ):
     """Get all custom routines for the current user."""
     query = (
         select(UserCustomRoutine)
         .options(selectinload(UserCustomRoutine.exercises))
         .where(UserCustomRoutine.user_id == user.id)
-        .where(UserCustomRoutine.is_active == True)
+        .where(UserCustomRoutine.is_active is True)
     )
 
     if routine_type:

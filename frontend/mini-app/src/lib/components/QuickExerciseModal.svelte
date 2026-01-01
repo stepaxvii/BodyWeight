@@ -82,30 +82,19 @@
 		telegram.hapticNotification('success');
 
 		try {
-			// Start a quick workout session
-			const session = await api.startWorkout();
-
-			// Add the exercise - use proper API params for reps vs duration
 			const timeBased = isTimeBased(selectedExercise);
-			console.log('[QuickExercise] Adding:', {
-				slug: selectedExercise.slug,
-				timeBased,
-				reps: timeBased ? 0 : reps,
-				duration: timeBased ? duration : 0
+			const startTime = new Date();
+
+			// Submit workout directly with exercise data
+			const response = await api.submitWorkout({
+				duration_seconds: timeBased ? duration : 30, // Estimate 30s for rep-based
+				exercises: [{
+					exercise_slug: selectedExercise.slug,
+					sets: timeBased ? [duration] : [reps],
+					is_timed: timeBased,
+				}],
 			});
 
-			// For timed exercises: reps=0, durationSeconds=duration
-			// For rep-based exercises: reps=reps, durationSeconds=0
-			await api.addExerciseToWorkout(
-				session.id,
-				selectedExercise.slug,
-				timeBased ? 0 : reps,
-				1, // sets
-				timeBased ? duration : 0 // durationSeconds
-			);
-
-			// Complete the workout
-			const response = await api.completeWorkout(session.id);
 			const completed = response.workout;
 
 			// Reload user data from server to get updated XP, level, coins, streak
