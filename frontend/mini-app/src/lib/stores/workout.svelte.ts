@@ -39,14 +39,13 @@ class WorkoutStore {
 	}
 
 	get totalXp() {
-		// If workout completed, use session total from backend
-		if (this.session?.total_xp_earned) {
+		// If workout completed (not active), use session total from backend
+		if (!this.isActive && this.session?.total_xp_earned) {
 			return this.session.total_xp_earned;
 		}
-		// During workout: return 0 or estimated value
+		// During active workout: return 0
 		// NOTE: Accurate XP calculation requires backend data (streak, isFirstToday)
-		// We don't calculate locally to avoid showing incorrect values
-		// Frontend will show XP only after workout completion
+		// Frontend shows estimated XP via $derived in components
 		return 0;
 	}
 
@@ -197,6 +196,9 @@ class WorkoutStore {
 	async startWorkout() {
 		if (this.selectedExercises.length === 0) return;
 
+		// CRITICAL: Clear old session data when starting new workout
+		// This prevents old total_xp_earned from showing up
+		this.session = null;
 		this.isActive = true;
 
 		// Initialize exercise data for each selected exercise

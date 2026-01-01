@@ -60,8 +60,9 @@
 			return 0;
 		}
 		
-		// For completed workouts, use backend value
-		if (workoutStore.session?.total_xp_earned && !workoutStore.isActive) {
+		// For completed workouts (not active), use backend value
+		// For active workouts, always recalculate from current exerciseData
+		if (!workoutStore.isActive && workoutStore.session?.total_xp_earned) {
 			return workoutStore.session.total_xp_earned;
 		}
 		
@@ -412,7 +413,7 @@
 					{#if workoutStore.totalSets === 0}
 						<!-- No sets yet - show nothing or dash -->
 						<span class="stat-value text-green">—</span>
-					{:else if workoutStore.session?.total_xp_earned}
+					{:else if !workoutStore.isActive && workoutStore.session?.total_xp_earned}
 						<!-- Completed workout - show actual XP from backend -->
 						<span class="stat-value text-green">+{workoutStore.totalXp}</span>
 					{:else if estimatedXp > 0}
