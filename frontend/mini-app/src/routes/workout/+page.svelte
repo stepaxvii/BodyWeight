@@ -43,6 +43,49 @@
 	let selectedDifficulties = $state<number[]>([]);
 	let selectedTags = $state<string[]>([]);
 
+	// Calculate estimated XP reactively from workout store
+	const estimatedXp = $derived.by(() => {
+		if (workoutStore.session?.total_xp_earned) {
+			return workoutStore.session.total_xp_earned;
+		}
+		// Simplified estimate (without streak/first bonus) for preview only
+		// Only count exercises that have at least one set
+		let total = 0;
+		workoutStore.exerciseData.forEach(data => {
+			// Must have exercise data AND at least one set
+			if (!data.exercise || data.sets.length === 0) {
+				return;
+			}
+			
+			const baseXp = data.exercise.base_xp;
+			const difficulty = data.exercise.difficulty || 1;
+			const difficultyMult = 1 + (difficulty - 1) * 0.25;
+
+			// For timed exercises, convert seconds to "rep equivalent" (10 sec = 1 rep)
+			// For rep-based exercises, use reps directly
+			let totalValue: number;
+			if (data.isTimed) {
+				// Sum all seconds and convert to rep equivalent
+				const totalSeconds = data.sets.reduce((sum, seconds) => sum + seconds, 0);
+				totalValue = Math.max(1, Math.floor(totalSeconds / 10)); // 10 sec = 1 rep equivalent
+			} else {
+				// Sum all reps
+				totalValue = data.sets.reduce((sum, reps) => sum + reps, 0);
+			}
+			
+			// Volume multiplier based on total value
+			let volumeMult: number;
+			if (totalValue <= 20) {
+				volumeMult = 1 + totalValue * 0.02;
+			} else {
+				volumeMult = 1.4 + (totalValue - 20) * 0.01;
+			}
+			
+			total += baseXp * difficultyMult * volumeMult;
+		});
+		return Math.floor(total);
+	});
+
 	// Filtered exercises by all criteria
 	const filteredExercises = $derived.by(() => {
 		let result = exercises;
@@ -340,8 +383,8 @@
 				<div class="stat">
 					{#if workoutStore.session?.total_xp_earned}
 						<span class="stat-value text-green">+{workoutStore.totalXp}</span>
-					{:else if workoutStore.estimatedXp > 0}
-						<span class="stat-value text-green">~{workoutStore.estimatedXp}</span>
+					{:else if estimatedXp > 0}
+						<span class="stat-value text-green">~{estimatedXp}</span>
 					{:else}
 						<span class="stat-value text-green">—</span>
 					{/if}

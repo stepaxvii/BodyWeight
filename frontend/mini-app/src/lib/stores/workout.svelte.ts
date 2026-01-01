@@ -54,32 +54,46 @@ class WorkoutStore {
 	 * Get estimated XP for preview (approximate, not accurate)
 	 * Uses simplified formula without streak and first workout bonuses
 	 * Only for display purposes - actual XP comes from backend
+	 * NOTE: This getter is not reactive in Svelte 5. Use $derived in components instead.
 	 */
 	get estimatedXp(): number {
 		if (this.session?.total_xp_earned) {
 			return this.session.total_xp_earned;
 		}
 		// Simplified estimate (without streak/first bonus) for preview only
+		// Only count exercises that have at least one set
 		let total = 0;
 		this.exerciseData.forEach(data => {
-			if (data.exercise && data.sets.length > 0) {
-				const baseXp = data.exercise.base_xp;
-				const difficulty = data.exercise.difficulty || 1;
-				const difficultyMult = 1 + (difficulty - 1) * 0.25;
-
-				// Sum all reps for this exercise
-				const totalReps = data.sets.reduce((sum, reps) => sum + reps, 0);
-				
-				// Volume multiplier
-				let volumeMult: number;
-				if (totalReps <= 20) {
-					volumeMult = 1 + totalReps * 0.02;
-				} else {
-					volumeMult = 1.4 + (totalReps - 20) * 0.01;
-				}
-				
-				total += baseXp * difficultyMult * volumeMult;
+			// Must have exercise data AND at least one set
+			if (!data.exercise || data.sets.length === 0) {
+				return;
 			}
+			
+			const baseXp = data.exercise.base_xp;
+			const difficulty = data.exercise.difficulty || 1;
+			const difficultyMult = 1 + (difficulty - 1) * 0.25;
+
+			// For timed exercises, convert seconds to "rep equivalent" (10 sec = 1 rep)
+			// For rep-based exercises, use reps directly
+			let totalValue: number;
+			if (data.isTimed) {
+				// Sum all seconds and convert to rep equivalent
+				const totalSeconds = data.sets.reduce((sum, seconds) => sum + seconds, 0);
+				totalValue = Math.max(1, Math.floor(totalSeconds / 10)); // 10 sec = 1 rep equivalent
+			} else {
+				// Sum all reps
+				totalValue = data.sets.reduce((sum, reps) => sum + reps, 0);
+			}
+			
+			// Volume multiplier based on total value
+			let volumeMult: number;
+			if (totalValue <= 20) {
+				volumeMult = 1 + totalValue * 0.02;
+			} else {
+				volumeMult = 1.4 + (totalValue - 20) * 0.01;
+			}
+			
+			total += baseXp * difficultyMult * volumeMult;
 		});
 		return Math.floor(total);
 	}
