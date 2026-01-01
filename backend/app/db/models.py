@@ -1,4 +1,5 @@
 from datetime import datetime, date, time
+from typing import Optional
 from sqlalchemy import (
     String,
     Integer,
@@ -115,10 +116,10 @@ class Exercise(Base):
 
     # Relationships
     category: Mapped["ExerciseCategory"] = relationship(back_populates="exercises")
-    easier_exercise: Mapped["Exercise" | None] = relationship(
+    easier_exercise: Mapped[Optional["Exercise"]] = relationship(
         foreign_keys=[easier_exercise_id], remote_side=[id]
     )
-    harder_exercise: Mapped["Exercise" | None] = relationship(
+    harder_exercise: Mapped[Optional["Exercise"]] = relationship(
         foreign_keys=[harder_exercise_id], remote_side=[id]
     )
 
@@ -401,7 +402,7 @@ class Notification(Base):
 
     # Relationships
     user: Mapped["User"] = relationship(foreign_keys=[user_id])
-    related_user: Mapped["User" | None] = relationship(foreign_keys=[related_user_id])
+    related_user: Mapped[Optional["User"]] = relationship(foreign_keys=[related_user_id])
 
     __table_args__ = (
         Index("idx_notifications_user_unread", "user_id", "is_read"),
