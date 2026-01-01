@@ -19,9 +19,9 @@ async def on_startup(bot: Bot):
     """Startup handler."""
     logger.info("Bot starting up...")
 
-    # Create tables if needed
-    async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # NOTE: Database tables should be created via Alembic migrations
+    # Run: alembic upgrade head
+    # Do NOT use Base.metadata.create_all() in production!
 
     # Set bot commands
     from aiogram.types import BotCommand

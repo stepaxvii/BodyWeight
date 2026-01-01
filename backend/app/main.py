@@ -20,16 +20,19 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting BodyWeight API...")
 
-    # Create tables (for development; use Alembic in production)
-    if settings.debug:
-        async with async_engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        logger.info("Database tables created")
+    # NOTE: Database tables should be created via Alembic migrations
+    # Run: alembic upgrade head
+    # Do NOT use Base.metadata.create_all() in production!
 
-        # Load initial data (categories, exercises)
+    # Load initial data (categories, exercises) if needed
+    # This should be idempotent and safe to run multiple times
+    if settings.debug:
         async with async_session_maker() as session:
-            await init_data(session)
-        logger.info("Initial data loaded")
+            try:
+                await init_data(session)
+                logger.info("Initial data loaded")
+            except Exception as e:
+                logger.warning(f"Failed to load initial data: {e}")
 
     # Start notification scheduler
     start_scheduler()

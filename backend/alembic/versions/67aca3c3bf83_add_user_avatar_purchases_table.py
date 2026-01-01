@@ -19,6 +19,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # Check if table already exists (for cases where it was created manually)
+    from sqlalchemy import inspect
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    tables = inspector.get_table_names()
+
+    if 'user_avatar_purchases' in tables:
+        # Table already exists, skip creation
+        return
+
     # Create user_avatar_purchases table
     op.create_table(
         'user_avatar_purchases',
