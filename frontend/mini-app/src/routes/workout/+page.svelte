@@ -43,24 +43,33 @@
 	let selectedDifficulties = $state<number[]>([]);
 	let selectedTags = $state<string[]>([]);
 
-	// Calculate estimated XP reactively from workout store
+	/**
+	 * Calculate estimated XP for active workout (preview only).
+	 * 
+	 * ALGORITHM (matches backend):
+	 * 1. For each exercise, iterate through each set
+	 * 2. Convert timed exercises: 10 seconds = 1 rep equivalent
+	 * 3. Calculate XP for THIS set: base_xp × difficulty_mult × volume_mult
+	 * 4. Sum all set XP values
+	 * 
+	 * Note: Frontend doesn't know streak/first_bonus, so shows approximate value
+	 */
 	const estimatedXp = $derived.by(() => {
-		if (workoutStore.session?.total_xp_earned) {
-			return workoutStore.session.total_xp_earned;
-		}
-		
-		// CRITICAL: If no sets at all, return 0 immediately
+		// No sets = no XP
 		if (workoutStore.totalSets === 0) {
 			return 0;
 		}
 		
-		// Simplified estimate (without streak/first bonus) for preview only
-		// IMPORTANT: Match backend logic - calculate XP for EACH set separately
-		// Backend now calculates XP per set, then sums them
-		// This ensures each set contributes fairly to XP
+		// For completed workouts, use backend value
+		if (workoutStore.session?.total_xp_earned && !workoutStore.isActive) {
+			return workoutStore.session.total_xp_earned;
+		}
+		
+		// Calculate XP for active workout
 		let total = 0;
+		
 		workoutStore.exerciseData.forEach(data => {
-			// Must have exercise data AND at least one set
+			// Skip if no exercise data or no sets
 			if (!data.exercise || data.sets.length === 0) {
 				return;
 			}
@@ -69,30 +78,32 @@
 			const difficulty = data.exercise.difficulty || 1;
 			const difficultyMult = 1 + (difficulty - 1) * 0.25;
 
-			// Calculate XP for EACH set separately (matches new backend logic)
+			// ALGORITHM: Calculate XP for EACH set separately
 			data.sets.forEach(setValue => {
-				// For timed exercises, convert seconds to rep equivalent
-				// For rep-based exercises, use reps directly
+				// Step 1: Convert timed exercises (10 sec = 1 rep)
 				let repsValue: number;
 				if (data.isTimed) {
-					repsValue = Math.max(1, Math.floor(setValue / 10)); // 10 sec = 1 rep equivalent
+					repsValue = Math.max(1, Math.floor(setValue / 10));
 				} else {
 					repsValue = setValue;
 				}
 				
-				// Volume multiplier based on THIS set's reps (not total)
-				// This ensures each set contributes proportionally
+				// Step 2: Calculate volume multiplier for THIS set
 				let volumeMult: number;
 				if (repsValue <= 20) {
-					volumeMult = 1 + repsValue * 0.02;
+					volumeMult = 1 + repsValue * 0.02;  // 1.0 to 1.4
 				} else {
-					volumeMult = 1.4 + (repsValue - 20) * 0.01;
+					volumeMult = 1.4 + (repsValue - 20) * 0.01;  // slower growth
 				}
 				
-				// Add XP for this set
-				total += baseXp * difficultyMult * volumeMult;
+				// Step 3: Calculate XP for this set
+				// Formula: base_xp × difficulty_mult × volume_mult
+				// (without streak/first_bonus - frontend doesn't know these)
+				const setXp = baseXp * difficultyMult * volumeMult;
+				total += setXp;
 			});
 		});
+		
 		return Math.floor(total);
 	});
 
@@ -184,6 +195,13 @@
 		exercises = exs;
 		routines = rts;
 		customRoutines = customRts;
+		
+		// After exercises are loaded, update exerciseData with exercise objects
+		// This is needed for restored workouts where exercise was null
+		if (workoutStore.isActive) {
+			workoutStore.updateExerciseObjects(exercises);
+		}
+		
 		isPageLoading = false;
 
 		// Listen for page visibility changes

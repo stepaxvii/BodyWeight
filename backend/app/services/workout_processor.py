@@ -23,7 +23,6 @@ from app.db.models import (
     WorkoutExercise,
     Exercise,
     UserExerciseProgress,
-    Notification,
     UserGoal,
 )
 from app.services.xp_calculator import (
@@ -73,7 +72,7 @@ async def process_workout_completion(
     session: AsyncSession,
 ) -> WorkoutCompletionResult:
     """
-    Process a completed workout - unified function for all workout completion logic.
+    Process a completed workout - unified function.
 
     This function handles:
     - Creating/updating workout session
@@ -107,16 +106,19 @@ async def process_workout_completion(
     if data.workout_session_id:
         workout = await session.get(WorkoutSession, data.workout_session_id)
         if not workout:
-            raise ValueError(f"Workout session {data.workout_session_id} not found")
+            session_id = data.workout_session_id
+            raise ValueError(f"Workout session {session_id} not found")
         workout.finished_at = data.finished_at
-        workout.duration_seconds = int((data.finished_at - data.started_at).total_seconds())
+        duration = (data.finished_at - data.started_at).total_seconds()
+        workout.duration_seconds = int(duration)
         workout.status = "completed"
     else:
+        duration = (data.finished_at - data.started_at).total_seconds()
         workout = WorkoutSession(
             user_id=user.id,
             started_at=data.started_at,
             finished_at=data.finished_at,
-            duration_seconds=int((data.finished_at - data.started_at).total_seconds()),
+            duration_seconds=int(duration),
             streak_multiplier=streak_mult,
             status="completed",
             total_xp_earned=0,
@@ -142,30 +144,30 @@ async def process_workout_completion(
         if not exercise:
             continue  # Skip unknown exercises
 
-        # Calculate totals
+        # ALGORITHM: Calculate XP for EACH set separately, then sum
+        # Each set contributes fairly to total XP
         sets_count = len(ex_data.sets)
         total_reps = 0
         total_duration = 0
         xp_earned = 0
 
-        # Calculate XP for EACH set separately
-        # This ensures each set contributes fairly to XP
         for set_value in ex_data.sets:
+            # Convert timed exercises: 10 seconds = 1 rep equivalent
             if ex_data.is_timed:
-                # For timed exercises, convert seconds to rep equivalent
                 set_duration = set_value
                 total_duration += set_duration
-                reps_for_xp = max(1, set_duration // 10)  # 10 sec = 1 rep equivalent
+                reps_for_xp = max(1, set_duration // 10)
             else:
-                # For rep-based exercises, use reps directly
                 total_reps += set_value
                 reps_for_xp = set_value
 
-            # Calculate XP for this set
+            # Calculate XP for THIS set
+            # Formula: base_xp × difficulty_mult × volume_mult ×
+            #          streak_mult × first_bonus
             set_xp = calculate_xp(
                 base_xp=exercise.base_xp,
                 difficulty=exercise.difficulty,
-                reps=reps_for_xp,
+                reps=reps_for_xp,  # For this set only
                 streak_days=user.current_streak,
                 is_first_today=is_first_today,
             )
@@ -205,10 +207,12 @@ async def process_workout_completion(
             progress.total_reps_ever += total_reps
             progress.times_performed += 1
             if not ex_data.is_timed:
-                progress.best_single_set = max(progress.best_single_set, best_set)
+                current_best = progress.best_single_set
+                progress.best_single_set = max(current_best, best_set)
             progress.last_performed_at = data.finished_at
 
-            if progress.total_reps_ever >= 100 and exercise.harder_exercise_id:
+            has_upgrade = exercise.harder_exercise_id is not None
+            if progress.total_reps_ever >= 100 and has_upgrade:
                 progress.recommended_upgrade = True
         else:
             progress = UserExerciseProgress(
@@ -222,7 +226,8 @@ async def process_workout_completion(
             session.add(progress)
 
     # 6. Calculate coins
-    workout_duration_minutes = workout.duration_seconds // 60 if workout.duration_seconds else 0
+    duration_sec = workout.duration_seconds
+    workout_duration_minutes = duration_sec // 60 if duration_sec else 0
     coins_earned = calculate_coins(
         xp_earned=total_xp,
         streak_days=user.current_streak,
@@ -268,7 +273,7 @@ async def process_workout_completion(
     # 11. Check achievements
     new_achievements = await check_achievements(session, user)
 
-    # Note: Coins and XP from achievements are already awarded in check_achievements()
+    # Note: Coins and XP from achievements are already awarded
     # We just track them in workout summary for display
     if new_achievements:
         bonus_coins = sum(a.get("coin_reward", 0) for a in new_achievements)
@@ -290,12 +295,15 @@ async def process_workout_completion(
         )
 
     for achievement in new_achievements:
+        default_name = 'Достижение'
+        name_en = achievement.get('name', default_name)
+        ach_name = achievement.get('name_ru', name_en)
         await save_notification(
             session=session,
             user_id=user.id,
             notification_type="achievement",
             title="Новое достижение!",
-            message=f"Получено: {achievement.get('name_ru', achievement.get('name', 'Достижение'))}",
+            message=f"Получено: {ach_name}",
         )
 
     await session.flush()
@@ -334,14 +342,12 @@ async def _update_user_goals(
     goals_result = await session.execute(
         select(UserGoal)
         .where(UserGoal.user_id == user_id)
-        .where(UserGoal.completed == False)
+        .where(UserGoal.completed.is_(False))
         .where(UserGoal.end_date >= today)
     )
     active_goals = goals_result.scalars().all()
 
     for goal in active_goals:
-        old_value = goal.current_value
-
         if goal.goal_type == "total_workouts":
             goal.current_value += 1
         elif goal.goal_type == "total_reps":
@@ -375,12 +381,13 @@ async def _update_user_goals(
             goal.completed_at = data.finished_at
 
             # Create notification
+            msg = f"Цель выполнена: {goal.target_value} {goal.goal_type}"
             await save_notification(
                 session=session,
                 user_id=user_id,
                 notification_type="goal_completed",
                 title="Цель достигнута!",
-                message=f"Цель выполнена: {goal.target_value} {goal.goal_type}",
+                message=msg,
             )
 
             # Award bonus coins
@@ -389,4 +396,3 @@ async def _update_user_goals(
                 bonus_goal_coins = 5
                 user.coins += bonus_goal_coins
                 workout.total_coins_earned += bonus_goal_coins
-
