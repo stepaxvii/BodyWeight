@@ -1,37 +1,11 @@
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
 from sqlalchemy import select
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import ShopItem, UserPurchase
+from app.schemas import ShopItemResponse, InventoryItemResponse
 
 router = APIRouter()
-
-
-class ShopItemResponse(BaseModel):
-    id: int
-    slug: str
-    name: str
-    name_ru: str
-    item_type: str
-    price_coins: int
-    required_level: int
-    sprite_url: str | None
-    owned: bool = False
-    equipped: bool = False
-
-    class Config:
-        from_attributes = True
-
-
-class InventoryItemResponse(BaseModel):
-    id: int
-    shop_item: ShopItemResponse
-    is_equipped: bool
-    purchased_at: str
-
-    class Config:
-        from_attributes = True
 
 
 @router.get("", response_model=list[ShopItemResponse])

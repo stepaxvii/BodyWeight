@@ -1,31 +1,14 @@
 import logging
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Query
-from pydantic import BaseModel
 from sqlalchemy import select, func, and_
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import User, WorkoutSession, Friendship
+from app.schemas import LeaderboardEntry, LeaderboardResponse
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
-
-
-class LeaderboardEntry(BaseModel):
-    rank: int
-    user_id: int
-    username: str | None
-    first_name: str | None
-    avatar_id: str
-    level: int
-    total_xp: int
-    current_streak: int
-    is_current_user: bool = False
-
-
-class LeaderboardResponse(BaseModel):
-    entries: list[LeaderboardEntry]
-    current_user_rank: int | None = None
 
 
 @router.get("", response_model=LeaderboardResponse)

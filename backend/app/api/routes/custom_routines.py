@@ -1,74 +1,20 @@
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
-from app.db.models import Exercise, UserCustomRoutine, UserCustomRoutineExercise
+from app.db.models import (
+    Exercise, UserCustomRoutine, UserCustomRoutineExercise
+)
+from app.schemas import (
+    RoutineExerciseResponse,
+    CustomRoutineCreate,
+    CustomRoutineUpdate,
+    CustomRoutineResponse,
+    CustomRoutineListItem,
+)
 
 router = APIRouter()
-
-
-# ============== Request/Response Models ==============
-
-class RoutineExerciseCreate(BaseModel):
-    exercise_id: int
-    target_reps: int | None = None
-    target_duration: int | None = None
-    rest_seconds: int = 30
-
-
-class RoutineExerciseResponse(BaseModel):
-    id: int
-    exercise_id: int
-    exercise_slug: str
-    exercise_name_ru: str
-    is_timed: bool
-    sort_order: int
-    target_reps: int | None
-    target_duration: int | None
-    rest_seconds: int
-
-    class Config:
-        from_attributes = True
-
-
-class CustomRoutineCreate(BaseModel):
-    name: str
-    description: str | None = None
-    routine_type: str = "workout"  # morning, workout, stretch
-    exercises: list[RoutineExerciseCreate] = []
-
-
-class CustomRoutineUpdate(BaseModel):
-    name: str | None= None
-    description: str | None = None
-    routine_type: str | None = None
-    exercises: list[RoutineExerciseCreate] | None = None
-
-
-class CustomRoutineResponse(BaseModel):
-    id: int
-    name: str
-    description: str | None
-    routine_type: str
-    duration_minutes: int
-    is_active: bool
-    exercises: list[RoutineExerciseResponse]
-
-    class Config:
-        from_attributes = True
-
-
-class CustomRoutineListItem(BaseModel):
-    id: int
-    name: str
-    routine_type: str
-    duration_minutes: int
-    exercises_count: int
-
-    class Config:
-        from_attributes = True
 
 
 # ============== Endpoints ==============

@@ -1,34 +1,12 @@
 from fastapi import APIRouter, Query
-from pydantic import BaseModel
 from sqlalchemy import select
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import UserAchievement
-from app.utils.achievement_loader import load_achievements, get_achievement_by_slug
+from app.utils.achievement_loader import load_achievements
+from app.schemas import AchievementResponse, RecentAchievementResponse
 
 router = APIRouter()
-
-
-class AchievementResponse(BaseModel):
-    slug: str
-    name: str
-    name_ru: str
-    description: str
-    description_ru: str
-    icon: str
-    xp_reward: int
-    coin_reward: int
-    unlocked: bool
-    unlocked_at: str | None = None
-    condition: dict
-
-
-class RecentAchievementResponse(BaseModel):
-    slug: str
-    name: str
-    name_ru: str
-    icon: str
-    unlocked_at: str
 
 
 @router.get("", response_model=list[AchievementResponse])

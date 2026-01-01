@@ -1,32 +1,14 @@
 from fastapi import APIRouter, HTTPException, Query, status, BackgroundTasks
-from pydantic import BaseModel
-from sqlalchemy import select, or_, and_
+from sqlalchemy import select, or_
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import User, Friendship, Notification
-from app.services.notifications import send_friend_request_notification, send_friend_accepted_notification
+from app.services.notifications import (
+    send_friend_request_notification, send_friend_accepted_notification
+)
+from app.schemas import FriendResponse, AddFriendRequest
 
 router = APIRouter()
-
-
-class FriendResponse(BaseModel):
-    id: int
-    user_id: int
-    username: str | None
-    first_name: str | None
-    avatar_id: str
-    level: int
-    total_xp: int
-    current_streak: int
-    status: str
-
-    class Config:
-        from_attributes = True
-
-
-class AddFriendRequest(BaseModel):
-    user_id: int | None = None
-    username: str | None = None
 
 
 @router.get("", response_model=list[FriendResponse])

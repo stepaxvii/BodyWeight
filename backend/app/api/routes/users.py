@@ -1,6 +1,5 @@
-from datetime import date, time, datetime, timedelta
+from datetime import date, timedelta
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
 from sqlalchemy import select, func
 
 from app.api.deps import AsyncSessionDep, CurrentUser
@@ -11,6 +10,12 @@ from app.db.models import (
     UserAvatarPurchase,
 )
 from app.services.xp_calculator import xp_for_level
+from app.schemas import (
+    UserResponse,
+    UserStatsResponse,
+    UpdateUserRequest,
+    UserProfileResponse,
+)
 
 
 def get_week_start(d: date) -> date:
@@ -40,51 +45,6 @@ AVATAR_DATA = {
 
 
 router = APIRouter()
-
-
-class UserResponse(BaseModel):
-    id: int
-    telegram_id: int
-    username: str | None
-    first_name: str | None
-    last_name: str | None
-    avatar_id: str
-    level: int
-    total_xp: int
-    coins: int
-    current_streak: int
-    max_streak: int
-    last_workout_date: date | None
-    notification_time: time | None
-    notifications_enabled: bool
-    is_onboarded: bool
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-class UserStatsResponse(BaseModel):
-    total_workouts: int
-    total_xp: int
-    total_reps: int
-    total_time_minutes: int
-    current_level: int
-    xp_for_next_level: int
-    xp_progress_percent: float
-    current_streak: int
-    max_streak: int
-    achievements_count: int
-    coins: int
-    this_week_workouts: int
-    this_week_xp: int
-
-
-class UpdateUserRequest(BaseModel):
-    avatar_id: str | None = None
-    notification_time: time | None = None
-    notifications_enabled: bool | None = None
 
 
 @router.get("/me", response_model=UserResponse)
@@ -257,24 +217,6 @@ async def get_current_user_stats(
     )
 
 
-class UserProfileResponse(BaseModel):
-    """Public user profile with achievements."""
-    id: int
-    username: str | None
-    first_name: str | None
-    avatar_id: str
-    level: int
-    total_xp: int
-    coins: int
-    current_streak: int
-    achievements: list[str]  # List of unlocked achievement slugs
-    is_friend: bool
-    # Current user sent request to this user
-    friend_request_sent: bool = False
-    # This user sent request to current user
-    friend_request_received: bool = False
-    # Friendship ID for accept/decline actions
-    friendship_id: int | None = None
 
 
 @router.get("/{user_id}", response_model=UserResponse)

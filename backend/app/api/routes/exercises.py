@@ -276,25 +276,31 @@ async def get_exercise_progress(
 
 
 # Routine models and endpoints
-class RoutineExerciseResponse(BaseModel):
+# Note: RoutineExerciseResponse and RoutineResponse are imported from schemas
+# But we need a different structure for the routines endpoint
+# So we'll create local models for this specific use case
+class RoutineExerciseData(BaseModel):
     slug: str
     reps: int | None = None
     duration: int | None = None  # duration in seconds
 
 
-class RoutineResponse(BaseModel):
+class RoutineData(BaseModel):
     slug: str
     name: str
     description: str
     category: str  # morning, home, pullup-bar, dip-bars
     duration_minutes: int
     difficulty: int
-    exercises: list[RoutineExerciseResponse]
+    exercises: list[RoutineExerciseData]
 
 
-@router.get("/routines/all", response_model=list[RoutineResponse])
+@router.get("/routines/all", response_model=list[RoutineData])
 async def get_routines(
-    category: str | None = Query(None, description="Filter by category: morning, home, pullup-bar, dip-bars")
+    category: str | None = Query(
+        None,
+        description="Filter by category: morning, home, pullup-bar, dip-bars"
+    )
 ):
     """Get all available workout routines from all categories."""
     routines = load_all_routines()
@@ -303,7 +309,7 @@ async def get_routines(
         routines = [r for r in routines if r.get("category") == category]
 
     return [
-        RoutineResponse(
+        RoutineData(
             slug=r["slug"],
             name=r["name"],
             description=r["description"],
@@ -311,7 +317,7 @@ async def get_routines(
             duration_minutes=r["duration_minutes"],
             difficulty=r["difficulty"],
             exercises=[
-                RoutineExerciseResponse(
+                RoutineExerciseData(
                     slug=ex["slug"],
                     reps=ex.get("reps"),
                     duration=ex.get("duration"),
@@ -323,14 +329,14 @@ async def get_routines(
     ]
 
 
-@router.get("/routines/{slug}", response_model=RoutineResponse)
+@router.get("/routines/{slug}", response_model=RoutineData)
 async def get_routine(slug: str):
     """Get a specific routine by slug."""
     routines = load_all_routines()
 
     for r in routines:
         if r["slug"] == slug:
-            return RoutineResponse(
+            return RoutineData(
                 slug=r["slug"],
                 name=r["name"],
                 description=r["description"],
@@ -338,7 +344,7 @@ async def get_routine(slug: str):
                 duration_minutes=r["duration_minutes"],
                 difficulty=r["difficulty"],
                 exercises=[
-                    RoutineExerciseResponse(
+                    RoutineExerciseData(
                         slug=ex["slug"],
                         reps=ex.get("reps"),
                         duration=ex.get("duration"),
@@ -355,12 +361,7 @@ async def get_routine(slug: str):
 
 # ============== Favorites API ==============
 
-class FavoriteResponse(BaseModel):
-    exercise_id: int
-    is_favorite: bool
-
-
-@router.post("/{exercise_id}/favorite", response_model=FavoriteResponse)
+@router.post("/{exercise_id}/favorite", response_model=dict)
 async def toggle_favorite(
     exercise_id: int,
     session: AsyncSessionDep,
@@ -391,13 +392,13 @@ async def toggle_favorite(
         # Remove from favorites
         await session.delete(existing)
         await session.commit()
-        return FavoriteResponse(exercise_id=exercise_id, is_favorite=False)
+        return {"exercise_slug": exercise.slug, "is_favorite": False}
     else:
         # Add to favorites
         favorite = UserFavoriteExercise(user_id=user.id, exercise_id=exercise_id)
         session.add(favorite)
         await session.commit()
-        return FavoriteResponse(exercise_id=exercise_id, is_favorite=True)
+        return {"exercise_slug": exercise.slug, "is_favorite": True}
 
 
 @router.get("/favorites/list", response_model=list[int])

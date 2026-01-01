@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +10,7 @@ from app.utils.achievement_loader import load_achievements
 async def check_achievements(
     session: AsyncSession,
     user: User,
-) -> List[dict]:
+) -> list[dict]:
     """
     Check and unlock achievements for a user.
 

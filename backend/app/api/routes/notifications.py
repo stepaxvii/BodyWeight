@@ -1,31 +1,13 @@
 import logging
-from datetime import datetime
 from fastapi import APIRouter
-from pydantic import BaseModel
 from sqlalchemy import select, func, update
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import Notification
+from app.schemas import NotificationResponse, UnreadCountResponse
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-
-class NotificationResponse(BaseModel):
-    id: int
-    notification_type: str
-    title: str
-    message: str
-    is_read: bool
-    related_user_id: int | None
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-class UnreadCountResponse(BaseModel):
-    count: int
 
 
 @router.get("/unread-count", response_model=UnreadCountResponse)

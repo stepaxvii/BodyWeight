@@ -317,10 +317,12 @@
 
 	.podium-item.second {
 		border-color: var(--pixel-light);
+		padding-bottom: var(--spacing-md);
 	}
 
 	.podium-item.third {
 		border-color: var(--pixel-orange);
+		padding-bottom: var(--spacing-md);
 	}
 
 	.podium-crown {
@@ -340,6 +342,7 @@
 	.podium-xp {
 		font-size: var(--font-size-xs);
 		color: var(--pixel-green);
+		margin-bottom: 4px;
 	}
 
 	.podium-rank {

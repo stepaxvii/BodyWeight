@@ -1,45 +1,12 @@
-from datetime import date, time, datetime
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
 from sqlalchemy import select
 
 from app.api.deps import AsyncSessionDep, validate_telegram_init_data
 from app.db.models import User, Notification
 from app.config import settings
+from app.schemas import AuthRequest, AuthResponse, UserResponse
 
 router = APIRouter()
-
-
-class AuthRequest(BaseModel):
-    init_data: str
-
-
-class UserResponse(BaseModel):
-    id: int
-    telegram_id: int
-    username: str | None
-    first_name: str | None
-    last_name: str | None
-    avatar_id: str
-    level: int
-    total_xp: int
-    coins: int
-    current_streak: int
-    max_streak: int
-    last_workout_date: date | None
-    notifications_enabled: bool
-    notification_time: time | None
-    is_onboarded: bool
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-class AuthResponse(BaseModel):
-    user: UserResponse
-    is_new: bool
 
 
 @router.post("/validate", response_model=AuthResponse)
