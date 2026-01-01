@@ -10,6 +10,7 @@ from .models import (
     Friendship,
     ShopItem,
     UserPurchase,
+    UserAvatarPurchase,
     UserExerciseProgress,
 )
 
@@ -28,5 +29,6 @@ __all__ = [
     "Friendship",
     "ShopItem",
     "UserPurchase",
+    "UserAvatarPurchase",
     "UserExerciseProgress",
 ]

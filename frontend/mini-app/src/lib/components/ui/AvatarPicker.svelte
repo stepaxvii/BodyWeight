@@ -33,22 +33,21 @@
 		telegram.hapticImpact('light');
 	}
 
-	function confirmSelection() {
+	async function confirmSelection() {
 		const avatar = AVATARS.find(a => a.id === selectedAvatar);
 		if (!avatar) return;
 
-		// If it costs coins and isn't already owned, spend them
-		if (avatar.price > 0 && selectedAvatar !== currentAvatarId) {
-			const spent = userStore.spendCoins(avatar.price);
-			if (!spent) {
-				telegram.hapticNotification('error');
-				return;
-			}
+		// Backend will handle coin deduction and purchase validation
+		// Just call setAvatar - backend will check coins and deduct if needed
+		try {
+			await userStore.setAvatar(selectedAvatar);
+			telegram.hapticNotification('success');
+			onselect?.(selectedAvatar);
+			onclose?.();
+		} catch (err) {
+			console.error('Failed to set avatar:', err);
+			telegram.hapticNotification('error');
 		}
-
-		telegram.hapticNotification('success');
-		onselect?.(selectedAvatar);
-		onclose?.();
 	}
 
 	function isLocked(avatar: Avatar): boolean {
