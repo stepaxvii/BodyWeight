@@ -62,12 +62,12 @@ export interface Avatar {
 	price: number; // 0 = free
 }
 
-// User types
+// User types (matches backend UserResponse)
 export interface User {
 	id: number;
 	telegram_id: number;
 	username?: string;
-	first_name: string;
+	first_name?: string;
 	last_name?: string;
 	avatar_id: AvatarId;
 	level: number;
@@ -76,24 +76,31 @@ export interface User {
 	current_streak: number;
 	max_streak: number;
 	last_workout_date?: string;
-	notifications_enabled: boolean;
 	notification_time?: string;
+	notifications_enabled: boolean;
 	is_onboarded: boolean;
 	created_at: string;
 	updated_at: string;
 }
 
+// UserStats (matches backend UserStatsResponse)
 export interface UserStats {
 	total_workouts: number;
+	total_xp: number;
 	total_reps: number;
-	total_xp_earned: number;
 	total_time_minutes: number;
-	favorite_exercise?: string;
-	favorite_category?: string;
+	current_level: number;
+	xp_for_next_level: number;
+	xp_progress_percent: number;
+	current_streak: number;
+	max_streak: number;
+	achievements_count: number;
+	coins: number;
 	this_week_workouts: number;
 	this_week_xp: number;
 }
 
+// UserProfile (matches backend UserProfileResponse)
 export interface UserProfile {
 	id: number;
 	username?: string;
@@ -110,54 +117,53 @@ export interface UserProfile {
 	friendship_id?: number;            // Friendship ID for accept/decline actions
 }
 
-// Exercise types
+// Exercise types (matches backend CategoryResponse)
 export interface ExerciseCategory {
 	id: number;
 	slug: string;
 	name: string;
 	name_ru: string;
-	icon: string;
-	color: string;
+	icon?: string;
+	color?: string;
 	sort_order: number;
+	exercises_count: number;
 }
 
 export type EquipmentType = 'none' | 'pullup-bar' | 'dip-bars' | 'bench' | 'wall';
 
+// Exercise (matches backend ExerciseResponse)
 export interface Exercise {
 	id: number;
 	slug: string;
-	category_id: number;
-	category_slug: string;
 	name: string;
 	name_ru: string;
 	description?: string;
 	description_ru?: string;
 	tags: string[]; // Tags for filtering (muscle groups, level, equipment)
-	difficulty: 1 | 2 | 3 | 4 | 5;
+	difficulty: number; // 1-5
 	base_xp: number;
 	required_level: number;
 	equipment: EquipmentType;
 	is_timed: boolean; // True for time-based exercises (planks, stretches)
 	gif_url?: string;
 	thumbnail_url?: string;
+	category_slug: string;
 	easier_exercise_slug?: string;
 	harder_exercise_slug?: string;
 	is_favorite: boolean; // Whether user has favorited this exercise
 }
 
+// ExerciseProgress (matches backend ExerciseProgressResponse)
 export interface ExerciseProgress {
-	exercise_id: number;
 	total_reps_ever: number;
 	best_single_set: number;
 	times_performed: number;
-	last_performed_at?: string;
 	recommended_upgrade: boolean;
 }
 
-// Workout types
+// Workout types (matches backend WorkoutResponse)
 export interface WorkoutSession {
 	id: number;
-	user_id: number;
 	started_at: string;
 	finished_at?: string;
 	duration_seconds?: number;
@@ -166,25 +172,23 @@ export interface WorkoutSession {
 	total_reps: number;
 	total_duration_seconds: number; // Total time for time-based exercises
 	streak_multiplier: number;
-	status: 'active' | 'completed' | 'cancelled';
+	status: string; // 'active' | 'completed' | 'cancelled'
 	exercises: WorkoutExercise[];
 }
 
+// WorkoutExercise (matches backend WorkoutExerciseResponse)
 export interface WorkoutExercise {
 	id: number;
-	workout_session_id?: number;
 	exercise_id: number;
 	exercise_slug: string;
 	exercise_name: string;
 	exercise_name_ru: string;
 	is_timed: boolean; // True for time-based exercises
-	exercise?: Exercise;
 	sets_completed: number;
 	total_reps: number;
 	total_duration_seconds: number; // Duration for time-based exercises
 	xp_earned: number;
 	coins_earned: number;
-	completed_at?: string;
 }
 
 export interface WorkoutSet {
@@ -192,14 +196,15 @@ export interface WorkoutSet {
 	reps: number;
 }
 
+// WorkoutSummaryResponse (matches backend WorkoutSummaryResponse)
 export interface WorkoutSummaryResponse {
 	workout: WorkoutSession;
-	new_achievements: Achievement[];
+	new_achievements: Array<Record<string, unknown>>; // list[dict] from backend
 	level_up: boolean;
 	new_level: number | null;
 }
 
-// Achievement types
+// Achievement types (matches backend AchievementResponse)
 export interface Achievement {
 	slug: string;
 	name: string;
@@ -209,10 +214,9 @@ export interface Achievement {
 	icon: string;
 	xp_reward: number;
 	coin_reward: number;
-	condition: AchievementCondition;
-	unlocked?: boolean;
+	unlocked: boolean;
 	unlocked_at?: string;
-	progress?: number;
+	condition: Record<string, unknown>; // dict from backend
 }
 
 export interface AchievementCondition {
@@ -223,12 +227,12 @@ export interface AchievementCondition {
 	after?: string;
 }
 
-// Leaderboard types
+// Leaderboard types (matches backend LeaderboardEntry/Response)
 export interface LeaderboardEntry {
 	rank: number;
 	user_id: number;
 	username?: string;
-	first_name: string;
+	first_name?: string;
 	avatar_id: AvatarId;
 	level: number;
 	total_xp: number;
@@ -243,44 +247,44 @@ export interface LeaderboardResponse {
 
 export type LeaderboardType = 'global' | 'friends' | 'weekly';
 
-// Goal types
+// Goal types (matches backend GoalResponse)
 export interface Goal {
 	id: number;
-	user_id: number;
-	goal_type: 'weekly_workouts' | 'daily_xp' | 'specific_exercise';
+	goal_type: string; // 'weekly_workouts' | 'daily_xp' | 'weekly_xp' | 'streak_days'
 	target_value: number;
 	current_value: number;
 	start_date: string;
 	end_date: string;
 	completed: boolean;
 	completed_at?: string;
+	progress_percent: number;
 }
 
-// Friend types
+// Friend types (matches backend FriendResponse)
 export interface Friend {
 	id: number;
 	user_id: number;
 	username?: string;
-	first_name: string;
-	last_name?: string;
+	first_name?: string;
 	avatar_id: AvatarId;
 	level: number;
+	total_xp: number;
 	current_streak: number;
-	status: 'pending' | 'accepted' | 'blocked';
+	status: string; // 'pending' | 'accepted' | 'blocked'
 }
 
-// Shop types
+// Shop types (matches backend ShopItemResponse)
 export interface ShopItem {
 	id: number;
 	slug: string;
 	name: string;
 	name_ru: string;
-	item_type: 'title' | 'badge' | 'theme';
+	item_type: string; // 'title' | 'badge' | 'theme'
 	price_coins: number;
 	required_level: number;
 	sprite_url?: string;
-	is_owned?: boolean;
-	is_equipped?: boolean;
+	owned: boolean;
+	equipped: boolean;
 }
 
 // API Response types
@@ -290,9 +294,10 @@ export interface ApiResponse<T> {
 	message?: string;
 }
 
+// AuthResponse (matches backend AuthResponse)
 export interface AuthResponse {
 	user: User;
-	token: string;
+	is_new: boolean;
 }
 
 // Navigation
@@ -362,12 +367,12 @@ export interface CustomRoutineCreate {
 	}[];
 }
 
-// Notification types
-export type NotificationType = 'friend_request' | 'friend_accepted' | 'daily_reminder' | 'inactivity_reminder';
+// Notification types (matches backend NotificationResponse)
+export type NotificationType = 'friend_request' | 'friend_accepted' | 'daily_reminder' | 'inactivity_reminder' | 'welcome';
 
 export interface Notification {
 	id: number;
-	notification_type: NotificationType;
+	notification_type: string; // NotificationType from backend
 	title: string;
 	message: string;
 	is_read: boolean;

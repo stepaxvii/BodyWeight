@@ -149,12 +149,6 @@
 						<span class="detail-label">Время тренировок</span>
 						<span class="detail-value">{Math.floor((userStore.stats.total_time_minutes || 0) / 60)}ч {(userStore.stats.total_time_minutes || 0) % 60}м</span>
 					</div>
-					{#if userStore.stats.favorite_exercise}
-						<div class="detail-item">
-							<span class="detail-label">Любимое</span>
-							<span class="detail-value">{userStore.stats.favorite_exercise}</span>
-						</div>
-					{/if}
 				</div>
 			</PixelCard>
 		</section>
