@@ -55,7 +55,9 @@
 		}
 		
 		// Simplified estimate (without streak/first bonus) for preview only
-		// Only count exercises that have at least one set
+		// IMPORTANT: Match backend logic - sum all sets, then calculate XP once per exercise
+		// Backend does: total_value = sum(sets), then calculate_xp(..., reps=total_value, ...)
+		// This means volume multiplier applies to TOTAL reps, not per set
 		let total = 0;
 		workoutStore.exerciseData.forEach(data => {
 			// Must have exercise data AND at least one set
@@ -67,19 +69,19 @@
 			const difficulty = data.exercise.difficulty || 1;
 			const difficultyMult = 1 + (difficulty - 1) * 0.25;
 
-			// For timed exercises, convert seconds to "rep equivalent" (10 sec = 1 rep)
-			// For rep-based exercises, use reps directly
+			// Sum all sets first (matches backend: total_value = sum(ex_data.sets))
 			let totalValue: number;
 			if (data.isTimed) {
-				// Sum all seconds and convert to rep equivalent
+				// For timed exercises, sum seconds and convert to rep equivalent
 				const totalSeconds = data.sets.reduce((sum, seconds) => sum + seconds, 0);
 				totalValue = Math.max(1, Math.floor(totalSeconds / 10)); // 10 sec = 1 rep equivalent
 			} else {
-				// Sum all reps
+				// For rep-based exercises, sum all reps
 				totalValue = data.sets.reduce((sum, reps) => sum + reps, 0);
 			}
 			
-			// Volume multiplier based on total value
+			// Volume multiplier based on TOTAL value (matches backend logic)
+			// This means each additional set has diminishing returns
 			let volumeMult: number;
 			if (totalValue <= 20) {
 				volumeMult = 1 + totalValue * 0.02;
@@ -87,6 +89,7 @@
 				volumeMult = 1.4 + (totalValue - 20) * 0.01;
 			}
 			
+			// Calculate XP once for entire exercise (matches backend)
 			total += baseXp * difficultyMult * volumeMult;
 		});
 		return Math.floor(total);
