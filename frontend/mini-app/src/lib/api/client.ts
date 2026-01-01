@@ -48,10 +48,15 @@ class ApiClient {
 		if (!this.useMocks || !import.meta.env.DEV) {
 			return null;
 		}
-		if (!this.mockDataCache) {
-			this.mockDataCache = await import('./mock-data.dev');
+		try {
+			if (!this.mockDataCache) {
+				this.mockDataCache = await import('./mock-data.dev');
+			}
+			return this.mockDataCache;
+		} catch (error) {
+			console.warn('[API] Failed to load mock data, falling back to real API:', error);
+			return null;
 		}
-		return this.mockDataCache;
 	}
 
 	private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {

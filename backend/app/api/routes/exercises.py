@@ -105,7 +105,7 @@ async def get_exercises(
     query = (
         select(Exercise)
         .options(selectinload(Exercise.category))
-        .where(Exercise.is_active is True)
+        .where(Exercise.is_active == True)
     )
 
     if category:
@@ -184,7 +184,7 @@ async def get_exercise(
             selectinload(Exercise.harder_exercise),
         )
         .where(Exercise.slug == slug)
-        .where(Exercise.is_active is True)
+        .where(Exercise.is_active == True)
     )
     exercise = result.scalar_one_or_none()
 

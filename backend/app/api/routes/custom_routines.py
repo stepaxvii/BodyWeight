@@ -84,7 +84,7 @@ async def list_custom_routines(
         select(UserCustomRoutine)
         .options(selectinload(UserCustomRoutine.exercises))
         .where(UserCustomRoutine.user_id == user.id)
-        .where(UserCustomRoutine.is_active is True)
+        .where(UserCustomRoutine.is_active == True)
     )
 
     if routine_type:
