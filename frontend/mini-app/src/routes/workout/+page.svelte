@@ -18,6 +18,13 @@
 	let exercises = $state<Exercise[]>([]);
 	let routines = $state<Routine[]>([]);
 	let customRoutines = $state<CustomRoutineListItem[]>([]);
+	
+	// Pagination state for exercises
+	let exercisesLoading = $state(false);
+	let exercisesHasMore = $state(false);
+	let exercisesTotal = $state(0);
+	let exercisesSkip = $state(0);
+	const exercisesLimit = 30;
 
 	// Main tab state
 	type MainTab = 'routines' | 'my-routines' | 'favorites' | 'exercises';
@@ -193,20 +200,53 @@
 		}
 	}
 
+	async function loadExercises(reset = false) {
+		if (exercisesLoading) return;
+		
+		exercisesLoading = true;
+		try {
+			if (reset) {
+				exercisesSkip = 0;
+				exercises = [];
+			}
+
+			const response = await api.getExercises(activeCategory || undefined, {
+				skip: exercisesSkip,
+				limit: exercisesLimit
+			});
+			
+			exercises = reset ? response.items : [...exercises, ...response.items];
+			exercisesHasMore = response.has_more;
+			exercisesTotal = response.total;
+			exercisesSkip = exercises.length;
+		} catch (error) {
+			console.error('Failed to load exercises:', error);
+		} finally {
+			exercisesLoading = false;
+		}
+	}
+
+	async function loadMoreExercises() {
+		await loadExercises(false);
+		telegram.hapticImpact('light');
+	}
+
 	onMount(async () => {
-		// Load ALL data in parallel for faster page load
-		const [cats, exs, rts, customRts, _, __] = await Promise.all([
+		// Load data in parallel for faster page load
+		const [cats, rts, customRts, _, __] = await Promise.all([
 			api.getCategories(),
-			api.getAllExercises(),
 			api.getRoutines(),
 			api.getCustomRoutines(),
 			workoutStore.loadActiveWorkout(),
 			favoritesStore.loadFavorites()
 		]);
+		
 		categories = cats;
-		exercises = exs;
 		routines = rts;
 		customRoutines = customRts;
+		
+		// Load exercises with pagination
+		await loadExercises();
 		
 		// After exercises are loaded, update exerciseData with exercise objects
 		// This is needed for restored workouts where exercise was null
@@ -232,8 +272,9 @@
 		telegram.hapticImpact('light');
 	}
 
-	function selectCategory(slug: string) {
+	async function selectCategory(slug: string) {
 		activeCategory = activeCategory === slug ? null : slug;
+		await loadExercises(true); // Reset and reload exercises
 		telegram.hapticImpact('light');
 	}
 
@@ -383,11 +424,12 @@
 		selectedTags = filters.tags;
 	}
 
-	function clearAllFilters() {
+	async function clearAllFilters() {
 		selectedEquipment = [];
 		selectedDifficulties = [];
 		selectedTags = [];
 		activeCategory = null;
+		await loadExercises(true); // Reset and reload exercises
 		telegram.hapticImpact('light');
 	}
 </script>
@@ -735,7 +777,7 @@
 				<!-- Filter header -->
 				<div class="filter-header">
 					<span class="filter-label">
-						{filteredExercises.length} упражнений
+						{filteredExercises.length} / {exercisesTotal || filteredExercises.length} упражнений
 					</span>
 					<div class="filter-actions-row">
 						{#if activeFilterCount > 0 || activeCategory}
@@ -778,12 +820,29 @@
 							onInfoClick={() => openExerciseInfo(exercise)}
 						/>
 					{/each}
-					{#if filteredExercises.length === 0}
+					{#if filteredExercises.length === 0 && !exercisesLoading}
 						<div class="empty-state">
 							<PixelIcon name="search" size="lg" color="var(--text-secondary)" />
 							<p>Ничего не найдено</p>
 							<PixelButton variant="ghost" onclick={clearAllFilters}>
 								Сбросить фильтры
+							</PixelButton>
+						</div>
+					{/if}
+					
+					{#if exercisesHasMore && filteredExercises.length > 0}
+						<div class="load-more-container">
+							<PixelButton
+								variant="secondary"
+								onclick={loadMoreExercises}
+								disabled={exercisesLoading}
+								fullWidth
+							>
+								{#if exercisesLoading}
+									Загрузка...
+								{:else}
+									Загрузить ещё
+								{/if}
 							</PixelButton>
 						</div>
 					{/if}
@@ -1252,6 +1311,11 @@
 	}
 
 	/* Exercises list */
+	.load-more-container {
+		margin-top: var(--spacing-md);
+		padding: 0 var(--spacing-md);
+	}
+
 	.exercises-list {
 		display: flex;
 		flex-direction: column;
