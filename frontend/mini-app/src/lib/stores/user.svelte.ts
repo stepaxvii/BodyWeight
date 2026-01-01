@@ -63,8 +63,6 @@ class UserStore {
 		this.error = null;
 
 		try {
-			// Always use real API - mocks are for development only
-			api.setUseMocks(false);
 			api.setInitData(initData);
 			const response = await api.validateAuth();
 			this.user = response.user;

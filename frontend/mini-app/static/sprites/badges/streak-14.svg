@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Streak 14 - double fire -->
+  <rect x="0" y="0" width="32" height="32" fill="#f59e0b"/>
+  <rect x="2" y="2" width="28" height="28" fill="#1a1a2e"/>
+
+  <!-- Flames -->
+  <rect x="8" y="10" width="6" height="8" fill="#f59e0b"/>
+  <rect x="18" y="10" width="6" height="8" fill="#f59e0b"/>
+  <rect x="10" y="18" width="4" height="4" fill="#ea580c"/>
+  <rect x="18" y="18" width="4" height="4" fill="#ea580c"/>
+
+  <!-- "14" -->
+  <rect x="10" y="13" width="2" height="4" fill="#fef3c7"/>
+  <rect x="19" y="13" width="4" height="2" fill="#fef3c7"/>
+  <rect x="19" y="15" width="4" height="2" fill="#fef3c7"/>
+  <rect x="19" y="13" width="2" height="4" fill="#fef3c7"/>
+  <rect x="21" y="13" width="2" height="4" fill="#fef3c7"/>
+</svg>

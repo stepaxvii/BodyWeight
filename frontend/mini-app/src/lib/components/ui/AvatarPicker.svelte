@@ -3,6 +3,7 @@
 	import { AVATARS, canUnlockAvatar } from '$lib/data/avatars';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { api } from '$lib/api/client';
 	import type { AvatarId, Avatar } from '$lib/types';
 
 	interface Props {
@@ -20,11 +21,35 @@
 	}: Props = $props();
 
 	let selectedAvatar = $state<AvatarId>(currentAvatarId);
+	let purchasedAvatars = $state<Set<string>>(new Set());
+
+	// Load purchased avatars when modal opens
+	$effect(() => {
+		if (open) {
+			loadPurchasedAvatars();
+		}
+	});
+
+	async function loadPurchasedAvatars() {
+		try {
+			const purchased = await api.getPurchasedAvatars();
+			purchasedAvatars = new Set(purchased);
+		} catch (err) {
+			console.error('Failed to load purchased avatars:', err);
+		}
+	}
+
+	function isPurchased(avatarId: AvatarId): boolean {
+		return purchasedAvatars.has(avatarId);
+	}
 
 	function selectAvatar(avatar: Avatar) {
-		const canUse = canUnlockAvatar(avatar, userStore.level, userStore.coins);
+		const isLocked = userStore.level < avatar.requiredLevel;
+		const isOwned = isPurchased(avatar.id) || avatar.price === 0 || avatar.id === currentAvatarId;
+		const canAfford = userStore.coins >= avatar.price;
 
-		if (!canUse) {
+		// Allow selection if: not locked AND (owned OR can afford)
+		if (isLocked || (!isOwned && !canAfford)) {
 			telegram.hapticNotification('error');
 			return;
 		}
@@ -33,22 +58,25 @@
 		telegram.hapticImpact('light');
 	}
 
-	function confirmSelection() {
+	async function confirmSelection() {
 		const avatar = AVATARS.find(a => a.id === selectedAvatar);
 		if (!avatar) return;
 
-		// If it costs coins and isn't already owned, spend them
-		if (avatar.price > 0 && selectedAvatar !== currentAvatarId) {
-			const spent = userStore.spendCoins(avatar.price);
-			if (!spent) {
-				telegram.hapticNotification('error');
-				return;
+		// Backend will handle coin deduction and purchase validation
+		// Just call setAvatar - backend will check coins and deduct if needed
+		try {
+			await userStore.setAvatar(selectedAvatar);
+			// If avatar was purchased (has price and wasn't owned), add to purchased list
+			if (avatar.price > 0 && !isPurchased(selectedAvatar)) {
+				purchasedAvatars.add(selectedAvatar);
 			}
+			telegram.hapticNotification('success');
+			onselect?.(selectedAvatar);
+			onclose?.();
+		} catch (err) {
+			console.error('Failed to set avatar:', err);
+			telegram.hapticNotification('error');
 		}
-
-		telegram.hapticNotification('success');
-		onselect?.(selectedAvatar);
-		onclose?.();
 	}
 
 	function isLocked(avatar: Avatar): boolean {
@@ -56,7 +84,8 @@
 	}
 
 	function isAffordable(avatar: Avatar): boolean {
-		return userStore.coins >= avatar.price || avatar.id === currentAvatarId;
+		const isOwned = isPurchased(avatar.id) || avatar.price === 0 || avatar.id === currentAvatarId;
+		return isOwned || userStore.coins >= avatar.price;
 	}
 </script>
 
@@ -92,13 +121,15 @@
 					<span class="avatar-name">{avatar.name_ru}</span>
 					{#if locked}
 						<span class="avatar-req">Lv.{avatar.requiredLevel}</span>
-					{:else if avatar.price > 0 && !isCurrent}
+					{:else if isCurrent}
+						<span class="avatar-current">Текущий</span>
+					{:else if isPurchased(avatar.id)}
+						<span class="avatar-available">Доступен</span>
+					{:else if avatar.price > 0}
 						<span class="avatar-price">
 							<PixelIcon name="coin" size="sm" color="var(--pixel-orange)" />
 							{avatar.price}
 						</span>
-					{:else if isCurrent}
-						<span class="avatar-current">Текущий</span>
 					{:else}
 						<span class="avatar-free">Бесплатно</span>
 					{/if}
@@ -211,6 +242,11 @@
 	.avatar-free {
 		font-size: 8px;
 		color: var(--text-secondary);
+	}
+
+	.avatar-available {
+		font-size: 8px;
+		color: var(--pixel-green);
 	}
 
 	.picker-footer {

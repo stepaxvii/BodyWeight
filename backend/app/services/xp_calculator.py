@@ -6,37 +6,42 @@ def calculate_xp(
     is_first_today: bool,
 ) -> int:
     """
-    Calculate XP earned for an exercise.
-
-    Formula:
-    XP = base_xp × difficulty_mult × streak_mult × volume_mult × first_bonus
+    Calculate XP earned for ONE set of an exercise.
+    
+    ALGORITHM (v2.0):
+    XP = base_xp × difficulty_mult × volume_mult × streak_mult × first_bonus
+    
+    Each set is calculated separately, then results are summed.
+    This ensures fair XP distribution across all sets.
 
     Args:
         base_xp: Base XP from exercise definition
         difficulty: Exercise difficulty (1-5)
-        reps: Number of reps performed
+        reps: Number of reps in THIS set (or rep equivalent for timed)
         streak_days: Current streak in days
         is_first_today: Whether this is the first workout of the day
 
     Returns:
-        Calculated XP amount (integer)
+        Calculated XP amount for this set (integer)
     """
-    # Difficulty multiplier: 1.0, 1.25, 1.5, 1.75, 2.0
+    # 1. Difficulty multiplier: 1.0, 1.25, 1.5, 1.75, 2.0
     difficulty_mult = 1 + (difficulty - 1) * 0.25
 
-    # Streak bonus: max 50% at 30+ days
-    streak_mult = 1 + min(streak_days, 30) * 0.0167  # ~1.5 max
-
-    # Volume bonus with diminishing returns after 20 reps
+    # 2. Volume multiplier (applied to THIS set's reps)
+    # Diminishing returns after 20 reps
     if reps <= 20:
         volume_mult = 1 + reps * 0.02  # 1.0 to 1.4
     else:
         volume_mult = 1.4 + (reps - 20) * 0.01  # slower growth
 
-    # First workout of the day bonus
+    # 3. Streak multiplier: max 50% at 30+ days
+    streak_mult = 1 + min(streak_days, 30) * 0.0167  # ~1.5 max
+
+    # 4. First workout of the day bonus
     first_bonus = 1.2 if is_first_today else 1.0
 
-    xp = base_xp * difficulty_mult * streak_mult * volume_mult * first_bonus
+    # Calculate XP for this set
+    xp = base_xp * difficulty_mult * volume_mult * streak_mult * first_bonus
     return int(xp)
 
 

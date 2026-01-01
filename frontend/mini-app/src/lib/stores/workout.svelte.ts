@@ -39,34 +39,65 @@ class WorkoutStore {
 	}
 
 	get totalXp() {
-		// If workout completed, use session total
-		if (this.session?.total_xp_earned) {
+		// If workout completed (not active), use session total from backend
+		if (!this.isActive && this.session?.total_xp_earned) {
 			return this.session.total_xp_earned;
 		}
-		// Otherwise calculate locally from exercise data (simplified version of backend formula)
-		// Full formula on backend: base_xp × difficulty_mult × streak_mult × volume_mult × first_bonus
-		// Here we use simplified: base_xp × difficulty_mult × volume_mult (no streak/first bonus)
+		// During active workout: return 0
+		// NOTE: Accurate XP calculation requires backend data (streak, isFirstToday)
+		// Frontend shows estimated XP via $derived in components
+		return 0;
+	}
+
+	/**
+	 * Get estimated XP for preview (approximate, not accurate).
+	 * 
+	 * NOTE: This getter is not reactive in Svelte 5. Use $derived in components instead.
+	 * This method is kept for backward compatibility but should not be used.
+	 */
+	get estimatedXp(): number {
+		if (this.session?.total_xp_earned && !this.isActive) {
+			return this.session.total_xp_earned;
+		}
+		
+		if (this.totalSets === 0) {
+			return 0;
+		}
+		
+		// ALGORITHM: Calculate XP for each set separately
 		let total = 0;
 		this.exerciseData.forEach(data => {
-			if (data.exercise && data.sets.length > 0) {
-				const baseXp = data.exercise.base_xp;
-				const difficulty = data.exercise.difficulty || 1;
-				// Difficulty multiplier: 1.0, 1.25, 1.5, 1.75, 2.0 for difficulty 1-5
-				const difficultyMult = 1 + (difficulty - 1) * 0.25;
-
-				// Calculate XP per set based on reps
-				for (const reps of data.sets) {
-					// Volume multiplier with diminishing returns after 20 reps
-					let volumeMult: number;
-					if (reps <= 20) {
-						volumeMult = 1 + reps * 0.02; // 1.0 to 1.4
-					} else {
-						volumeMult = 1.4 + (reps - 20) * 0.01; // slower growth
-					}
-					total += baseXp * difficultyMult * volumeMult;
-				}
+			if (!data.exercise || data.sets.length === 0) {
+				return;
 			}
+			
+			const baseXp = data.exercise.base_xp;
+			const difficulty = data.exercise.difficulty || 1;
+			const difficultyMult = 1 + (difficulty - 1) * 0.25;
+
+			// Calculate XP for EACH set separately
+			data.sets.forEach(setValue => {
+				// Convert timed: 10 sec = 1 rep
+				let repsValue: number;
+				if (data.isTimed) {
+					repsValue = Math.max(1, Math.floor(setValue / 10));
+				} else {
+					repsValue = setValue;
+				}
+				
+				// Volume multiplier for THIS set
+				let volumeMult: number;
+				if (repsValue <= 20) {
+					volumeMult = 1 + repsValue * 0.02;
+				} else {
+					volumeMult = 1.4 + (repsValue - 20) * 0.01;
+				}
+				
+				// XP for this set (without streak/first_bonus)
+				total += baseXp * difficultyMult * volumeMult;
+			});
 		});
+		
 		return Math.floor(total);
 	}
 
@@ -165,6 +196,9 @@ class WorkoutStore {
 	async startWorkout() {
 		if (this.selectedExercises.length === 0) return;
 
+		// CRITICAL: Clear old session data when starting new workout
+		// This prevents old total_xp_earned from showing up
+		this.session = null;
 		this.isActive = true;
 
 		// Initialize exercise data for each selected exercise
@@ -219,6 +253,23 @@ class WorkoutStore {
 
 	getExerciseData(exerciseId: number): ExerciseSetData | undefined {
 		return this.exerciseData.get(exerciseId);
+	}
+
+	// Update exercise objects in exerciseData after exercises are loaded
+	// This is needed for restored workouts where exercise was null
+	updateExerciseObjects(exercises: Exercise[]) {
+		if (this.exerciseData.size === 0) return;
+		
+		const newData = new Map(this.exerciseData);
+		this.exerciseData.forEach((data, exerciseId) => {
+			if (!data.exercise && data.exerciseSlug) {
+				const exercise = exercises.find(e => e.slug === data.exerciseSlug);
+				if (exercise) {
+					newData.set(exerciseId, { ...data, exercise });
+				}
+			}
+		});
+		this.exerciseData = newData;
 	}
 
 	// Add set for an exercise - now purely local, no API call

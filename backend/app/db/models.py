@@ -1,5 +1,5 @@
 from datetime import datetime, date, time
-from typing import Optional, List
+from typing import Optional
 from sqlalchemy import (
     String,
     Integer,
@@ -27,9 +27,9 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False, index=True)
-    username: Mapped[Optional[str]] = mapped_column(String(255))
-    first_name: Mapped[Optional[str]] = mapped_column(String(255))
-    last_name: Mapped[Optional[str]] = mapped_column(String(255))
+    username: Mapped[str | None] = mapped_column(String(255))
+    first_name: Mapped[str | None] = mapped_column(String(255))
+    last_name: Mapped[str | None] = mapped_column(String(255))
     avatar_id: Mapped[str] = mapped_column(String(50), default="shadow-wolf")
 
     # Gamification
@@ -40,10 +40,10 @@ class User(Base):
     # Streaks
     current_streak: Mapped[int] = mapped_column(Integer, default=0)
     max_streak: Mapped[int] = mapped_column(Integer, default=0)
-    last_workout_date: Mapped[Optional[date]] = mapped_column(Date)
+    last_workout_date: Mapped[date | None] = mapped_column(Date)
 
     # Settings
-    notification_time: Mapped[Optional[time]] = mapped_column(Time)
+    notification_time: Mapped[time | None] = mapped_column(Time)
     notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Onboarding
@@ -54,13 +54,13 @@ class User(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
     # Relationships
-    workout_sessions: Mapped[List["WorkoutSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    achievements: Mapped[List["UserAchievement"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    goals: Mapped[List["UserGoal"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    purchases: Mapped[List["UserPurchase"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    exercise_progress: Mapped[List["UserExerciseProgress"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    favorite_exercises: Mapped[List["UserFavoriteExercise"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    custom_routines: Mapped[List["UserCustomRoutine"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    workout_sessions: Mapped[list["WorkoutSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    achievements: Mapped[list["UserAchievement"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    goals: Mapped[list["UserGoal"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    purchases: Mapped[list["UserPurchase"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    exercise_progress: Mapped[list["UserExerciseProgress"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    favorite_exercises: Mapped[list["UserFavoriteExercise"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    custom_routines: Mapped[list["UserCustomRoutine"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class ExerciseCategory(Base):
@@ -70,12 +70,12 @@ class ExerciseCategory(Base):
     slug: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     name_ru: Mapped[str] = mapped_column(String(100), nullable=False)
-    icon: Mapped[Optional[str]] = mapped_column(String(50))
-    color: Mapped[Optional[str]] = mapped_column(String(7))
+    icon: Mapped[str | None] = mapped_column(String(50))
+    color: Mapped[str | None] = mapped_column(String(7))
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
     # Relationships
-    exercises: Mapped[List["Exercise"]] = relationship(back_populates="category")
+    exercises: Mapped[list["Exercise"]] = relationship(back_populates="category")
 
 
 class Exercise(Base):
@@ -86,11 +86,11 @@ class Exercise(Base):
     slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     name_ru: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text)
-    description_ru: Mapped[Optional[str]] = mapped_column(Text)
+    description: Mapped[str | None] = mapped_column(Text)
+    description_ru: Mapped[str | None] = mapped_column(Text)
 
     # Tags for filtering (muscle groups, level, equipment, etc.)
-    tags: Mapped[List[str]] = mapped_column(JSON, default=list)
+    tags: Mapped[list[str]] = mapped_column(JSON, default=list)
 
     # Difficulty & progression
     difficulty: Mapped[int] = mapped_column(Integer, default=1)
@@ -104,12 +104,12 @@ class Exercise(Base):
     is_timed: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Media
-    gif_url: Mapped[Optional[str]] = mapped_column(String(255))
-    thumbnail_url: Mapped[Optional[str]] = mapped_column(String(255))
+    gif_url: Mapped[str | None] = mapped_column(String(255))
+    thumbnail_url: Mapped[str | None] = mapped_column(String(255))
 
     # Progression chain
-    easier_exercise_id: Mapped[Optional[int]] = mapped_column(ForeignKey("exercises.id"))
-    harder_exercise_id: Mapped[Optional[int]] = mapped_column(ForeignKey("exercises.id"))
+    easier_exercise_id: Mapped[int | None] = mapped_column(ForeignKey("exercises.id"))
+    harder_exercise_id: Mapped[int | None] = mapped_column(ForeignKey("exercises.id"))
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
@@ -135,8 +135,8 @@ class WorkoutSession(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
 
     started_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
-    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
-    duration_seconds: Mapped[Optional[int]] = mapped_column(Integer)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime)
+    duration_seconds: Mapped[int | None] = mapped_column(Integer)
 
     # Totals
     total_xp_earned: Mapped[int] = mapped_column(Integer, default=0)
@@ -151,7 +151,7 @@ class WorkoutSession(Base):
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="workout_sessions")
-    exercises: Mapped[List["WorkoutExercise"]] = relationship(back_populates="workout_session", cascade="all, delete-orphan")
+    exercises: Mapped[list["WorkoutExercise"]] = relationship(back_populates="workout_session", cascade="all, delete-orphan")
 
 
 class WorkoutExercise(Base):
@@ -206,7 +206,7 @@ class UserGoal(Base):
     end_date: Mapped[date] = mapped_column(Date, nullable=False)
 
     completed: Mapped[bool] = mapped_column(Boolean, default=False)
-    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
@@ -244,11 +244,11 @@ class ShopItem(Base):
     price_coins: Mapped[int] = mapped_column(Integer, nullable=False)
     required_level: Mapped[int] = mapped_column(Integer, default=1)
 
-    sprite_url: Mapped[Optional[str]] = mapped_column(String(255))
+    sprite_url: Mapped[str | None] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Relationships
-    purchases: Mapped[List["UserPurchase"]] = relationship(back_populates="shop_item")
+    purchases: Mapped[list["UserPurchase"]] = relationship(back_populates="shop_item")
 
 
 class UserPurchase(Base):
@@ -270,6 +270,21 @@ class UserPurchase(Base):
     )
 
 
+class UserAvatarPurchase(Base):
+    """Track avatar purchases separately from shop items."""
+    __tablename__ = "user_avatar_purchases"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    avatar_id: Mapped[str] = mapped_column(String(50), nullable=False)
+
+    purchased_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "avatar_id", name="uq_user_avatar_purchase"),
+    )
+
+
 class UserExerciseProgress(Base):
     __tablename__ = "user_exercise_progress"
 
@@ -280,7 +295,7 @@ class UserExerciseProgress(Base):
     total_reps_ever: Mapped[int] = mapped_column(Integer, default=0)
     best_single_set: Mapped[int] = mapped_column(Integer, default=0)
     times_performed: Mapped[int] = mapped_column(Integer, default=0)
-    last_performed_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    last_performed_at: Mapped[datetime | None] = mapped_column(DateTime)
 
     # For progression recommendations
     recommended_upgrade: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -321,7 +336,7 @@ class UserCustomRoutine(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text)
+    description: Mapped[str | None] = mapped_column(Text)
 
     # Routine type: morning, workout, stretch
     routine_type: Mapped[str] = mapped_column(String(50), default="workout")
@@ -335,7 +350,7 @@ class UserCustomRoutine(Base):
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="custom_routines")
-    exercises: Mapped[List["UserCustomRoutineExercise"]] = relationship(
+    exercises: Mapped[list["UserCustomRoutineExercise"]] = relationship(
         back_populates="routine", cascade="all, delete-orphan", order_by="UserCustomRoutineExercise.sort_order"
     )
 
@@ -352,8 +367,8 @@ class UserCustomRoutineExercise(Base):
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
 
     # Target reps or duration (seconds for timed exercises)
-    target_reps: Mapped[Optional[int]] = mapped_column(Integer)
-    target_duration: Mapped[Optional[int]] = mapped_column(Integer)
+    target_reps: Mapped[int | None] = mapped_column(Integer)
+    target_duration: Mapped[int | None] = mapped_column(Integer)
 
     # Rest time after this exercise (seconds)
     rest_seconds: Mapped[int] = mapped_column(Integer, default=30)
@@ -381,7 +396,7 @@ class Notification(Base):
     is_read: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
 
     # Related data (e.g., friend_id for friend requests)
-    related_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    related_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
 
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 

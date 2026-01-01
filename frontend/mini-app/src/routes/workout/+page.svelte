@@ -18,6 +18,13 @@
 	let exercises = $state<Exercise[]>([]);
 	let routines = $state<Routine[]>([]);
 	let customRoutines = $state<CustomRoutineListItem[]>([]);
+	
+	// Pagination state for exercises
+	let exercisesLoading = $state(false);
+	let exercisesHasMore = $state(false);
+	let exercisesTotal = $state(0);
+	let exercisesSkip = $state(0);
+	const exercisesLimit = 30;
 
 	// Main tab state
 	type MainTab = 'routines' | 'my-routines' | 'favorites' | 'exercises';
@@ -42,6 +49,82 @@
 	let selectedEquipment = $state<string[]>([]);
 	let selectedDifficulties = $state<number[]>([]);
 	let selectedTags = $state<string[]>([]);
+
+	/**
+	 * Calculate estimated XP for active workout (preview only).
+	 * 
+	 * ALGORITHM (matches backend):
+	 * 1. For each exercise, iterate through each set
+	 * 2. Convert timed exercises: 10 seconds = 1 rep equivalent
+	 * 3. Calculate XP for THIS set: base_xp × difficulty_mult × volume_mult
+	 * 4. Sum all set XP values
+	 * 
+	 * Note: Frontend doesn't know streak/first_bonus, so shows approximate value
+	 */
+	const estimatedXp = $derived.by(() => {
+		// CRITICAL: For active workouts, NEVER use session.total_xp_earned
+		// Always recalculate from current exerciseData
+		if (!workoutStore.isActive) {
+			// Only for completed workouts, use backend value
+			if (workoutStore.session?.total_xp_earned) {
+				return workoutStore.session.total_xp_earned;
+			}
+			return 0;
+		}
+		
+		// For active workouts: calculate from current exerciseData
+		// No sets = no XP
+		if (workoutStore.totalSets === 0) {
+			return 0;
+		}
+		
+		// Calculate XP for active workout
+		let total = 0;
+		
+		// CRITICAL: Convert Map to Array to ensure reactivity in Svelte 5
+		// Direct forEach on Map may not trigger reactivity properly
+		const exerciseDataArray = Array.from(workoutStore.exerciseData.values());
+		
+		for (const data of exerciseDataArray) {
+			// Skip if no exercise data or no sets
+			if (!data.exercise || data.sets.length === 0) {
+				continue;
+			}
+			
+			const baseXp = data.exercise.base_xp;
+			const difficulty = data.exercise.difficulty || 1;
+			const difficultyMult = 1 + (difficulty - 1) * 0.25;
+
+			// ALGORITHM: Calculate XP for EACH set separately
+			// Access sets array to ensure reactivity
+			const sets = data.sets;
+			for (const setValue of sets) {
+				// Step 1: Convert timed exercises (10 sec = 1 rep)
+				let repsValue: number;
+				if (data.isTimed) {
+					repsValue = Math.max(1, Math.floor(setValue / 10));
+				} else {
+					repsValue = setValue;
+				}
+				
+				// Step 2: Calculate volume multiplier for THIS set
+				let volumeMult: number;
+				if (repsValue <= 20) {
+					volumeMult = 1 + repsValue * 0.02;  // 1.0 to 1.4
+				} else {
+					volumeMult = 1.4 + (repsValue - 20) * 0.01;  // slower growth
+				}
+				
+				// Step 3: Calculate XP for this set
+				// Formula: base_xp × difficulty_mult × volume_mult
+				// (without streak/first_bonus - frontend doesn't know these)
+				const setXp = baseXp * difficultyMult * volumeMult;
+				total += setXp;
+			}
+		}
+		
+		return Math.floor(total);
+	});
 
 	// Filtered exercises by all criteria
 	const filteredExercises = $derived.by(() => {
@@ -117,20 +200,60 @@
 		}
 	}
 
+	async function loadExercises(reset = false) {
+		if (exercisesLoading) return;
+		
+		exercisesLoading = true;
+		try {
+			if (reset) {
+				exercisesSkip = 0;
+				exercises = [];
+			}
+
+			const response = await api.getExercises(activeCategory || undefined, {
+				skip: exercisesSkip,
+				limit: exercisesLimit
+			});
+			
+			exercises = reset ? response.items : [...exercises, ...response.items];
+			exercisesHasMore = response.has_more;
+			exercisesTotal = response.total;
+			exercisesSkip = exercises.length;
+		} catch (error) {
+			console.error('Failed to load exercises:', error);
+		} finally {
+			exercisesLoading = false;
+		}
+	}
+
+	async function loadMoreExercises() {
+		await loadExercises(false);
+		telegram.hapticImpact('light');
+	}
+
 	onMount(async () => {
-		// Load ALL data in parallel for faster page load
-		const [cats, exs, rts, customRts, _, __] = await Promise.all([
+		// Load data in parallel for faster page load
+		const [cats, rts, customRts, _, __] = await Promise.all([
 			api.getCategories(),
-			api.getExercises(),
 			api.getRoutines(),
 			api.getCustomRoutines(),
 			workoutStore.loadActiveWorkout(),
 			favoritesStore.loadFavorites()
 		]);
+		
 		categories = cats;
-		exercises = exs;
 		routines = rts;
 		customRoutines = customRts;
+		
+		// Load exercises with pagination
+		await loadExercises();
+		
+		// After exercises are loaded, update exerciseData with exercise objects
+		// This is needed for restored workouts where exercise was null
+		if (workoutStore.isActive) {
+			workoutStore.updateExerciseObjects(exercises);
+		}
+		
 		isPageLoading = false;
 
 		// Listen for page visibility changes
@@ -149,8 +272,9 @@
 		telegram.hapticImpact('light');
 	}
 
-	function selectCategory(slug: string) {
+	async function selectCategory(slug: string) {
 		activeCategory = activeCategory === slug ? null : slug;
+		await loadExercises(true); // Reset and reload exercises
 		telegram.hapticImpact('light');
 	}
 
@@ -300,11 +424,12 @@
 		selectedTags = filters.tags;
 	}
 
-	function clearAllFilters() {
+	async function clearAllFilters() {
 		selectedEquipment = [];
 		selectedDifficulties = [];
 		selectedTags = [];
 		activeCategory = null;
+		await loadExercises(true); // Reset and reload exercises
 		telegram.hapticImpact('light');
 	}
 </script>
@@ -338,7 +463,18 @@
 					<span class="stat-label">Повторов</span>
 				</div>
 				<div class="stat">
-					<span class="stat-value text-green">+{workoutStore.totalXp}</span>
+					{#if !workoutStore.isActive && workoutStore.session?.total_xp_earned}
+						<!-- Completed workout - show actual XP from backend -->
+						<span class="stat-value text-green">+{workoutStore.totalXp}</span>
+					{:else if workoutStore.totalSets === 0}
+						<!-- No sets yet - show dash -->
+						<span class="stat-value text-green">—</span>
+					{:else if workoutStore.isActive && estimatedXp > 0}
+						<!-- Active workout with sets - show estimated XP -->
+						<span class="stat-value text-green">~{estimatedXp}</span>
+					{:else}
+						<span class="stat-value text-green">—</span>
+					{/if}
 					<span class="stat-label">XP</span>
 				</div>
 			</div>
@@ -641,7 +777,7 @@
 				<!-- Filter header -->
 				<div class="filter-header">
 					<span class="filter-label">
-						{filteredExercises.length} упражнений
+						{filteredExercises.length} / {exercisesTotal || filteredExercises.length} упражнений
 					</span>
 					<div class="filter-actions-row">
 						{#if activeFilterCount > 0 || activeCategory}
@@ -684,12 +820,29 @@
 							onInfoClick={() => openExerciseInfo(exercise)}
 						/>
 					{/each}
-					{#if filteredExercises.length === 0}
+					{#if filteredExercises.length === 0 && !exercisesLoading}
 						<div class="empty-state">
 							<PixelIcon name="search" size="lg" color="var(--text-secondary)" />
 							<p>Ничего не найдено</p>
 							<PixelButton variant="ghost" onclick={clearAllFilters}>
 								Сбросить фильтры
+							</PixelButton>
+						</div>
+					{/if}
+					
+					{#if exercisesHasMore && filteredExercises.length > 0}
+						<div class="load-more-container">
+							<PixelButton
+								variant="secondary"
+								onclick={loadMoreExercises}
+								disabled={exercisesLoading}
+								fullWidth
+							>
+								{#if exercisesLoading}
+									Загрузка...
+								{:else}
+									Загрузить ещё
+								{/if}
 							</PixelButton>
 						</div>
 					{/if}
@@ -749,6 +902,7 @@
 {#if showCustomRoutineEditor}
 	<CustomRoutineEditor
 		{exercises}
+		{categories}
 		editingRoutine={editingCustomRoutine}
 		onclose={closeCustomRoutineEditor}
 		onsave={handleCustomRoutineSave}
@@ -1157,6 +1311,11 @@
 	}
 
 	/* Exercises list */
+	.load-more-container {
+		margin-top: var(--spacing-md);
+		padding: 0 var(--spacing-md);
+	}
+
 	.exercises-list {
 		display: flex;
 		flex-direction: column;

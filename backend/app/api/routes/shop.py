@@ -1,47 +1,27 @@
-from typing import List
-from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import select
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import ShopItem, UserPurchase
+from app.schemas import ShopItemResponse, InventoryItemResponse
 
 router = APIRouter()
 
 
-class ShopItemResponse(BaseModel):
-    id: int
-    slug: str
-    name: str
-    name_ru: str
-    item_type: str
-    price_coins: int
-    required_level: int
-    sprite_url: str | None
-    owned: bool = False
-    equipped: bool = False
-
-    class Config:
-        from_attributes = True
-
-
-class InventoryItemResponse(BaseModel):
-    id: int
-    shop_item: ShopItemResponse
-    is_equipped: bool
-    purchased_at: str
-
-    class Config:
-        from_attributes = True
-
-
-@router.get("", response_model=List[ShopItemResponse])
+@router.get(
+    "",
+    response_model=list[ShopItemResponse],
+    summary="Получить товары магазина",
+    description="Возвращает список товаров магазина с информацией о владении пользователем.",
+    tags=["Shop"]
+)
 async def get_shop_items(
     session: AsyncSessionDep,
     user: CurrentUser,
-    item_type: str | None = None,
+    item_type: str | None = Query(
+        None, description="Фильтр по типу товара"
+    ),
 ):
-    """Get all shop items."""
     query = select(ShopItem).where(ShopItem.is_active == True)
 
     if item_type:
@@ -150,7 +130,7 @@ async def purchase_item(
     )
 
 
-@router.get("/inventory", response_model=List[InventoryItemResponse])
+@router.get("/inventory", response_model=list[InventoryItemResponse])
 async def get_inventory(
     session: AsyncSessionDep,
     user: CurrentUser,

@@ -1,42 +1,31 @@
-from typing import List
 from fastapi import APIRouter, HTTPException, Query, status, BackgroundTasks
-from pydantic import BaseModel
-from sqlalchemy import select, or_, and_
+from sqlalchemy import select, or_
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import User, Friendship, Notification
-from app.services.notifications import send_friend_request_notification, send_friend_accepted_notification
+from app.services.notifications import (
+    send_friend_request_notification, send_friend_accepted_notification
+)
+from app.schemas import FriendResponse, AddFriendRequest
 
 router = APIRouter()
 
 
-class FriendResponse(BaseModel):
-    id: int
-    user_id: int
-    username: str | None
-    first_name: str | None
-    avatar_id: str
-    level: int
-    total_xp: int
-    current_streak: int
-    status: str
-
-    class Config:
-        from_attributes = True
-
-
-class AddFriendRequest(BaseModel):
-    user_id: int | None = None
-    username: str | None = None
-
-
-@router.get("", response_model=List[FriendResponse])
+@router.get(
+    "",
+    response_model=list[FriendResponse],
+    summary="Получить список друзей",
+    description="Возвращает список друзей пользователя с возможностью фильтрации по статусу.",
+    tags=["Friends"]
+)
 async def get_friends(
     session: AsyncSessionDep,
     user: CurrentUser,
-    status_filter: str = Query("accepted", description="Filter by status: accepted, pending, all"),
+    status_filter: str = Query(
+        "accepted",
+        description="Фильтр по статусу: accepted, pending, all"
+    ),
 ):
-    """Get list of friends."""
     query = (
         select(Friendship, User)
         .join(User, Friendship.friend_id == User.id)
@@ -65,7 +54,13 @@ async def get_friends(
     ]
 
 
-@router.get("/requests", response_model=List[FriendResponse])
+@router.get(
+    "/requests",
+    response_model=list[FriendResponse],
+    summary="Получить запросы в друзья",
+    description="Возвращает список входящих запросов в друзья.",
+    tags=["Friends"]
+)
 async def get_friend_requests(
     session: AsyncSessionDep,
     user: CurrentUser,
@@ -302,7 +297,7 @@ async def remove_friend(
     return {"message": "Friend removed"}
 
 
-@router.get("/search", response_model=List[FriendResponse])
+@router.get("/search", response_model=list[FriendResponse])
 async def search_users(
     session: AsyncSessionDep,
     user: CurrentUser,

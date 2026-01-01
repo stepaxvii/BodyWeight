@@ -1,53 +1,29 @@
-import json
-from pathlib import Path
-from typing import List
 from fastapi import APIRouter, Query
-from pydantic import BaseModel
 from sqlalchemy import select
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import UserAchievement
+from app.utils.achievement_loader import load_achievements
+from app.schemas import (
+    AchievementResponse, RecentAchievementResponse, PaginatedResponse
+)
 
 router = APIRouter()
 
 
-class AchievementResponse(BaseModel):
-    slug: str
-    name: str
-    name_ru: str
-    description: str
-    description_ru: str
-    icon: str
-    xp_reward: int
-    coin_reward: int
-    unlocked: bool
-    unlocked_at: str | None = None
-    condition: dict
-
-
-class RecentAchievementResponse(BaseModel):
-    slug: str
-    name: str
-    name_ru: str
-    icon: str
-    unlocked_at: str
-
-
-def load_achievements() -> dict:
-    """Load achievements definitions from JSON file."""
-    achievements_path = Path(__file__).parent.parent.parent / "data" / "achievements.json"
-    if achievements_path.exists():
-        with open(achievements_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {"achievements": []}
-
-
-@router.get("", response_model=List[AchievementResponse])
+@router.get(
+    "",
+    response_model=PaginatedResponse[AchievementResponse],
+    summary="Получить достижения",
+    description="Возвращает список всех достижений с информацией о статусе разблокировки для текущего пользователя. Поддерживает пагинацию.",
+    tags=["Achievements"]
+)
 async def get_achievements(
     session: AsyncSessionDep,
     user: CurrentUser,
+    skip: int = Query(0, ge=0, description="Количество пропущенных элементов"),
+    limit: int = Query(50, ge=1, le=100, description="Максимальное количество элементов"),
 ):
-    """Get all achievements with unlock status for current user."""
     achievements_data = load_achievements()
 
     # Get user's unlocked achievements
@@ -57,10 +33,11 @@ async def get_achievements(
     )
     user_achievements = {ua.achievement_slug: ua for ua in result.scalars().all()}
 
-    response = []
-    for ach in achievements_data.get("achievements", []):
+    # Build all achievements
+    all_achievements = []
+    for ach in achievements_data:
         user_ach = user_achievements.get(ach["slug"])
-        response.append(AchievementResponse(
+        all_achievements.append(AchievementResponse(
             slug=ach["slug"],
             name=ach["name"],
             name_ru=ach["name_ru"],
@@ -74,18 +51,35 @@ async def get_achievements(
             condition=ach.get("condition", {}),
         ))
 
-    return response
+    # Calculate total
+    total = len(all_achievements)
+
+    # Apply pagination
+    paginated_achievements = all_achievements[skip:skip + limit]
+
+    return PaginatedResponse(
+        items=paginated_achievements,
+        total=total,
+        skip=skip,
+        limit=limit,
+        has_more=skip + limit < total,
+    )
 
 
-@router.get("/recent", response_model=List[RecentAchievementResponse])
+@router.get(
+    "/recent",
+    response_model=list[RecentAchievementResponse],
+    summary="Последние достижения",
+    description="Возвращает список недавно разблокированных достижений пользователя.",
+    tags=["Achievements"]
+)
 async def get_recent_achievements(
     session: AsyncSessionDep,
     user: CurrentUser,
-    limit: int = Query(5, ge=1, le=20),
+    limit: int = Query(5, ge=1, le=20, description="Максимальное количество достижений"),
 ):
-    """Get recently unlocked achievements."""
     achievements_data = load_achievements()
-    achievements_by_slug = {a["slug"]: a for a in achievements_data.get("achievements", [])}
+    achievements_by_slug = {a["slug"]: a for a in achievements_data}
 
     result = await session.execute(
         select(UserAchievement)

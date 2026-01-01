@@ -1,43 +1,26 @@
 from datetime import date, datetime, timedelta
-from typing import List
-from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import select
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import UserGoal
+from app.schemas import CreateGoalRequest, GoalResponse
 
 router = APIRouter()
 
 
-class CreateGoalRequest(BaseModel):
-    goal_type: str  # weekly_workouts, daily_xp, weekly_xp
-    target_value: int
-    duration_days: int = 7  # Default to weekly
-
-
-class GoalResponse(BaseModel):
-    id: int
-    goal_type: str
-    target_value: int
-    current_value: int
-    start_date: date
-    end_date: date
-    completed: bool
-    completed_at: datetime | None
-    progress_percent: float
-
-    class Config:
-        from_attributes = True
-
-
-@router.get("", response_model=List[GoalResponse])
+@router.get(
+    "",
+    response_model=list[GoalResponse],
+    summary="Получить цели пользователя",
+    description="Возвращает список целей пользователя. По умолчанию показываются только активные цели.",
+    tags=["Goals"]
+)
 async def get_goals(
     session: AsyncSessionDep,
     user: CurrentUser,
-    active_only: bool = True,
+    active_only: bool = Query(True, description="Показывать только активные цели"),
 ):
-    """Get user's goals."""
     query = select(UserGoal).where(UserGoal.user_id == user.id)
 
     if active_only:
@@ -65,7 +48,14 @@ async def get_goals(
     ]
 
 
-@router.post("", response_model=GoalResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=GoalResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Создать цель",
+    description="Создаёт новую цель для пользователя.",
+    tags=["Goals"]
+)
 async def create_goal(
     request: CreateGoalRequest,
     session: AsyncSessionDep,
@@ -165,6 +155,44 @@ async def update_goal_progress(
         completed_at=goal.completed_at,
         progress_percent=min((goal.current_value / goal.target_value) * 100, 100) if goal.target_value > 0 else 0,
     )
+
+
+@router.get("/progress", response_model=list[GoalResponse])
+async def get_goals_progress(
+    session: AsyncSessionDep,
+    user: CurrentUser,
+):
+    """
+    Get detailed progress for all active goals.
+    Includes completed and incomplete goals.
+    """
+    today = date.today()
+
+    # Get all active goals (not expired)
+    query = (
+        select(UserGoal)
+        .where(UserGoal.user_id == user.id)
+        .where(UserGoal.end_date >= today)
+        .order_by(UserGoal.completed.asc(), UserGoal.end_date.asc())
+    )
+
+    result = await session.execute(query)
+    goals = result.scalars().all()
+
+    return [
+        GoalResponse(
+            id=g.id,
+            goal_type=g.goal_type,
+            target_value=g.target_value,
+            current_value=g.current_value,
+            start_date=g.start_date,
+            end_date=g.end_date,
+            completed=g.completed,
+            completed_at=g.completed_at,
+            progress_percent=min((g.current_value / g.target_value) * 100, 100) if g.target_value > 0 else 0,
+        )
+        for g in goals
+    ]
 
 
 @router.delete("/{goal_id}")

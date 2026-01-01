@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Squat 100 - legs -->
+  <rect x="0" y="0" width="32" height="32" fill="#9CA3AF"/>
+  <rect x="2" y="2" width="28" height="28" fill="#1a1a2e"/>
+
+  <!-- Legs -->
+  <rect x="10" y="10" width="4" height="12" fill="#60a5fa"/>
+  <rect x="18" y="10" width="4" height="12" fill="#60a5fa"/>
+  <rect x="10" y="8" width="12" height="2" fill="#3b82f6"/>
+</svg>

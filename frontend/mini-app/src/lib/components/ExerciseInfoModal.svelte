@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { PixelModal, PixelIcon, PixelCard } from '$lib/components/ui';
+	import { getTagName } from '$lib/utils';
 	import type { Exercise } from '$lib/types';
 
 	interface Props {
@@ -23,32 +24,6 @@
 			'wall': 'Стена'
 		};
 		return labels[equipment] || equipment;
-	}
-
-	function getTagLabel(tag: string): string {
-		const labels: Record<string, string> = {
-			'chest': 'Грудь',
-			'back': 'Спина',
-			'shoulders': 'Плечи',
-			'triceps': 'Трицепс',
-			'biceps': 'Бицепс',
-			'core': 'Кор',
-			'abs': 'Пресс',
-			'quads': 'Квадрицепс',
-			'hamstrings': 'Бицепс бедра',
-			'glutes': 'Ягодицы',
-			'calves': 'Икры',
-			'hip-flexors': 'Сгибатели бедра',
-			'full-body': 'Всё тело',
-			'upper-body': 'Верх тела',
-			'lower-body': 'Низ тела',
-			'flexibility': 'Гибкость',
-			'balance': 'Баланс',
-			'cardio': 'Кардио',
-			'strength': 'Сила',
-			'endurance': 'Выносливость'
-		};
-		return labels[tag] || tag;
 	}
 </script>
 
@@ -101,7 +76,7 @@
 					<h4 class="section-title">Группы мышц</h4>
 					<div class="tags">
 						{#each exercise.tags as tag}
-							<span class="tag">{getTagLabel(tag)}</span>
+							<span class="tag">{getTagName(tag)}</span>
 						{/each}
 					</div>
 				</div>

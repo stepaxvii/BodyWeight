@@ -1,56 +1,37 @@
-from datetime import date, time, datetime
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
 from sqlalchemy import select
 
 from app.api.deps import AsyncSessionDep, validate_telegram_init_data
 from app.db.models import User, Notification
 from app.config import settings
+from app.schemas import AuthRequest, AuthResponse, UserResponse
 
 router = APIRouter()
 
 
-class AuthRequest(BaseModel):
-    init_data: str
+@router.post(
+    "/validate",
+    response_model=AuthResponse,
+    summary="Аутентификация через Telegram",
+    description="""
+    Валидирует данные от Telegram WebApp и создаёт/обновляет пользователя.
 
+    Это основной эндпоинт аутентификации, вызываемый при открытии Mini App.
 
-class UserResponse(BaseModel):
-    id: int
-    telegram_id: int
-    username: str | None
-    first_name: str | None
-    last_name: str | None
-    avatar_id: str
-    level: int
-    total_xp: int
-    coins: int
-    current_streak: int
-    max_streak: int
-    last_workout_date: date | None
-    notifications_enabled: bool
-    notification_time: time | None
-    is_onboarded: bool
-    created_at: datetime
-    updated_at: datetime
+    **Процесс:**
+    1. Валидация `init_data` от Telegram
+    2. Извлечение данных пользователя из `init_data`
+    3. Поиск или создание пользователя в БД
+    4. Возврат информации о пользователе
 
-    class Config:
-        from_attributes = True
-
-
-class AuthResponse(BaseModel):
-    user: UserResponse
-    is_new: bool
-
-
-@router.post("/validate", response_model=AuthResponse)
+    **В режиме debug:** поддерживается упрощённая аутентификация для тестирования.
+    """,
+    tags=["Auth"]
+)
 async def validate_auth(
     request: AuthRequest,
     session: AsyncSessionDep,
 ):
-    """
-    Validate Telegram init data and create/update user.
-    This is the main auth endpoint called when Mini App opens.
-    """
     # In debug mode, allow mock auth
     if settings.debug and request.init_data.startswith("debug_"):
         try:

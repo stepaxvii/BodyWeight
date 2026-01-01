@@ -1,47 +1,34 @@
 import logging
 from datetime import datetime, timedelta
-from typing import List
 from fastapi import APIRouter, Query
-from pydantic import BaseModel
 from sqlalchemy import select, func, and_
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import User, WorkoutSession, Friendship
+from app.schemas import LeaderboardEntry, LeaderboardResponse
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-class LeaderboardEntry(BaseModel):
-    rank: int
-    user_id: int
-    username: str | None
-    first_name: str | None
-    avatar_id: str
-    level: int
-    total_xp: int
-    current_streak: int
-    is_current_user: bool = False
-
-
-class LeaderboardResponse(BaseModel):
-    entries: List[LeaderboardEntry]
-    current_user_rank: int | None = None
-
-
-@router.get("", response_model=LeaderboardResponse)
+@router.get(
+    "",
+    response_model=LeaderboardResponse,
+    summary="Глобальный рейтинг",
+    description="Возвращает глобальный рейтинг пользователей по общему количеству XP.",
+    tags=["Leaderboard"]
+)
 async def get_global_leaderboard(
     session: AsyncSessionDep,
     user: CurrentUser,
-    limit: int = Query(50, ge=1, le=100),
+    limit: int = Query(50, ge=1, le=100, description="Максимальное количество пользователей в рейтинге"),
 ):
-    """Get global leaderboard by total XP."""
-    logger.warning(f"[Leaderboard/Global] === REQUEST RECEIVED === user_id={user.id}, limit={limit}")
+    logger.debug(f"[Leaderboard/Global] Request received: user_id={user.id}, limit={limit}")
 
     # Debug: count all users
     count_result = await session.execute(select(func.count(User.id)))
     total_count = count_result.scalar()
-    logger.info(f"[Leaderboard] Total users in database: {total_count}")
+    logger.debug(f"[Leaderboard] Total users in database: {total_count}")
 
     result = await session.execute(
         select(User)
@@ -50,9 +37,9 @@ async def get_global_leaderboard(
     )
     users = list(result.scalars().all())
 
-    logger.info(f"[Leaderboard] Found {len(users)} users in query result")
+    logger.debug(f"[Leaderboard] Found {len(users)} users in query result")
     for u in users[:3]:  # Log first 3 users for debug
-        logger.info(f"[Leaderboard] User: id={u.id}, username={u.username}, xp={u.total_xp}")
+        logger.debug(f"[Leaderboard] User: id={u.id}, username={u.username}, xp={u.total_xp}")
 
     entries = []
     current_user_rank = None
@@ -88,13 +75,18 @@ async def get_global_leaderboard(
     )
 
 
-@router.get("/weekly", response_model=LeaderboardResponse)
+@router.get(
+    "/weekly",
+    response_model=LeaderboardResponse,
+    summary="Недельный рейтинг",
+    description="Возвращает рейтинг пользователей по XP, заработанным на текущей неделе (с понедельника).",
+    tags=["Leaderboard"]
+)
 async def get_weekly_leaderboard(
     session: AsyncSessionDep,
     user: CurrentUser,
-    limit: int = Query(50, ge=1, le=100),
+    limit: int = Query(50, ge=1, le=100, description="Максимальное количество пользователей в рейтинге"),
 ):
-    """Get weekly leaderboard by XP earned this week."""
     # Calculate week start (Monday)
     today = datetime.utcnow().date()
     week_start = today - timedelta(days=today.weekday())
@@ -146,39 +138,48 @@ async def get_weekly_leaderboard(
     )
 
 
-@router.get("/friends", response_model=LeaderboardResponse)
+@router.get(
+    "/friends",
+    response_model=LeaderboardResponse,
+    summary="Рейтинг друзей",
+    description="Возвращает рейтинг среди друзей текущего пользователя по общему количеству XP.",
+    tags=["Leaderboard"]
+)
 async def get_friends_leaderboard(
     session: AsyncSessionDep,
     user: CurrentUser,
 ):
-    """Get leaderboard among friends."""
-    logger.info(f"[Leaderboard/Friends] Getting friends leaderboard, user_id={user.id}")
+    logger.debug(f"[Leaderboard/Friends] Getting friends leaderboard, user_id={user.id}")
 
-    # Get friend IDs
-    friends_result = await session.execute(
-        select(Friendship.friend_id)
-        .where(Friendship.user_id == user.id)
-        .where(Friendship.status == "accepted")
-    )
-    friend_ids = [row[0] for row in friends_result.all()]
-    logger.info(f"[Leaderboard/Friends] Found {len(friend_ids)} friends: {friend_ids}")
-
-    # Include current user
-    all_ids = friend_ids + [user.id]
-    logger.info(f"[Leaderboard/Friends] All IDs to fetch: {all_ids}")
-
-    result = await session.execute(
+    # Optimized: One JOIN query instead of two separate queries
+    # Get friends where current user is the requester
+    stmt = (
         select(User)
-        .where(User.id.in_(all_ids))
+        .join(
+            Friendship,
+            and_(
+                Friendship.friend_id == User.id,
+                Friendship.user_id == user.id,
+                Friendship.status == "accepted"
+            )
+        )
         .order_by(User.total_xp.desc())
+        .limit(50)
     )
-    users = result.scalars().all()
-    logger.info(f"[Leaderboard/Friends] Found {len(users)} users")
+
+    result = await session.execute(stmt)
+    friends = list(result.scalars().all())
+    logger.debug(f"[Leaderboard/Friends] Found {len(friends)} friends via JOIN")
+
+    # Add current user to the list
+    friends_with_me = [user] + friends
+    # Re-sort to include current user in correct position
+    friends_with_me.sort(key=lambda u: u.total_xp, reverse=True)
 
     entries = []
     current_user_rank = None
 
-    for rank, u in enumerate(users, 1):
+    for rank, u in enumerate(friends_with_me, 1):
         is_current = u.id == user.id
         if is_current:
             current_user_rank = rank

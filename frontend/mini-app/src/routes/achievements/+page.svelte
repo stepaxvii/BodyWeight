@@ -1,16 +1,48 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { PixelCard, PixelIcon, PixelProgress } from '$lib/components/ui';
+	import { PixelCard, PixelIcon, PixelProgress, PixelButton } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { Achievement } from '$lib/types';
 
 	let achievements = $state<Achievement[]>([]);
 	let filter = $state<'all' | 'unlocked' | 'locked'>('all');
+	let isLoading = $state(false);
+	let hasMore = $state(false);
+	let total = $state(0);
+	let skip = $state(0);
+	const limit = 20;
 
 	onMount(async () => {
-		achievements = await api.getAchievements();
+		await loadAchievements();
 	});
+
+	async function loadAchievements(reset = false) {
+		if (isLoading) return;
+		
+		isLoading = true;
+		try {
+			if (reset) {
+				skip = 0;
+				achievements = [];
+			}
+
+			const response = await api.getAchievements({ skip, limit });
+			achievements = reset ? response.items : [...achievements, ...response.items];
+			hasMore = response.has_more;
+			total = response.total;
+			skip = achievements.length;
+		} catch (error) {
+			console.error('Failed to load achievements:', error);
+		} finally {
+			isLoading = false;
+		}
+	}
+
+	async function loadMore() {
+		await loadAchievements(false);
+		telegram.hapticImpact('light');
+	}
 
 	const filteredAchievements = $derived(() => {
 		switch (filter) {
@@ -40,7 +72,7 @@
 <div class="page container">
 	<header class="page-header">
 		<h1>Достижения</h1>
-		<p class="achievement-count">{unlockedCount} / {achievements.length} Получено</p>
+		<p class="achievement-count">{unlockedCount} / {total || achievements.length} Получено</p>
 	</header>
 
 	<!-- Filter Tabs -->
@@ -136,10 +168,27 @@
 		{/each}
 	</div>
 
-	{#if filteredAchievements().length === 0}
+	{#if filteredAchievements().length === 0 && !isLoading}
 		<div class="empty-state">
 			<PixelIcon name="trophy" size="xl" color="var(--text-muted)" />
 			<p>Нет достижений для показа</p>
+		</div>
+	{/if}
+
+	{#if hasMore && filteredAchievements().length > 0}
+		<div class="load-more-container">
+			<PixelButton
+				variant="secondary"
+				onclick={loadMore}
+				disabled={isLoading}
+				fullWidth
+			>
+				{#if isLoading}
+					Загрузка...
+				{:else}
+					Загрузить ещё
+				{/if}
+			</PixelButton>
 		</div>
 	{/if}
 </div>
@@ -300,5 +349,10 @@
 	@keyframes pixel-glow {
 		0%, 100% { box-shadow: 0 0 4px var(--pixel-yellow); }
 		50% { box-shadow: 0 0 12px var(--pixel-yellow); }
+	}
+
+	.load-more-container {
+		margin-top: var(--spacing-lg);
+		padding: 0 var(--spacing-md);
 	}
 </style>

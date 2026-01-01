@@ -1,84 +1,29 @@
-from typing import List, Optional
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
-from app.db.models import Exercise, UserCustomRoutine, UserCustomRoutineExercise
+from app.db.models import (
+    Exercise, UserCustomRoutine, UserCustomRoutineExercise
+)
+from app.schemas import (
+    RoutineExerciseResponse,
+    CustomRoutineCreate,
+    CustomRoutineUpdate,
+    CustomRoutineResponse,
+    CustomRoutineListItem,
+)
 
 router = APIRouter()
 
 
-# ============== Request/Response Models ==============
-
-class RoutineExerciseCreate(BaseModel):
-    exercise_id: int
-    target_reps: Optional[int] = None
-    target_duration: Optional[int] = None
-    rest_seconds: int = 30
-
-
-class RoutineExerciseResponse(BaseModel):
-    id: int
-    exercise_id: int
-    exercise_slug: str
-    exercise_name_ru: str
-    is_timed: bool
-    sort_order: int
-    target_reps: Optional[int]
-    target_duration: Optional[int]
-    rest_seconds: int
-
-    class Config:
-        from_attributes = True
-
-
-class CustomRoutineCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
-    routine_type: str = "workout"  # morning, workout, stretch
-    exercises: List[RoutineExerciseCreate] = []
-
-
-class CustomRoutineUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    routine_type: Optional[str] = None
-    exercises: Optional[List[RoutineExerciseCreate]] = None
-
-
-class CustomRoutineResponse(BaseModel):
-    id: int
-    name: str
-    description: Optional[str]
-    routine_type: str
-    duration_minutes: int
-    is_active: bool
-    exercises: List[RoutineExerciseResponse]
-
-    class Config:
-        from_attributes = True
-
-
-class CustomRoutineListItem(BaseModel):
-    id: int
-    name: str
-    routine_type: str
-    duration_minutes: int
-    exercises_count: int
-
-    class Config:
-        from_attributes = True
-
-
 # ============== Endpoints ==============
 
-@router.get("", response_model=List[CustomRoutineListItem])
+@router.get("", response_model=list[CustomRoutineListItem])
 async def list_custom_routines(
     session: AsyncSessionDep,
     user: CurrentUser,
-    routine_type: Optional[str] = None,
+    routine_type: str | None = None,
 ):
     """Get all custom routines for the current user."""
     query = (

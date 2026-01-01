@@ -1,27 +1,16 @@
-import json
 from datetime import datetime
-from pathlib import Path
-from typing import List
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import User, UserAchievement, WorkoutSession, UserExerciseProgress
-
-
-def load_achievements() -> dict:
-    """Load achievements definitions from JSON file."""
-    achievements_path = Path(__file__).parent.parent / "data" / "achievements.json"
-    if achievements_path.exists():
-        with open(achievements_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {"achievements": []}
+from app.utils.achievement_loader import load_achievements
 
 
 async def check_achievements(
     session: AsyncSession,
     user: User,
-) -> List[dict]:
+) -> list[dict]:
     """
     Check and unlock achievements for a user.
 
@@ -37,7 +26,7 @@ async def check_achievements(
     )
     unlocked_slugs = set(row[0] for row in result.fetchall())
 
-    for achievement in achievements_data.get("achievements", []):
+    for achievement in achievements_data:
         slug = achievement["slug"]
 
         # Skip if already unlocked
