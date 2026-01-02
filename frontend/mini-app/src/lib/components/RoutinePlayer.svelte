@@ -4,7 +4,7 @@
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import type { Routine, RoutineExercise, Exercise } from '$lib/types';
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, $effect } from 'svelte';
 
 	interface Props {
 		routine: Routine;
@@ -16,7 +16,9 @@
 	let { routine, exercises: exercisesProp = [], onclose, oncomplete }: Props = $props();
 
 	// All exercises data for descriptions
-	let allExercises = $state<Exercise[]>(exercisesProp);
+	// Initialize as empty array to force loading in onMount
+	let allExercises = $state<Exercise[]>([]);
+	let exercisesLoading = $state(false);
 
 	// Current step in the routine
 	let currentStep = $state(0);
@@ -59,9 +61,33 @@
 	const formattedExerciseTime = $derived(formatTime(exerciseTimerSeconds));
 
 	onMount(async () => {
-		// Only fetch if exercises weren't passed as prop
-		if (allExercises.length === 0) {
-			allExercises = await api.getAllExercises();
+		// Always fetch all exercises to ensure we have names for all exercises in routine
+		// The prop exercises might be paginated and not contain all needed exercises
+		exercisesLoading = true;
+		try {
+			const fetchedExercises = await api.getAllExercises();
+			// Merge with prop exercises to avoid duplicates
+			const exerciseMap = new Map<string, Exercise>();
+			// First add prop exercises
+			exercisesProp.forEach(ex => exerciseMap.set(ex.slug, ex));
+			// Then add fetched exercises (will override if duplicate)
+			fetchedExercises.forEach(ex => exerciseMap.set(ex.slug, ex));
+			allExercises = Array.from(exerciseMap.values());
+			
+			// Debug: check if all routine exercises are found
+			const routineSlugs = routine.exercises.map(ex => ex.slug);
+			const missingSlugs = routineSlugs.filter(slug => !exerciseMap.has(slug));
+			if (missingSlugs.length > 0) {
+				console.warn('RoutinePlayer: Missing exercises in allExercises:', missingSlugs);
+			}
+		} catch (error) {
+			console.error('Failed to load exercises:', error);
+			// Fallback to prop if available
+			if (exercisesProp.length > 0) {
+				allExercises = exercisesProp;
+			}
+		} finally {
+			exercisesLoading = false;
 		}
 	});
 
