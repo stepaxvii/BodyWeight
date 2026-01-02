@@ -4,7 +4,7 @@
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import type { Routine, RoutineExercise, Exercise } from '$lib/types';
-	import { onMount, onDestroy, $effect } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 
 	interface Props {
 		routine: Routine;
