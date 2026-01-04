@@ -294,7 +294,7 @@
 			<div class="completion-header">
 				<PixelIcon name="trophy" size="xl" color="var(--pixel-yellow)" />
 				<h2 class="completion-title">Отлично!</h2>
-				<p class="completion-subtitle">Комплекс выполнен</p>
+				<p class="completion-subtitle">Сет выполнен</p>
 			</div>
 
 			<div class="completion-stats-grid">

@@ -723,7 +723,7 @@
 						{/each}
 						{#if filteredRoutines.length === 0}
 							<div class="empty-state">
-								<p>Нет комплексов в этой категории</p>
+								<p>Нет сетов в этой категории</p>
 							</div>
 						{/if}
 					</div>

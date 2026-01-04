@@ -62,17 +62,17 @@
 	{#if routines.length === 0}
 		<div class="empty-state">
 			<PixelIcon name="play" size="xl" color="var(--text-muted)" />
-			<p>У вас пока нет своих комплексов</p>
+			<p>У вас пока нет своих сетов</p>
 			<PixelButton variant="primary" onclick={oncreate}>
 				<PixelIcon name="plus" />
-				Создать комплекс
+				Создать сет
 			</PixelButton>
 		</div>
 	{:else}
 		<div class="create-btn-wrapper">
 			<PixelButton variant="secondary" fullWidth onclick={oncreate}>
 				<PixelIcon name="plus" />
-				Создать комплекс
+				Создать сет
 			</PixelButton>
 		</div>
 

@@ -189,7 +189,7 @@
 	async function handleSubmit() {
 		// Validation
 		if (!name.trim()) {
-			error = 'Введите название комплекса';
+			error = 'Введите название сета';
 			return;
 		}
 		if (selectedExercises.length === 0) {
@@ -239,7 +239,7 @@
 			<button class="back-btn" onclick={onclose}>
 				<PixelIcon name="close" />
 			</button>
-			<h2 class="editor-title">{editingRoutine ? 'Редактировать' : 'Новый комплекс'}</h2>
+			<h2 class="editor-title">{editingRoutine ? 'Редактировать' : 'Новый сет'}</h2>
 			<button
 				class="save-btn"
 				onclick={handleSubmit}
@@ -279,7 +279,7 @@
 					<input
 						type="text"
 						class="form-input"
-						placeholder="Мой комплекс"
+						placeholder="Мой сет"
 						bind:value={name}
 						maxlength="50"
 					/>
@@ -289,7 +289,7 @@
 					<label class="form-label">Описание (опционально)</label>
 					<textarea
 						class="form-textarea"
-						placeholder="Описание комплекса..."
+						placeholder="Описание сета..."
 						bind:value={description}
 						maxlength="200"
 						rows="3"
