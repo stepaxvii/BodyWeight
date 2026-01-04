@@ -203,7 +203,7 @@
 							<div class="user-item">
 								<PixelAvatar avatarId={user.avatar_id} size="md" />
 								<div class="user-info">
-									<span class="user-name">{user.username ? `@${user.username}` : user.first_name}</span>
+									<span class="user-name">{user.username ? `${user.username}` : user.first_name}</span>
 									{#if user.username && user.first_name}
 										<span class="user-username">{user.first_name}</span>
 									{/if}
@@ -248,7 +248,7 @@
 			<div class="empty-state">
 				<PixelIcon name="friends" size="xl" color="var(--text-muted)" />
 				<p>У вас пока нет друзей</p>
-				<p class="empty-hint">Найдите друзей по @username</p>
+				<p class="empty-hint">Найдите друзей по username</p>
 				<PixelButton onclick={() => switchTab('search')}>
 					Найти друзей
 				</PixelButton>
@@ -260,7 +260,7 @@
 						<div class="user-item">
 							<PixelAvatar avatarId={friend.avatar_id} size="md" />
 							<div class="user-info">
-								<span class="user-name">{friend.username ? `@${friend.username}` : friend.first_name}</span>
+								<span class="user-name">{friend.username ? `${friend.username}` : friend.first_name}</span>
 								{#if friend.username && friend.first_name}
 									<span class="user-username">{friend.first_name}</span>
 								{/if}
@@ -301,7 +301,7 @@
 						<div class="user-item">
 							<PixelAvatar avatarId={request.avatar_id} size="md" />
 							<div class="user-info">
-								<span class="user-name">{request.username ? `@${request.username}` : request.first_name}</span>
+								<span class="user-name">{request.username ? `${request.username}` : request.first_name}</span>
 								{#if request.username && request.first_name}
 									<span class="user-username">{request.first_name}</span>
 								{/if}

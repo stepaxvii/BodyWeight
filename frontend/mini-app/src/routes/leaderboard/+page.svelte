@@ -114,7 +114,7 @@
 						size="lg"
 						borderColor="var(--pixel-light)"
 					/>
-					<span class="podium-name">{entries[1].username ? `@${entries[1].username}` : entries[1].first_name}</span>
+					<span class="podium-name">{entries[1].username ? `${entries[1].username}` : entries[1].first_name}</span>
 					<span class="podium-xp">{entries[1].total_xp} XP</span>
 					<div class="podium-rank">2</div>
 				</button>
@@ -133,7 +133,7 @@
 						size="xl"
 						borderColor="var(--pixel-yellow)"
 					/>
-					<span class="podium-name">{entries[0].username ? `@${entries[0].username}` : entries[0].first_name}</span>
+					<span class="podium-name">{entries[0].username ? `${entries[0].username}` : entries[0].first_name}</span>
 					<span class="podium-xp">{entries[0].total_xp} XP</span>
 					<div class="podium-rank">1</div>
 				</button>
@@ -149,7 +149,7 @@
 						size="lg"
 						borderColor="var(--pixel-orange)"
 					/>
-					<span class="podium-name">{entries[2].username ? `@${entries[2].username}` : entries[2].first_name}</span>
+					<span class="podium-name">{entries[2].username ? `${entries[2].username}` : entries[2].first_name}</span>
 					<span class="podium-xp">{entries[2].total_xp} XP</span>
 					<div class="podium-rank">3</div>
 				</button>
@@ -184,7 +184,7 @@
 
 							<div class="entry-info">
 								<span class="entry-name">
-									{entry.username ? `@${entry.username}` : entry.first_name}
+									{entry.username ? `${entry.username}` : entry.first_name}
 									{#if entry.is_current_user}
 										<span class="you-badge">ВЫ</span>
 									{/if}

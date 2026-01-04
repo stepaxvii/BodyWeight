@@ -50,7 +50,7 @@ class UserStore {
 	get displayName() {
 		if (!this.user) return 'Guest';
 		// Prefer username over first_name
-		if (this.user.username) return `@${this.user.username}`;
+		if (this.user.username) return `${this.user.username}`;
 		return this.user.first_name || 'Guest';
 	}
 

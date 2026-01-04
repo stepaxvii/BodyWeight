@@ -119,7 +119,7 @@
 						borderColor="var(--pixel-accent)"
 					/>
 					<h2 class="username">
-						{profile.username ? `@${profile.username}` : (profile.first_name || 'Пользователь')}
+						{profile.username ? `${profile.username}` : (profile.first_name || 'Пользователь')}
 					</h2>
 					<div class="level-badge">Ур.{profile.level}</div>
 				</div>
