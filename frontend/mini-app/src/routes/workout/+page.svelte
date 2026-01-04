@@ -185,7 +185,7 @@
 	];
 
 	const mainTabs: { id: MainTab; label: string }[] = [
-		{ id: 'routines', label: 'Комплексы' },
+		{ id: 'routines', label: 'Сеты' },
 		{ id: 'my-routines', label: 'Мои' },
 		{ id: 'favorites', label: 'Избранное' },
 		{ id: 'exercises', label: 'Упражнения' }
@@ -731,7 +731,7 @@
 			{:else}
 				<div class="empty-state">
 					<PixelIcon name="play" size="lg" color="var(--text-secondary)" />
-					<p>Комплексы загружаются...</p>
+					<p>Сеты загружаются...</p>
 				</div>
 			{/if}
 
