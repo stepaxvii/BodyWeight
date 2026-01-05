@@ -25,6 +25,7 @@
 	let exercisesTotal = $state(0);
 	let exercisesSkip = $state(0);
 	const exercisesLimit = 30;
+	let allExercisesLoaded = $state(false); // Track if all exercises are loaded for search
 
 	// Main tab state
 	type MainTab = 'routines' | 'my-routines' | 'favorites' | 'exercises';
@@ -127,6 +128,13 @@
 		return Math.floor(total);
 	});
 
+	// Load all exercises when search is active
+	$effect(() => {
+		if (searchQuery.trim() && !allExercisesLoaded && !exercisesLoading) {
+			loadAllExercisesForSearch();
+		}
+	});
+
 	// Filtered exercises by all criteria
 	const filteredExercises = $derived.by(() => {
 		let result = exercises;
@@ -218,6 +226,7 @@
 			if (reset) {
 				exercisesSkip = 0;
 				exercises = [];
+				allExercisesLoaded = false;
 			}
 
 			const response = await api.getExercises(activeCategory || undefined, {
@@ -229,8 +238,42 @@
 			exercisesHasMore = response.has_more;
 			exercisesTotal = response.total;
 			exercisesSkip = exercises.length;
+			
+			// Mark as fully loaded if no more pages
+			if (!response.has_more) {
+				allExercisesLoaded = true;
+			}
 		} catch (error) {
 			console.error('Failed to load exercises:', error);
+		} finally {
+			exercisesLoading = false;
+		}
+	}
+
+	// Load all exercises when search is used
+	async function loadAllExercisesForSearch() {
+		if (allExercisesLoaded || exercisesLoading) return;
+		
+		exercisesLoading = true;
+		try {
+			// Load all remaining exercises
+			while (exercisesHasMore) {
+				const response = await api.getExercises(activeCategory || undefined, {
+					skip: exercisesSkip,
+					limit: exercisesLimit
+				});
+				
+				exercises = [...exercises, ...response.items];
+				exercisesHasMore = response.has_more;
+				exercisesSkip = exercises.length;
+				
+				if (!response.has_more) {
+					break;
+				}
+			}
+			allExercisesLoaded = true;
+		} catch (error) {
+			console.error('Failed to load all exercises:', error);
 		} finally {
 			exercisesLoading = false;
 		}
@@ -284,6 +327,7 @@
 
 	async function selectCategory(slug: string) {
 		activeCategory = activeCategory === slug ? null : slug;
+		allExercisesLoaded = false; // Reset flag when changing category
 		await loadExercises(true); // Reset and reload exercises
 		telegram.hapticImpact('light');
 	}
@@ -440,6 +484,7 @@
 		selectedTags = [];
 		activeCategory = null;
 		searchQuery = '';
+		allExercisesLoaded = false; // Reset flag when clearing
 		await loadExercises(true); // Reset and reload exercises
 		telegram.hapticImpact('light');
 	}
