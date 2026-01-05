@@ -3,7 +3,9 @@
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
-	import type { Exercise, EquipmentType } from '$lib/types';
+	import { favoritesStore } from '$lib/stores/favorites.svelte';
+	import { getTagName } from '$lib/utils';
+	import type { Exercise, EquipmentType, ExerciseCategory } from '$lib/types';
 	import { onMount } from 'svelte';
 
 	interface Props {
@@ -14,31 +16,97 @@
 
 	let { open = false, onclose, onsave }: Props = $props();
 
-	type Step = 'equipment' | 'exercise' | 'input';
+	type Step = 'mode' | 'exercise' | 'input' | 'filters';
+	type ExerciseMode = 'favorites' | 'all';
 
-	let step = $state<Step>('equipment');
-	let selectedEquipment = $state<EquipmentType>('none');
+	let step = $state<Step>('mode');
+	let exerciseMode = $state<ExerciseMode>('all');
 	let exercises = $state<Exercise[]>([]);
 	let filteredExercises = $state<Exercise[]>([]);
 	let selectedExercise = $state<Exercise | null>(null);
 	let reps = $state(10);
 	let duration = $state(30);
 	let isSubmitting = $state(false);
+	
+	// Search and filter state
+	let searchQuery = $state('');
+	let selectedEquipment = $state<string[]>([]);
+	let selectedDifficulties = $state<number[]>([]);
+	let selectedTags = $state<string[]>([]);
+	let selectedCategory = $state<string | null>(null);
+	let categories = $state<ExerciseCategory[]>([]);
 
-	const equipmentOptions: { id: EquipmentType; name: string; icon: string }[] = [
-		{ id: 'none', name: 'Без оборудования', icon: 'home' },
-		{ id: 'pullup-bar', name: 'Турник', icon: 'pullup' },
-		{ id: 'dip-bars', name: 'Брусья', icon: 'dip' }
+	// Filter options
+	const EQUIPMENT_OPTIONS = [
+		{ id: 'none', label: 'Без снаряжения' },
+		{ id: 'pullup-bar', label: 'Турник' },
+		{ id: 'dip-bars', label: 'Брусья' },
+		{ id: 'bench', label: 'Скамья' },
+		{ id: 'wall', label: 'Стена' }
+	];
+
+	const MUSCLE_TAG_IDS = [
+		'chest', 'back', 'shoulders', 'triceps', 'core',
+		'quads', 'glutes', 'calves', 'full-body'
 	];
 
 	onMount(async () => {
-		const response = await api.getAllExercises();
-		exercises = response;
+		const [exercisesResponse, categoriesResponse] = await Promise.all([
+			api.getAllExercises(),
+			api.getCategories()
+		]);
+		exercises = exercisesResponse;
+		categories = categoriesResponse;
+		await favoritesStore.loadFavorites();
 	});
 
-	function selectEquipment(eq: EquipmentType) {
-		selectedEquipment = eq;
-		filteredExercises = exercises.filter(e => e.equipment === eq);
+	// Filtered exercises based on mode, search, and filters
+	const displayedExercises = $derived.by(() => {
+		let result = exercises;
+
+		// Mode filter: favorites or all
+		if (exerciseMode === 'favorites') {
+			result = result.filter(e => favoritesStore.isFavorite(e.id));
+		}
+
+		// Search query filter
+		if (searchQuery.trim()) {
+			const query = searchQuery.toLowerCase();
+			result = result.filter(e =>
+				e.name_ru.toLowerCase().includes(query) ||
+				e.name.toLowerCase().includes(query)
+			);
+		}
+
+		// Category filter
+		if (selectedCategory) {
+			result = result.filter(e => e.category_slug === selectedCategory);
+		}
+
+		// Equipment filter
+		if (selectedEquipment.length > 0) {
+			result = result.filter(e => selectedEquipment.includes(e.equipment));
+		}
+
+		// Difficulty filter
+		if (selectedDifficulties.length > 0) {
+			result = result.filter(e => selectedDifficulties.includes(e.difficulty));
+		}
+
+		// Tags filter (OR logic)
+		if (selectedTags.length > 0) {
+			result = result.filter(e => e.tags.some(t => selectedTags.includes(t)));
+		}
+
+		return result;
+	});
+
+	const activeFilterCount = $derived(
+		selectedEquipment.length + selectedDifficulties.length + selectedTags.length + (selectedCategory ? 1 : 0)
+	);
+
+	function selectMode(mode: ExerciseMode) {
+		exerciseMode = mode;
 		step = 'exercise';
 		telegram.hapticImpact('light');
 	}
@@ -51,18 +119,82 @@
 
 	function goBack() {
 		if (step === 'exercise') {
-			step = 'equipment';
+			step = 'mode';
+			// Reset filters when going back
+			searchQuery = '';
+			selectedEquipment = [];
+			selectedDifficulties = [];
+			selectedTags = [];
+			selectedCategory = null;
 		} else if (step === 'input') {
+			step = 'exercise';
+		} else if (step === 'filters') {
 			step = 'exercise';
 		}
 		telegram.hapticImpact('light');
 	}
 
+	function openFilters() {
+		step = 'filters';
+		telegram.hapticImpact('light');
+	}
+
+	function toggleEquipment(id: string) {
+		telegram.hapticImpact('light');
+		if (selectedEquipment.includes(id)) {
+			selectedEquipment = selectedEquipment.filter(e => e !== id);
+		} else {
+			selectedEquipment = [...selectedEquipment, id];
+		}
+	}
+
+	function toggleDifficulty(level: number) {
+		telegram.hapticImpact('light');
+		if (selectedDifficulties.includes(level)) {
+			selectedDifficulties = selectedDifficulties.filter(d => d !== level);
+		} else {
+			selectedDifficulties = [...selectedDifficulties, level];
+		}
+	}
+
+	function toggleTag(id: string) {
+		telegram.hapticImpact('light');
+		if (selectedTags.includes(id)) {
+			selectedTags = selectedTags.filter(t => t !== id);
+		} else {
+			selectedTags = [...selectedTags, id];
+		}
+	}
+
+	function toggleCategory(slug: string) {
+		telegram.hapticImpact('light');
+		if (selectedCategory === slug) {
+			selectedCategory = null;
+		} else {
+			selectedCategory = slug;
+		}
+	}
+
+	function clearFilters() {
+		telegram.hapticImpact('medium');
+		selectedEquipment = [];
+		selectedDifficulties = [];
+		selectedTags = [];
+		selectedCategory = null;
+		searchQuery = '';
+	}
+
 	function handleClose() {
-		step = 'equipment';
+		step = 'mode';
+		exerciseMode = 'all';
 		selectedExercise = null;
 		reps = 10;
 		duration = 30;
+		searchQuery = '';
+		selectedEquipment = [];
+		selectedDifficulties = [];
+		selectedTags = [];
+		selectedCategory = null;
 		onclose?.();
 	}
 
@@ -123,28 +255,95 @@
 
 <PixelModal {open} title="Быстрая запись" onclose={handleClose}>
 	<div class="quick-modal">
-		{#if step === 'equipment'}
-			<p class="step-hint">Выбери оборудование:</p>
-			<div class="equipment-list">
-				{#each equipmentOptions as eq}
-					<button
-						class="equipment-option"
-						onclick={() => selectEquipment(eq.id)}
-					>
-						<PixelIcon name={eq.icon} size="lg" color="var(--pixel-accent)" />
-						<span>{eq.name}</span>
-					</button>
-				{/each}
+		{#if step === 'mode'}
+			<p class="step-hint">Выбери режим:</p>
+			<div class="mode-list">
+				<button
+					class="mode-option"
+					onclick={() => selectMode('favorites')}
+				>
+					<PixelIcon name="heart" size="lg" color="var(--pixel-red)" />
+					<span>Избранные</span>
+					{#if favoritesStore.count > 0}
+						<span class="mode-badge">{favoritesStore.count}</span>
+					{/if}
+				</button>
+				<button
+					class="mode-option"
+					onclick={() => selectMode('all')}
+				>
+					<PixelIcon name="settings" size="lg" color="var(--pixel-accent)" />
+					<span>Все упражнения</span>
+				</button>
 			</div>
 		{:else if step === 'exercise'}
 			<div class="step-header">
 				<button class="back-btn" onclick={goBack}>
 					<PixelIcon name="arrow-left" size="sm" />
 				</button>
-				<p class="step-hint">Выбери упражнение:</p>
+				<p class="step-hint">
+					{exerciseMode === 'favorites' ? 'Избранные упражнения' : 'Выбери упражнение:'}
+				</p>
 			</div>
+
+			<!-- Search box -->
+			<div class="search-box">
+				<input
+					type="text"
+					class="search-input"
+					placeholder="Поиск упражнений..."
+					bind:value={searchQuery}
+				/>
+				{#if searchQuery}
+					<button class="clear-search-btn" onclick={() => searchQuery = ''}>
+						<PixelIcon name="close" size="sm" />
+					</button>
+				{:else}
+					<PixelIcon name="search" size="sm" color="var(--text-secondary)" class="search-icon" />
+				{/if}
+			</div>
+
+			<!-- Filter bar -->
+			<div class="filter-bar">
+				<button class="filter-btn" onclick={openFilters}>
+					<PixelIcon name="settings" size="sm" />
+					Фильтр
+					{#if activeFilterCount > 0}
+						<span class="filter-badge">{activeFilterCount}</span>
+					{/if}
+				</button>
+				{#if activeFilterCount > 0 || searchQuery}
+					<button class="clear-filters-btn" onclick={clearFilters}>
+						Сбросить
+					</button>
+				{/if}
+			</div>
+
+			<!-- Category tabs (if any selected or in all mode) -->
+			{#if exerciseMode === 'all' && categories.length > 0}
+				<div class="category-tabs">
+					<button
+						class="category-tab"
+						class:active={selectedCategory === null}
+						onclick={() => selectedCategory = null}
+					>
+						Все
+					</button>
+					{#each categories as cat}
+						<button
+							class="category-tab"
+							class:active={selectedCategory === cat.slug}
+							onclick={() => toggleCategory(cat.slug)}
+						>
+							{cat.name_ru}
+						</button>
+					{/each}
+				</div>
+			{/if}
+
+			<!-- Exercise list -->
 			<div class="exercise-list">
-				{#each filteredExercises as ex}
+				{#each displayedExercises as ex}
 					<button
 						class="exercise-option"
 						onclick={() => selectExercise(ex)}
@@ -153,9 +352,106 @@
 						<span class="exercise-xp">+{ex.base_xp} XP</span>
 					</button>
 				{/each}
-				{#if filteredExercises.length === 0}
-					<p class="no-exercises">Нет упражнений для выбранного оборудования</p>
+				{#if displayedExercises.length === 0}
+					<p class="no-exercises">
+						{#if exerciseMode === 'favorites'}
+							Нет избранных упражнений
+						{:else if searchQuery || activeFilterCount > 0}
+							Ничего не найдено
+						{:else}
+							Нет упражнений
+						{/if}
+					</p>
 				{/if}
+			</div>
+		{:else if step === 'filters'}
+			<div class="step-header">
+				<button class="back-btn" onclick={goBack}>
+					<PixelIcon name="arrow-left" size="sm" />
+				</button>
+				<p class="step-hint">Фильтры</p>
+			</div>
+
+			<div class="filter-sections">
+				<!-- Category filter -->
+				<div class="filter-section">
+					<h4 class="filter-section-title">Категория</h4>
+					<div class="filter-options">
+						<button
+							class="filter-option"
+							class:active={selectedCategory === null}
+							onclick={() => selectedCategory = null}
+						>
+							Все
+						</button>
+						{#each categories as cat}
+							<button
+								class="filter-option"
+								class:active={selectedCategory === cat.slug}
+								onclick={() => toggleCategory(cat.slug)}
+							>
+								{cat.name_ru}
+							</button>
+						{/each}
+					</div>
+				</div>
+
+				<!-- Equipment filter -->
+				<div class="filter-section">
+					<h4 class="filter-section-title">Оборудование</h4>
+					<div class="filter-options">
+						{#each EQUIPMENT_OPTIONS as eq}
+							<button
+								class="filter-option"
+								class:active={selectedEquipment.includes(eq.id)}
+								onclick={() => toggleEquipment(eq.id)}
+							>
+								{eq.label}
+							</button>
+						{/each}
+					</div>
+				</div>
+
+				<!-- Difficulty filter -->
+				<div class="filter-section">
+					<h4 class="filter-section-title">Сложность</h4>
+					<div class="filter-options">
+						{#each [1, 2, 3, 4, 5] as level}
+							<button
+								class="filter-option"
+								class:active={selectedDifficulties.includes(level)}
+								onclick={() => toggleDifficulty(level)}
+							>
+								{'★'.repeat(level) + '☆'.repeat(5 - level)}
+							</button>
+						{/each}
+					</div>
+				</div>
+
+				<!-- Tags filter -->
+				<div class="filter-section">
+					<h4 class="filter-section-title">Группы мышц</h4>
+					<div class="filter-options">
+						{#each MUSCLE_TAG_IDS as tagId}
+							<button
+								class="filter-option"
+								class:active={selectedTags.includes(tagId)}
+								onclick={() => toggleTag(tagId)}
+							>
+								{getTagName(tagId)}
+							</button>
+						{/each}
+					</div>
+				</div>
+			</div>
+
+			<div class="filter-actions">
+				<PixelButton variant="secondary" fullWidth onclick={clearFilters}>
+					Сбросить все
+				</PixelButton>
+				<PixelButton variant="primary" fullWidth onclick={goBack}>
+					Применить
+				</PixelButton>
 			</div>
 		{:else if step === 'input' && selectedExercise}
 			<div class="step-header">
@@ -202,6 +498,7 @@
 		flex-direction: column;
 		gap: var(--spacing-md);
 		min-height: 200px;
+		max-height: 70vh;
 	}
 
 	.step-hint {
@@ -230,13 +527,13 @@
 		border-color: var(--pixel-accent);
 	}
 
-	.equipment-list {
+	.mode-list {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
 	}
 
-	.equipment-option {
+	.mode-option {
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-md);
@@ -245,16 +542,143 @@
 		border: 2px solid var(--border-color);
 		cursor: pointer;
 		transition: all var(--transition-fast);
+		position: relative;
 	}
 
-	.equipment-option:hover {
+	.mode-option:hover {
 		border-color: var(--pixel-accent);
 		background: var(--pixel-card-hover);
 	}
 
-	.equipment-option span {
+	.mode-option span {
 		font-size: var(--font-size-sm);
 		color: var(--text-primary);
+	}
+
+	.mode-badge {
+		margin-left: auto;
+		background: var(--pixel-accent);
+		color: var(--pixel-bg);
+		padding: 2px 6px;
+		font-size: var(--font-size-xs);
+		border-radius: 2px;
+	}
+
+	/* Search box */
+	.search-box {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.search-input {
+		width: 100%;
+		padding: var(--spacing-sm) var(--spacing-md);
+		padding-right: 40px;
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-sm);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		color: var(--text-primary);
+	}
+
+	.search-input:focus {
+		outline: none;
+		border-color: var(--pixel-accent);
+	}
+
+	.search-input::placeholder {
+		color: var(--text-muted);
+	}
+
+	.search-icon {
+		position: absolute;
+		right: var(--spacing-sm);
+		pointer-events: none;
+	}
+
+	.clear-search-btn {
+		position: absolute;
+		right: var(--spacing-xs);
+		background: none;
+		border: none;
+		padding: var(--spacing-xs);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--text-secondary);
+	}
+
+	.clear-search-btn:hover {
+		color: var(--text-primary);
+	}
+
+	/* Filter bar */
+	.filter-bar {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+	}
+
+	.filter-btn {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		color: var(--text-secondary);
+		cursor: pointer;
+	}
+
+	.filter-btn:hover {
+		border-color: var(--pixel-accent);
+		color: var(--text-primary);
+	}
+
+	.filter-badge {
+		background: var(--pixel-accent);
+		color: var(--pixel-bg);
+		padding: 1px 4px;
+		font-size: 8px;
+		min-width: 12px;
+		text-align: center;
+	}
+
+	.clear-filters-btn {
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		background: none;
+		border: none;
+		color: var(--text-secondary);
+		cursor: pointer;
+		text-decoration: underline;
+	}
+
+	/* Category tabs */
+	.category-tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-xs);
+	}
+
+	.category-tab {
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		color: var(--text-secondary);
+		cursor: pointer;
+	}
+
+	.category-tab.active {
+		background: var(--pixel-accent);
+		border-color: var(--pixel-accent);
+		color: var(--pixel-bg);
 	}
 
 	.exercise-list {
@@ -296,6 +720,63 @@
 		color: var(--text-muted);
 		text-align: center;
 		padding: var(--spacing-lg);
+	}
+
+	/* Filter sections */
+	.filter-sections {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+		max-height: 400px;
+		overflow-y: auto;
+	}
+
+	.filter-section {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+	}
+
+	.filter-section-title {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		text-transform: uppercase;
+		margin: 0;
+	}
+
+	.filter-options {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--spacing-xs);
+	}
+
+	.filter-option {
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		color: var(--text-secondary);
+		cursor: pointer;
+		transition: all var(--transition-fast);
+	}
+
+	.filter-option:hover {
+		border-color: var(--pixel-accent);
+	}
+
+	.filter-option.active {
+		background: var(--pixel-accent);
+		border-color: var(--pixel-accent);
+		color: var(--pixel-bg);
+	}
+
+	.filter-actions {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		padding-top: var(--spacing-md);
+		border-top: 2px solid var(--border-color);
 	}
 
 	.input-section {

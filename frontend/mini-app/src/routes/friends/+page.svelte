@@ -179,7 +179,7 @@
 			<div class="search-box">
 				<input
 					type="text"
-					placeholder="Введите @username..."
+					placeholder="Введите username..."
 					value={searchQuery}
 					oninput={handleSearchInput}
 					onkeydown={handleSearchKeydown}

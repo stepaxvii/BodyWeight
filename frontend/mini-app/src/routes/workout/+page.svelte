@@ -49,6 +49,7 @@
 	let selectedEquipment = $state<string[]>([]);
 	let selectedDifficulties = $state<number[]>([]);
 	let selectedTags = $state<string[]>([]);
+	let searchQuery = $state('');
 
 	/**
 	 * Calculate estimated XP for active workout (preview only).
@@ -129,6 +130,15 @@
 	// Filtered exercises by all criteria
 	const filteredExercises = $derived.by(() => {
 		let result = exercises;
+
+		// Search query filter
+		if (searchQuery.trim()) {
+			const query = searchQuery.toLowerCase();
+			result = result.filter(e =>
+				e.name_ru.toLowerCase().includes(query) ||
+				e.name.toLowerCase().includes(query)
+			);
+		}
 
 		// Category filter
 		if (activeCategory) {
@@ -429,6 +439,7 @@
 		selectedDifficulties = [];
 		selectedTags = [];
 		activeCategory = null;
+		searchQuery = '';
 		await loadExercises(true); // Reset and reload exercises
 		telegram.hapticImpact('light');
 	}
@@ -780,7 +791,7 @@
 						{filteredExercises.length} / {exercisesTotal || filteredExercises.length} упражнений
 					</span>
 					<div class="filter-actions-row">
-						{#if activeFilterCount > 0 || activeCategory}
+						{#if activeFilterCount > 0 || activeCategory || searchQuery}
 							<button class="clear-filters-btn" onclick={clearAllFilters}>
 								Сбросить
 							</button>
@@ -793,6 +804,23 @@
 							{/if}
 						</button>
 					</div>
+				</div>
+
+				<!-- Search box -->
+				<div class="search-box">
+					<input
+						type="text"
+						class="search-input"
+						placeholder="Поиск упражнений..."
+						bind:value={searchQuery}
+					/>
+					{#if searchQuery}
+						<button class="clear-search-btn" onclick={() => searchQuery = ''}>
+							<PixelIcon name="close" size="sm" />
+						</button>
+					{:else}
+						<PixelIcon name="search" size="sm" color="var(--text-secondary)" class="search-icon" />
+					{/if}
 				</div>
 
 				<!-- Category tabs -->
@@ -1058,6 +1086,57 @@
 		color: var(--text-secondary);
 		cursor: pointer;
 		text-decoration: underline;
+	}
+
+	/* Search box */
+	.search-box {
+		position: relative;
+		display: flex;
+		align-items: center;
+		margin-bottom: var(--spacing-md);
+	}
+
+	.search-input {
+		width: 100%;
+		padding: var(--spacing-sm) var(--spacing-md);
+		padding-right: 40px;
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-sm);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		color: var(--text-primary);
+	}
+
+	.search-input:focus {
+		outline: none;
+		border-color: var(--pixel-accent);
+	}
+
+	.search-input::placeholder {
+		color: var(--text-muted);
+	}
+
+	.search-icon {
+		position: absolute;
+		right: var(--spacing-sm);
+		pointer-events: none;
+	}
+
+	.clear-search-btn {
+		position: absolute;
+		right: var(--spacing-xs);
+		background: none;
+		border: none;
+		padding: var(--spacing-xs);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--text-secondary);
+	}
+
+	.clear-search-btn:hover {
+		color: var(--text-primary);
 	}
 
 	/* Empty state */
