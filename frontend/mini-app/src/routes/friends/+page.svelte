@@ -18,6 +18,9 @@
 	// Confirmation dialog state
 	let confirmRemove = $state<{ id: number; name: string; isRequest: boolean } | null>(null);
 
+	// Debounce timer for search
+	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+
 	onMount(async () => {
 		// Check URL parameter for initial tab
 		const tabParam = $page.url.searchParams.get('tab');
@@ -45,7 +48,10 @@
 	}
 
 	async function searchUsers() {
-		if (searchQuery.length < 2) return;
+		if (searchQuery.length < 2) {
+			searchResults = [];
+			return;
+		}
 
 		isSearching = true;
 		error = null;
@@ -54,10 +60,45 @@
 		} catch (err) {
 			error = 'Ошибка поиска';
 			console.error(err);
+			searchResults = [];
 		} finally {
 			isSearching = false;
 		}
 	}
+
+	// Auto-search with debounce when searchQuery changes
+	$effect(() => {
+		// Clear previous timeout
+		if (searchTimeout) {
+			clearTimeout(searchTimeout);
+			searchTimeout = null;
+		}
+
+		// Only search if we're on the search tab
+		if (activeTab !== 'search') {
+			return;
+		}
+
+		// If query is too short, clear results
+		if (searchQuery.length < 2) {
+			searchResults = [];
+			return;
+		}
+
+		// Debounce search by 400ms
+		searchTimeout = setTimeout(() => {
+			searchUsers();
+			searchTimeout = null;
+		}, 400);
+
+		// Cleanup function
+		return () => {
+			if (searchTimeout) {
+				clearTimeout(searchTimeout);
+				searchTimeout = null;
+			}
+		};
+	});
 
 	async function addFriend(username: string) {
 		telegram.hapticImpact('medium');
@@ -124,10 +165,15 @@
 
 	function handleSearchInput(e: Event) {
 		searchQuery = (e.target as HTMLInputElement).value;
+		// Search is now automatic via $effect, but we can keep Enter for immediate search
 	}
 
 	function handleSearchKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter') {
+			// Clear debounce and search immediately
+			if (searchTimeout) {
+				clearTimeout(searchTimeout);
+			}
 			searchUsers();
 		}
 	}
@@ -185,16 +231,26 @@
 					onkeydown={handleSearchKeydown}
 					class="search-input"
 				/>
-				<PixelButton
-					size="sm"
-					onclick={searchUsers}
-					disabled={searchQuery.length < 2 || isSearching}
-				>
-					{isSearching ? '...' : 'Найти'}
-				</PixelButton>
+				{#if searchQuery}
+					<button class="clear-search-btn" onclick={() => searchQuery = ''}>
+						<PixelIcon name="close" size="sm" />
+					</button>
+				{:else}
+					<PixelIcon name="search" size="sm" color="var(--text-secondary)" class="search-icon" />
+				{/if}
 			</div>
 
-			<p class="search-hint">Минимум 2 символа для поиска</p>
+			<p class="search-hint">
+				{#if isSearching}
+					Поиск...
+				{:else if searchQuery.length > 0 && searchQuery.length < 2}
+					Минимум 2 символа для поиска
+				{:else if searchQuery.length >= 2}
+					Найдено: {searchResults.length}
+				{:else}
+					Введите минимум 2 символа для поиска
+				{/if}
+			</p>
 
 			{#if searchResults.length > 0}
 				<div class="user-list">
@@ -435,13 +491,15 @@
 	}
 
 	.search-box {
+		position: relative;
 		display: flex;
-		gap: var(--spacing-sm);
+		align-items: center;
 	}
 
 	.search-input {
-		flex: 1;
-		padding: var(--spacing-sm);
+		width: 100%;
+		padding: var(--spacing-sm) var(--spacing-md);
+		padding-right: 40px;
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-sm);
 		background: var(--pixel-card);
@@ -456,6 +514,29 @@
 
 	.search-input::placeholder {
 		color: var(--text-muted);
+	}
+
+	.search-icon {
+		position: absolute;
+		right: var(--spacing-sm);
+		pointer-events: none;
+	}
+
+	.clear-search-btn {
+		position: absolute;
+		right: var(--spacing-xs);
+		background: none;
+		border: none;
+		padding: var(--spacing-xs);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--text-secondary);
+	}
+
+	.clear-search-btn:hover {
+		color: var(--text-primary);
 	}
 
 	.search-hint {
