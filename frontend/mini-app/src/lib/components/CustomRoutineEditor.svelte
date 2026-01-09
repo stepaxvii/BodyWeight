@@ -5,6 +5,7 @@
 	import type { FilterState } from '$lib/components/FilterModal.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { favoritesStore } from '$lib/stores/favorites.svelte';
 	import type { Exercise, CustomRoutine, CustomRoutineType, CustomRoutineCreate, ExerciseCategory } from '$lib/types';
 
 	interface RoutineExerciseItem {
@@ -43,6 +44,7 @@
 	let showInfoExercise = $state<Exercise | null>(null);
 
 	// Picker filter state
+	let pickerActiveTab = $state<'all' | 'favorites'>('all');
 	let pickerActiveCategory = $state<string | null>(null);
 	let showPickerFilterModal = $state(false);
 	let pickerSelectedEquipment = $state<string[]>([]);
@@ -96,6 +98,11 @@
 	// Filter exercises for picker
 	const filteredExercises = $derived.by(() => {
 		let result = exercises;
+
+		// Tab filter (all vs favorites)
+		if (pickerActiveTab === 'favorites') {
+			result = result.filter(e => favoritesStore.isFavorite(e.id));
+		}
 
 		// Search query filter
 		if (searchQuery.trim()) {
@@ -179,6 +186,7 @@
 		pickerSelectedDifficulties = [];
 		pickerSelectedTags = [];
 		pickerActiveCategory = null;
+		pickerActiveTab = 'all';
 		searchQuery = '';
 		telegram.hapticImpact('light');
 	}
@@ -415,6 +423,25 @@
 				</button>
 			</div>
 
+			<!-- Tabs: All / Favorites -->
+			<div class="picker-tabs">
+				<button
+					class="picker-tab"
+					class:active={pickerActiveTab === 'all'}
+					onclick={() => { pickerActiveTab = 'all'; telegram.hapticImpact('light'); }}
+				>
+					Все
+				</button>
+				<button
+					class="picker-tab"
+					class:active={pickerActiveTab === 'favorites'}
+					onclick={() => { pickerActiveTab = 'favorites'; telegram.hapticImpact('light'); }}
+				>
+					<PixelIcon name="star" size="sm" />
+					Избранное
+				</button>
+			</div>
+
 			<div class="search-box">
 				<input
 					type="text"
@@ -430,7 +457,7 @@
 					{filteredExercises.length} упражнений
 				</span>
 				<div class="picker-filter-actions">
-					{#if pickerActiveFilterCount > 0 || pickerActiveCategory || searchQuery}
+					{#if pickerActiveFilterCount > 0 || pickerActiveCategory || searchQuery || pickerActiveTab === 'favorites'}
 						<button class="picker-clear-btn" onclick={clearPickerFilters}>
 							Сбросить
 						</button>
@@ -920,6 +947,34 @@
 		background: transparent;
 		border: none;
 		cursor: pointer;
+	}
+
+	/* Picker tabs */
+	.picker-tabs {
+		display: flex;
+		border-bottom: 2px solid var(--border-color);
+	}
+
+	.picker-tab {
+		flex: 1;
+		padding: var(--spacing-sm) var(--spacing-md);
+		background: transparent;
+		border: none;
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-xs);
+		border-bottom: 2px solid transparent;
+		margin-bottom: -2px;
+	}
+
+	.picker-tab.active {
+		color: var(--pixel-accent);
+		border-bottom-color: var(--pixel-accent);
 	}
 
 	.search-box {
