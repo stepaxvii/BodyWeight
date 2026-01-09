@@ -192,12 +192,6 @@
 		telegram.hapticImpact('light');
 	}
 
-	function openExercisePicker() {
-		// Reset all filters when opening picker
-		clearPickerFilters();
-		showExercisePicker = true;
-	}
-
 	function removeExercise(index: number) {
 		selectedExercises = selectedExercises.filter((_, i) => i !== index);
 		telegram.hapticImpact('light');
@@ -361,7 +355,7 @@
 					<div class="empty-exercises">
 						<PixelIcon name="play" size="xl" color="var(--text-muted)" />
 						<p>Нет упражнений</p>
-						<PixelButton variant="primary" onclick={openExercisePicker}>
+						<PixelButton variant="primary" onclick={() => showExercisePicker = true}>
 							Добавить упражнение
 						</PixelButton>
 					</div>
@@ -408,7 +402,7 @@
 					</div>
 
 					<div class="add-exercise-btn">
-						<PixelButton variant="secondary" fullWidth onclick={openExercisePicker}>
+						<PixelButton variant="secondary" fullWidth onclick={() => showExercisePicker = true}>
 							<PixelIcon name="plus" />
 							Добавить упражнение
 						</PixelButton>
@@ -442,16 +436,7 @@
 				<button
 					class="picker-tab"
 					class:active={pickerActiveTab === 'favorites'}
-					onclick={() => {
-						pickerActiveTab = 'favorites';
-						// Clear other filters when switching to favorites
-						pickerActiveCategory = null;
-						pickerSelectedEquipment = [];
-						pickerSelectedDifficulties = [];
-						pickerSelectedTags = [];
-						searchQuery = '';
-						telegram.hapticImpact('light');
-					}}
+					onclick={() => { pickerActiveTab = 'favorites'; telegram.hapticImpact('light'); }}
 				>
 					<PixelIcon name="star" size="sm" />
 					Избранное

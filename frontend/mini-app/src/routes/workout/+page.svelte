@@ -171,10 +171,24 @@
 		return result;
 	});
 
-	// Favorite exercises
-	const favoriteExercises = $derived(
-		exercises.filter(e => favoritesStore.isFavorite(e.id))
-	);
+	// Favorite exercises - must load all exercises for favorites to work properly
+	let favoriteExercises = $state<Exercise[]>([]);
+
+	// Load all favorite exercises when favorites tab is active
+	$effect(() => {
+		async function loadFavorites() {
+			if (activeMainTab === 'favorites' && favoritesStore.count > 0) {
+				try {
+					// Get all exercises without pagination
+					const allExercises = await api.getAllExercises();
+					favoriteExercises = allExercises.filter(e => favoritesStore.isFavorite(e.id));
+				} catch (err) {
+					console.error('Failed to load favorite exercises:', err);
+				}
+			}
+		}
+		loadFavorites();
+	});
 
 	// Filtered routines by category
 	const filteredRoutines = $derived(
