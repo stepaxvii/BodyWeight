@@ -199,7 +199,8 @@
 		{ id: 'morning', name: 'Зарядка' },
 		{ id: 'home', name: 'Дома' },
 		{ id: 'pullup-bar', name: 'Турник' },
-		{ id: 'dip-bars', name: 'Брусья' }
+		{ id: 'dip-bars', name: 'Брусья' },
+		{ id: 'dumbbell', name: 'Гантели' }
 	];
 
 	const mainTabs: { id: MainTab; label: string }[] = [
