@@ -266,24 +266,26 @@ async def get_user_activity(
     year: int | None = None,
 ):
     """Get workout activity calendar data grouped by day."""
-    from datetime import datetime as dt
+    from sqlalchemy import cast, Date
 
     # Default to current year
     if year is None:
         year = date.today().year
 
     # Query all completed workouts for the year, grouped by date
-    # We use func.date() to extract just the date part from started_at
+    # Using cast to Date for SQLite compatibility
+    workout_date_col = cast(WorkoutSession.started_at, Date).label("workout_date")
+
     result = await session.execute(
         select(
-            func.date(WorkoutSession.started_at).label("workout_date"),
+            workout_date_col,
             func.count(WorkoutSession.id).label("workouts_count"),
             func.sum(WorkoutSession.total_xp_earned).label("total_xp")
         )
         .where(WorkoutSession.user_id == user.id)
         .where(WorkoutSession.status == "completed")
-        .where(func.extract('year', WorkoutSession.started_at) == year)
-        .group_by(func.date(WorkoutSession.started_at))
+        .where(func.strftime('%Y', WorkoutSession.started_at) == str(year))
+        .group_by(workout_date_col)
     )
 
     # Build the response dictionary
@@ -291,7 +293,10 @@ async def get_user_activity(
     for row in result.all():
         workout_date = row.workout_date
         # Convert date to ISO format string
-        date_str = workout_date.isoformat()
+        if isinstance(workout_date, str):
+            date_str = workout_date
+        else:
+            date_str = workout_date.isoformat()
         days_data[date_str] = DayActivityResponse(
             date=date_str,
             workouts=row.workouts_count,
