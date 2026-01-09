@@ -1,19 +1,29 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
-	import { PixelCard, PixelProgress, PixelIcon, PixelAvatar, AvatarPicker } from '$lib/components/ui';
+	import { PixelCard, PixelProgress, PixelIcon, PixelAvatar, AvatarPicker, PixelModal } from '$lib/components/ui';
+	import ActivityCalendar from '$lib/components/ActivityCalendar.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
-	import type { Achievement, AvatarId } from '$lib/types';
+	import type { Achievement, AvatarId, UserActivity, DayActivity } from '$lib/types';
 
 	let achievements = $state<Achievement[]>([]);
 	let showAvatarPicker = $state(false);
+	let activityData = $state<UserActivity | null>(null);
+	let selectedDay = $state<{ date: string; activity: DayActivity | null } | null>(null);
 
 	onMount(async () => {
 		await userStore.loadStats();
 		const response = await api.getAllAchievements();
 		achievements = response;
+
+		// Load activity data for current year
+		try {
+			activityData = await api.getUserActivity();
+		} catch (err) {
+			console.error('Failed to load activity data:', err);
+		}
 	});
 
 	const unlockedAchievements = $derived(achievements.filter(a => a.unlocked));
@@ -30,6 +40,19 @@
 
 	function handleAvatarSelect(avatarId: AvatarId) {
 		userStore.setAvatar(avatarId);
+	}
+
+	function handleDayClick(date: string, activity: DayActivity | null) {
+		selectedDay = { date, activity };
+	}
+
+	function formatDate(dateStr: string): string {
+		const date = new Date(dateStr);
+		return date.toLocaleDateString('ru-RU', {
+			day: 'numeric',
+			month: 'long',
+			year: 'numeric'
+		});
 	}
 </script>
 
@@ -132,28 +155,47 @@
 		</section>
 	{/if}
 
-	<!-- Detailed Stats -->
-	{#if userStore.stats}
-		<section class="detailed-stats">
-			<h3 class="section-title">Активность</h3>
-			<PixelCard>
-				<div class="detail-list">
-					<div class="detail-item">
-						<span class="detail-label">Всего тренировок</span>
-						<span class="detail-value">{userStore.stats.total_workouts}</span>
-					</div>
-					<div class="detail-item">
-						<span class="detail-label">Всего повторений</span>
-						<span class="detail-value">{userStore.stats.total_reps}</span>
-					</div>
-					<div class="detail-item">
-						<span class="detail-label">Время тренировок</span>
-						<span class="detail-value">{Math.floor((userStore.stats.total_time_minutes || 0) / 60)}ч {(userStore.stats.total_time_minutes || 0) % 60}м</span>
-					</div>
-				</div>
-			</PixelCard>
+	<!-- Activity Calendar -->
+	{#if activityData}
+		<section class="activity-section">
+			<ActivityCalendar
+				activityData={activityData.days}
+				year={new Date().getFullYear()}
+				onDayClick={handleDayClick}
+			/>
 		</section>
 	{/if}
+
+	<!-- Day Details Modal -->
+	<PixelModal
+		open={selectedDay !== null}
+		title={selectedDay ? formatDate(selectedDay.date) : ''}
+		onclose={() => selectedDay = null}
+	>
+		{#if selectedDay?.activity}
+			<div class="day-details">
+				<div class="day-stat">
+					<PixelIcon name="workout" size="md" color="var(--pixel-accent)" />
+					<div class="day-stat-content">
+						<span class="day-stat-label">Тренировки</span>
+						<span class="day-stat-value">{selectedDay.activity.workouts}</span>
+					</div>
+				</div>
+				<div class="day-stat">
+					<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
+					<div class="day-stat-content">
+						<span class="day-stat-label">XP заработано</span>
+						<span class="day-stat-value">{selectedDay.activity.total_xp}</span>
+					</div>
+				</div>
+			</div>
+		{:else}
+			<div class="no-activity">
+				<PixelIcon name="close" size="lg" color="var(--text-muted)" />
+				<p>Нет тренировок в этот день</p>
+			</div>
+		{/if}
+	</PixelModal>
 
 	<!-- Streak Info -->
 	<section class="streak-section">
@@ -377,30 +419,58 @@
 		color: var(--pixel-accent);
 	}
 
-	/* Detailed Stats */
-	.detailed-stats {
+	/* Activity Section */
+	.activity-section {
 		margin-bottom: var(--spacing-lg);
 	}
 
-	.detail-list {
+	/* Day Details Modal */
+	.day-details {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-sm);
+		gap: var(--spacing-md);
+		padding: var(--spacing-sm) 0;
 	}
 
-	.detail-item {
+	.day-stat {
 		display: flex;
-		justify-content: space-between;
-		font-size: var(--font-size-xs);
+		align-items: center;
+		gap: var(--spacing-md);
+		padding: var(--spacing-sm);
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
 	}
 
-	.detail-label {
+	.day-stat-content {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.day-stat-label {
+		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
 		text-transform: uppercase;
 	}
 
-	.detail-value {
+	.day-stat-value {
+		font-size: var(--font-size-md);
 		color: var(--text-primary);
+	}
+
+	.no-activity {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--spacing-md);
+		padding: var(--spacing-xl);
+		color: var(--text-muted);
+		text-align: center;
+	}
+
+	.no-activity p {
+		margin: 0;
+		font-size: var(--font-size-sm);
 	}
 
 	/* Streak Section */

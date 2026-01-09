@@ -15,6 +15,8 @@ from app.schemas import (
     UserStatsResponse,
     UpdateUserRequest,
     UserProfileResponse,
+    DayActivityResponse,
+    UserActivityResponse,
 )
 
 
@@ -251,6 +253,52 @@ async def get_current_user_stats(
     )
 
 
+@router.get(
+    "/me/activity",
+    response_model=UserActivityResponse,
+    summary="Получить календарь активности",
+    description="Возвращает данные о тренировках по дням для календаря активности. Только XP из тренировок, без достижений.",
+    tags=["Users"]
+)
+async def get_user_activity(
+    user: CurrentUser,
+    session: AsyncSessionDep,
+    year: int | None = None,
+):
+    """Get workout activity calendar data grouped by day."""
+    from datetime import datetime as dt
+
+    # Default to current year
+    if year is None:
+        year = date.today().year
+
+    # Query all completed workouts for the year, grouped by date
+    # We use func.date() to extract just the date part from started_at
+    result = await session.execute(
+        select(
+            func.date(WorkoutSession.started_at).label("workout_date"),
+            func.count(WorkoutSession.id).label("workouts_count"),
+            func.sum(WorkoutSession.total_xp_earned).label("total_xp")
+        )
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "completed")
+        .where(func.extract('year', WorkoutSession.started_at) == year)
+        .group_by(func.date(WorkoutSession.started_at))
+    )
+
+    # Build the response dictionary
+    days_data = {}
+    for row in result.all():
+        workout_date = row.workout_date
+        # Convert date to ISO format string
+        date_str = workout_date.isoformat()
+        days_data[date_str] = DayActivityResponse(
+            date=date_str,
+            workouts=row.workouts_count,
+            total_xp=row.total_xp or 0
+        )
+
+    return UserActivityResponse(days=days_data)
 
 
 @router.get("/{user_id}", response_model=UserResponse)

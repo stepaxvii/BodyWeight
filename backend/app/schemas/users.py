@@ -70,3 +70,15 @@ class UserProfileResponse(BaseModel):
     friend_request_received: bool = False
     # Friendship ID for accept/decline actions
     friendship_id: int | None = None
+
+
+class DayActivityResponse(BaseModel):
+    """Activity data for a single day."""
+    date: str  # ISO format: "2025-01-09"
+    workouts: int  # Number of workouts completed
+    total_xp: int  # Total XP earned from workouts (excluding achievements)
+
+
+class UserActivityResponse(BaseModel):
+    """User workout activity calendar data."""
+    days: dict[str, DayActivityResponse]  # Map of date string to activity data

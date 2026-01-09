@@ -2,6 +2,7 @@ import type {
 	User,
 	UserStats,
 	UserProfile,
+	UserActivity,
 	Exercise,
 	ExerciseCategory,
 	WorkoutSession,
@@ -102,6 +103,11 @@ class ApiClient {
 
 	async getUserProfile(userId: number): Promise<UserProfile> {
 		return this.request<UserProfile>(`/users/${userId}/profile`);
+	}
+
+	async getUserActivity(year?: number): Promise<UserActivity> {
+		const query = year ? `?year=${year}` : '';
+		return this.request<UserActivity>(`/users/me/activity${query}`);
 	}
 
 	// Exercises
