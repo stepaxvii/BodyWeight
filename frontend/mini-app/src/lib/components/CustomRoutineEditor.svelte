@@ -436,7 +436,16 @@
 				<button
 					class="picker-tab"
 					class:active={pickerActiveTab === 'favorites'}
-					onclick={() => { pickerActiveTab = 'favorites'; telegram.hapticImpact('light'); }}
+					onclick={() => {
+						pickerActiveTab = 'favorites';
+						// Clear other filters when switching to favorites
+						pickerActiveCategory = null;
+						pickerSelectedEquipment = [];
+						pickerSelectedDifficulties = [];
+						pickerSelectedTags = [];
+						searchQuery = '';
+						telegram.hapticImpact('light');
+					}}
 				>
 					<PixelIcon name="star" size="sm" />
 					Избранное
