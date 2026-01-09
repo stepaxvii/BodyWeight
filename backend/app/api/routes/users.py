@@ -266,44 +266,47 @@ async def get_user_activity(
     year: int | None = None,
 ):
     """Get workout activity calendar data grouped by day."""
-    from sqlalchemy import cast, Date
-
     # Default to current year
     if year is None:
         year = date.today().year
 
-    # Query all completed workouts for the year, grouped by date
-    # Using cast to Date for SQLite compatibility
-    workout_date_col = cast(WorkoutSession.started_at, Date).label("workout_date")
-
+    # Get all completed workouts for the year
     result = await session.execute(
         select(
-            workout_date_col,
-            func.count(WorkoutSession.id).label("workouts_count"),
-            func.sum(WorkoutSession.total_xp_earned).label("total_xp")
+            WorkoutSession.started_at,
+            WorkoutSession.total_xp_earned
         )
         .where(WorkoutSession.user_id == user.id)
         .where(WorkoutSession.status == "completed")
         .where(func.strftime('%Y', WorkoutSession.started_at) == str(year))
-        .group_by(workout_date_col)
     )
 
-    # Build the response dictionary
+    # Group by date manually in Python (more reliable across databases)
     days_data = {}
     for row in result.all():
-        workout_date = row.workout_date
-        # Convert date to ISO format string
-        if isinstance(workout_date, str):
-            date_str = workout_date
-        else:
-            date_str = workout_date.isoformat()
-        days_data[date_str] = DayActivityResponse(
-            date=date_str,
-            workouts=row.workouts_count,
-            total_xp=row.total_xp or 0
-        )
+        workout_datetime = row.started_at
+        # Extract date part
+        workout_date = workout_datetime.date() if hasattr(workout_datetime, 'date') else workout_datetime
+        date_str = workout_date.isoformat() if hasattr(workout_date, 'isoformat') else str(workout_date)
 
-    return UserActivityResponse(days=days_data)
+        # Aggregate data
+        if date_str not in days_data:
+            days_data[date_str] = {"workouts": 0, "total_xp": 0}
+
+        days_data[date_str]["workouts"] += 1
+        days_data[date_str]["total_xp"] += row.total_xp_earned or 0
+
+    # Convert to response format
+    response_days = {
+        date_str: DayActivityResponse(
+            date=date_str,
+            workouts=data["workouts"],
+            total_xp=data["total_xp"]
+        )
+        for date_str, data in days_data.items()
+    }
+
+    return UserActivityResponse(days=response_days)
 
 
 @router.get("/{user_id}", response_model=UserResponse)
