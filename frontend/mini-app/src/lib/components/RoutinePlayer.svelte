@@ -3,6 +3,7 @@
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
+	import { exercisesStore } from '$lib/stores/exercises.svelte';
 	import type { Routine, RoutineExercise, Exercise } from '$lib/types';
 	import { onMount, onDestroy } from 'svelte';
 
@@ -61,11 +62,10 @@
 	const formattedExerciseTime = $derived(formatTime(exerciseTimerSeconds));
 
 	onMount(async () => {
-		// Always fetch all exercises to ensure we have names for all exercises in routine
-		// The prop exercises might be paginated and not contain all needed exercises
+		// Load all exercises from cache or API
 		exercisesLoading = true;
 		try {
-			const fetchedExercises = await api.getAllExercises();
+			const fetchedExercises = await exercisesStore.loadAll();
 			// Merge with prop exercises to avoid duplicates
 			const exerciseMap = new Map<string, Exercise>();
 			// First add prop exercises
@@ -73,7 +73,7 @@
 			// Then add fetched exercises (will override if duplicate)
 			fetchedExercises.forEach(ex => exerciseMap.set(ex.slug, ex));
 			allExercises = Array.from(exerciseMap.values());
-			
+
 			// Debug: check if all routine exercises are found
 			const routineSlugs = routine.exercises.map(ex => ex.slug);
 			const missingSlugs = routineSlugs.filter(slug => !exerciseMap.has(slug));
@@ -267,7 +267,11 @@
 					{#each routine.exercises as ex, i}
 						<div class="exercise-preview-item">
 							<span class="exercise-number">{i + 1}</span>
-							<span class="exercise-name">{allExercises.find(e => e.slug === ex.slug)?.name_ru || ex.slug}</span>
+							{#if exercisesLoading}
+								<span class="exercise-name loading-skeleton"></span>
+							{:else}
+								<span class="exercise-name">{allExercises.find(e => e.slug === ex.slug)?.name_ru || ex.slug}</span>
+							{/if}
 							<span class="exercise-target">
 								{#if ex.duration}
 									{ex.duration} сек
@@ -362,7 +366,11 @@
 			<div class="exercise-display">
 				<PixelCard variant="accent" padding="lg">
 					<div class="exercise-content">
-						<h3 class="current-exercise-name">{exerciseData?.name_ru || currentExercise?.slug}</h3>
+						{#if exercisesLoading}
+							<h3 class="current-exercise-name loading-skeleton"></h3>
+						{:else}
+							<h3 class="current-exercise-name">{exerciseData?.name_ru || currentExercise?.slug}</h3>
+						{/if}
 
 						{#if exerciseData?.description_ru}
 							<p class="exercise-description">{exerciseData.description_ru}</p>
@@ -770,4 +778,20 @@
 	.text-green { color: var(--pixel-green); }
 	.text-yellow { color: var(--pixel-yellow); }
 	.text-blue { color: var(--pixel-blue); }
+
+	/* Loading skeleton */
+	.loading-skeleton {
+		display: inline-block;
+		background: linear-gradient(90deg, #444 25%, #555 50%, #444 75%);
+		background-size: 200% 100%;
+		animation: loading-shimmer 1.5s infinite;
+		border-radius: 2px;
+		min-width: 120px;
+		min-height: 1em;
+	}
+
+	@keyframes loading-shimmer {
+		0% { background-position: 200% 0; }
+		100% { background-position: -200% 0; }
+	}
 </style>

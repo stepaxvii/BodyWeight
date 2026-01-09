@@ -6,6 +6,7 @@
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { favoritesStore } from '$lib/stores/favorites.svelte';
+	import { exercisesStore } from '$lib/stores/exercises.svelte';
 	import type { Exercise, CustomRoutine, CustomRoutineType, CustomRoutineCreate, ExerciseCategory } from '$lib/types';
 
 	interface RoutineExerciseItem {
@@ -65,12 +66,12 @@
 		pickerSelectedEquipment.length + pickerSelectedDifficulties.length + pickerSelectedTags.length
 	);
 
-	// Load all exercises on mount
+	// Load all exercises on mount using cache
 	$effect(() => {
 		async function loadAllExercises() {
 			try {
 				exercisesLoading = true;
-				exercises = await api.getAllExercises();
+				exercises = await exercisesStore.loadAll();
 			} catch (err) {
 				console.error('Failed to load exercises:', err);
 			} finally {
