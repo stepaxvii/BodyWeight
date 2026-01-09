@@ -192,6 +192,12 @@
 		telegram.hapticImpact('light');
 	}
 
+	function openExercisePicker() {
+		// Reset all filters when opening picker
+		clearPickerFilters();
+		showExercisePicker = true;
+	}
+
 	function removeExercise(index: number) {
 		selectedExercises = selectedExercises.filter((_, i) => i !== index);
 		telegram.hapticImpact('light');
@@ -355,7 +361,7 @@
 					<div class="empty-exercises">
 						<PixelIcon name="play" size="xl" color="var(--text-muted)" />
 						<p>Нет упражнений</p>
-						<PixelButton variant="primary" onclick={() => showExercisePicker = true}>
+						<PixelButton variant="primary" onclick={openExercisePicker}>
 							Добавить упражнение
 						</PixelButton>
 					</div>
@@ -402,7 +408,7 @@
 					</div>
 
 					<div class="add-exercise-btn">
-						<PixelButton variant="secondary" fullWidth onclick={() => showExercisePicker = true}>
+						<PixelButton variant="secondary" fullWidth onclick={openExercisePicker}>
 							<PixelIcon name="plus" />
 							Добавить упражнение
 						</PixelButton>
