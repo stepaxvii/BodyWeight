@@ -974,7 +974,6 @@
 
 {#if showCustomRoutineEditor}
 	<CustomRoutineEditor
-		{exercises}
 		{categories}
 		editingRoutine={editingCustomRoutine}
 		onclose={closeCustomRoutineEditor}

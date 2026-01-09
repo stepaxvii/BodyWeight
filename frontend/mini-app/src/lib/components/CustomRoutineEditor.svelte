@@ -15,14 +15,17 @@
 	}
 
 	interface Props {
-		exercises: Exercise[];
 		categories?: ExerciseCategory[];
 		editingRoutine?: CustomRoutine | null;
 		onclose: () => void;
 		onsave: (routine: CustomRoutine) => void;
 	}
 
-	let { exercises, categories = [], editingRoutine = null, onclose, onsave }: Props = $props();
+	let { categories = [], editingRoutine = null, onclose, onsave }: Props = $props();
+
+	// Load ALL exercises internally (not paginated)
+	let exercises = $state<Exercise[]>([]);
+	let exercisesLoading = $state(true);
 
 	// Form state
 	let name = $state(editingRoutine?.name || '');
@@ -60,9 +63,24 @@
 		pickerSelectedEquipment.length + pickerSelectedDifficulties.length + pickerSelectedTags.length
 	);
 
-	// Initialize from editing routine
+	// Load all exercises on mount
 	$effect(() => {
-		if (editingRoutine) {
+		async function loadAllExercises() {
+			try {
+				exercisesLoading = true;
+				exercises = await api.getAllExercises();
+			} catch (err) {
+				console.error('Failed to load exercises:', err);
+			} finally {
+				exercisesLoading = false;
+			}
+		}
+		loadAllExercises();
+	});
+
+	// Initialize from editing routine (after exercises are loaded)
+	$effect(() => {
+		if (editingRoutine && exercises.length > 0) {
 			selectedExercises = editingRoutine.exercises.map(ex => {
 				const fullExercise = exercises.find(e => e.id === ex.exercise_id);
 				return {
@@ -444,7 +462,18 @@
 			{/if}
 
 			<div class="picker-list">
-				{#each filteredExercises as exercise (exercise.id)}
+				{#if exercisesLoading}
+					<div class="picker-loading">
+						<div class="spinner"></div>
+						<p>Загрузка упражнений...</p>
+					</div>
+				{:else if filteredExercises.length === 0}
+					<div class="picker-empty">
+						<PixelIcon name="close" size="lg" color="var(--text-muted)" />
+						<p>Упражнения не найдены</p>
+					</div>
+				{:else}
+					{#each filteredExercises as exercise (exercise.id)}
 					{@const isAdded = selectedExercises.some(e => e.exercise.id === exercise.id)}
 					<div class="picker-item" class:added={isAdded}>
 						<button
@@ -478,7 +507,8 @@
 							{/if}
 						</button>
 					</div>
-				{/each}
+					{/each}
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -992,6 +1022,22 @@
 		flex: 1;
 		overflow-y: auto;
 		padding: var(--spacing-sm);
+	}
+
+	.picker-loading, .picker-empty {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-md);
+		padding: var(--spacing-xl);
+		color: var(--text-muted);
+		min-height: 200px;
+	}
+
+	.picker-loading p, .picker-empty p {
+		margin: 0;
+		font-size: var(--font-size-sm);
 	}
 
 	.picker-item {
