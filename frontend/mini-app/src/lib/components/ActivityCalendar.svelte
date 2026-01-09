@@ -132,39 +132,30 @@
 		<!-- Month labels -->
 		<div class="month-labels">
 			{#each monthLabels as { month, weekIndex }}
-				<span class="month-label" style="left: {weekIndex * 14}px">{month}</span>
+				<span class="month-label" style="left: {weekIndex * 12}px">{month}</span>
 			{/each}
 		</div>
 
-		<div class="calendar-grid-container">
-			<!-- Weekday labels -->
-			<div class="weekday-labels">
-				{#each weekdayLabels as label}
-					<div class="weekday-label">{label}</div>
-				{/each}
-			</div>
-
-			<!-- Calendar grid -->
-			<div class="calendar-grid">
-				{#each weeks as week}
-					<div class="calendar-column">
-						{#each week as day}
-							{#if day === null}
-								<div class="calendar-day empty"></div>
-							{:else}
-								{@const dateStr = formatDate(day)}
-								{@const activity = activityData[dateStr]}
-								{@const xp = activity?.total_xp || 0}
-								<button
-									class="calendar-day {getColorClass(xp)}"
-									title="{dateStr}: {xp} XP, {activity?.workouts || 0} тренировок"
-									onclick={() => handleDayClick(day)}
-								></button>
-							{/if}
-						{/each}
-					</div>
-				{/each}
-			</div>
+		<!-- Calendar grid -->
+		<div class="calendar-grid">
+			{#each weeks as week}
+				<div class="calendar-column">
+					{#each week as day}
+						{#if day === null}
+							<div class="calendar-day empty"></div>
+						{:else}
+							{@const dateStr = formatDate(day)}
+							{@const activity = activityData[dateStr]}
+							{@const xp = activity?.total_xp || 0}
+							<button
+								class="calendar-day {getColorClass(xp)}"
+								title="{dateStr}: {xp} XP, {activity?.workouts || 0} тренировок"
+								onclick={() => handleDayClick(day)}
+							></button>
+						{/if}
+					{/each}
+				</div>
+			{/each}
 		</div>
 	</div>
 </div>
@@ -210,19 +201,7 @@
 
 	.calendar-grid-wrapper {
 		position: relative;
-	}
-
-	.month-labels {
-		position: relative;
-		height: 16px;
-		margin-bottom: 4px;
-	}
-
-	.month-label {
-		position: absolute;
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-		text-transform: uppercase;
+		overflow: hidden;
 	}
 
 	.calendar-grid-container {
@@ -235,6 +214,7 @@
 		flex-direction: column;
 		gap: 2px;
 		padding-right: var(--spacing-xs);
+		flex-shrink: 0;
 	}
 
 	.weekday-label {
@@ -246,10 +226,31 @@
 		line-height: 1;
 	}
 
+	.calendar-scrollable {
+		flex: 1;
+		overflow-x: auto;
+		overflow-y: hidden;
+	}
+
+	.month-labels {
+		position: relative;
+		height: 14px;
+		margin-bottom: 2px;
+		min-width: fit-content;
+	}
+
+	.month-label {
+		position: absolute;
+		font-size: 9px;
+		color: var(--text-secondary);
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
 	.calendar-grid {
 		display: flex;
 		gap: 2px;
-		overflow-x: auto;
+		min-width: fit-content;
 		padding-bottom: var(--spacing-xs);
 	}
 
