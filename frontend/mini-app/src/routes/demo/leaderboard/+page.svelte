@@ -2,7 +2,7 @@
 	import { PixelCard, PixelIcon, PixelTabs, PixelAvatar } from '$lib/components/ui';
 
 	type TabType = 'global' | 'weekly' | 'friends';
-	let activeTab: TabType = 'global';
+	let activeTab = $state<TabType>('global');
 
 	// Demo leaderboard data
 	const leaderboardData = {
@@ -56,7 +56,7 @@
 		return '';
 	}
 
-	$: entries = leaderboardData[activeTab];
+	const entries = $derived(leaderboardData[activeTab]);
 </script>
 
 <div class="page container">
