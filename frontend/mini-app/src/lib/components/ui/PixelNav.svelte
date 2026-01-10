@@ -19,7 +19,8 @@
 		{ id: 'home', label: 'Главная', href: `${base}/`, icon: 'home' },
 		{ id: 'workout', label: 'Тренировка', href: `${base}/workout`, icon: 'workout' },
 		{ id: 'profile', label: 'Профиль', href: `${base}/profile`, icon: 'profile' },
-		{ id: 'leaderboard', label: 'Рейтинг', href: `${base}/leaderboard`, icon: 'trophy' }
+		{ id: 'leaderboard', label: 'Рейтинг', href: `${base}/leaderboard`, icon: 'trophy' },
+		{ id: 'demo', label: 'Демо', href: `${base}/demo`, icon: 'star' }
 	];
 
 	// Confirmation dialog state
@@ -92,6 +93,8 @@
 							<path d="M8 2a3 3 0 100 6 3 3 0 000-6zM4 10c0-1 1-2 4-2s4 1 4 2v3H4v-3z"/>
 						{:else if item.icon === 'trophy'}
 							<path d="M4 2h8v2h2v3c0 1-1 2-2 2h-1c0 2-1 3-3 3s-3-1-3-3H4c-1 0-2-1-2-2V4h2V2zm1 2v2h1c0 1 1 2 2 2s2-1 2-2h1V4H5zm1 8h4v2H6v-2z"/>
+						{:else if item.icon === 'star'}
+							<path d="M8 1l2 5h5l-4 3 2 5-5-3-5 3 2-5-4-3h5l2-5z"/>
 						{/if}
 					</svg>
 				</div>

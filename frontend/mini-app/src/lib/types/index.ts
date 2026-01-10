@@ -310,7 +310,7 @@ export interface AuthResponse {
 }
 
 // Navigation
-export type NavItem = 'home' | 'workout' | 'profile' | 'leaderboard';
+export type NavItem = 'home' | 'workout' | 'profile' | 'leaderboard' | 'demo';
 
 // Routine types (workout complexes)
 export type RoutineCategory = 'morning' | 'home' | 'pullup-bar' | 'dip-bars' | 'dumbbell' | 'resistance-band';
