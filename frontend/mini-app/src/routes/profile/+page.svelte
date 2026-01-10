@@ -141,7 +141,7 @@
 					<span class="badges-count">{unlockedCount}/{achievements.length}</span>
 				</div>
 				<div class="badges-grid">
-					{#each unlockedAchievements.slice(0, 6) as achievement}
+					{#each unlockedAchievements.slice(0, 16) as achievement}
 						<div class="badge-item" title={achievement.name_ru}>
 							<img
 								src="{base}/sprites/badges/{achievement.slug}.svg"
@@ -150,9 +150,9 @@
 							/>
 						</div>
 					{/each}
-					{#if achievements.length > unlockedAchievements.length || unlockedAchievements.length > 6}
+					{#if achievements.length - unlockedCount > 0 || unlockedAchievements.length > 16}
 						<a href="{base}/achievements" class="badge-item badge-more">
-							<span>+{achievements.length - Math.min(unlockedAchievements.length, 6)}</span>
+							<span>+{achievements.length - Math.min(unlockedCount, 16)}</span>
 						</a>
 					{/if}
 				</div>
@@ -375,13 +375,13 @@
 	}
 
 	.badges-grid {
-		display: flex;
-		gap: var(--spacing-xs);
+		display: grid;
+		grid-template-columns: repeat(9, 1fr);
+		gap: 4px;
 	}
 
 	.badge-item {
-		width: 36px;
-		height: 36px;
+		aspect-ratio: 1;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -396,8 +396,8 @@
 	}
 
 	.badge-icon {
-		width: 24px;
-		height: 24px;
+		width: 70%;
+		height: 70%;
 		image-rendering: pixelated;
 	}
 
