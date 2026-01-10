@@ -21,7 +21,8 @@
       "Bash(for file in frontend/mini-app/src/lib/components/*.svelte)",
       "Bash(for slug in workout-10 workout-50 streak-3 streak-14)",
       "Bash(do if [ -f \"frontend/mini-app/static/sprites/badges/$slug.svg\" ])",
-      "Bash(npm run check:*)"
+      "Bash(npm run check:*)",
+      "Bash(move demo* \"\\(demo\\)\"\" 2>nul & rmdir demo 2>nul & echo \"Done \")"
     ]
   }
 }
