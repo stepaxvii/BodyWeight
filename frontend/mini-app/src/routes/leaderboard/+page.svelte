@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { PixelCard, PixelIcon, PixelAvatar } from '$lib/components/ui';
+	import { PixelCard, PixelIcon, PixelAvatar, EmptyState, PixelTabs } from '$lib/components/ui';
 	import UserProfileModal from '$lib/components/UserProfileModal.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
@@ -12,7 +12,7 @@
 	let error = $state<string | null>(null);
 	let selectedUserId = $state<number | null>(null);
 
-	const tabs: { id: LeaderboardType; label: string }[] = [
+	const leaderboardTabs: { id: LeaderboardType; label: string }[] = [
 		{ id: 'global', label: 'Все' },
 		{ id: 'weekly', label: 'Неделя' },
 		{ id: 'friends', label: 'Друзья' }
@@ -40,7 +40,6 @@
 	async function switchTab(tab: LeaderboardType) {
 		if (tab === activeTab) return;
 		activeTab = tab;
-		telegram.hapticImpact('light');
 		await loadLeaderboard();
 	}
 
@@ -71,17 +70,7 @@
 	</header>
 
 	<!-- Tabs -->
-	<div class="tabs">
-		{#each tabs as tab}
-			<button
-				class="tab"
-				class:active={activeTab === tab.id}
-				onclick={() => switchTab(tab.id)}
-			>
-				{tab.label}
-			</button>
-		{/each}
-	</div>
+	<PixelTabs tabs={leaderboardTabs} activeTab={activeTab} onTabChange={switchTab} />
 
 	<!-- Leaderboard Content -->
 	{#if isLoading}
@@ -90,15 +79,15 @@
 			<span>Загрузка...</span>
 		</div>
 	{:else if error}
-		<div class="empty-state">
-			<PixelIcon name="trophy" size="xl" color="var(--pixel-red)" />
-			<p>{error}</p>
-		</div>
+		<EmptyState
+			icon="trophy"
+			message={error}
+		/>
 	{:else if entries.length === 0}
-		<div class="empty-state">
-			<PixelIcon name="trophy" size="xl" color="var(--text-muted)" />
-			<p>Пока никого нет</p>
-		</div>
+		<EmptyState
+			icon="trophy"
+			message="Пока никого нет"
+		/>
 	{:else}
 		<!-- Top 3 Podium -->
 		{#if activeTab !== 'friends' && entries.length >= 3}
@@ -226,37 +215,6 @@
 		margin-bottom: var(--spacing-md);
 	}
 
-	/* Tabs */
-	.tabs {
-		display: flex;
-		gap: var(--spacing-xs);
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.tab {
-		flex: 1;
-		padding: var(--spacing-sm);
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-xs);
-		text-transform: uppercase;
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
-		color: var(--text-secondary);
-		cursor: pointer;
-		transition: all var(--transition-fast);
-	}
-
-	.tab:hover {
-		border-color: var(--pixel-accent);
-		color: var(--text-primary);
-	}
-
-	.tab.active {
-		background: var(--pixel-accent);
-		border-color: var(--pixel-accent-hover);
-		color: var(--text-primary);
-	}
-
 	/* Loading */
 	.loading {
 		display: flex;
@@ -267,17 +225,6 @@
 		color: var(--text-secondary);
 		font-size: var(--font-size-sm);
 		text-transform: uppercase;
-	}
-
-	/* Empty State */
-	.empty-state {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-xl);
-		color: var(--text-muted);
-		font-size: var(--font-size-sm);
 	}
 
 	/* Podium */

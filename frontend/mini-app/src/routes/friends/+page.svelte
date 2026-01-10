@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { PixelCard, PixelButton, PixelIcon, PixelAvatar } from '$lib/components/ui';
+	import { PixelCard, PixelButton, PixelIcon, PixelAvatar, EmptyState, PixelTabs } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { Friend } from '$lib/types';
@@ -156,12 +156,17 @@
 
 	function switchTab(tab: 'friends' | 'requests' | 'search') {
 		activeTab = tab;
-		telegram.hapticImpact('light');
 		if (tab === 'search') {
 			searchResults = [];
 			searchQuery = '';
 		}
 	}
+
+	const friendTabs = $derived.by(() => [
+		{ id: 'friends' as const, label: `Друзья (${friends.length})` },
+		{ id: 'requests' as const, label: 'Заявки', badge: friendRequests.length },
+		{ id: 'search' as const, label: 'Поиск' }
+	]);
 
 	function handleSearchInput(e: Event) {
 		searchQuery = (e.target as HTMLInputElement).value;
@@ -185,32 +190,7 @@
 	</header>
 
 	<!-- Tabs -->
-	<div class="tabs">
-		<button
-			class="tab"
-			class:active={activeTab === 'friends'}
-			onclick={() => switchTab('friends')}
-		>
-			Друзья ({friends.length})
-		</button>
-		<button
-			class="tab"
-			class:active={activeTab === 'requests'}
-			onclick={() => switchTab('requests')}
-		>
-			Заявки
-			{#if friendRequests.length > 0}
-				<span class="badge">{friendRequests.length}</span>
-			{/if}
-		</button>
-		<button
-			class="tab"
-			class:active={activeTab === 'search'}
-			onclick={() => switchTab('search')}
-		>
-			Поиск
-		</button>
-	</div>
+	<PixelTabs tabs={friendTabs} activeTab={activeTab} onTabChange={switchTab} />
 
 	{#if error}
 		<div class="error-message">
@@ -285,10 +265,10 @@
 					{/each}
 				</div>
 			{:else if searchQuery.length >= 2 && !isSearching}
-				<div class="empty-state">
-					<PixelIcon name="search" size="xl" color="var(--text-muted)" />
-					<p>Пользователи не найдены</p>
-				</div>
+				<EmptyState
+					icon="search"
+					message="Пользователи не найдены"
+				/>
 			{/if}
 		</div>
 	{/if}
@@ -301,14 +281,13 @@
 				<span>Загрузка...</span>
 			</div>
 		{:else if friends.length === 0}
-			<div class="empty-state">
-				<PixelIcon name="friends" size="xl" color="var(--text-muted)" />
-				<p>У вас пока нет друзей</p>
-				<p class="empty-hint">Найдите друзей по username</p>
-				<PixelButton onclick={() => switchTab('search')}>
-					Найти друзей
-				</PixelButton>
-			</div>
+			<EmptyState
+				icon="friends"
+				message="У вас пока нет друзей"
+				hint="Найдите друзей по username"
+				buttonText="Найти друзей"
+				onButtonClick={() => switchTab('search')}
+			/>
 		{:else}
 			<div class="user-list">
 				{#each friends as friend}
@@ -346,10 +325,10 @@
 				<span>Загрузка...</span>
 			</div>
 		{:else if friendRequests.length === 0}
-			<div class="empty-state">
-				<PixelIcon name="mail" size="xl" color="var(--text-muted)" />
-				<p>Нет входящих заявок</p>
-			</div>
+			<EmptyState
+				icon="mail"
+				message="Нет входящих заявок"
+			/>
 		{:else}
 			<div class="user-list">
 				{#each friendRequests as request}
@@ -421,53 +400,6 @@
 	.page-header {
 		text-align: center;
 		margin-bottom: var(--spacing-md);
-	}
-
-	/* Tabs */
-	.tabs {
-		display: flex;
-		gap: var(--spacing-xs);
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.tab {
-		flex: 1;
-		padding: var(--spacing-sm);
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-xs);
-		text-transform: uppercase;
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
-		color: var(--text-secondary);
-		cursor: pointer;
-		transition: all var(--transition-fast);
-		position: relative;
-	}
-
-	.tab:hover {
-		border-color: var(--pixel-accent);
-		color: var(--text-primary);
-	}
-
-	.tab.active {
-		background: var(--pixel-accent);
-		border-color: var(--pixel-accent-hover);
-		color: var(--text-primary);
-	}
-
-	.badge {
-		position: absolute;
-		top: -4px;
-		right: -4px;
-		min-width: 16px;
-		height: 16px;
-		padding: 0 4px;
-		font-size: 8px;
-		background: var(--pixel-red);
-		color: white;
-		display: flex;
-		align-items: center;
-		justify-content: center;
 	}
 
 	/* Error */
@@ -647,23 +579,6 @@
 		color: var(--text-secondary);
 		font-size: var(--font-size-sm);
 		text-transform: uppercase;
-	}
-
-	/* Empty State */
-	.empty-state {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-xl);
-		color: var(--text-muted);
-		font-size: var(--font-size-sm);
-		text-align: center;
-	}
-
-	.empty-hint {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
 	}
 
 	/* Confirmation Modal */

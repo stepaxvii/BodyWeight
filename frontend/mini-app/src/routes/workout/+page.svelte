@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { PixelButton, PixelCard, PixelIcon, EmptyState } from '$lib/components/ui';
+	import { PixelButton, PixelCard, PixelIcon, EmptyState, PixelTabs } from '$lib/components/ui';
 	import RoutinePlayer from '$lib/components/RoutinePlayer.svelte';
 	import ExerciseCard from '$lib/components/ExerciseCard.svelte';
 	import FilterModal from '$lib/components/FilterModal.svelte';
@@ -224,12 +224,12 @@
 		{ id: 'resistance-band', name: 'Эспандер' }
 	];
 
-	const mainTabs: { id: MainTab; label: string }[] = [
-		{ id: 'routines', label: 'Сеты' },
-		{ id: 'my-routines', label: 'Мои' },
-		{ id: 'favorites', label: 'Избранное' },
-		{ id: 'exercises', label: 'Упражнения' }
-	];
+	const mainTabs = $derived.by(() => [
+		{ id: 'routines' as const, label: 'Сеты' },
+		{ id: 'my-routines' as const, label: 'Мои', badge: customRoutines.length },
+		{ id: 'favorites' as const, label: 'Избранное', badge: favoritesStore.count },
+		{ id: 'exercises' as const, label: 'Упражнения' }
+	]);
 
 	// Handle visibility change for pause/resume
 	function handleVisibilityChange() {
@@ -344,7 +344,6 @@
 
 	function switchMainTab(tab: MainTab) {
 		activeMainTab = tab;
-		telegram.hapticImpact('light');
 	}
 
 	async function selectCategory(slug: string) {
@@ -753,40 +752,18 @@
 		<!-- SELECTION VIEW -->
 
 		<!-- Main navigation tabs -->
-		<div class="main-tabs">
-			{#each mainTabs as tab}
-				<button
-					class="main-tab"
-					class:active={activeMainTab === tab.id}
-					onclick={() => switchMainTab(tab.id)}
-				>
-					{tab.label}
-					{#if tab.id === 'favorites' && favoritesStore.count > 0}
-						<span class="tab-badge">{favoritesStore.count}</span>
-					{/if}
-					{#if tab.id === 'my-routines' && customRoutines.length > 0}
-						<span class="tab-badge">{customRoutines.length}</span>
-					{/if}
-				</button>
-			{/each}
-		</div>
+		<PixelTabs tabs={mainTabs} activeTab={activeMainTab} onTabChange={switchMainTab} />
 
 		<!-- Tab content -->
 		{#if activeMainTab === 'routines'}
 			<!-- Routines section -->
 			{#if routines.length > 0}
 				<section class="tab-section">
-					<div class="routine-tabs">
-						{#each routineCategoryTabs as tab}
-							<button
-								class="routine-tab"
-								class:active={activeRoutineCategory === tab.id}
-								onclick={() => { activeRoutineCategory = tab.id; telegram.hapticImpact('light'); }}
-							>
-								{tab.name}
-							</button>
-						{/each}
-					</div>
+					<PixelTabs
+						tabs={routineCategoryTabs.map(t => ({ id: t.id, label: t.name }))}
+						activeTab={activeRoutineCategory}
+						onTabChange={(id) => activeRoutineCategory = id}
+					/>
 					<div class="routines-list">
 						{#each filteredRoutines as routine}
 							<PixelCard hoverable onclick={() => selectRoutine(routine)} padding="sm">
@@ -1037,53 +1014,6 @@
 	.page {
 		padding-top: var(--spacing-md);
 		padding-bottom: 180px; /* Space for fixed panel + nav */
-	}
-
-	/* Main tabs */
-	.main-tabs {
-		display: flex;
-		gap: var(--spacing-xs);
-		margin-bottom: var(--spacing-md);
-	}
-
-	.main-tab {
-		flex: 1;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: var(--spacing-xs);
-		padding: var(--spacing-sm);
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-xs);
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
-		color: var(--text-secondary);
-		cursor: pointer;
-		transition: all var(--transition-fast);
-	}
-
-	.main-tab:hover {
-		border-color: var(--pixel-accent);
-	}
-
-	.main-tab.active {
-		background: var(--pixel-accent);
-		border-color: var(--pixel-accent);
-		color: var(--pixel-bg);
-	}
-
-	.tab-badge {
-		background: var(--pixel-bg);
-		color: var(--pixel-accent);
-		padding: 1px 4px;
-		font-size: 8px;
-		min-width: 14px;
-		text-align: center;
-	}
-
-	.main-tab.active .tab-badge {
-		background: var(--pixel-bg);
-		color: var(--pixel-accent);
 	}
 
 	.tab-section {
