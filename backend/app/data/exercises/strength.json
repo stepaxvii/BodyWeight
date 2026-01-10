@@ -2415,6 +2415,24 @@
     "description_ru": "Держи одну гантель вертикально обеими руками. Встань, ноги шире плеч, носки развёрнуты наружу на 45 градусов. Присядь, сгибая колени наружу над пальцами ног, грудь вверх, спина прямая. Оттолкнись пятками и встань. Этот вариант делает акцент на внутренней части бёдер и ягодицах."
   },
   {
+    "slug": "dumbbell-hammer-wrist-curl",
+    "category": "strength",
+    "name": "Dumbbell Hammer Wrist Curl",
+    "name_ru": "Сгибание запястий (молоток)",
+    "tags": [
+      "forearms",
+      "wrists",
+      "intermediate",
+      "dumbbell"
+    ],
+    "difficulty": 2,
+    "base_xp": 8,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Stand upright holding dumbbells with a neutral grip (palms facing your body). Fully extend your arms along your torso. Keep your elbows pinned to your sides. Working only with your wrists, exhale and smoothly curl your wrists, raising the dumbbells upward. Inhale and slowly lower them down, stretching your forearms. Focus: Keep forearms completely still. Don't swing your torso. Move strictly up and down using only wrist strength.",
+    "description_ru": "Встань прямо, возьми гантели нейтральным хватом (ладони направлены к телу). Полностью выпрями руки вдоль корпуса. Локти прижаты. Работая только кистями, на выдохе плавно согни запястья, поднимая гантели вверх. На вдохе медленно опусти их вниз, растягивая предплечья. Фокус: Предплечья неподвижны. Не раскачивай корпус. Движение строго вверх-вниз за счёт силы запястий."
+  },
+  {
     "slug": "dumbbell-reverse-fly",
     "category": "strength",
     "name": "Reverse Fly",

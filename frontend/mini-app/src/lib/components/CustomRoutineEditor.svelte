@@ -156,12 +156,6 @@
 	];
 
 	function addExercise(exercise: Exercise) {
-		// Check if already added
-		if (selectedExercises.some(e => e.exercise.id === exercise.id)) {
-			telegram.hapticNotification('warning');
-			return;
-		}
-
 		selectedExercises = [...selectedExercises, {
 			exercise,
 			target_reps: exercise.is_timed ? undefined : 10,
@@ -361,7 +355,7 @@
 					</div>
 				{:else}
 					<div class="exercise-list">
-						{#each selectedExercises as item, index (item.exercise.id)}
+						{#each selectedExercises as item, index (index)}
 							<div class="exercise-item">
 								<div class="exercise-order">
 									<button
@@ -502,12 +496,10 @@
 					</div>
 				{:else}
 					{#each filteredExercises as exercise (exercise.id)}
-					{@const isAdded = selectedExercises.some(e => e.exercise.id === exercise.id)}
-					<div class="picker-item" class:added={isAdded}>
+					<div class="picker-item">
 						<button
 							class="picker-item-main"
 							onclick={() => { addExercise(exercise); showExercisePicker = false; }}
-							disabled={isAdded}
 						>
 							<div class="picker-item-info">
 								<span class="picker-item-name">{exercise.name_ru}</span>
@@ -526,13 +518,8 @@
 						<button
 							class="picker-item-action add"
 							onclick={() => { addExercise(exercise); showExercisePicker = false; }}
-							disabled={isAdded}
 						>
-							{#if isAdded}
-								<PixelIcon name="check" size="sm" color="var(--pixel-green)" />
-							{:else}
-								<PixelIcon name="plus" size="sm" color="var(--pixel-accent)" />
-							{/if}
+							<PixelIcon name="plus" size="sm" color="var(--pixel-accent)" />
 						</button>
 					</div>
 					{/each}

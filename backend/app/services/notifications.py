@@ -214,6 +214,42 @@ async def send_friend_accepted_notification(
         return False
 
 
+async def send_friend_workout_notification(
+    telegram_id: int,
+    friend_name: str,
+) -> bool:
+    """
+    Send notification that a friend completed a workout today.
+
+    Args:
+        telegram_id: Telegram ID of the user to notify
+        friend_name: Name/username of the friend who worked out
+
+    Returns:
+        True if notification was sent successfully
+    """
+    try:
+        bot = get_bot()
+
+        text = (
+            f"💪 <b>{friend_name}</b> уже потренировался сегодня!\n\n"
+            f"А ты? Не отставай от друзей!"
+        )
+
+        await bot.send_message(
+            chat_id=telegram_id,
+            text=text,
+            reply_markup=get_open_app_keyboard(),
+        )
+
+        logger.info(f"Friend workout notification sent to {telegram_id}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to send friend workout notification to {telegram_id}: {e}")
+        return False
+
+
 async def close_bot():
     """Close bot session (call on app shutdown)."""
     global _bot

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { PixelButton, PixelCard, PixelIcon, PixelProgress } from '$lib/components/ui';
+	import ExerciseInfoModal from '$lib/components/ExerciseInfoModal.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -44,6 +45,7 @@
 	let totalXpEarned = $state(0);
 	let totalCoinsEarned = $state(0);
 	let completedExercisesCount = $state(0);
+	let showInfoExercise = $state<Exercise | null>(null);
 
 	const currentExercise = $derived(routine.exercises[currentStep]);
 	const exerciseData = $derived(allExercises.find(e => e.slug === currentExercise?.slug));
@@ -265,12 +267,13 @@
 				<h3 class="section-title">Упражнения</h3>
 				<div class="exercise-list">
 					{#each routine.exercises as ex, i}
+						{@const exData = allExercises.find(e => e.slug === ex.slug)}
 						<div class="exercise-preview-item">
 							<span class="exercise-number">{i + 1}</span>
 							{#if exercisesLoading}
 								<span class="exercise-name loading-skeleton"></span>
 							{:else}
-								<span class="exercise-name">{allExercises.find(e => e.slug === ex.slug)?.name_ru || ex.slug}</span>
+								<span class="exercise-name">{exData?.name_ru || ex.slug}</span>
 							{/if}
 							<span class="exercise-target">
 								{#if ex.duration}
@@ -279,6 +282,15 @@
 									{ex.reps} повт.
 								{/if}
 							</span>
+							{#if !exercisesLoading && exData}
+								<button
+									class="exercise-info-btn"
+									onclick={() => { showInfoExercise = exData; telegram.hapticImpact('light'); }}
+									title="Подробнее"
+								>
+									?
+								</button>
+							{/if}
 						</div>
 					{/each}
 				</div>
@@ -445,6 +457,13 @@
 	{/if}
 </div>
 
+<!-- Exercise Info Modal -->
+<ExerciseInfoModal
+	exercise={showInfoExercise}
+	open={showInfoExercise !== null}
+	onclose={() => showInfoExercise = null}
+/>
+
 <style>
 	.routine-player {
 		position: fixed;
@@ -560,6 +579,27 @@
 
 	.exercise-target {
 		color: var(--pixel-green);
+	}
+
+	.exercise-info-btn {
+		width: 24px;
+		height: 24px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-sm);
+		font-weight: bold;
+		color: var(--text-secondary);
+		cursor: pointer;
+		flex-shrink: 0;
+	}
+
+	.exercise-info-btn:hover {
+		border-color: var(--pixel-accent);
+		color: var(--pixel-accent);
 	}
 
 	.start-section {
