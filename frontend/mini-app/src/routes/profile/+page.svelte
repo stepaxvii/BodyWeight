@@ -57,23 +57,29 @@
 </script>
 
 <div class="page container">
-	<!-- Profile Header -->
+	<!-- Profile Header - Avatar left, Level info right -->
 	<header class="profile-header">
 		<button class="avatar-btn" onclick={openAvatarPicker}>
-			<div class="avatar">
-				<PixelAvatar
-					avatarId={userStore.user?.avatar_id || 'shadow-wolf'}
-					size="xl"
-					borderColor="var(--pixel-accent)"
-				/>
-				<div class="avatar-edit">
-					<PixelIcon name="settings" size="sm" />
+			<PixelAvatar
+				avatarId={userStore.user?.avatar_id || 'shadow-wolf'}
+				size="xl"
+				borderColor="var(--pixel-accent)"
+			/>
+			<div class="avatar-edit">
+				<PixelIcon name="settings" size="sm" />
+			</div>
+		</button>
+		<div class="header-info">
+			<h1 class="username">{userStore.displayName}</h1>
+			<p class="user-title">Пиксельный воин</p>
+			<div class="level-info">
+				<span class="level-badge">Ур.{userStore.level}</span>
+				<div class="xp-mini">
+					<PixelProgress value={xpInLevel} max={xpNeeded} variant="xp" size="sm" />
+					<span class="xp-text">{xpInLevel}/{xpNeeded} XP</span>
 				</div>
 			</div>
-			<div class="level-badge">Ур.{userStore.level}</div>
-		</button>
-		<h1 class="username">{userStore.displayName}</h1>
-		<p class="user-title">Пиксельный воин</p>
+		</div>
 	</header>
 
 	<!-- Avatar Picker Modal -->
@@ -84,51 +90,36 @@
 		onclose={() => showAvatarPicker = false}
 	/>
 
-	<!-- XP Progress -->
-	<section class="xp-section">
-		<PixelCard>
-			<div class="xp-content">
-				<div class="xp-header">
-					<span class="xp-label">Уровень {userStore.level}</span>
-					<span class="xp-value">{xpInLevel} / {xpNeeded} XP</span>
-				</div>
-				<PixelProgress value={xpInLevel} max={xpNeeded} variant="xp" size="lg" />
-			</div>
-		</PixelCard>
-	</section>
+	<!-- Activity Calendar - moved up -->
+	{#if activityData}
+		<section class="activity-section">
+			<ActivityCalendar
+				activityData={activityData.days}
+				year={new Date().getFullYear()}
+				onDayClick={handleDayClick}
+			/>
+		</section>
+	{/if}
 
-	<!-- Stats Grid -->
+	<!-- Stats Row - compact horizontal -->
 	<section class="stats-section">
-		<h3 class="section-title">Статистика</h3>
-		<div class="stats-grid">
-			<PixelCard padding="sm">
-				<div class="stat-item">
-					<PixelIcon name="xp" size="lg" color="var(--pixel-blue)" />
-					<span class="stat-value">{userStore.xp}</span>
-					<span class="stat-label">Всего XP</span>
-				</div>
-			</PixelCard>
-			<PixelCard padding="sm">
-				<div class="stat-item">
-					<PixelIcon name="coin" size="lg" color="var(--pixel-orange)" />
-					<span class="stat-value">{userStore.coins}</span>
-					<span class="stat-label">Монеты</span>
-				</div>
-			</PixelCard>
-			<PixelCard padding="sm">
-				<div class="stat-item">
-					<PixelIcon name="streak" size="lg" color="var(--pixel-yellow)" />
-					<span class="stat-value">{userStore.streak}</span>
-					<span class="stat-label">Серия</span>
-				</div>
-			</PixelCard>
-			<PixelCard padding="sm">
-				<div class="stat-item">
-					<PixelIcon name="trophy" size="lg" color="var(--pixel-accent)" />
-					<span class="stat-value">{unlockedCount}</span>
-					<span class="stat-label">Значки</span>
-				</div>
-			</PixelCard>
+		<div class="stats-row">
+			<div class="stat-item">
+				<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
+				<span class="stat-value">{userStore.xp}</span>
+			</div>
+			<div class="stat-item">
+				<PixelIcon name="coin" size="md" color="var(--pixel-orange)" />
+				<span class="stat-value">{userStore.coins}</span>
+			</div>
+			<div class="stat-item">
+				<PixelIcon name="streak" size="md" color="var(--pixel-yellow)" />
+				<span class="stat-value">{userStore.streak}</span>
+			</div>
+			<div class="stat-item">
+				<PixelIcon name="trophy" size="md" color="var(--pixel-accent)" />
+				<span class="stat-value">{unlockedCount}</span>
+			</div>
 		</div>
 	</section>
 
@@ -152,17 +143,6 @@
 					+{achievements.length - unlockedAchievements.length} ещё
 				</a>
 			{/if}
-		</section>
-	{/if}
-
-	<!-- Activity Calendar -->
-	{#if activityData}
-		<section class="activity-section">
-			<ActivityCalendar
-				activityData={activityData.days}
-				year={new Date().getFullYear()}
-				onDayClick={handleDayClick}
-			/>
 		</section>
 	{/if}
 
@@ -250,10 +230,12 @@
 		padding-bottom: var(--spacing-lg);
 	}
 
-	/* Profile Header */
+	/* Profile Header - horizontal layout */
 	.profile-header {
-		text-align: center;
-		margin-bottom: var(--spacing-lg);
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+		margin-bottom: var(--spacing-md);
 	}
 
 	.avatar-btn {
@@ -262,16 +244,11 @@
 		cursor: pointer;
 		padding: 0;
 		position: relative;
-		display: inline-block;
-		margin-bottom: var(--spacing-sm);
+		flex-shrink: 0;
 	}
 
 	.avatar-btn:hover .avatar-edit {
 		opacity: 1;
-	}
-
-	.avatar {
-		position: relative;
 	}
 
 	.avatar-edit {
@@ -289,26 +266,51 @@
 		transition: opacity var(--transition-fast);
 	}
 
-	.level-badge {
-		position: absolute;
-		bottom: -8px;
-		left: 50%;
-		transform: translateX(-50%);
-		background: var(--pixel-accent);
-		padding: 2px 8px;
-		font-size: var(--font-size-xs);
-		white-space: nowrap;
+	.header-info {
+		flex: 1;
+		min-width: 0;
 	}
 
 	.username {
-		font-size: var(--font-size-lg);
-		margin-bottom: var(--spacing-xs);
+		font-size: var(--font-size-md);
+		margin: 0 0 2px 0;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.user-title {
 		font-size: var(--font-size-xs);
 		color: var(--pixel-yellow);
 		text-transform: uppercase;
+		margin: 0 0 var(--spacing-xs) 0;
+	}
+
+	.level-info {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+	}
+
+	.level-badge {
+		background: var(--pixel-accent);
+		padding: 2px 8px;
+		font-size: var(--font-size-xs);
+		white-space: nowrap;
+		flex-shrink: 0;
+	}
+
+	.xp-mini {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+
+	.xp-text {
+		font-size: 10px;
+		color: var(--text-secondary);
 	}
 
 	/* Sections */
@@ -318,58 +320,32 @@
 		text-transform: uppercase;
 	}
 
-	/* XP Section */
-	.xp-section {
-		margin-bottom: var(--spacing-lg);
+	/* Activity Section */
+	.activity-section {
+		margin-bottom: var(--spacing-md);
 	}
 
-	.xp-content {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-sm);
+	/* Stats Row - compact horizontal */
+	.stats-section {
+		margin-bottom: var(--spacing-md);
 	}
 
-	.xp-header {
+	.stats-row {
 		display: flex;
 		justify-content: space-between;
-		font-size: var(--font-size-xs);
-	}
-
-	.xp-label {
-		color: var(--text-secondary);
-		text-transform: uppercase;
-	}
-
-	.xp-value {
-		color: var(--pixel-blue);
-	}
-
-	/* Stats Grid */
-	.stats-section {
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.stats-grid {
-		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		gap: var(--spacing-sm);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
 	.stat-item {
 		display: flex;
-		flex-direction: column;
 		align-items: center;
 		gap: var(--spacing-xs);
 	}
 
 	.stat-value {
-		font-size: var(--font-size-lg);
-	}
-
-	.stat-label {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-		text-transform: uppercase;
+		font-size: var(--font-size-sm);
 	}
 
 	/* Badges Section */
@@ -417,11 +393,6 @@
 
 	.badges-more:hover {
 		color: var(--pixel-accent);
-	}
-
-	/* Activity Section */
-	.activity-section {
-		margin-bottom: var(--spacing-lg);
 	}
 
 	/* Day Details Modal */
