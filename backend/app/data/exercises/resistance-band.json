@@ -3,7 +3,7 @@
     "slug": "band-bent-over-row",
     "category": "strength",
     "name": "Resistance Band Bent-Over Row",
-    "name_ru": "Тяга эспандера к поясу в наклоне",
+    "name_ru": "Тяга к поясу в наклоне",
     "tags": [
       "back",
       "lats",
@@ -23,7 +23,7 @@
     "slug": "band-seated-row",
     "category": "strength",
     "name": "Resistance Band Seated Row",
-    "name_ru": "Тяга эспандера к поясу сидя",
+    "name_ru": "Тяга к поясу сидя",
     "tags": [
       "back",
       "lats",
@@ -44,7 +44,7 @@
     "slug": "band-lat-pulldown",
     "category": "strength",
     "name": "Resistance Band Lat Pulldown",
-    "name_ru": "Тяга эспандера сверху вниз",
+    "name_ru": "Тяга сверху вниз",
     "tags": [
       "back",
       "lats",
@@ -64,7 +64,7 @@
     "slug": "band-chest-press",
     "category": "strength",
     "name": "Resistance Band Chest Press",
-    "name_ru": "Жим эспандера от груди",
+    "name_ru": "Жим от груди",
     "tags": [
       "chest",
       "triceps",
@@ -84,7 +84,7 @@
     "slug": "band-chest-fly",
     "category": "strength",
     "name": "Resistance Band Chest Fly",
-    "name_ru": "Разведение рук с эспандером",
+    "name_ru": "Разведение рук",
     "tags": [
       "chest",
       "front-delts",
@@ -103,7 +103,7 @@
     "slug": "band-shoulder-press",
     "category": "strength",
     "name": "Resistance Band Shoulder Press",
-    "name_ru": "Жим эспандера над головой",
+    "name_ru": "Жим над головой",
     "tags": [
       "shoulders",
       "front-delts",
@@ -123,7 +123,7 @@
     "slug": "band-lateral-raise",
     "category": "strength",
     "name": "Resistance Band Lateral Raise",
-    "name_ru": "Разведение рук в стороны с эспандером",
+    "name_ru": "Разведение рук в стороны",
     "tags": [
       "shoulders",
       "side-delts",
@@ -142,7 +142,7 @@
     "slug": "band-squat",
     "category": "strength",
     "name": "Resistance Band Squat",
-    "name_ru": "Приседания с эспандером",
+    "name_ru": "Приседания",
     "tags": [
       "quads",
       "glutes",
@@ -162,7 +162,7 @@
     "slug": "band-glute-kickback",
     "category": "strength",
     "name": "Resistance Band Glute Kickback",
-    "name_ru": "Отведение ноги назад с эспандером",
+    "name_ru": "Отведение ноги назад",
     "tags": [
       "glutes",
       "hamstrings",
@@ -181,7 +181,7 @@
     "slug": "band-bicep-curl",
     "category": "strength",
     "name": "Resistance Band Bicep Curl",
-    "name_ru": "Сгибание на бицепс с эспандером",
+    "name_ru": "Сгибание на бицепс",
     "tags": [
       "biceps",
       "arms",

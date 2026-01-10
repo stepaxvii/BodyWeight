@@ -208,7 +208,7 @@
     "slug": "pushup-incline",
     "category": "strength",
     "name": "Incline Push-up",
-    "name_ru": "Отжимания в наклоне (ноги выше)",
+    "name_ru": "Отжимания (ноги выше)",
     "tags": [
       "chest",
       "shoulders",
@@ -228,7 +228,7 @@
     "slug": "pushup-decline",
     "category": "strength",
     "name": "Decline Push-up",
-    "name_ru": "Отжимания с руками на возвышении",
+    "name_ru": "Отжимания (руки на возвышении)",
     "tags": [
       "chest",
       "triceps",
@@ -247,7 +247,7 @@
     "slug": "pushup-staggered",
     "category": "strength",
     "name": "Staggered Push-up",
-    "name_ru": "Отжимания с разновысокими руками",
+    "name_ru": "Отжимания с асимметричными руками",
     "tags": [
       "chest",
       "triceps",
@@ -446,7 +446,7 @@
     "slug": "dip-straight-bar",
     "category": "strength",
     "name": "Straight Bar Dips",
-    "name_ru": "Отжимания на прямой перекладине",
+    "name_ru": "Отжимания на турнике",
     "tags": [
       "triceps",
       "chest",
@@ -2195,7 +2195,7 @@
     "slug": "dumbbell-kickback",
     "category": "strength",
     "name": "Tricep Kickback",
-    "name_ru": "Разгибание руки с гантелью в наклоне",
+    "name_ru": "Разгибание руки в наклоне",
     "tags": [
       "triceps",
       "intermediate",
@@ -2286,7 +2286,7 @@
     "slug": "dumbbell-bulgarian-split-squat",
     "category": "strength",
     "name": "Bulgarian Split Squat",
-    "name_ru": "Болгарские сплит-приседания с гантелями",
+    "name_ru": "Болгарские сплит-приседания",
     "tags": [
       "quads",
       "glutes",
@@ -2305,7 +2305,7 @@
     "slug": "dumbbell-step-up",
     "category": "strength",
     "name": "Dumbbell Step-Up",
-    "name_ru": "Зашагивания на возвышенность с гантелями",
+    "name_ru": "Зашагивания на платформу",
     "tags": [
       "quads",
       "glutes",
@@ -2342,7 +2342,7 @@
     "slug": "dumbbell-concentration-curl",
     "category": "strength",
     "name": "Concentration Curl",
-    "name_ru": "Концентрированные подъёмы на бицепс",
+    "name_ru": "Концентрированный подъём на бицепс",
     "tags": [
       "biceps",
       "intermediate",
@@ -2359,7 +2359,7 @@
     "slug": "dumbbell-incline-chest-press",
     "category": "strength",
     "name": "Incline Chest Press",
-    "name_ru": "Жим гантелей на наклонной скамье",
+    "name_ru": "Жим на наклонной скамье",
     "tags": [
       "chest",
       "shoulders",
@@ -2418,7 +2418,7 @@
     "slug": "dumbbell-reverse-fly",
     "category": "strength",
     "name": "Reverse Fly",
-    "name_ru": "Обратные разведения с гантелями",
+    "name_ru": "Обратные разведения",
     "tags": [
       "shoulders",
       "back",

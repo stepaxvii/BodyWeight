@@ -174,7 +174,7 @@
     "slug": "hamstring-stretch",
     "category": "static-stretch",
     "name": "Hamstring Stretch",
-    "name_ru": "Растяжка задней поверхности бедра",
+    "name_ru": "Растяжка задней поверхности",
     "tags": [
       "hamstrings",
       "beginner",
@@ -192,7 +192,7 @@
     "slug": "hamstring-stretch-lying",
     "category": "static-stretch",
     "name": "Lying Hamstring Stretch",
-    "name_ru": "Растяжка задней поверхности лёжа",
+    "name_ru": "Растяжка бедра лёжа",
     "tags": [
       "hamstrings",
       "beginner",
@@ -229,7 +229,7 @@
     "slug": "hip-flexor-stretch-deep",
     "category": "static-stretch",
     "name": "Deep Hip Flexor Stretch",
-    "name_ru": "Глубокая растяжка сгибателей бедра",
+    "name_ru": "Глубокая растяжка сгибателей",
     "tags": [
       "hip-flexors",
       "quads",
