@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PixelCard, PixelIcon, PixelButton, PixelTabs, PixelAvatar, PixelBadge } from '$lib/components/ui';
+	import { PixelCard, PixelIcon, PixelButton, PixelTabs, PixelAvatar } from '$lib/components/ui';
 	import ActivityCalendar from '$lib/components/ActivityCalendar.svelte';
 
 	type DemoScreen = 'home' | 'profile' | 'leaderboard';
@@ -273,7 +273,10 @@
 				</div>
 				<div class="badges-grid">
 					{#each unlockedBadges as badge}
-						<PixelBadge {...badge} size="md" unlocked={true} />
+						<div class="badge-item {badge.rarity}">
+							<PixelIcon name={badge.icon} size="sm" />
+							<span class="badge-name">{badge.name}</span>
+						</div>
 					{/each}
 				</div>
 			</section>
@@ -638,6 +641,28 @@
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
 		gap: var(--spacing-sm);
+	}
+
+	.badge-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--spacing-xs);
+		padding: var(--spacing-sm);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+	}
+
+	.badge-item.common { border-color: #888; }
+	.badge-item.rare { border-color: #4a9eff; }
+	.badge-item.epic { border-color: #a855f7; }
+	.badge-item.legendary { border-color: #ffd700; }
+
+	.badge-name {
+		font-size: 9px;
+		color: var(--text-secondary);
+		text-align: center;
+		line-height: 1.2;
 	}
 
 	/* ===== LEADERBOARD STYLES ===== */
