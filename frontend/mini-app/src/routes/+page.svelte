@@ -644,6 +644,7 @@
 	.stat-info {
 		display: flex;
 		flex-direction: column;
+		align-items: center;
 	}
 
 	.stat-value {
