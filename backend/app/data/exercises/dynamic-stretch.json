@@ -545,5 +545,23 @@
     "equipment": "none",
     "description": "Move laterally while crossing your feet over and behind each other. Step to the side, then cross the trailing foot in front, step side again, then cross behind. Keep hips facing forward while legs cross over. This dynamic drill improves hip mobility, coordination, and lateral movement.",
     "description_ru": "Двигайся в сторону, перекрещивая ноги спереди и сзади друг друга. Шагни в сторону, затем перекрести отстающую ногу спереди, снова шаг в сторону, затем перекрести сзади. Бёдра направлены вперёд, пока ноги перекрещиваются. Динамическое упражнение улучшает мобильность бёдер, координацию и боковое движение."
+  },
+  {
+    "slug": "arm-circle",
+    "category": "dynamic-stretch",
+    "name": "Arm Circles",
+    "name_ru": "Круги руками",
+    "tags": [
+      "shoulders",
+      "chest",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 3,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Stand with feet shoulder-width apart. Extend arms out to sides at shoulder height. Make controlled circular motions with your arms. Start with small circles and gradually increase size. Can be done forward or backward. Great for warming up shoulders before workouts.",
+    "description_ru": "Встань, ноги на ширине плеч. Вытяни руки в стороны на уровне плеч. Делай контролируемые круговые движения руками. Начни с малых кругов и постепенно увеличивай размер. Можно делать вперёд или назад. Отлично для разминки плеч перед тренировкой."
   }
 ]
