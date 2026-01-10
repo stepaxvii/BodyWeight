@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { PixelCard, PixelIcon, PixelProgress, PixelButton } from '$lib/components/ui';
+	import { PixelCard, PixelIcon, PixelProgress, PixelButton, EmptyState, PixelTabs } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { Achievement } from '$lib/types';
@@ -59,8 +59,13 @@
 
 	function setFilter(newFilter: 'all' | 'unlocked' | 'locked') {
 		filter = newFilter;
-		telegram.hapticImpact('light');
 	}
+
+	const achievementTabs = [
+		{ id: 'all' as const, label: 'Все' },
+		{ id: 'unlocked' as const, label: 'Открыто' },
+		{ id: 'locked' as const, label: 'Закрыто' }
+	];
 
 	function getProgressPercent(achievement: Achievement): number {
 		if (achievement.unlocked) return 100;
@@ -76,31 +81,7 @@
 	</header>
 
 	<!-- Filter Tabs -->
-	<div class="filters">
-		<button
-			class="filter-btn"
-			class:active={filter === 'all'}
-			onclick={() => setFilter('all')}
-		>
-			Все
-		</button>
-		<button
-			class="filter-btn"
-			class:active={filter === 'unlocked'}
-			onclick={() => setFilter('unlocked')}
-		>
-			<PixelIcon name="check" size="sm" />
-			Открыто
-		</button>
-		<button
-			class="filter-btn"
-			class:active={filter === 'locked'}
-			onclick={() => setFilter('locked')}
-		>
-			<PixelIcon name="lock" size="sm" />
-			Закрыто
-		</button>
-	</div>
+	<PixelTabs tabs={achievementTabs} activeTab={filter} onTabChange={setFilter} />
 
 	<!-- Achievement Grid -->
 	<div class="achievements-grid">
@@ -169,10 +150,10 @@
 	</div>
 
 	{#if filteredAchievements().length === 0 && !isLoading}
-		<div class="empty-state">
-			<PixelIcon name="trophy" size="xl" color="var(--text-muted)" />
-			<p>Нет достижений для показа</p>
-		</div>
+		<EmptyState
+			icon="trophy"
+			message="Нет достижений для показа"
+		/>
 	{/if}
 
 	{#if hasMore && filteredAchievements().length > 0}
@@ -208,41 +189,6 @@
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
 		margin-top: var(--spacing-xs);
-	}
-
-	/* Filters */
-	.filters {
-		display: flex;
-		gap: var(--spacing-xs);
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.filter-btn {
-		flex: 1;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: var(--spacing-xs);
-		padding: var(--spacing-sm);
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-xs);
-		text-transform: uppercase;
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
-		color: var(--text-secondary);
-		cursor: pointer;
-		transition: all var(--transition-fast);
-	}
-
-	.filter-btn:hover {
-		border-color: var(--pixel-accent);
-		color: var(--text-primary);
-	}
-
-	.filter-btn.active {
-		background: var(--pixel-accent);
-		border-color: var(--pixel-accent-hover);
-		color: var(--text-primary);
 	}
 
 	/* Achievement Grid */
@@ -332,18 +278,6 @@
 		color: var(--text-muted);
 		text-align: center;
 		margin-top: var(--spacing-xs);
-	}
-
-	/* Empty State */
-	.empty-state {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-xl);
-		color: var(--text-muted);
-		font-size: var(--font-size-sm);
-		text-align: center;
 	}
 
 	@keyframes pixel-glow {

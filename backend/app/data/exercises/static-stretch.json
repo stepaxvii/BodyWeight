@@ -174,7 +174,7 @@
     "slug": "hamstring-stretch",
     "category": "static-stretch",
     "name": "Hamstring Stretch",
-    "name_ru": "Растяжка задней поверхности бедра",
+    "name_ru": "Растяжка задней поверхности",
     "tags": [
       "hamstrings",
       "beginner",
@@ -192,7 +192,7 @@
     "slug": "hamstring-stretch-lying",
     "category": "static-stretch",
     "name": "Lying Hamstring Stretch",
-    "name_ru": "Растяжка задней поверхности лёжа",
+    "name_ru": "Растяжка бедра лёжа",
     "tags": [
       "hamstrings",
       "beginner",
@@ -229,7 +229,7 @@
     "slug": "hip-flexor-stretch-deep",
     "category": "static-stretch",
     "name": "Deep Hip Flexor Stretch",
-    "name_ru": "Глубокая растяжка сгибателей бедра",
+    "name_ru": "Глубокая растяжка сгибателей",
     "tags": [
       "hip-flexors",
       "quads",
@@ -854,5 +854,64 @@
     "is_timed": true,
     "description": "Lie face down. Bend your knees and reach back to grab your ankles. Kick your legs into your hands while lifting your chest, creating a bow shape with your body. Only your belly touches the floor. This deeply stretches the front body — quads, hip flexors, abs, and chest.",
     "description_ru": "Ляг лицом вниз. Согни колени и потянись назад, чтобы взяться за щиколотки. Толкай ноги в руки, поднимая грудь, создавая форму лука телом. Только живот касается пола. Глубоко растягивает переднюю часть тела — квадрицепсы, сгибатели бедра, пресс и грудь."
+  },
+  {
+    "slug": "cobra-stretch",
+    "category": "static-stretch",
+    "name": "Cobra Stretch",
+    "name_ru": "Растяжка кобра",
+    "tags": [
+      "chest",
+      "core",
+      "lower-back",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie face down with hands under shoulders, elbows close to body. Gently press up, lifting your chest while keeping hips on the floor. Keep shoulders relaxed away from ears. Hold this gentle backbend, breathing deeply. This stretches the abs and chest while strengthening the lower back.",
+    "description_ru": "Ляг лицом вниз, руки под плечами, локти прижаты к телу. Мягко оттолкнись, поднимая грудь, оставляя бёдра на полу. Плечи расслаблены, опущены от ушей. Удерживай этот мягкий прогиб, глубоко дыша. Растягивает пресс и грудь, укрепляя поясницу."
+  },
+  {
+    "slug": "spinal-twist",
+    "category": "static-stretch",
+    "name": "Spinal Twist",
+    "name_ru": "Скручивание позвоночника",
+    "tags": [
+      "lower-back",
+      "glutes",
+      "chest",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Sit or lie down. Gently rotate your torso, using your arms for support. Keep the movement controlled and breathe deeply. This twist stretches the spine, lower back, and obliques while improving spinal mobility. Can be done seated or lying down.",
+    "description_ru": "Сядь или ляг. Мягко поверни корпус, используя руки для поддержки. Движение контролируемое, дыши глубоко. Скручивание растягивает позвоночник, поясницу и косые мышцы, улучшая подвижность позвоночника. Можно делать сидя или лёжа."
+  },
+  {
+    "slug": "glute-stretch",
+    "category": "static-stretch",
+    "name": "Glute Stretch",
+    "name_ru": "Растяжка ягодиц",
+    "tags": [
+      "glutes",
+      "hip-flexors",
+      "beginner",
+      "home"
+    ],
+    "difficulty": 1,
+    "base_xp": 4,
+    "required_level": 1,
+    "equipment": "none",
+    "is_timed": true,
+    "description": "Lie on your back or sit. Bring one knee toward your chest and hold it with both hands. Keep your back flat and head relaxed. You'll feel a stretch in the glute of the bent leg. Hold, breathe deeply, then switch sides. Simple and effective for tight glutes.",
+    "description_ru": "Ляг на спину или сядь. Подтяни одно колено к груди и удерживай его обеими руками. Спина ровная, голова расслаблена. Почувствуешь растяжение в ягодице согнутой ноги. Удерживай, глубоко дыши, затем смени сторону. Простое и эффективное для зажатых ягодиц."
   }
 ]

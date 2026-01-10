@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { PixelCard, PixelButton, PixelIcon, PixelAvatar } from '$lib/components/ui';
+	import { PixelCard, PixelButton, PixelIcon, PixelAvatar, EmptyState, PixelTabs } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { Friend } from '$lib/types';
@@ -17,6 +17,9 @@
 
 	// Confirmation dialog state
 	let confirmRemove = $state<{ id: number; name: string; isRequest: boolean } | null>(null);
+
+	// Debounce timer for search
+	let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	onMount(async () => {
 		// Check URL parameter for initial tab
@@ -45,7 +48,10 @@
 	}
 
 	async function searchUsers() {
-		if (searchQuery.length < 2) return;
+		if (searchQuery.length < 2) {
+			searchResults = [];
+			return;
+		}
 
 		isSearching = true;
 		error = null;
@@ -54,10 +60,45 @@
 		} catch (err) {
 			error = 'Ошибка поиска';
 			console.error(err);
+			searchResults = [];
 		} finally {
 			isSearching = false;
 		}
 	}
+
+	// Auto-search with debounce when searchQuery changes
+	$effect(() => {
+		// Clear previous timeout
+		if (searchTimeout) {
+			clearTimeout(searchTimeout);
+			searchTimeout = null;
+		}
+
+		// Only search if we're on the search tab
+		if (activeTab !== 'search') {
+			return;
+		}
+
+		// If query is too short, clear results
+		if (searchQuery.length < 2) {
+			searchResults = [];
+			return;
+		}
+
+		// Debounce search by 400ms
+		searchTimeout = setTimeout(() => {
+			searchUsers();
+			searchTimeout = null;
+		}, 400);
+
+		// Cleanup function
+		return () => {
+			if (searchTimeout) {
+				clearTimeout(searchTimeout);
+				searchTimeout = null;
+			}
+		};
+	});
 
 	async function addFriend(username: string) {
 		telegram.hapticImpact('medium');
@@ -115,19 +156,29 @@
 
 	function switchTab(tab: 'friends' | 'requests' | 'search') {
 		activeTab = tab;
-		telegram.hapticImpact('light');
 		if (tab === 'search') {
 			searchResults = [];
 			searchQuery = '';
 		}
 	}
 
+	const friendTabs = $derived.by(() => [
+		{ id: 'friends' as const, label: `Друзья (${friends.length})` },
+		{ id: 'requests' as const, label: 'Заявки', badge: friendRequests.length },
+		{ id: 'search' as const, label: 'Поиск' }
+	]);
+
 	function handleSearchInput(e: Event) {
 		searchQuery = (e.target as HTMLInputElement).value;
+		// Search is now automatic via $effect, but we can keep Enter for immediate search
 	}
 
 	function handleSearchKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter') {
+			// Clear debounce and search immediately
+			if (searchTimeout) {
+				clearTimeout(searchTimeout);
+			}
 			searchUsers();
 		}
 	}
@@ -139,32 +190,7 @@
 	</header>
 
 	<!-- Tabs -->
-	<div class="tabs">
-		<button
-			class="tab"
-			class:active={activeTab === 'friends'}
-			onclick={() => switchTab('friends')}
-		>
-			Друзья ({friends.length})
-		</button>
-		<button
-			class="tab"
-			class:active={activeTab === 'requests'}
-			onclick={() => switchTab('requests')}
-		>
-			Заявки
-			{#if friendRequests.length > 0}
-				<span class="badge">{friendRequests.length}</span>
-			{/if}
-		</button>
-		<button
-			class="tab"
-			class:active={activeTab === 'search'}
-			onclick={() => switchTab('search')}
-		>
-			Поиск
-		</button>
-	</div>
+	<PixelTabs tabs={friendTabs} activeTab={activeTab} onTabChange={switchTab} />
 
 	{#if error}
 		<div class="error-message">
@@ -179,22 +205,32 @@
 			<div class="search-box">
 				<input
 					type="text"
-					placeholder="Введите @username..."
+					placeholder="Введите username..."
 					value={searchQuery}
 					oninput={handleSearchInput}
 					onkeydown={handleSearchKeydown}
 					class="search-input"
 				/>
-				<PixelButton
-					size="sm"
-					onclick={searchUsers}
-					disabled={searchQuery.length < 2 || isSearching}
-				>
-					{isSearching ? '...' : 'Найти'}
-				</PixelButton>
+				{#if searchQuery}
+					<button class="clear-search-btn" onclick={() => searchQuery = ''}>
+						<PixelIcon name="close" size="sm" />
+					</button>
+				{:else}
+					<PixelIcon name="search" size="sm" color="var(--text-secondary)" class="search-icon" />
+				{/if}
 			</div>
 
-			<p class="search-hint">Минимум 2 символа для поиска</p>
+			<p class="search-hint">
+				{#if isSearching}
+					Поиск...
+				{:else if searchQuery.length > 0 && searchQuery.length < 2}
+					Минимум 2 символа для поиска
+				{:else if searchQuery.length >= 2}
+					Найдено: {searchResults.length}
+				{:else}
+					Введите минимум 2 символа для поиска
+				{/if}
+			</p>
 
 			{#if searchResults.length > 0}
 				<div class="user-list">
@@ -203,7 +239,7 @@
 							<div class="user-item">
 								<PixelAvatar avatarId={user.avatar_id} size="md" />
 								<div class="user-info">
-									<span class="user-name">{user.username ? `@${user.username}` : user.first_name}</span>
+									<span class="user-name">{user.username ? `${user.username}` : user.first_name}</span>
 									{#if user.username && user.first_name}
 										<span class="user-username">{user.first_name}</span>
 									{/if}
@@ -229,10 +265,10 @@
 					{/each}
 				</div>
 			{:else if searchQuery.length >= 2 && !isSearching}
-				<div class="empty-state">
-					<PixelIcon name="search" size="xl" color="var(--text-muted)" />
-					<p>Пользователи не найдены</p>
-				</div>
+				<EmptyState
+					icon="search"
+					message="Пользователи не найдены"
+				/>
 			{/if}
 		</div>
 	{/if}
@@ -245,14 +281,13 @@
 				<span>Загрузка...</span>
 			</div>
 		{:else if friends.length === 0}
-			<div class="empty-state">
-				<PixelIcon name="friends" size="xl" color="var(--text-muted)" />
-				<p>У вас пока нет друзей</p>
-				<p class="empty-hint">Найдите друзей по @username</p>
-				<PixelButton onclick={() => switchTab('search')}>
-					Найти друзей
-				</PixelButton>
-			</div>
+			<EmptyState
+				icon="friends"
+				message="У вас пока нет друзей"
+				hint="Найдите друзей по username"
+				buttonText="Найти друзей"
+				onButtonClick={() => switchTab('search')}
+			/>
 		{:else}
 			<div class="user-list">
 				{#each friends as friend}
@@ -260,7 +295,7 @@
 						<div class="user-item">
 							<PixelAvatar avatarId={friend.avatar_id} size="md" />
 							<div class="user-info">
-								<span class="user-name">{friend.username ? `@${friend.username}` : friend.first_name}</span>
+								<span class="user-name">{friend.username ? `${friend.username}` : friend.first_name}</span>
 								{#if friend.username && friend.first_name}
 									<span class="user-username">{friend.first_name}</span>
 								{/if}
@@ -290,10 +325,10 @@
 				<span>Загрузка...</span>
 			</div>
 		{:else if friendRequests.length === 0}
-			<div class="empty-state">
-				<PixelIcon name="mail" size="xl" color="var(--text-muted)" />
-				<p>Нет входящих заявок</p>
-			</div>
+			<EmptyState
+				icon="mail"
+				message="Нет входящих заявок"
+			/>
 		{:else}
 			<div class="user-list">
 				{#each friendRequests as request}
@@ -301,7 +336,7 @@
 						<div class="user-item">
 							<PixelAvatar avatarId={request.avatar_id} size="md" />
 							<div class="user-info">
-								<span class="user-name">{request.username ? `@${request.username}` : request.first_name}</span>
+								<span class="user-name">{request.username ? `${request.username}` : request.first_name}</span>
 								{#if request.username && request.first_name}
 									<span class="user-username">{request.first_name}</span>
 								{/if}
@@ -367,53 +402,6 @@
 		margin-bottom: var(--spacing-md);
 	}
 
-	/* Tabs */
-	.tabs {
-		display: flex;
-		gap: var(--spacing-xs);
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.tab {
-		flex: 1;
-		padding: var(--spacing-sm);
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-xs);
-		text-transform: uppercase;
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
-		color: var(--text-secondary);
-		cursor: pointer;
-		transition: all var(--transition-fast);
-		position: relative;
-	}
-
-	.tab:hover {
-		border-color: var(--pixel-accent);
-		color: var(--text-primary);
-	}
-
-	.tab.active {
-		background: var(--pixel-accent);
-		border-color: var(--pixel-accent-hover);
-		color: var(--text-primary);
-	}
-
-	.badge {
-		position: absolute;
-		top: -4px;
-		right: -4px;
-		min-width: 16px;
-		height: 16px;
-		padding: 0 4px;
-		font-size: 8px;
-		background: var(--pixel-red);
-		color: white;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
 	/* Error */
 	.error-message {
 		display: flex;
@@ -435,13 +423,15 @@
 	}
 
 	.search-box {
+		position: relative;
 		display: flex;
-		gap: var(--spacing-sm);
+		align-items: center;
 	}
 
 	.search-input {
-		flex: 1;
-		padding: var(--spacing-sm);
+		width: 100%;
+		padding: var(--spacing-sm) var(--spacing-md);
+		padding-right: 40px;
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-sm);
 		background: var(--pixel-card);
@@ -456,6 +446,29 @@
 
 	.search-input::placeholder {
 		color: var(--text-muted);
+	}
+
+	.search-icon {
+		position: absolute;
+		right: var(--spacing-sm);
+		pointer-events: none;
+	}
+
+	.clear-search-btn {
+		position: absolute;
+		right: var(--spacing-xs);
+		background: none;
+		border: none;
+		padding: var(--spacing-xs);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--text-secondary);
+	}
+
+	.clear-search-btn:hover {
+		color: var(--text-primary);
 	}
 
 	.search-hint {
@@ -566,23 +579,6 @@
 		color: var(--text-secondary);
 		font-size: var(--font-size-sm);
 		text-transform: uppercase;
-	}
-
-	/* Empty State */
-	.empty-state {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-xl);
-		color: var(--text-muted);
-		font-size: var(--font-size-sm);
-		text-align: center;
-	}
-
-	.empty-hint {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
 	}
 
 	/* Confirmation Modal */

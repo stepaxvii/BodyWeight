@@ -5,6 +5,8 @@
 	import type { FilterState } from '$lib/components/FilterModal.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { favoritesStore } from '$lib/stores/favorites.svelte';
+	import { exercisesStore } from '$lib/stores/exercises.svelte';
 	import type { Exercise, CustomRoutine, CustomRoutineType, CustomRoutineCreate, ExerciseCategory } from '$lib/types';
 
 	interface RoutineExerciseItem {
@@ -15,14 +17,17 @@
 	}
 
 	interface Props {
-		exercises: Exercise[];
 		categories?: ExerciseCategory[];
 		editingRoutine?: CustomRoutine | null;
 		onclose: () => void;
 		onsave: (routine: CustomRoutine) => void;
 	}
 
-	let { exercises, categories = [], editingRoutine = null, onclose, onsave }: Props = $props();
+	let { categories = [], editingRoutine = null, onclose, onsave }: Props = $props();
+
+	// Load ALL exercises internally (not paginated)
+	let exercises = $state<Exercise[]>([]);
+	let exercisesLoading = $state(true);
 
 	// Form state
 	let name = $state(editingRoutine?.name || '');
@@ -40,6 +45,7 @@
 	let showInfoExercise = $state<Exercise | null>(null);
 
 	// Picker filter state
+	let pickerActiveTab = $state<'all' | 'favorites'>('all');
 	let pickerActiveCategory = $state<string | null>(null);
 	let showPickerFilterModal = $state(false);
 	let pickerSelectedEquipment = $state<string[]>([]);
@@ -60,9 +66,24 @@
 		pickerSelectedEquipment.length + pickerSelectedDifficulties.length + pickerSelectedTags.length
 	);
 
-	// Initialize from editing routine
+	// Load all exercises on mount using cache
 	$effect(() => {
-		if (editingRoutine) {
+		async function loadAllExercises() {
+			try {
+				exercisesLoading = true;
+				exercises = await exercisesStore.loadAll();
+			} catch (err) {
+				console.error('Failed to load exercises:', err);
+			} finally {
+				exercisesLoading = false;
+			}
+		}
+		loadAllExercises();
+	});
+
+	// Initialize from editing routine (after exercises are loaded)
+	$effect(() => {
+		if (editingRoutine && exercises.length > 0) {
 			selectedExercises = editingRoutine.exercises.map(ex => {
 				const fullExercise = exercises.find(e => e.id === ex.exercise_id);
 				return {
@@ -78,6 +99,11 @@
 	// Filter exercises for picker
 	const filteredExercises = $derived.by(() => {
 		let result = exercises;
+
+		// Tab filter (all vs favorites)
+		if (pickerActiveTab === 'favorites') {
+			result = result.filter(e => favoritesStore.isFavorite(e.id));
+		}
 
 		// Search query filter
 		if (searchQuery.trim()) {
@@ -161,6 +187,7 @@
 		pickerSelectedDifficulties = [];
 		pickerSelectedTags = [];
 		pickerActiveCategory = null;
+		pickerActiveTab = 'all';
 		searchQuery = '';
 		telegram.hapticImpact('light');
 	}
@@ -189,7 +216,7 @@
 	async function handleSubmit() {
 		// Validation
 		if (!name.trim()) {
-			error = 'Введите название комплекса';
+			error = 'Введите название сета';
 			return;
 		}
 		if (selectedExercises.length === 0) {
@@ -239,7 +266,7 @@
 			<button class="back-btn" onclick={onclose}>
 				<PixelIcon name="close" />
 			</button>
-			<h2 class="editor-title">{editingRoutine ? 'Редактировать' : 'Новый комплекс'}</h2>
+			<h2 class="editor-title">{editingRoutine ? 'Редактировать' : 'Новый сет'}</h2>
 			<button
 				class="save-btn"
 				onclick={handleSubmit}
@@ -279,7 +306,7 @@
 					<input
 						type="text"
 						class="form-input"
-						placeholder="Мой комплекс"
+						placeholder="Мой сет"
 						bind:value={name}
 						maxlength="50"
 					/>
@@ -289,7 +316,7 @@
 					<label class="form-label">Описание (опционально)</label>
 					<textarea
 						class="form-textarea"
-						placeholder="Описание комплекса..."
+						placeholder="Описание сета..."
 						bind:value={description}
 						maxlength="200"
 						rows="3"
@@ -397,6 +424,25 @@
 				</button>
 			</div>
 
+			<!-- Tabs: All / Favorites -->
+			<div class="picker-tabs">
+				<button
+					class="picker-tab"
+					class:active={pickerActiveTab === 'all'}
+					onclick={() => { pickerActiveTab = 'all'; telegram.hapticImpact('light'); }}
+				>
+					Все
+				</button>
+				<button
+					class="picker-tab"
+					class:active={pickerActiveTab === 'favorites'}
+					onclick={() => { pickerActiveTab = 'favorites'; telegram.hapticImpact('light'); }}
+				>
+					<PixelIcon name="star" size="sm" />
+					Избранное
+				</button>
+			</div>
+
 			<div class="search-box">
 				<input
 					type="text"
@@ -412,7 +458,7 @@
 					{filteredExercises.length} упражнений
 				</span>
 				<div class="picker-filter-actions">
-					{#if pickerActiveFilterCount > 0 || pickerActiveCategory || searchQuery}
+					{#if pickerActiveFilterCount > 0 || pickerActiveCategory || searchQuery || pickerActiveTab === 'favorites'}
 						<button class="picker-clear-btn" onclick={clearPickerFilters}>
 							Сбросить
 						</button>
@@ -444,7 +490,18 @@
 			{/if}
 
 			<div class="picker-list">
-				{#each filteredExercises as exercise (exercise.id)}
+				{#if exercisesLoading}
+					<div class="picker-loading">
+						<div class="spinner"></div>
+						<p>Загрузка упражнений...</p>
+					</div>
+				{:else if filteredExercises.length === 0}
+					<div class="picker-empty">
+						<PixelIcon name="close" size="lg" color="var(--text-muted)" />
+						<p>Упражнения не найдены</p>
+					</div>
+				{:else}
+					{#each filteredExercises as exercise (exercise.id)}
 					{@const isAdded = selectedExercises.some(e => e.exercise.id === exercise.id)}
 					<div class="picker-item" class:added={isAdded}>
 						<button
@@ -478,7 +535,8 @@
 							{/if}
 						</button>
 					</div>
-				{/each}
+					{/each}
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -892,6 +950,34 @@
 		cursor: pointer;
 	}
 
+	/* Picker tabs */
+	.picker-tabs {
+		display: flex;
+		border-bottom: 2px solid var(--border-color);
+	}
+
+	.picker-tab {
+		flex: 1;
+		padding: var(--spacing-sm) var(--spacing-md);
+		background: transparent;
+		border: none;
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-xs);
+		border-bottom: 2px solid transparent;
+		margin-bottom: -2px;
+	}
+
+	.picker-tab.active {
+		color: var(--pixel-accent);
+		border-bottom-color: var(--pixel-accent);
+	}
+
 	.search-box {
 		padding: var(--spacing-sm) var(--spacing-md);
 		border-bottom: 2px solid var(--border-color);
@@ -992,6 +1078,22 @@
 		flex: 1;
 		overflow-y: auto;
 		padding: var(--spacing-sm);
+	}
+
+	.picker-loading, .picker-empty {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-md);
+		padding: var(--spacing-xl);
+		color: var(--text-muted);
+		min-height: 200px;
+	}
+
+	.picker-loading p, .picker-empty p {
+		margin: 0;
+		font-size: var(--font-size-sm);
 	}
 
 	.picker-item {

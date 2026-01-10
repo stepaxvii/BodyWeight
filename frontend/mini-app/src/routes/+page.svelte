@@ -32,6 +32,15 @@
 	const xpInLevel = $derived(userStore.xp - userStore.xpForCurrentLevel);
 	const xpNeeded = $derived(userStore.xpForNextLevel - userStore.xpForCurrentLevel);
 
+	// Time-based greeting
+	const greeting = $derived(() => {
+		const hour = new Date().getHours();
+		if (hour < 6) return 'Доброй ночи';
+		if (hour < 12) return 'Доброе утро';
+		if (hour < 18) return 'Добрый день';
+		return 'Добрый вечер';
+	});
+
 	function handleQuickSave(xp: number, coins: number) {
 		lastReward = { xp, coins };
 		setTimeout(() => {
@@ -78,137 +87,88 @@
 </script>
 
 <div class="page container">
-	<!-- Header with user info -->
+	<!-- Compact Header -->
 	<header class="page-header">
-		<div class="header-content">
-			<div class="user-greeting">
-				<span class="greeting-text">С возвращением,</span>
-				<span class="user-name">{userStore.displayName}!</span>
+		<div class="header-left">
+			<span class="greeting-text">{greeting()}, {userStore.displayName}!</span>
+			<div class="level-badge">
+				<PixelIcon name="level" size="sm" color="var(--pixel-accent)" />
+				<span>Ур.{userStore.level}</span>
 			</div>
-			<div class="notification-wrapper">
-				<button
-					type="button"
-					class="notification-badge"
-					class:has-notifications={unreadNotifications > 0}
-					onclick={toggleNotifications}
-				>
-					<PixelIcon name="bell" size="md" />
-					{#if unreadNotifications > 0}
-						<span class="badge-count">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>
-					{/if}
-				</button>
+		</div>
+		<div class="notification-wrapper">
+			<button
+				type="button"
+				class="notification-badge"
+				class:has-notifications={unreadNotifications > 0}
+				onclick={toggleNotifications}
+			>
+				<PixelIcon name="bell" size="md" />
+				{#if unreadNotifications > 0}
+					<span class="badge-count">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>
+				{/if}
+			</button>
 
-				{#if notificationsOpen}
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div class="notification-overlay" onclick={closeNotifications}></div>
-					<div class="notification-dropdown">
-						<div class="dropdown-header">
-							<span>Уведомления</span>
-							<button type="button" class="close-btn" onclick={closeNotifications}>
-								<PixelIcon name="close" size="sm" />
-							</button>
-						</div>
-						<div class="dropdown-content">
-							{#if notificationsLoading}
-								<div class="dropdown-empty">Загрузка...</div>
-							{:else if notifications.length === 0}
-								<div class="dropdown-empty">Нет уведомлений</div>
-							{:else}
-								{#each notifications as notification}
-									<div class="notification-item" class:unread={!notification.is_read}>
-										<div class="notification-icon">
-											<PixelIcon name={getNotificationIcon(notification.notification_type)} size="sm" />
-										</div>
-										<div class="notification-content">
-											<span class="notification-title">{notification.title}</span>
-											<span class="notification-message">{notification.message}</span>
-										</div>
+			{#if notificationsOpen}
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div class="notification-overlay" onclick={closeNotifications}></div>
+				<div class="notification-dropdown">
+					<div class="dropdown-header">
+						<span>Уведомления</span>
+						<button type="button" class="close-btn" onclick={closeNotifications}>
+							<PixelIcon name="close" size="sm" />
+						</button>
+					</div>
+					<div class="dropdown-content">
+						{#if notificationsLoading}
+							<div class="dropdown-empty">Загрузка...</div>
+						{:else if notifications.length === 0}
+							<div class="dropdown-empty">Нет уведомлений</div>
+						{:else}
+							{#each notifications as notification}
+								<div class="notification-item" class:unread={!notification.is_read}>
+									<div class="notification-icon">
+										<PixelIcon name={getNotificationIcon(notification.notification_type)} size="sm" />
 									</div>
-								{/each}
-							{/if}
-						</div>
-						{#if notifications.some(n => n.notification_type === 'friend_request' || n.notification_type === 'friend_accepted')}
-							<a href="{base}/friends" class="dropdown-footer" onclick={closeNotifications}>
-								Перейти к друзьям
-							</a>
+									<div class="notification-content">
+										<span class="notification-title">{notification.title}</span>
+										<span class="notification-message">{notification.message}</span>
+									</div>
+								</div>
+							{/each}
 						{/if}
 					</div>
-				{/if}
-			</div>
+					{#if notifications.some(n => n.notification_type === 'friend_request' || n.notification_type === 'friend_accepted')}
+						<a href="{base}/friends" class="dropdown-footer" onclick={closeNotifications}>
+							Перейти к друзьям
+						</a>
+					{/if}
+				</div>
+			{/if}
 		</div>
 	</header>
 
-	<!-- Stats Row -->
-	<section class="stats-row">
-		<PixelCard padding="sm">
-			<div class="stat">
-				<PixelIcon name="level" size="lg" color="var(--pixel-accent)" />
-				<div class="stat-info">
-					<span class="stat-value">{userStore.level}</span>
-					<span class="stat-label">Уровень</span>
+	<!-- Main Action - Big Workout Button -->
+	<section class="main-action">
+		<a href="{base}/workout" class="workout-card">
+			<div class="workout-card-content">
+				<div class="workout-icon">
+					<PixelIcon name="workout" size="xl" color="var(--pixel-accent)" />
+				</div>
+				<div class="workout-text">
+					<span class="workout-title">Начать тренировку</span>
+					<span class="workout-subtitle">Выбери программу или упражнения</span>
+				</div>
+				<div class="workout-arrow">
+					<PixelIcon name="play" size="lg" />
 				</div>
 			</div>
-		</PixelCard>
-
-		<PixelCard padding="sm">
-			<div class="stat">
-				<PixelIcon name="streak" size="lg" color="var(--pixel-yellow)" />
-				<div class="stat-info">
-					<span class="stat-value">{userStore.streak}</span>
-					<span class="stat-label">Серия</span>
-				</div>
-			</div>
-		</PixelCard>
-
-		<PixelCard padding="sm">
-			<div class="stat">
-				<PixelIcon name="coin" size="lg" color="var(--pixel-orange)" />
-				<div class="stat-info">
-					<span class="stat-value">{userStore.coins}</span>
-					<span class="stat-label">Монеты</span>
-				</div>
-			</div>
-		</PixelCard>
-	</section>
-
-	<!-- XP Progress -->
-	<section class="xp-section">
-		<PixelCard>
-			<div class="xp-header">
-				<div class="xp-title">
-					<PixelIcon name="xp" color="var(--pixel-blue)" />
-					<span>Опыт</span>
-				</div>
-				<span class="xp-total">{userStore.xp} XP</span>
-			</div>
-			<PixelProgress
-				value={xpInLevel}
-				max={xpNeeded}
-				variant="xp"
-				showLabel
-				size="lg"
-			/>
-			<div class="xp-footer">
-				<span class="text-muted">До следующего уровня: {xpNeeded - xpInLevel} XP</span>
-			</div>
-		</PixelCard>
-	</section>
-
-	<!-- Quick Start Buttons -->
-	<section class="action-section">
-		<div class="action-buttons">
-			<a href="{base}/workout" class="start-workout-link">
-				<PixelButton variant="primary" size="lg" fullWidth>
-					<PixelIcon name="play" />
-					Тренировка
-				</PixelButton>
-			</a>
-			<PixelButton variant="secondary" size="lg" fullWidth onclick={() => quickModalOpen = true}>
-				<PixelIcon name="plus" />
-				Быстрая запись
-			</PixelButton>
-		</div>
+		</a>
+		<button class="quick-record-btn" onclick={() => quickModalOpen = true}>
+			<PixelIcon name="plus" size="sm" />
+			<span>Быстрая запись</span>
+		</button>
 		{#if lastReward}
 			<div class="reward-toast">
 				<span>+{lastReward.xp} XP</span>
@@ -217,23 +177,66 @@
 		{/if}
 	</section>
 
-	<!-- Today's Stats -->
+	<!-- Progress Card - Level + XP -->
+	<section class="progress-section">
+		<div class="progress-card">
+			<div class="progress-header">
+				<div class="progress-level">
+					<span class="level-number">{userStore.level}</span>
+					<span class="level-label">Уровень</span>
+				</div>
+				<div class="progress-xp">
+					<PixelProgress value={xpInLevel} max={xpNeeded} variant="xp" size="md" />
+					<span class="xp-label">{xpInLevel}/{xpNeeded} XP до следующего</span>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Stats Row - Compact Horizontal -->
+	<section class="stats-section">
+		<div class="stats-row">
+			<div class="stat-item">
+				<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
+				<div class="stat-info">
+					<span class="stat-value">{userStore.xp}</span>
+					<span class="stat-label">XP</span>
+				</div>
+			</div>
+			<div class="stat-divider"></div>
+			<div class="stat-item">
+				<PixelIcon name="streak" size="md" color="var(--pixel-yellow)" />
+				<div class="stat-info">
+					<span class="stat-value">{userStore.streak}</span>
+					<span class="stat-label">Серия</span>
+				</div>
+			</div>
+			<div class="stat-divider"></div>
+			<div class="stat-item">
+				<PixelIcon name="coin" size="md" color="var(--pixel-orange)" />
+				<div class="stat-info">
+					<span class="stat-value">{userStore.coins}</span>
+					<span class="stat-label">Монеты</span>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Weekly Stats -->
 	{#if userStore.stats}
-		<section class="today-section">
-			<h3 class="section-title">На этой неделе</h3>
-			<div class="today-grid">
-				<PixelCard padding="sm">
-					<div class="today-stat">
-						<span class="today-value">{userStore.stats.this_week_workouts}</span>
-						<span class="today-label">Тренировок</span>
-					</div>
-				</PixelCard>
-				<PixelCard padding="sm">
-					<div class="today-stat">
-						<span class="today-value">{userStore.stats.this_week_xp}</span>
-						<span class="today-label">Получено XP</span>
-					</div>
-				</PixelCard>
+		<section class="weekly-section">
+			<h3 class="section-title">Эта неделя</h3>
+			<div class="weekly-row">
+				<div class="weekly-stat">
+					<PixelIcon name="workout" size="md" color="var(--pixel-green)" />
+					<span class="weekly-value">{userStore.stats.this_week_workouts}</span>
+					<span class="weekly-label">тренировок</span>
+				</div>
+				<div class="weekly-stat">
+					<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
+					<span class="weekly-value">{userStore.stats.this_week_xp}</span>
+					<span class="weekly-label">XP</span>
+				</div>
 			</div>
 		</section>
 	{/if}
@@ -276,31 +279,34 @@
 		padding-bottom: var(--spacing-lg);
 	}
 
+	/* Header */
 	.page-header {
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.header-content {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		margin-bottom: var(--spacing-md);
 	}
 
-	.user-greeting {
+	.header-left {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-xs);
 	}
 
 	.greeting-text {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-		text-transform: uppercase;
+		font-size: var(--font-size-sm);
+		color: var(--text-primary);
 	}
 
-	.user-name {
-		font-size: var(--font-size-lg);
+	.level-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		background: var(--pixel-bg-dark);
+		padding: 2px 8px;
+		font-size: var(--font-size-xs);
 		color: var(--pixel-accent);
+		width: fit-content;
 	}
 
 	.notification-wrapper {
@@ -464,82 +470,83 @@
 		background: var(--pixel-bg-dark);
 	}
 
-	/* Stats Row */
-	.stats-row {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: var(--spacing-sm);
+	/* Main Action */
+	.main-action {
 		margin-bottom: var(--spacing-md);
 	}
 
-	.stat {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--spacing-xs);
+	.workout-card {
+		display: block;
+		text-decoration: none;
+		background: var(--pixel-card);
+		border: 2px solid var(--pixel-accent);
+		padding: var(--spacing-md);
+		transition: all var(--transition-fast);
 	}
 
-	.stat-info {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
+	.workout-card:hover {
+		background: var(--pixel-bg-dark);
+		transform: translateY(-2px);
 	}
 
-	.stat-value {
+	.workout-card:active {
+		transform: translateY(0);
+	}
+
+	.workout-card-content {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+	}
+
+	.workout-icon {
+		flex-shrink: 0;
+	}
+
+	.workout-text {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.workout-title {
 		font-size: var(--font-size-md);
-		color: var(--text-primary);
+		color: var(--pixel-accent);
+		text-transform: uppercase;
 	}
 
-	.stat-label {
+	.workout-subtitle {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+
+	.workout-arrow {
+		color: var(--pixel-accent);
+		opacity: 0.7;
+	}
+
+	.quick-record-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-xs);
+		width: 100%;
+		margin-top: var(--spacing-sm);
+		padding: var(--spacing-sm);
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+		font-family: var(--font-pixel);
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
 		text-transform: uppercase;
+		cursor: pointer;
+		transition: all var(--transition-fast);
 	}
 
-	/* XP Section */
-	.xp-section {
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.xp-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: var(--spacing-sm);
-	}
-
-	.xp-title {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-xs);
-		font-size: var(--font-size-sm);
-		text-transform: uppercase;
-	}
-
-	.xp-total {
-		font-size: var(--font-size-sm);
-		color: var(--pixel-blue);
-	}
-
-	.xp-footer {
-		margin-top: var(--spacing-xs);
-		font-size: var(--font-size-xs);
-	}
-
-	/* Action Section */
-	.action-section {
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.action-buttons {
-		display: flex;
-		gap: var(--spacing-sm);
-	}
-
-	.start-workout-link {
-		text-decoration: none;
-		display: block;
-		flex: 1;
+	.quick-record-btn:hover {
+		border-color: var(--pixel-accent);
+		color: var(--text-primary);
 	}
 
 	.reward-toast {
@@ -565,9 +572,102 @@
 		}
 	}
 
-	/* Today Section */
-	.today-section {
-		margin-bottom: var(--spacing-lg);
+	/* Progress Section */
+	.progress-section {
+		margin-bottom: var(--spacing-md);
+	}
+
+	.progress-card {
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		padding: var(--spacing-md);
+	}
+
+	.progress-header {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+	}
+
+	.progress-level {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding-right: var(--spacing-md);
+		border-right: 2px solid var(--border-color);
+	}
+
+	.level-number {
+		font-size: var(--font-size-xl);
+		color: var(--pixel-accent);
+		line-height: 1;
+	}
+
+	.level-label {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		text-transform: uppercase;
+	}
+
+	.progress-xp {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+	}
+
+	.xp-label {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+
+	/* Stats Section */
+	.stats-section {
+		margin-bottom: var(--spacing-md);
+	}
+
+	.stats-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-around;
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		padding: var(--spacing-sm) var(--spacing-md);
+	}
+
+	.stat-item {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+	}
+
+	.stat-info {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.stat-value {
+		font-size: var(--font-size-sm);
+		color: var(--text-primary);
+		line-height: 1.2;
+	}
+
+	.stat-label {
+		font-size: 10px;
+		color: var(--text-secondary);
+		text-transform: uppercase;
+	}
+
+	.stat-divider {
+		width: 2px;
+		height: 24px;
+		background: var(--border-color);
+	}
+
+	/* Weekly Section */
+	.weekly-section {
+		margin-bottom: var(--spacing-md);
 	}
 
 	.section-title {
@@ -576,28 +676,29 @@
 		text-transform: uppercase;
 	}
 
-	.today-grid {
-		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+	.weekly-row {
+		display: flex;
 		gap: var(--spacing-sm);
 	}
 
-	.today-stat {
+	.weekly-stat {
+		flex: 1;
 		display: flex;
-		flex-direction: column;
 		align-items: center;
-		gap: var(--spacing-xs);
+		gap: var(--spacing-sm);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
-	.today-value {
-		font-size: var(--font-size-xl);
-		color: var(--pixel-green);
+	.weekly-value {
+		font-size: var(--font-size-lg);
+		color: var(--text-primary);
 	}
 
-	.today-label {
+	.weekly-label {
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
-		text-transform: uppercase;
 	}
 
 	/* Achievements Section */

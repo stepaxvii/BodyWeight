@@ -313,7 +313,7 @@ export interface AuthResponse {
 export type NavItem = 'home' | 'workout' | 'profile' | 'leaderboard';
 
 // Routine types (workout complexes)
-export type RoutineCategory = 'morning' | 'home' | 'pullup-bar' | 'dip-bars';
+export type RoutineCategory = 'morning' | 'home' | 'pullup-bar' | 'dip-bars' | 'dumbbell' | 'resistance-band';
 
 export interface RoutineExercise {
 	slug: string;
@@ -387,4 +387,15 @@ export interface Notification {
 	is_read: boolean;
 	related_user_id?: number;
 	created_at: string;
+}
+
+// Activity Calendar types (matches backend DayActivityResponse/UserActivityResponse)
+export interface DayActivity {
+	date: string; // ISO format: "2025-01-09"
+	workouts: number; // Number of workouts completed
+	total_xp: number; // Total XP earned from workouts (excluding achievements)
+}
+
+export interface UserActivity {
+	days: Record<string, DayActivity>; // Map of date string to activity data
 }

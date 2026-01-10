@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { PixelButton, PixelCard, PixelIcon } from '$lib/components/ui';
+	import { PixelButton, PixelCard, PixelIcon, EmptyState, PixelTabs } from '$lib/components/ui';
 	import RoutinePlayer from '$lib/components/RoutinePlayer.svelte';
 	import ExerciseCard from '$lib/components/ExerciseCard.svelte';
 	import FilterModal from '$lib/components/FilterModal.svelte';
@@ -25,6 +25,7 @@
 	let exercisesTotal = $state(0);
 	let exercisesSkip = $state(0);
 	const exercisesLimit = 30;
+	let allExercisesLoaded = $state(false); // Track if all exercises are loaded for search
 
 	// Main tab state
 	type MainTab = 'routines' | 'my-routines' | 'favorites' | 'exercises';
@@ -49,6 +50,7 @@
 	let selectedEquipment = $state<string[]>([]);
 	let selectedDifficulties = $state<number[]>([]);
 	let selectedTags = $state<string[]>([]);
+	let searchQuery = $state('');
 
 	/**
 	 * Calculate estimated XP for active workout (preview only).
@@ -126,9 +128,31 @@
 		return Math.floor(total);
 	});
 
+	// Load all exercises when any filter is active (search, equipment, difficulty, tags)
+	$effect(() => {
+		const hasActiveFilters =
+			searchQuery.trim() ||
+			selectedEquipment.length > 0 ||
+			selectedDifficulties.length > 0 ||
+			selectedTags.length > 0;
+
+		if (hasActiveFilters && !allExercisesLoaded && !exercisesLoading) {
+			loadAllExercisesForSearch();
+		}
+	});
+
 	// Filtered exercises by all criteria
 	const filteredExercises = $derived.by(() => {
 		let result = exercises;
+
+		// Search query filter
+		if (searchQuery.trim()) {
+			const query = searchQuery.toLowerCase();
+			result = result.filter(e =>
+				e.name_ru.toLowerCase().includes(query) ||
+				e.name.toLowerCase().includes(query)
+			);
+		}
 
 		// Category filter
 		if (activeCategory) {
@@ -153,10 +177,24 @@
 		return result;
 	});
 
-	// Favorite exercises
-	const favoriteExercises = $derived(
-		exercises.filter(e => favoritesStore.isFavorite(e.id))
-	);
+	// Favorite exercises - must load all exercises for favorites to work properly
+	let favoriteExercises = $state<Exercise[]>([]);
+
+	// Load all favorite exercises when favorites tab is active
+	$effect(() => {
+		async function loadFavorites() {
+			if (activeMainTab === 'favorites' && favoritesStore.count > 0) {
+				try {
+					// Get all exercises without pagination
+					const allExercises = await api.getAllExercises();
+					favoriteExercises = allExercises.filter(e => favoritesStore.isFavorite(e.id));
+				} catch (err) {
+					console.error('Failed to load favorite exercises:', err);
+				}
+			}
+		}
+		loadFavorites();
+	});
 
 	// Filtered routines by category
 	const filteredRoutines = $derived(
@@ -181,15 +219,17 @@
 		{ id: 'morning', name: 'Зарядка' },
 		{ id: 'home', name: 'Дома' },
 		{ id: 'pullup-bar', name: 'Турник' },
-		{ id: 'dip-bars', name: 'Брусья' }
+		{ id: 'dip-bars', name: 'Брусья' },
+		{ id: 'dumbbell', name: 'Гантели' },
+		{ id: 'resistance-band', name: 'Эспандер' }
 	];
 
-	const mainTabs: { id: MainTab; label: string }[] = [
-		{ id: 'routines', label: 'Комплексы' },
-		{ id: 'my-routines', label: 'Мои' },
-		{ id: 'favorites', label: 'Избранное' },
-		{ id: 'exercises', label: 'Упражнения' }
-	];
+	const mainTabs = $derived.by(() => [
+		{ id: 'routines' as const, label: 'Сеты' },
+		{ id: 'my-routines' as const, label: 'Мои', badge: customRoutines.length },
+		{ id: 'favorites' as const, label: 'Избранное', badge: favoritesStore.count },
+		{ id: 'exercises' as const, label: 'Упражнения' }
+	]);
 
 	// Handle visibility change for pause/resume
 	function handleVisibilityChange() {
@@ -208,6 +248,7 @@
 			if (reset) {
 				exercisesSkip = 0;
 				exercises = [];
+				allExercisesLoaded = false;
 			}
 
 			const response = await api.getExercises(activeCategory || undefined, {
@@ -219,8 +260,42 @@
 			exercisesHasMore = response.has_more;
 			exercisesTotal = response.total;
 			exercisesSkip = exercises.length;
+			
+			// Mark as fully loaded if no more pages
+			if (!response.has_more) {
+				allExercisesLoaded = true;
+			}
 		} catch (error) {
 			console.error('Failed to load exercises:', error);
+		} finally {
+			exercisesLoading = false;
+		}
+	}
+
+	// Load all exercises when search is used
+	async function loadAllExercisesForSearch() {
+		if (allExercisesLoaded || exercisesLoading) return;
+		
+		exercisesLoading = true;
+		try {
+			// Load all remaining exercises
+			while (exercisesHasMore) {
+				const response = await api.getExercises(activeCategory || undefined, {
+					skip: exercisesSkip,
+					limit: exercisesLimit
+				});
+				
+				exercises = [...exercises, ...response.items];
+				exercisesHasMore = response.has_more;
+				exercisesSkip = exercises.length;
+				
+				if (!response.has_more) {
+					break;
+				}
+			}
+			allExercisesLoaded = true;
+		} catch (error) {
+			console.error('Failed to load all exercises:', error);
 		} finally {
 			exercisesLoading = false;
 		}
@@ -269,11 +344,11 @@
 
 	function switchMainTab(tab: MainTab) {
 		activeMainTab = tab;
-		telegram.hapticImpact('light');
 	}
 
 	async function selectCategory(slug: string) {
 		activeCategory = activeCategory === slug ? null : slug;
+		allExercisesLoaded = false; // Reset flag when changing category
 		await loadExercises(true); // Reset and reload exercises
 		telegram.hapticImpact('light');
 	}
@@ -429,6 +504,8 @@
 		selectedDifficulties = [];
 		selectedTags = [];
 		activeCategory = null;
+		searchQuery = '';
+		allExercisesLoaded = false; // Reset flag when clearing
 		await loadExercises(true); // Reset and reload exercises
 		telegram.hapticImpact('light');
 	}
@@ -675,40 +752,18 @@
 		<!-- SELECTION VIEW -->
 
 		<!-- Main navigation tabs -->
-		<div class="main-tabs">
-			{#each mainTabs as tab}
-				<button
-					class="main-tab"
-					class:active={activeMainTab === tab.id}
-					onclick={() => switchMainTab(tab.id)}
-				>
-					{tab.label}
-					{#if tab.id === 'favorites' && favoritesStore.count > 0}
-						<span class="tab-badge">{favoritesStore.count}</span>
-					{/if}
-					{#if tab.id === 'my-routines' && customRoutines.length > 0}
-						<span class="tab-badge">{customRoutines.length}</span>
-					{/if}
-				</button>
-			{/each}
-		</div>
+		<PixelTabs tabs={mainTabs} activeTab={activeMainTab} onTabChange={switchMainTab} />
 
 		<!-- Tab content -->
 		{#if activeMainTab === 'routines'}
 			<!-- Routines section -->
 			{#if routines.length > 0}
 				<section class="tab-section">
-					<div class="routine-tabs">
-						{#each routineCategoryTabs as tab}
-							<button
-								class="routine-tab"
-								class:active={activeRoutineCategory === tab.id}
-								onclick={() => { activeRoutineCategory = tab.id; telegram.hapticImpact('light'); }}
-							>
-								{tab.name}
-							</button>
-						{/each}
-					</div>
+					<PixelTabs
+						tabs={routineCategoryTabs.map(t => ({ id: t.id, label: t.name }))}
+						activeTab={activeRoutineCategory}
+						onTabChange={(id) => activeRoutineCategory = id}
+					/>
 					<div class="routines-list">
 						{#each filteredRoutines as routine}
 							<PixelCard hoverable onclick={() => selectRoutine(routine)} padding="sm">
@@ -722,17 +777,12 @@
 							</PixelCard>
 						{/each}
 						{#if filteredRoutines.length === 0}
-							<div class="empty-state">
-								<p>Нет комплексов в этой категории</p>
-							</div>
+							<EmptyState message="Нет сетов в этой категории" />
 						{/if}
 					</div>
 				</section>
 			{:else}
-				<div class="empty-state">
-					<PixelIcon name="play" size="lg" color="var(--text-secondary)" />
-					<p>Комплексы загружаются...</p>
-				</div>
+				<EmptyState icon="play" message="Сеты загружаются..." />
 			{/if}
 
 		{:else if activeMainTab === 'my-routines'}
@@ -763,11 +813,11 @@
 						{/each}
 					</div>
 				{:else}
-					<div class="empty-state">
-						<PixelIcon name="heart-empty" size="lg" color="var(--text-secondary)" />
-						<p>Нет избранных упражнений</p>
-						<p class="empty-hint">Нажми на сердечко, чтобы добавить</p>
-					</div>
+					<EmptyState
+						icon="heart-empty"
+						message="Нет избранных упражнений"
+						hint="Нажми на сердечко, чтобы добавить"
+					/>
 				{/if}
 			</section>
 
@@ -780,7 +830,7 @@
 						{filteredExercises.length} / {exercisesTotal || filteredExercises.length} упражнений
 					</span>
 					<div class="filter-actions-row">
-						{#if activeFilterCount > 0 || activeCategory}
+						{#if activeFilterCount > 0 || activeCategory || searchQuery}
 							<button class="clear-filters-btn" onclick={clearAllFilters}>
 								Сбросить
 							</button>
@@ -793,6 +843,23 @@
 							{/if}
 						</button>
 					</div>
+				</div>
+
+				<!-- Search box -->
+				<div class="search-box">
+					<input
+						type="text"
+						class="search-input"
+						placeholder="Поиск упражнений..."
+						bind:value={searchQuery}
+					/>
+					{#if searchQuery}
+						<button class="clear-search-btn" onclick={() => searchQuery = ''}>
+							<PixelIcon name="close" size="sm" />
+						</button>
+					{:else}
+						<PixelIcon name="search" size="sm" color="var(--text-secondary)" class="search-icon" />
+					{/if}
 				</div>
 
 				<!-- Category tabs -->
@@ -821,16 +888,15 @@
 						/>
 					{/each}
 					{#if filteredExercises.length === 0 && !exercisesLoading}
-						<div class="empty-state">
-							<PixelIcon name="search" size="lg" color="var(--text-secondary)" />
-							<p>Ничего не найдено</p>
-							<PixelButton variant="ghost" onclick={clearAllFilters}>
-								Сбросить фильтры
-							</PixelButton>
-						</div>
+						<EmptyState
+							icon="search"
+							message="Ничего не найдено"
+							buttonText="Сбросить фильтры"
+							onButtonClick={clearAllFilters}
+						/>
 					{/if}
-					
-					{#if exercisesHasMore && filteredExercises.length > 0}
+
+					{#if exercisesHasMore && filteredExercises.length > 0 && !searchQuery && selectedEquipment.length === 0 && selectedDifficulties.length === 0 && selectedTags.length === 0}
 						<div class="load-more-container">
 							<PixelButton
 								variant="secondary"
@@ -901,7 +967,6 @@
 
 {#if showCustomRoutineEditor}
 	<CustomRoutineEditor
-		{exercises}
 		{categories}
 		editingRoutine={editingCustomRoutine}
 		onclose={closeCustomRoutineEditor}
@@ -949,53 +1014,6 @@
 	.page {
 		padding-top: var(--spacing-md);
 		padding-bottom: 180px; /* Space for fixed panel + nav */
-	}
-
-	/* Main tabs */
-	.main-tabs {
-		display: flex;
-		gap: var(--spacing-xs);
-		margin-bottom: var(--spacing-md);
-	}
-
-	.main-tab {
-		flex: 1;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: var(--spacing-xs);
-		padding: var(--spacing-sm);
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-xs);
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
-		color: var(--text-secondary);
-		cursor: pointer;
-		transition: all var(--transition-fast);
-	}
-
-	.main-tab:hover {
-		border-color: var(--pixel-accent);
-	}
-
-	.main-tab.active {
-		background: var(--pixel-accent);
-		border-color: var(--pixel-accent);
-		color: var(--pixel-bg);
-	}
-
-	.tab-badge {
-		background: var(--pixel-bg);
-		color: var(--pixel-accent);
-		padding: 1px 4px;
-		font-size: 8px;
-		min-width: 14px;
-		text-align: center;
-	}
-
-	.main-tab.active .tab-badge {
-		background: var(--pixel-bg);
-		color: var(--pixel-accent);
 	}
 
 	.tab-section {
@@ -1058,6 +1076,57 @@
 		color: var(--text-secondary);
 		cursor: pointer;
 		text-decoration: underline;
+	}
+
+	/* Search box */
+	.search-box {
+		position: relative;
+		display: flex;
+		align-items: center;
+		margin-bottom: var(--spacing-md);
+	}
+
+	.search-input {
+		width: 100%;
+		padding: var(--spacing-sm) var(--spacing-md);
+		padding-right: 40px;
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-sm);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		color: var(--text-primary);
+	}
+
+	.search-input:focus {
+		outline: none;
+		border-color: var(--pixel-accent);
+	}
+
+	.search-input::placeholder {
+		color: var(--text-muted);
+	}
+
+	.search-icon {
+		position: absolute;
+		right: var(--spacing-sm);
+		pointer-events: none;
+	}
+
+	.clear-search-btn {
+		position: absolute;
+		right: var(--spacing-xs);
+		background: none;
+		border: none;
+		padding: var(--spacing-xs);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--text-secondary);
+	}
+
+	.clear-search-btn:hover {
+		color: var(--text-primary);
 	}
 
 	/* Empty state */

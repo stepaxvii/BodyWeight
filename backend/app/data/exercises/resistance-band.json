@@ -1,0 +1,199 @@
+[
+  {
+    "slug": "band-bent-over-row",
+    "category": "strength",
+    "name": "Resistance Band Bent-Over Row",
+    "name_ru": "Тяга к поясу в наклоне",
+    "tags": [
+      "back",
+      "lats",
+      "rhomboids",
+      "intermediate",
+      "home",
+      "resistance-band"
+    ],
+    "difficulty": 2,
+    "base_xp": 12,
+    "required_level": 2,
+    "equipment": "resistance-band",
+    "description": "Stand on the band with feet shoulder-width apart. Hinge forward with a straight back, torso nearly parallel to the floor. Keep your core and legs fixed—only your arms move. Exhale and powerfully pull the handles to your waist, driving your elbows back. Squeeze your shoulder blades together at the top. Inhale and slowly lower your arms back down. Focus on moving your elbows using your back muscles, not your arms.",
+    "description_ru": "Встань на эспандер, наклонись с прямой спиной. Корпус почти параллелен полу. Неподвижно держи корпус и ноги. Работают только руки. На выдохе мощно потяни рукояти к поясу, ведя локти назад. Сведи лопатки в верхней точке. На вдохе медленно верни руки вниз. Фокус: Двигай локтями за счёт мышц спины, а не рук."
+  },
+  {
+    "slug": "band-seated-row",
+    "category": "strength",
+    "name": "Resistance Band Seated Row",
+    "name_ru": "Тяга к поясу сидя",
+    "tags": [
+      "back",
+      "lats",
+      "rhomboids",
+      "rear-delts",
+      "intermediate",
+      "home",
+      "resistance-band"
+    ],
+    "difficulty": 2,
+    "base_xp": 12,
+    "required_level": 2,
+    "equipment": "resistance-band",
+    "description": "Sit on a bench or floor, leaning back slightly with a straight back. Anchor the band's center at waist height in front of you (e.g., around a door anchor or sturdy object). Exhale and powerfully pull the handles to your waist, driving your elbows back and down. Squeeze your shoulder blades together at the end, hold for 1-2 seconds. Inhale and slowly return your arms forward, controlling the tension. The movement starts by driving your elbows back and squeezing your shoulder blades. Don't slouch or rock your torso.",
+    "description_ru": "Сядь на скамью, слегка отклонив корпус назад. Спина прямая. Зафиксируй середину эспандера на уровне пояса перед собой (например, за дверь или специальный якорь). На выдохе мощно потяни рукояти к поясу, ведя локти назад и вниз. Сведи лопатки в конечной точке, задержись на 1-2 секунды. На вдохе медленно верни руки вперёд, контролируя натяжение. Фокус: Движение начинается с отведения локтей назад и сведения лопаток. Не сутулься и не раскачивай корпус."
+  },
+  {
+    "slug": "band-lat-pulldown",
+    "category": "strength",
+    "name": "Resistance Band Lat Pulldown",
+    "name_ru": "Тяга сверху вниз",
+    "tags": [
+      "back",
+      "lats",
+      "biceps",
+      "intermediate",
+      "home",
+      "resistance-band"
+    ],
+    "difficulty": 2,
+    "base_xp": 12,
+    "required_level": 2,
+    "equipment": "resistance-band",
+    "description": "Sit on the floor or bench facing your anchor point. Anchor the band's center on the ceiling or overhead bar directly above you. Grab the handles and extend your arms overhead (band already taut). With a straight back, exhale and powerfully pull the handles down to your collarbone or upper chest. Simultaneously squeeze your shoulder blades together and drive your elbows back and down. Inhale and slowly return your arms to the starting position under control. Start the movement by squeezing your shoulder blades, pull your elbows toward your torso. Avoid excessive rocking or jerking.",
+    "description_ru": "Сядь на пол или скамью лицом к точке крепления. Середина эспандера зафиксирована на потолке или перекладине прямо над тобой. Возьмись за рукояти и вытяни руки вверх (эспандер уже натянут). С прямой спиной на выдохе мощно потяни рукояти вниз, к ключицам или верху груди. Одновременно сведи лопатки и отведи локти назад и вниз. На вдохе медленно и под контролем верни руки в исходное положение. Фокус: Начинай движение со сведения лопаток, тяни локти к корпусу. Избегай сильного раскачивания и рывков."
+  },
+  {
+    "slug": "band-chest-press",
+    "category": "strength",
+    "name": "Resistance Band Chest Press",
+    "name_ru": "Жим от груди",
+    "tags": [
+      "chest",
+      "triceps",
+      "front-delts",
+      "intermediate",
+      "home",
+      "resistance-band"
+    ],
+    "difficulty": 2,
+    "base_xp": 12,
+    "required_level": 2,
+    "equipment": "resistance-band",
+    "description": "Anchor the band behind you at chest height. Grab the handles and step forward to create tension. Start with your hands at chest level, elbows bent. Exhale and powerfully press the handles forward, fully extending your arms. Inhale and slowly return to the starting position, controlling the tension. Keep your core tight and avoid arching your back.",
+    "description_ru": "Зафиксируй эспандер за спиной на уровне груди. Возьмись за рукояти и вытяни руки вперёд. На выдохе мощно выжми рукояти вперёд, полностью выпрямляя руки. На вдохе медленно вернись в исходное положение. Фокус: Держи корпус стабильным, не прогибай спину."
+  },
+  {
+    "slug": "band-chest-fly",
+    "category": "strength",
+    "name": "Resistance Band Chest Fly",
+    "name_ru": "Разведение рук",
+    "tags": [
+      "chest",
+      "front-delts",
+      "intermediate",
+      "home",
+      "resistance-band"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "resistance-band",
+    "description": "Anchor the band behind you at chest height. With straight arms, spread them to the sides. Exhale and bring your hands together in front of you, feeling your chest contract. Inhale and slowly spread your arms back to the sides. Keep a slight bend in your elbows throughout the movement.",
+    "description_ru": "Зафиксируй эспандер за спиной на уровне груди. С прямыми руками разведи их в стороны. На выдохе сведи руки перед собой, чувствуя сокращение грудных мышц. На вдохе медленно разведи руки назад. Фокус: Локти слегка согнуты на протяжении всего движения."
+  },
+  {
+    "slug": "band-shoulder-press",
+    "category": "strength",
+    "name": "Resistance Band Shoulder Press",
+    "name_ru": "Жим над головой",
+    "tags": [
+      "shoulders",
+      "front-delts",
+      "triceps",
+      "intermediate",
+      "home",
+      "resistance-band"
+    ],
+    "difficulty": 2,
+    "base_xp": 12,
+    "required_level": 2,
+    "equipment": "resistance-band",
+    "description": "Stand on the band's center, grab the handles at shoulder height. Exhale and powerfully press the handles overhead, fully extending your arms. Inhale and slowly lower back to shoulder level. Keep your core tight and avoid arching your back.",
+    "description_ru": "Встань на середину эспандера, возьмись за рукояти на уровне плеч. На выдохе мощно выжми рукояти вверх над головой. На вдохе медленно опусти обратно к плечам. Фокус: Держи пресс напряжённым, не прогибай спину."
+  },
+  {
+    "slug": "band-lateral-raise",
+    "category": "strength",
+    "name": "Resistance Band Lateral Raise",
+    "name_ru": "Разведение рук в стороны",
+    "tags": [
+      "shoulders",
+      "side-delts",
+      "intermediate",
+      "home",
+      "resistance-band"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 2,
+    "equipment": "resistance-band",
+    "description": "Stand on the band's center, arms at your sides. Exhale and raise your arms to the sides up to shoulder level, elbows slightly bent. Inhale and slowly lower your arms back down. Keep the movement controlled and avoid using momentum.",
+    "description_ru": "Встань на середину эспандера, руки вдоль тела. На выдохе подними руки в стороны до уровня плеч, локти слегка согнуты. На вдохе медленно опусти руки вниз. Фокус: Движение контролируемое, без рывков."
+  },
+  {
+    "slug": "band-squat",
+    "category": "strength",
+    "name": "Resistance Band Squat",
+    "name_ru": "Приседания",
+    "tags": [
+      "quads",
+      "glutes",
+      "hamstrings",
+      "beginner",
+      "home",
+      "resistance-band"
+    ],
+    "difficulty": 1,
+    "base_xp": 10,
+    "required_level": 1,
+    "equipment": "resistance-band",
+    "description": "Stand on the band, handles at your shoulders. Back straight, feet shoulder-width apart. Inhale and squat down until thighs are parallel to the floor. Exhale and powerfully stand back up, extending your legs. Keep your weight on your heels and chest up.",
+    "description_ru": "Встань на эспандер, рукояти у плеч. Спина прямая, ноги на ширине плеч. На вдохе присядь до параллели бёдер с полом. На выдохе мощно встань, разгибая ноги. Фокус: Вес на пятках, грудь вперёд."
+  },
+  {
+    "slug": "band-glute-kickback",
+    "category": "strength",
+    "name": "Resistance Band Glute Kickback",
+    "name_ru": "Отведение ноги назад",
+    "tags": [
+      "glutes",
+      "hamstrings",
+      "beginner",
+      "home",
+      "resistance-band"
+    ],
+    "difficulty": 1,
+    "base_xp": 8,
+    "required_level": 1,
+    "equipment": "resistance-band",
+    "description": "Anchor the band to your ankle, other end to a sturdy object. Stand on one leg, holding onto support. Exhale and kick the working leg back, squeezing your glute. Inhale and return the leg to starting position. Keep your core tight and back straight.",
+    "description_ru": "Зафиксируй эспандер на лодыжке, другой конец к опоре. Встань на одну ногу, держась за опору. На выдохе отведи рабочую ногу назад, сжимая ягодицу. На вдохе верни ногу в исходное положение. Фокус: Пресс напряжён, спина прямая."
+  },
+  {
+    "slug": "band-bicep-curl",
+    "category": "strength",
+    "name": "Resistance Band Bicep Curl",
+    "name_ru": "Сгибание на бицепс",
+    "tags": [
+      "biceps",
+      "arms",
+      "beginner",
+      "home",
+      "resistance-band"
+    ],
+    "difficulty": 1,
+    "base_xp": 8,
+    "required_level": 1,
+    "equipment": "resistance-band",
+    "description": "Stand on the band's center, arms down holding the handles. Exhale and curl your hands toward your shoulders, bending at the elbows. Keep your elbows fixed at your sides. Inhale and slowly straighten your arms back down. Focus on contracting your biceps.",
+    "description_ru": "Встань на середину эспандера, руки внизу с рукоятями. На выдохе согни руки в локтях, подтягивая рукояти к плечам. Локти неподвижны. На вдохе медленно разогни руки вниз. Фокус: Чувствуй работу бицепсов."
+  }
+]

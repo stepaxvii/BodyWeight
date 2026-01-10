@@ -78,5 +78,58 @@
       {"slug": "handstand-wall", "duration": 30},
       {"slug": "child-pose", "duration": 60}
     ]
+  },
+  {
+    "slug": "home-cardio-blast",
+    "name": "Кардио-взрыв",
+    "name_en": "Cardio Blast",
+    "description": "Интенсивное кардио без оборудования. Сжигаем калории и прокачиваем выносливость!",
+    "category": "home",
+    "duration_minutes": 20,
+    "difficulty": 2,
+    "tags": ["intermediate", "cardio", "no-equipment", "fat-burn", "hiit"],
+    "exercises": [
+      {"slug": "jumping-jack", "reps": 40},
+      {"slug": "high-knees", "duration": 40},
+      {"slug": "butt-kicks", "duration": 30},
+      {"slug": "burpee", "reps": 10},
+      {"slug": "mountain-climber", "reps": 40},
+      {"slug": "squat-jump", "reps": 15},
+      {"slug": "lunge-jump", "reps": 12},
+      {"slug": "skater-jump", "reps": 20},
+      {"slug": "bear-crawl", "reps": 10},
+      {"slug": "plank-jack", "reps": 20},
+      {"slug": "inchworm", "reps": 8},
+      {"slug": "jumping-jack", "reps": 30},
+      {"slug": "child-pose", "duration": 45}
+    ]
+  },
+  {
+    "slug": "home-strength-endurance",
+    "name": "Силовая выносливость",
+    "name_en": "Strength Endurance",
+    "description": "Средняя тренировка на силу и выносливость. Баланс между мощью и стойкостью.",
+    "category": "home",
+    "duration_minutes": 30,
+    "difficulty": 2,
+    "tags": ["intermediate", "strength", "endurance", "no-equipment", "full-body"],
+    "exercises": [
+      {"slug": "jumping-jack", "reps": 30},
+      {"slug": "squat-regular", "reps": 25},
+      {"slug": "pushup-regular", "reps": 15},
+      {"slug": "lunge-forward", "reps": 20},
+      {"slug": "dip-bench", "reps": 12},
+      {"slug": "squat-jump", "reps": 12},
+      {"slug": "pushup-wide", "reps": 12},
+      {"slug": "lunge-reverse", "reps": 16},
+      {"slug": "plank", "duration": 45},
+      {"slug": "plank-side", "duration": 30},
+      {"slug": "leg-raise", "reps": 15},
+      {"slug": "bicycle-crunch", "reps": 30},
+      {"slug": "glute-bridge", "reps": 20},
+      {"slug": "superman", "reps": 15},
+      {"slug": "wall-sit", "duration": 45},
+      {"slug": "child-pose", "duration": 45}
+    ]
   }
 ]

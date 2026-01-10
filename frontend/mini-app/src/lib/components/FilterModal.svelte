@@ -37,6 +37,8 @@
 		{ id: 'none', label: 'Без снаряжения' },
 		{ id: 'pullup-bar', label: 'Турник' },
 		{ id: 'dip-bars', label: 'Брусья' },
+		{ id: 'dumbbell', label: 'Гантели' },
+		{ id: 'resistance-band', label: 'Эспандер' },
 		{ id: 'bench', label: 'Скамья' },
 		{ id: 'wall', label: 'Стена' }
 	];

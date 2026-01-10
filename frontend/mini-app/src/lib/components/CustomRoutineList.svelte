@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PixelButton, PixelCard, PixelIcon } from '$lib/components/ui';
+	import { PixelButton, PixelCard, PixelIcon, EmptyState } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { CustomRoutineListItem, CustomRoutine } from '$lib/types';
@@ -60,19 +60,20 @@
 
 <div class="routine-list">
 	{#if routines.length === 0}
-		<div class="empty-state">
-			<PixelIcon name="play" size="xl" color="var(--text-muted)" />
-			<p>У вас пока нет своих комплексов</p>
+		<EmptyState
+			icon="play"
+			message="У вас пока нет своих сетов"
+		>
 			<PixelButton variant="primary" onclick={oncreate}>
 				<PixelIcon name="plus" />
-				Создать комплекс
+				Создать сет
 			</PixelButton>
-		</div>
+		</EmptyState>
 	{:else}
 		<div class="create-btn-wrapper">
 			<PixelButton variant="secondary" fullWidth onclick={oncreate}>
 				<PixelIcon name="plus" />
-				Создать комплекс
+				Создать сет
 			</PixelButton>
 		</div>
 
@@ -139,17 +140,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
-	}
-
-	.empty-state {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-xl);
-		color: var(--text-muted);
-		text-align: center;
 	}
 
 	.create-btn-wrapper {

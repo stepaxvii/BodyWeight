@@ -57,7 +57,7 @@
     "slug": "high-knees",
     "category": "cardio",
     "name": "High Knees",
-    "name_ru": "Бег с высоким подниманием колен",
+    "name_ru": "Бег с высоким подъёмом колен",
     "tags": [
       "quads",
       "hip-flexors",
@@ -333,7 +333,7 @@
     "slug": "jump-rope",
     "category": "cardio",
     "name": "Invisible Jump Rope",
-    "name_ru": "Прыжки на воображаемой скакалке",
+    "name_ru": "Прыжки через скакалку",
     "tags": [
       "calves",
       "shoulders",

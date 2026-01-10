@@ -15,6 +15,8 @@ from app.schemas import (
     UserStatsResponse,
     UpdateUserRequest,
     UserProfileResponse,
+    DayActivityResponse,
+    UserActivityResponse,
 )
 
 
@@ -251,6 +253,60 @@ async def get_current_user_stats(
     )
 
 
+@router.get(
+    "/me/activity",
+    response_model=UserActivityResponse,
+    summary="Получить календарь активности",
+    description="Возвращает данные о тренировках по дням для календаря активности. Только XP из тренировок, без достижений.",
+    tags=["Users"]
+)
+async def get_user_activity(
+    user: CurrentUser,
+    session: AsyncSessionDep,
+    year: int | None = None,
+):
+    """Get workout activity calendar data grouped by day."""
+    # Default to current year
+    if year is None:
+        year = date.today().year
+
+    # Get all completed workouts for the year
+    result = await session.execute(
+        select(
+            WorkoutSession.started_at,
+            WorkoutSession.total_xp_earned
+        )
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "completed")
+        .where(func.strftime('%Y', WorkoutSession.started_at) == str(year))
+    )
+
+    # Group by date manually in Python (more reliable across databases)
+    days_data = {}
+    for row in result.all():
+        workout_datetime = row.started_at
+        # Extract date part
+        workout_date = workout_datetime.date() if hasattr(workout_datetime, 'date') else workout_datetime
+        date_str = workout_date.isoformat() if hasattr(workout_date, 'isoformat') else str(workout_date)
+
+        # Aggregate data
+        if date_str not in days_data:
+            days_data[date_str] = {"workouts": 0, "total_xp": 0}
+
+        days_data[date_str]["workouts"] += 1
+        days_data[date_str]["total_xp"] += row.total_xp_earned or 0
+
+    # Convert to response format
+    response_days = {
+        date_str: DayActivityResponse(
+            date=date_str,
+            workouts=data["workouts"],
+            total_xp=data["total_xp"]
+        )
+        for date_str, data in days_data.items()
+    }
+
+    return UserActivityResponse(days=response_days)
 
 
 @router.get("/{user_id}", response_model=UserResponse)

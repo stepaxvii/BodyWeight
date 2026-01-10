@@ -6,6 +6,8 @@ from .users import (
     UserStatsResponse,
     UpdateUserRequest,
     UserProfileResponse,
+    DayActivityResponse,
+    UserActivityResponse,
 )
 from .auth import AuthRequest, AuthResponse
 from .workouts import (
@@ -48,6 +50,8 @@ __all__ = [
     "UserStatsResponse",
     "UpdateUserRequest",
     "UserProfileResponse",
+    "DayActivityResponse",
+    "UserActivityResponse",
     # Auth
     "AuthRequest",
     "AuthResponse",

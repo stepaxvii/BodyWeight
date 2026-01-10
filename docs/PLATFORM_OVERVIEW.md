@@ -387,7 +387,7 @@ backend/
 │   │   └── notifications.py
 │   └── data/
 │       ├── exercises/       # JSON с упражнениями
-│       ├── routines/        # JSON с комплексами
+│       ├── routines/        # JSON с Яами
 │       └── achievements.json
 ```
 
@@ -439,7 +439,7 @@ PostgreSQL с таблицами:
 - `user_exercise_progress` — прогресс
 - `user_favorite_exercises` — избранное
 - `user_custom_routines` — комплексы
-- `user_custom_routine_exercises` — упражнения в комплексах
+- `user_custom_routine_exercises` — упражнения в яах
 
 ### API
 

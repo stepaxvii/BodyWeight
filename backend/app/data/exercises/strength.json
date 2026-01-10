@@ -208,7 +208,7 @@
     "slug": "pushup-incline",
     "category": "strength",
     "name": "Incline Push-up",
-    "name_ru": "Отжимания в наклоне (ноги выше)",
+    "name_ru": "Отжимания (ноги выше)",
     "tags": [
       "chest",
       "shoulders",
@@ -228,7 +228,7 @@
     "slug": "pushup-decline",
     "category": "strength",
     "name": "Decline Push-up",
-    "name_ru": "Отжимания с руками на возвышении",
+    "name_ru": "Отжимания (руки на возвышении)",
     "tags": [
       "chest",
       "triceps",
@@ -247,7 +247,7 @@
     "slug": "pushup-staggered",
     "category": "strength",
     "name": "Staggered Push-up",
-    "name_ru": "Отжимания с разновысокими руками",
+    "name_ru": "Отжимания с асимметричными руками",
     "tags": [
       "chest",
       "triceps",
@@ -446,7 +446,7 @@
     "slug": "dip-straight-bar",
     "category": "strength",
     "name": "Straight Bar Dips",
-    "name_ru": "Отжимания на прямой перекладине",
+    "name_ru": "Отжимания на турнике",
     "tags": [
       "triceps",
       "chest",
@@ -1956,5 +1956,500 @@
     "equipment": "none",
     "description": "Lie face down with arms extended in front of you. Lift your arms off the ground and make large circles, sweeping them out to the sides, down toward your hips, and back up to the front. Keep your chest slightly lifted and arms straight throughout. This strengthens the shoulders and upper back for better posture.",
     "description_ru": "Ляг лицом вниз, руки вытянуты перед собой. Подними руки от пола и делай большие круги, отводя их в стороны, вниз к бёдрам и обратно вверх вперёд. Грудь слегка приподнята, руки прямые на протяжении всего движения. Укрепляет плечи и верхнюю часть спины для лучшей осанки."
+  },
+  {
+    "slug": "dumbbell-goblet-squat",
+    "category": "strength",
+    "name": "Goblet Squat",
+    "name_ru": "Гоблет-приседания",
+    "tags": [
+      "quads",
+      "glutes",
+      "core",
+      "beginner",
+      "dumbbell"
+    ],
+    "difficulty": 1,
+    "base_xp": 12,
+    "required_level": 1,
+    "equipment": "dumbbell",
+    "description": "Hold a dumbbell vertically by one end close to your chest with both hands (like holding a goblet). Stand with feet shoulder-width apart. Squat down by bending your knees and hips, keeping your chest up and elbows between your knees. Push through your heels to return to standing. Great for learning squat form with added weight.",
+    "description_ru": "Держи гантель вертикально за один конец обеими руками у груди (как кубок). Ноги на ширине плеч. Присядь, сгибая колени и таз, грудь вверх, локти между коленями. Оттолкнись пятками и вернись в исходное положение. Отлично подходит для изучения техники приседаний с весом."
+  },
+  {
+    "slug": "dumbbell-romanian-deadlift",
+    "category": "strength",
+    "name": "Romanian Deadlift",
+    "name_ru": "Румынская тяга с гантелями",
+    "tags": [
+      "hamstrings",
+      "glutes",
+      "back",
+      "intermediate",
+      "dumbbell"
+    ],
+    "difficulty": 2,
+    "base_xp": 15,
+    "required_level": 3,
+    "equipment": "dumbbell",
+    "description": "Hold dumbbells in front of your thighs with palms facing you. Keep your back straight and knees slightly bent. Hinge at the hips, lowering the dumbbells along your legs while pushing your hips back. Feel the stretch in your hamstrings. Drive your hips forward to return to standing. Don't round your back!",
+    "description_ru": "Держи гантели перед бёдрами ладонями к себе. Спина прямая, колени слегка согнуты. Наклонись в тазу, опуская гантели вдоль ног и отводя таз назад. Почувствуй растяжение бицепсов бедра. Толкни таз вперёд и вернись в исходное положение. Не круглите спину!"
+  },
+  {
+    "slug": "dumbbell-lunge",
+    "category": "strength",
+    "name": "Dumbbell Lunge",
+    "name_ru": "Выпады с гантелями",
+    "tags": [
+      "quads",
+      "glutes",
+      "intermediate",
+      "dumbbell"
+    ],
+    "difficulty": 2,
+    "base_xp": 13,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Hold dumbbells at your sides. Step forward with one leg and lower your body until both knees are bent at 90 degrees. Your front knee should be above your ankle, not past your toes. Push through your front heel to return to standing. Alternate legs or complete all reps on one side first.",
+    "description_ru": "Держи гантели по бокам. Сделай шаг вперёд одной ногой и опусти тело, пока оба колена не согнутся под 90 градусов. Переднее колено над лодыжкой, не выходит за носок. Оттолкнись передней пяткой и вернись в исходное положение. Чередуй ноги или сделай все повторы на одну сторону."
+  },
+  {
+    "slug": "dumbbell-shoulder-press",
+    "category": "strength",
+    "name": "Shoulder Press",
+    "name_ru": "Жим гантелей стоя",
+    "tags": [
+      "shoulders",
+      "triceps",
+      "intermediate",
+      "dumbbell"
+    ],
+    "difficulty": 2,
+    "base_xp": 14,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Stand with feet shoulder-width apart, holding dumbbells at shoulder height with palms facing forward. Press the weights straight up overhead until your arms are fully extended. Lower back to shoulder height with control. Keep your core tight and don't arch your back.",
+    "description_ru": "Стой, ноги на ширине плеч, держи гантели на уровне плеч ладонями вперёд. Выжми вес прямо вверх над головой, пока руки не выпрямятся полностью. Опусти обратно к плечам контролируемо. Держи кор напряжённым и не прогибай спину."
+  },
+  {
+    "slug": "dumbbell-lateral-raise",
+    "category": "strength",
+    "name": "Lateral Raise",
+    "name_ru": "Махи гантелями в стороны",
+    "tags": [
+      "shoulders",
+      "intermediate",
+      "dumbbell"
+    ],
+    "difficulty": 2,
+    "base_xp": 12,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Stand holding dumbbells at your sides with palms facing your thighs. Keeping a slight bend in your elbows, raise the weights out to the sides until they reach shoulder height. Your arms should form a 'T' shape. Lower with control. Focus on using your shoulders, not swinging the weights.",
+    "description_ru": "Стой, держа гантели по бокам ладонями к бёдрам. Слегка согнув локти, подними вес в стороны до уровня плеч. Руки образуют букву 'Т'. Опусти контролируемо. Работай плечами, не раскачивай вес."
+  },
+  {
+    "slug": "dumbbell-front-raise",
+    "category": "strength",
+    "name": "Front Raise",
+    "name_ru": "Подъём гантелей перед собой",
+    "tags": [
+      "shoulders",
+      "intermediate",
+      "dumbbell"
+    ],
+    "difficulty": 2,
+    "base_xp": 12,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Stand holding dumbbells in front of your thighs with palms facing your body. Keeping arms straight (slight elbow bend is OK), raise one or both dumbbells up in front of you to shoulder height. Lower with control. Don't use momentum or swing your back.",
+    "description_ru": "Стой, держа гантели перед бёдрами ладонями к телу. Держа руки прямыми (небольшой сгиб в локтях допустим), подними одну или обе гантели вперёд до уровня плеч. Опусти контролируемо. Не используй инерцию и не раскачивай спину."
+  },
+  {
+    "slug": "dumbbell-bent-over-row",
+    "category": "strength",
+    "name": "Bent-Over Row",
+    "name_ru": "Тяга гантелей в наклоне",
+    "tags": [
+      "back",
+      "biceps",
+      "intermediate",
+      "dumbbell"
+    ],
+    "difficulty": 2,
+    "base_xp": 14,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Hinge forward at the hips with dumbbells hanging in front of you, back straight and knees slightly bent. Pull the dumbbells up toward your ribs, squeezing your shoulder blades together. Lower with control. Keep your core tight and don't round your back.",
+    "description_ru": "Наклонись вперёд в тазу, гантели висят перед тобой, спина прямая, колени слегка согнуты. Подтяни гантели к рёбрам, сводя лопатки вместе. Опусти контролируемо. Держи кор напряжённым и не круглите спину."
+  },
+  {
+    "slug": "dumbbell-single-arm-row",
+    "category": "strength",
+    "name": "Single-Arm Row",
+    "name_ru": "Тяга гантели одной рукой",
+    "tags": [
+      "back",
+      "biceps",
+      "intermediate",
+      "dumbbell"
+    ],
+    "difficulty": 2,
+    "base_xp": 13,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Place one hand and knee on a bench for support. Hold a dumbbell in the other hand hanging straight down. Pull the dumbbell up toward your hip, keeping your elbow close to your body. Squeeze your back at the top, then lower with control. Complete all reps on one side before switching.",
+    "description_ru": "Упрись одной рукой и коленом на скамью для поддержки. Держи гантель в другой руке, свисающей прямо вниз. Подтяни гантель к бедру, держа локоть близко к телу. Сведи лопатку в верхней точке, затем опусти контролируемо. Сделай все повторы на одну сторону перед сменой."
+  },
+  {
+    "slug": "dumbbell-chest-press",
+    "category": "strength",
+    "name": "Dumbbell Chest Press",
+    "name_ru": "Жим гантелей лёжа",
+    "tags": [
+      "chest",
+      "triceps",
+      "shoulders",
+      "intermediate",
+      "dumbbell",
+      "bench"
+    ],
+    "difficulty": 2,
+    "base_xp": 15,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Lie on a bench holding dumbbells above your chest with arms extended. Lower the weights to the sides of your chest, elbows at about 45 degrees. Press back up to the starting position. Don't let the dumbbells touch at the top. Keep your feet flat on the floor and core engaged.",
+    "description_ru": "Ляг на скамью, держа гантели над грудью с вытянутыми руками. Опусти вес к сторонам груди, локти под углом около 45 градусов. Выжми обратно в исходное положение. Не дай гантелям соприкоснуться вверху. Стопы на полу, кор напряжён."
+  },
+  {
+    "slug": "dumbbell-chest-fly",
+    "category": "strength",
+    "name": "Dumbbell Chest Fly",
+    "name_ru": "Разведение гантелей лёжа",
+    "tags": [
+      "chest",
+      "intermediate",
+      "dumbbell",
+      "bench"
+    ],
+    "difficulty": 2,
+    "base_xp": 13,
+    "required_level": 3,
+    "equipment": "dumbbell",
+    "description": "Lie on a bench with dumbbells above your chest, palms facing each other and slight bend in elbows. Lower the weights out to the sides in an arc until you feel a stretch in your chest. Bring them back up using the same arc motion, as if hugging a barrel. Don't lower too deep or bend elbows too much.",
+    "description_ru": "Ляг на скамью с гантелями над грудью, ладони друг к другу, локти слегка согнуты. Опусти вес в стороны по дуге, пока не почувствуешь растяжение в груди. Подними обратно по той же дуге, как будто обнимаешь бочку. Не опускай слишком глубоко и не сгибай локти сильнее."
+  },
+  {
+    "slug": "dumbbell-bicep-curl",
+    "category": "strength",
+    "name": "Bicep Curl",
+    "name_ru": "Подъём гантелей на бицепс",
+    "tags": [
+      "biceps",
+      "beginner",
+      "dumbbell"
+    ],
+    "difficulty": 1,
+    "base_xp": 10,
+    "required_level": 1,
+    "equipment": "dumbbell",
+    "description": "Stand with dumbbells at your sides, palms facing forward. Keeping your elbows close to your sides, curl the weights up toward your shoulders by bending your elbows. Squeeze your biceps at the top, then lower with control. Don't swing or use your back.",
+    "description_ru": "Стой с гантелями по бокам, ладони вперёд. Держа локти близко к бокам, согни руки, поднимая вес к плечам. Сожми бицепсы в верхней точке, затем опусти контролируемо. Не раскачивайся и не используй спину."
+  },
+  {
+    "slug": "dumbbell-hammer-curl",
+    "category": "strength",
+    "name": "Hammer Curl",
+    "name_ru": "Молотковые подъёмы",
+    "tags": [
+      "biceps",
+      "forearms",
+      "beginner",
+      "dumbbell"
+    ],
+    "difficulty": 1,
+    "base_xp": 11,
+    "required_level": 1,
+    "equipment": "dumbbell",
+    "description": "Stand with dumbbells at your sides, palms facing each other (neutral grip). Curl the weights up toward your shoulders while keeping the palms facing each other throughout. This variation targets your biceps and forearms differently than regular curls. Lower with control.",
+    "description_ru": "Стой с гантелями по бокам, ладони друг к другу (нейтральный хват). Согни руки, поднимая вес к плечам, сохраняя ладони друг к другу на протяжении всего движения. Этот вариант прорабатывает бицепсы и предплечья иначе, чем обычные подъёмы. Опусти контролируемо."
+  },
+  {
+    "slug": "dumbbell-tricep-extension",
+    "category": "strength",
+    "name": "Overhead Tricep Extension",
+    "name_ru": "Французский жим с гантелью",
+    "tags": [
+      "triceps",
+      "intermediate",
+      "dumbbell"
+    ],
+    "difficulty": 2,
+    "base_xp": 12,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Hold one dumbbell with both hands overhead, arms extended. Lower the weight behind your head by bending your elbows, keeping your upper arms stationary. Extend your arms back to the starting position, focusing on using your triceps. Keep your core tight and don't arch your back.",
+    "description_ru": "Держи одну гантель обеими руками над головой, руки вытянуты. Опусти вес за голову, сгибая локти, верхняя часть рук неподвижна. Разогни руки обратно в исходное положение, работая трицепсами. Держи кор напряжённым и не прогибай спину."
+  },
+  {
+    "slug": "dumbbell-kickback",
+    "category": "strength",
+    "name": "Tricep Kickback",
+    "name_ru": "Разгибание руки в наклоне",
+    "tags": [
+      "triceps",
+      "intermediate",
+      "dumbbell"
+    ],
+    "difficulty": 2,
+    "base_xp": 11,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Hinge forward at the hips, holding a dumbbell in one hand. Keep your upper arm parallel to the floor and bent at 90 degrees. Extend your arm back until it's straight, squeezing your tricep. Return to the bent position with control. Keep your upper arm still throughout.",
+    "description_ru": "Наклонись вперёд в тазу, держа гантель в одной руке. Держи плечо параллельно полу и согнутым на 90 градусов. Разогни руку назад, пока она не станет прямой, сжимая трицепс. Вернись в согнутое положение контролируемо. Держи плечо неподвижным."
+  },
+  {
+    "slug": "dumbbell-shrug",
+    "category": "strength",
+    "name": "Dumbbell Shrug",
+    "name_ru": "Шраги с гантелями",
+    "tags": [
+      "traps",
+      "shoulders",
+      "beginner",
+      "dumbbell"
+    ],
+    "difficulty": 1,
+    "base_xp": 10,
+    "required_level": 1,
+    "equipment": "dumbbell",
+    "description": "Stand holding dumbbells at your sides with arms hanging straight. Shrug your shoulders up toward your ears, lifting the weights as high as possible. Hold briefly at the top, then lower with control. Don't roll your shoulders — just straight up and down. This builds your trapezius muscles.",
+    "description_ru": "Стой, держа гантели по бокам с прямыми руками. Подними плечи к ушам, поднимая вес как можно выше. Задержись ненадолго вверху, затем опусти контролируемо. Не крути плечами — только прямо вверх и вниз. Это развивает трапециевидные мышцы."
+  },
+  {
+    "slug": "dumbbell-calf-raise",
+    "category": "strength",
+    "name": "Dumbbell Calf Raise",
+    "name_ru": "Подъём на носки с гантелями",
+    "tags": [
+      "calves",
+      "beginner",
+      "dumbbell"
+    ],
+    "difficulty": 1,
+    "base_xp": 10,
+    "required_level": 1,
+    "equipment": "dumbbell",
+    "description": "Stand holding dumbbells at your sides. Rise up onto your toes as high as possible, squeezing your calves at the top. Lower back down with control. For extra range, stand on an elevated surface with heels hanging off. Keep your legs straight but not locked.",
+    "description_ru": "Стой, держа гантели по бокам. Поднимись на носки как можно выше, сжимая икры вверху. Опустись обратно контролируемо. Для дополнительной амплитуды встань на возвышенность, чтобы пятки свисали. Держи ноги прямыми, но не блокируй колени."
+  },
+  {
+    "slug": "dumbbell-farmers-walk",
+    "category": "strength",
+    "name": "Farmer's Walk",
+    "name_ru": "Прогулка фермера",
+    "tags": [
+      "core",
+      "forearms",
+      "traps",
+      "full-body",
+      "intermediate",
+      "dumbbell"
+    ],
+    "difficulty": 2,
+    "base_xp": 14,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Hold heavy dumbbells at your sides with arms straight. Walk forward with good posture, taking controlled steps. Keep your shoulders back, chest up, and core tight. Don't let the weights pull your shoulders forward. This builds total body strength, especially grip and core.",
+    "description_ru": "Держи тяжёлые гантели по бокам с прямыми руками. Иди вперёд с хорошей осанкой, делая контролируемые шаги. Держи плечи назад, грудь вверх и кор напряжённым. Не давай весу тянуть плечи вперёд. Это развивает силу всего тела, особенно хвата и кора."
+  },
+  {
+    "slug": "dumbbell-renegade-row",
+    "category": "strength",
+    "name": "Renegade Row",
+    "name_ru": "Тяга гантели в планке",
+    "tags": [
+      "back",
+      "core",
+      "shoulders",
+      "advanced",
+      "dumbbell"
+    ],
+    "difficulty": 3,
+    "base_xp": 18,
+    "required_level": 5,
+    "equipment": "dumbbell",
+    "description": "Get in plank position with hands on dumbbells. Row one dumbbell up toward your hip while balancing on the other arm. Keep your hips level and core tight — don't rotate your torso. Lower the weight and repeat on the other side. This combines rowing with anti-rotation core work.",
+    "description_ru": "Встань в планку, упираясь руками на гантели. Подтяни одну гантель к бедру, балансируя на другой руке. Держи таз ровно и кор напряжённым — не вращай корпус. Опусти вес и повтори на другую сторону. Это сочетает тягу с работой кора против вращения."
+  },
+  {
+    "slug": "dumbbell-bulgarian-split-squat",
+    "category": "strength",
+    "name": "Bulgarian Split Squat",
+    "name_ru": "Болгарские сплит-приседания",
+    "tags": [
+      "quads",
+      "glutes",
+      "intermediate",
+      "dumbbell",
+      "bench"
+    ],
+    "difficulty": 2,
+    "base_xp": 14,
+    "required_level": 3,
+    "equipment": "dumbbell",
+    "description": "Hold dumbbells at your sides. Place one foot on a bench behind you. Lower your body by bending your front knee until your back knee nearly touches the ground. Push through your front heel to return up. Keep your torso upright and front knee tracking over your toes. Complete all reps on one leg before switching.",
+    "description_ru": "Держи гантели по бокам. Помести одну ногу на скамью позади себя. Опусти тело, сгибая переднее колено, пока заднее колено почти не коснётся пола. Оттолкнись передней пяткой и вернись вверх. Держи корпус прямо, переднее колено движется над пальцами ног. Сделай все повторы на одну ногу перед сменой."
+  },
+  {
+    "slug": "dumbbell-step-up",
+    "category": "strength",
+    "name": "Dumbbell Step-Up",
+    "name_ru": "Зашагивания на платформу",
+    "tags": [
+      "quads",
+      "glutes",
+      "intermediate",
+      "dumbbell",
+      "bench"
+    ],
+    "difficulty": 2,
+    "base_xp": 13,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Hold dumbbells at your sides and stand facing a bench or box. Step up with one foot, driving through that heel to lift your body onto the platform. Step down with control. Alternate legs or complete all reps on one side first. Don't push off with your back foot — let the working leg do the work.",
+    "description_ru": "Держи гантели по бокам и встань лицом к скамье или платформе. Зашагни одной ногой, толкаясь пяткой, чтобы поднять тело на платформу. Сойди вниз контролируемо. Чередуй ноги или сделай все повторы на одну сторону. Не отталкивайся задней ногой — пусть работающая нога делает работу."
+  },
+  {
+    "slug": "dumbbell-arnold-press",
+    "category": "strength",
+    "name": "Arnold Press",
+    "name_ru": "Жим Арнольда",
+    "tags": [
+      "shoulders",
+      "triceps",
+      "advanced",
+      "dumbbell"
+    ],
+    "difficulty": 3,
+    "base_xp": 16,
+    "required_level": 4,
+    "equipment": "dumbbell",
+    "description": "Start with dumbbells at shoulder height, palms facing you (as if at the top of a curl). Press up while rotating your palms forward, finishing with arms extended overhead and palms facing out. Reverse the motion to return. This rotation adds extra shoulder activation compared to regular presses.",
+    "description_ru": "Начни с гантелями на уровне плеч, ладони к себе (как в верхней точке подъёма на бицепс). Выжми вверх, вращая ладони вперёд, заканчивая с вытянутыми руками над головой и ладонями наружу. Верни движение обратно. Это вращение добавляет дополнительную активацию плеч по сравнению с обычными жимами."
+  },
+  {
+    "slug": "dumbbell-concentration-curl",
+    "category": "strength",
+    "name": "Concentration Curl",
+    "name_ru": "Концентрированный подъём на бицепс",
+    "tags": [
+      "biceps",
+      "intermediate",
+      "dumbbell"
+    ],
+    "difficulty": 2,
+    "base_xp": 11,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Sit on a bench with legs spread. Hold a dumbbell in one hand, bracing your elbow against the inside of your thigh. Curl the weight up toward your shoulder, focusing solely on your bicep. Lower with control. This isolation ensures your bicep does all the work without momentum or other muscles helping.",
+    "description_ru": "Сядь на скамью, ноги расставлены. Держи гантель в одной руке, упирая локоть во внутреннюю часть бедра. Согни руку, поднимая вес к плечу, сосредоточившись только на бицепсе. Опусти контролируемо. Эта изоляция гарантирует, что бицепс делает всю работу без инерции или помощи других мышц."
+  },
+  {
+    "slug": "dumbbell-incline-chest-press",
+    "category": "strength",
+    "name": "Incline Chest Press",
+    "name_ru": "Жим на наклонной скамье",
+    "tags": [
+      "chest",
+      "shoulders",
+      "triceps",
+      "intermediate",
+      "dumbbell",
+      "bench"
+    ],
+    "difficulty": 2,
+    "base_xp": 14,
+    "required_level": 3,
+    "equipment": "dumbbell",
+    "description": "Lie on an incline bench (30-45 degrees) holding dumbbells above your chest. Lower the weights to the sides of your upper chest, then press back up. The incline angle targets the upper portion of your chest more than flat pressing. Keep your feet flat and core engaged.",
+    "description_ru": "Ляг на наклонную скамью (30-45 градусов), держа гантели над грудью. Опусти вес к сторонам верхней части груди, затем выжми обратно. Наклон лучше прорабатывает верхнюю часть груди, чем горизонтальный жим. Стопы на полу, кор напряжён."
+  },
+  {
+    "slug": "dumbbell-pullover",
+    "category": "strength",
+    "name": "Dumbbell Pullover",
+    "name_ru": "Пуловер с гантелью",
+    "tags": [
+      "chest",
+      "back",
+      "lats",
+      "intermediate",
+      "dumbbell",
+      "bench"
+    ],
+    "difficulty": 2,
+    "base_xp": 13,
+    "required_level": 3,
+    "equipment": "dumbbell",
+    "description": "Lie on a bench holding one dumbbell with both hands above your chest, arms slightly bent. Lower the weight back over your head in an arc until you feel a stretch in your chest and lats. Pull the weight back over your chest using the same arc motion. This unique exercise works both chest and back.",
+    "description_ru": "Ляг на скамью, держа одну гантель обеими руками над грудью, руки слегка согнуты. Опусти вес назад над головой по дуге, пока не почувствуешь растяжение в груди и широчайших. Верни вес обратно над грудью по той же дуге. Это уникальное упражнение прорабатывает и грудь, и спину."
+  },
+  {
+    "slug": "dumbbell-sumo-squat",
+    "category": "strength",
+    "name": "Sumo Squat",
+    "name_ru": "Сумо-приседания с гантелью",
+    "tags": [
+      "quads",
+      "glutes",
+      "inner-thigh",
+      "beginner",
+      "dumbbell"
+    ],
+    "difficulty": 1,
+    "base_xp": 12,
+    "required_level": 1,
+    "equipment": "dumbbell",
+    "description": "Hold one dumbbell vertically with both hands. Stand with feet wider than shoulder-width and toes pointed out at 45 degrees. Squat down by bending your knees out over your toes, keeping your chest up and back straight. Push through your heels to stand. This variation emphasizes inner thighs and glutes.",
+    "description_ru": "Держи одну гантель вертикально обеими руками. Встань, ноги шире плеч, носки развёрнуты наружу на 45 градусов. Присядь, сгибая колени наружу над пальцами ног, грудь вверх, спина прямая. Оттолкнись пятками и встань. Этот вариант делает акцент на внутренней части бёдер и ягодицах."
+  },
+  {
+    "slug": "dumbbell-reverse-fly",
+    "category": "strength",
+    "name": "Reverse Fly",
+    "name_ru": "Обратные разведения",
+    "tags": [
+      "shoulders",
+      "back",
+      "rear-delt",
+      "intermediate",
+      "dumbbell"
+    ],
+    "difficulty": 2,
+    "base_xp": 12,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Hinge forward at the hips with dumbbells hanging down, slight bend in elbows. Raise the weights out to the sides until your arms are parallel to the floor, squeezing your shoulder blades together. Lower with control. This targets your rear delts and upper back — important for posture and shoulder health.",
+    "description_ru": "Наклонись вперёд в тазу, гантели висят вниз, локти слегка согнуты. Подними вес в стороны, пока руки не станут параллельны полу, сводя лопатки вместе. Опусти контролируемо. Это прорабатывает задние дельты и верхнюю часть спины — важно для осанки и здоровья плеч."
+  },
+  {
+    "slug": "dumbbell-woodchop",
+    "category": "strength",
+    "name": "Dumbbell Woodchop",
+    "name_ru": "Дровосек с гантелью",
+    "tags": [
+      "core",
+      "obliques",
+      "shoulders",
+      "intermediate",
+      "dumbbell"
+    ],
+    "difficulty": 2,
+    "base_xp": 13,
+    "required_level": 2,
+    "equipment": "dumbbell",
+    "description": "Hold one dumbbell with both hands. Start with the weight at one hip, then rotate your torso and swing the weight diagonally up across your body to above the opposite shoulder (like chopping wood). Control the motion back down. This rotational movement builds core strength and power. Switch sides.",
+    "description_ru": "Держи одну гантель обеими руками. Начни с весом у одного бедра, затем поверни корпус и махни весом диагонально вверх через тело к противоположному плечу (как рубишь дрова). Контролируй движение обратно вниз. Это вращательное движение развивает силу и мощь кора. Смени стороны."
   }
 ]
