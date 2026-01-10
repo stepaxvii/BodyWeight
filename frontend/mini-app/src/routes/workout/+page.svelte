@@ -128,9 +128,15 @@
 		return Math.floor(total);
 	});
 
-	// Load all exercises when search is active
+	// Load all exercises when any filter is active (search, equipment, difficulty, tags)
 	$effect(() => {
-		if (searchQuery.trim() && !allExercisesLoaded && !exercisesLoading) {
+		const hasActiveFilters =
+			searchQuery.trim() ||
+			selectedEquipment.length > 0 ||
+			selectedDifficulties.length > 0 ||
+			selectedTags.length > 0;
+
+		if (hasActiveFilters && !allExercisesLoaded && !exercisesLoading) {
 			loadAllExercisesForSearch();
 		}
 	});
@@ -214,7 +220,8 @@
 		{ id: 'home', name: 'Дома' },
 		{ id: 'pullup-bar', name: 'Турник' },
 		{ id: 'dip-bars', name: 'Брусья' },
-		{ id: 'dumbbell', name: 'Гантели' }
+		{ id: 'dumbbell', name: 'Гантели' },
+		{ id: 'resistance-band', name: 'Эспандер' }
 	];
 
 	const mainTabs: { id: MainTab; label: string }[] = [
@@ -917,8 +924,8 @@
 							</PixelButton>
 						</div>
 					{/if}
-					
-					{#if exercisesHasMore && filteredExercises.length > 0}
+
+					{#if exercisesHasMore && filteredExercises.length > 0 && !searchQuery && selectedEquipment.length === 0 && selectedDifficulties.length === 0 && selectedTags.length === 0}
 						<div class="load-more-container">
 							<PixelButton
 								variant="secondary"

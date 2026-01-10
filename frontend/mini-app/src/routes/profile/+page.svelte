@@ -26,7 +26,15 @@
 		}
 	});
 
-	const unlockedAchievements = $derived(achievements.filter(a => a.unlocked));
+	// Sort by unlock date (newest first)
+	const unlockedAchievements = $derived(
+		achievements
+			.filter(a => a.unlocked)
+			.sort((a, b) => {
+				if (!a.unlocked_at || !b.unlocked_at) return 0;
+				return new Date(b.unlocked_at).getTime() - new Date(a.unlocked_at).getTime();
+			})
+	);
 	const unlockedCount = $derived(unlockedAchievements.length);
 
 	// Level XP calculation - use store computed values
@@ -126,23 +134,29 @@
 	<!-- Unlocked Badges -->
 	{#if unlockedAchievements.length > 0}
 		<section class="badges-section">
-			<h3 class="section-title">Значки</h3>
-			<div class="badges-grid">
-				{#each unlockedAchievements as achievement}
-					<div class="badge-item" title={achievement.name_ru}>
-						<img
-							src="{base}/sprites/badges/{achievement.slug}.svg"
-							alt={achievement.name_ru}
-							class="badge-icon"
-						/>
-					</div>
-				{/each}
+			<div class="badges-card">
+				<div class="badges-header">
+					<PixelIcon name="trophy" size="md" color="var(--pixel-accent)" />
+					<span class="badges-title">Значки</span>
+					<span class="badges-count">{unlockedCount}/{achievements.length}</span>
+				</div>
+				<div class="badges-grid">
+					{#each unlockedAchievements.slice(0, 6) as achievement}
+						<div class="badge-item" title={achievement.name_ru}>
+							<img
+								src="{base}/sprites/badges/{achievement.slug}.svg"
+								alt={achievement.name_ru}
+								class="badge-icon"
+							/>
+						</div>
+					{/each}
+					{#if achievements.length > unlockedAchievements.length || unlockedAchievements.length > 6}
+						<a href="{base}/achievements" class="badge-item badge-more">
+							<span>+{achievements.length - Math.min(unlockedAchievements.length, 6)}</span>
+						</a>
+					{/if}
+				</div>
 			</div>
-			{#if achievements.length > unlockedAchievements.length}
-				<a href="{base}/achievements" class="badges-more">
-					+{achievements.length - unlockedAchievements.length} ещё
-				</a>
-			{/if}
 		</section>
 	{/if}
 
@@ -334,19 +348,40 @@
 
 	/* Badges Section */
 	.badges-section {
-		margin-bottom: var(--spacing-lg);
+		margin-bottom: var(--spacing-md);
+	}
+
+	.badges-card {
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		padding: var(--spacing-sm) var(--spacing-md);
+	}
+
+	.badges-header {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.badges-title {
+		font-size: var(--font-size-sm);
+		flex: 1;
+	}
+
+	.badges-count {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
 	}
 
 	.badges-grid {
 		display: flex;
-		flex-wrap: wrap;
-		gap: var(--spacing-sm);
-		justify-content: center;
+		gap: var(--spacing-xs);
 	}
 
 	.badge-item {
-		width: 48px;
-		height: 48px;
+		width: 36px;
+		height: 36px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -361,22 +396,20 @@
 	}
 
 	.badge-icon {
-		width: 32px;
-		height: 32px;
+		width: 24px;
+		height: 24px;
 		image-rendering: pixelated;
 	}
 
-	.badges-more {
-		display: block;
-		text-align: center;
-		margin-top: var(--spacing-sm);
+	.badge-more {
+		text-decoration: none;
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
-		text-decoration: none;
 	}
 
-	.badges-more:hover {
+	.badge-more:hover {
 		color: var(--pixel-accent);
+		border-color: var(--pixel-accent);
 	}
 
 	/* Day Details Modal */
