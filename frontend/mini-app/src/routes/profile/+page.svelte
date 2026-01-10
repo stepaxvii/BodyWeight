@@ -177,42 +177,26 @@
 		{/if}
 	</PixelModal>
 
-	<!-- Streak Info -->
+	<!-- Streak Info - Compact -->
 	<section class="streak-section">
-		<h3 class="section-title">Серия</h3>
-		<PixelCard variant={userStore.streak >= 7 ? 'success' : 'default'}>
-			<div class="streak-display">
-				<div class="streak-icon">
-					<PixelIcon name="streak" size="xl" color="var(--pixel-yellow)" />
-				</div>
-				<div class="streak-info">
+		<div class="streak-card">
+			<div class="streak-left">
+				<PixelIcon name="streak" size="lg" color="var(--pixel-yellow)" />
+				<div class="streak-numbers">
 					<span class="streak-current">{userStore.streak} дней</span>
-					<span class="streak-max">Рекорд: {userStore.user?.max_streak || 0} дней</span>
-				</div>
-				<div class="streak-visual">
-					{#each Array(7) as _, i}
-						<div class="streak-day" class:active={i < Math.min(userStore.streak, 7)}>
-							{#if i < Math.min(userStore.streak, 7)}
-								<PixelIcon name="check" size="sm" color="var(--pixel-green)" />
-							{/if}
-						</div>
-					{/each}
+					<span class="streak-max">Рекорд: {userStore.user?.max_streak || 0}</span>
 				</div>
 			</div>
-		</PixelCard>
+			<div class="streak-visual">
+				{#each Array(7) as _, i}
+					<div class="streak-day" class:active={i < Math.min(userStore.streak, 7)}></div>
+				{/each}
+			</div>
+		</div>
 	</section>
 
-	<!-- Quick Links -->
+	<!-- Quick Link - Friends only -->
 	<section class="links-section">
-		<a href="{base}/achievements" class="link-item">
-			<PixelCard hoverable>
-				<div class="link-content">
-					<PixelIcon name="trophy" color="var(--pixel-yellow)" />
-					<span>Достижения</span>
-					<span class="link-count">{unlockedCount}/{achievements.length}</span>
-				</div>
-			</PixelCard>
-		</a>
 		<a href="{base}/friends" class="link-item">
 			<PixelCard hoverable>
 				<div class="link-content">
@@ -444,55 +428,56 @@
 		font-size: var(--font-size-sm);
 	}
 
-	/* Streak Section */
+	/* Streak Section - Compact */
 	.streak-section {
-		margin-bottom: var(--spacing-lg);
+		margin-bottom: var(--spacing-md);
 	}
 
-	.streak-display {
+	.streak-card {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		padding: var(--spacing-sm) var(--spacing-md);
+	}
+
+	.streak-left {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+	}
+
+	.streak-numbers {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
-		gap: var(--spacing-md);
-	}
-
-	.streak-icon {
-		animation: pixel-pulse 2s ease-in-out infinite;
-	}
-
-	.streak-info {
-		text-align: center;
 	}
 
 	.streak-current {
-		display: block;
-		font-size: var(--font-size-lg);
+		font-size: var(--font-size-sm);
 		color: var(--pixel-yellow);
 	}
 
 	.streak-max {
-		font-size: var(--font-size-xs);
+		font-size: 10px;
 		color: var(--text-secondary);
 	}
 
 	.streak-visual {
 		display: flex;
-		gap: var(--spacing-xs);
+		gap: 4px;
 	}
 
 	.streak-day {
-		width: 24px;
-		height: 24px;
+		width: 16px;
+		height: 16px;
 		background: var(--pixel-bg-dark);
 		border: 2px solid var(--border-color);
-		display: flex;
-		align-items: center;
-		justify-content: center;
 	}
 
 	.streak-day.active {
 		border-color: var(--pixel-green);
-		background: rgba(0, 168, 0, 0.2);
+		background: var(--pixel-green);
 	}
 
 	/* Links Section */
@@ -518,10 +503,5 @@
 		margin-left: auto;
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
-	}
-
-	@keyframes pixel-pulse {
-		0%, 100% { transform: scale(1); }
-		50% { transform: scale(1.1); }
 	}
 </style>
