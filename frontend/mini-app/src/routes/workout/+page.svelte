@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { PixelButton, PixelCard, PixelIcon } from '$lib/components/ui';
+	import { PixelButton, PixelCard, PixelIcon, EmptyState } from '$lib/components/ui';
 	import RoutinePlayer from '$lib/components/RoutinePlayer.svelte';
 	import ExerciseCard from '$lib/components/ExerciseCard.svelte';
 	import FilterModal from '$lib/components/FilterModal.svelte';
@@ -800,17 +800,12 @@
 							</PixelCard>
 						{/each}
 						{#if filteredRoutines.length === 0}
-							<div class="empty-state">
-								<p>Нет сетов в этой категории</p>
-							</div>
+							<EmptyState message="Нет сетов в этой категории" />
 						{/if}
 					</div>
 				</section>
 			{:else}
-				<div class="empty-state">
-					<PixelIcon name="play" size="lg" color="var(--text-secondary)" />
-					<p>Сеты загружаются...</p>
-				</div>
+				<EmptyState icon="play" message="Сеты загружаются..." />
 			{/if}
 
 		{:else if activeMainTab === 'my-routines'}
@@ -841,11 +836,11 @@
 						{/each}
 					</div>
 				{:else}
-					<div class="empty-state">
-						<PixelIcon name="heart-empty" size="lg" color="var(--text-secondary)" />
-						<p>Нет избранных упражнений</p>
-						<p class="empty-hint">Нажми на сердечко, чтобы добавить</p>
-					</div>
+					<EmptyState
+						icon="heart-empty"
+						message="Нет избранных упражнений"
+						hint="Нажми на сердечко, чтобы добавить"
+					/>
 				{/if}
 			</section>
 
@@ -916,13 +911,12 @@
 						/>
 					{/each}
 					{#if filteredExercises.length === 0 && !exercisesLoading}
-						<div class="empty-state">
-							<PixelIcon name="search" size="lg" color="var(--text-secondary)" />
-							<p>Ничего не найдено</p>
-							<PixelButton variant="ghost" onclick={clearAllFilters}>
-								Сбросить фильтры
-							</PixelButton>
-						</div>
+						<EmptyState
+							icon="search"
+							message="Ничего не найдено"
+							buttonText="Сбросить фильтры"
+							onButtonClick={clearAllFilters}
+						/>
 					{/if}
 
 					{#if exercisesHasMore && filteredExercises.length > 0 && !searchQuery && selectedEquipment.length === 0 && selectedDifficulties.length === 0 && selectedTags.length === 0}
