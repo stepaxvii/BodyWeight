@@ -85,7 +85,9 @@
 	{:else if name === 'close'}
 		<path d="M4 4l8 8M12 4l-8 8" fill="none" stroke={color} stroke-width="2"/>
 	{:else if name === 'warning'}
-		<path d="M8 1L1 14h14L8 1zm0 4v5h0V5zm0 7a1 1 0 110 2 1 1 0 010-2z"/>
+		<path d="M8 1L1 14h14L8 1z" fill={color}/>
+		<circle cx="8" cy="12" r="1" fill="var(--pixel-bg)"/>
+		<path d="M8 5v5" stroke="var(--pixel-bg)" stroke-width="2" stroke-linecap="round"/>
 	{:else if name === 'home'}
 		<path d="M8 2L2 7v7h4V10h4v4h4V7L8 2z"/>
 	{:else if name === 'pullup'}
