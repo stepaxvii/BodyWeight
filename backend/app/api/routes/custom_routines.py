@@ -225,6 +225,7 @@ async def update_custom_routine(
         routine.duration_minutes = max(1, len(data.exercises) * 30 // 60 + sum(e.rest_seconds for e in data.exercises) // 60)
 
     await session.commit()
+    await session.refresh(routine)
 
     # Reload with exercises
     result = await get_custom_routine(routine.id, session, user)

@@ -241,13 +241,6 @@
 				result = await api.createCustomRoutine(data);
 			}
 
-			console.log('API response:', {
-				id: result.id,
-				name: result.name,
-				exercises_count: result.exercises.length,
-				exercises: result.exercises
-			});
-
 			telegram.hapticNotification('success');
 			onsave(result);
 		} catch (err) {
