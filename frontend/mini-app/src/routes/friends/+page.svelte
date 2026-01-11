@@ -115,12 +115,10 @@
 📊 Соревнования с друзьями
 ⚡ Streaks и бонусы
 
-Присоединяйся, давай тренироваться вместе!
+Присоединяйся, давай тренироваться вместе!`;
 
-${botLink}`;
-
-			// Use Telegram Share API
-			const shareUrl = `https://t.me/share/url?text=${encodeURIComponent(inviteMessage)}`;
+			// Use Telegram Share API - url will be added at the END by Telegram
+			const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(inviteMessage)}`;
 			telegram.openTelegramLink(shareUrl);
 
 			telegram.hapticNotification('success');
