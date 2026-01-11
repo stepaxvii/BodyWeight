@@ -42,6 +42,9 @@
 	let showCustomRoutineEditor = $state(false);
 	let editingCustomRoutine = $state<CustomRoutine | null>(null);
 
+	// Confirmation dialog state
+	let confirmDelete = $state<{ id: number; name: string } | null>(null);
+
 	// Page loading state
 	let isPageLoading = $state(true);
 
@@ -478,8 +481,29 @@
 		editingCustomRoutine = null;
 	}
 
-	function handleCustomRoutineDelete(routineId: number) {
-		customRoutines = customRoutines.filter(r => r.id !== routineId);
+	function handleCustomRoutineDelete(routineId: number, routineName: string) {
+		confirmDelete = { id: routineId, name: routineName };
+		telegram.hapticImpact('light');
+	}
+
+	function cancelDelete() {
+		confirmDelete = null;
+	}
+
+	async function confirmDeleteRoutine() {
+		if (!confirmDelete) return;
+
+		telegram.hapticImpact('medium');
+		try {
+			await api.deleteCustomRoutine(confirmDelete.id);
+			customRoutines = customRoutines.filter(r => r.id !== confirmDelete!.id);
+			telegram.hapticNotification('success');
+		} catch (err) {
+			telegram.hapticNotification('error');
+			console.error('Failed to delete routine:', err);
+		} finally {
+			confirmDelete = null;
+		}
 	}
 
 	function closeCustomRoutineEditor() {
@@ -989,6 +1013,31 @@
 	onClose={() => showFilterModal = false}
 	onApply={handleFilterApply}
 />
+
+<!-- Delete confirmation modal -->
+{#if confirmDelete}
+	<div class="modal-overlay" onclick={cancelDelete}>
+		<div class="modal-dialog" onclick={(e) => e.stopPropagation()}>
+			<div class="modal-header">
+				<PixelIcon name="warning" size="lg" color="var(--pixel-yellow)" />
+			</div>
+			<div class="modal-body">
+				<p class="modal-title">Удалить сет?</p>
+				<p class="modal-text">
+					Вы уверены, что хотите удалить сет "{confirmDelete.name}"?
+				</p>
+			</div>
+			<div class="modal-actions">
+				<PixelButton variant="secondary" onclick={cancelDelete}>
+					Отмена
+				</PixelButton>
+				<PixelButton variant="danger" onclick={confirmDeleteRoutine}>
+					Удалить
+				</PixelButton>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <!-- Exercise info modal -->
 {#if showInfoForExercise}
@@ -1576,5 +1625,62 @@
 	.loading-text {
 		color: var(--text-secondary);
 		font-size: var(--font-size-sm);
+	}
+
+	/* Delete Confirmation Modal */
+	.modal-dialog {
+		background: var(--pixel-card);
+		border: 4px solid var(--border-color);
+		max-width: 320px;
+		width: 100%;
+		animation: modal-appear 0.2s ease-out;
+	}
+
+	@keyframes modal-appear {
+		from {
+			opacity: 0;
+			transform: scale(0.9);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+
+	.modal-header {
+		display: flex;
+		justify-content: center;
+		padding: var(--spacing-md);
+		background: rgba(255, 204, 0, 0.1);
+		border-bottom: 2px solid var(--border-color);
+	}
+
+	.modal-body {
+		padding: var(--spacing-md);
+		text-align: center;
+	}
+
+	.modal-body .modal-title {
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-md);
+		margin-bottom: var(--spacing-sm);
+		color: var(--text-primary);
+	}
+
+	.modal-text {
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+		line-height: 1.4;
+	}
+
+	.modal-actions {
+		display: flex;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-md);
+		border-top: 2px solid var(--border-color);
+	}
+
+	.modal-actions > :global(*) {
+		flex: 1;
 	}
 </style>
