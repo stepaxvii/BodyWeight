@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -15,6 +16,7 @@ from app.schemas import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 # ============== Endpoints ==============
@@ -183,6 +185,8 @@ async def update_custom_routine(
 
     # Update exercises if provided
     if data.exercises is not None:
+        logger.info(f"Updating routine {routine_id} with {len(data.exercises)} exercises")
+
         # Remove existing exercises
         for ex in routine.exercises:
             await session.delete(ex)
@@ -190,6 +194,7 @@ async def update_custom_routine(
 
         # Add new exercises
         for i, ex_data in enumerate(data.exercises):
+            logger.info(f"Adding exercise {i}: exercise_id={ex_data.exercise_id}, target_reps={ex_data.target_reps}, target_duration={ex_data.target_duration}")
             # Verify exercise exists
             ex_result = await session.execute(
                 select(Exercise).where(Exercise.id == ex_data.exercise_id)
@@ -211,13 +216,17 @@ async def update_custom_routine(
             )
             session.add(routine_exercise)
 
+        logger.info(f"Added {len(data.exercises)} exercises to routine {routine_id}")
+
         # Recalculate duration
         routine.duration_minutes = max(1, len(data.exercises) * 30 // 60 + sum(e.rest_seconds for e in data.exercises) // 60)
 
     await session.commit()
 
     # Reload with exercises
-    return await get_custom_routine(routine.id, session, user)
+    result = await get_custom_routine(routine.id, session, user)
+    logger.info(f"Returning routine {routine_id} with {len(result.exercises)} exercises")
+    return result
 
 
 @router.delete("/{routine_id}", status_code=status.HTTP_204_NO_CONTENT)
