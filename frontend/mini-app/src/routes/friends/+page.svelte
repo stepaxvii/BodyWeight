@@ -31,37 +31,7 @@
 		}
 
 		await loadFriends();
-
-		// Handle auto-add friend invite (from deep link)
-		const autoAddUserId = $page.url.searchParams.get('autoadd');
-		if (autoAddUserId) {
-			const userId = parseInt(autoAddUserId);
-			if (!isNaN(userId)) {
-				await autoAddFriend(userId);
-			}
-		}
 	});
-
-	async function autoAddFriend(userId: number) {
-		try {
-			telegram.hapticImpact('medium');
-			// Automatically add friend without confirmation
-			await addFriend(userId);
-			telegram.showPopup({
-				title: '✓ Готово!',
-				message: 'Заявка в друзья отправлена. Как только её примут, вы увидите друга в списке.',
-				buttons: [{ type: 'ok' }]
-			});
-		} catch (err) {
-			telegram.hapticNotification('error');
-			telegram.showPopup({
-				title: 'Ошибка',
-				message: 'Не удалось отправить заявку. Возможно, вы уже друзья или заявка уже отправлена.',
-				buttons: [{ type: 'ok' }]
-			});
-			console.error('Failed to auto-add friend:', err);
-		}
-	}
 
 	async function loadFriends() {
 		isLoading = true;
@@ -106,7 +76,8 @@
 			const botUsername = 'body_weight_traning_bot';
 			const botLink = `https://t.me/${botUsername}`;
 
-			const inviteMessage = `🎮 PixelFit - 8-bit фитнес трекер!
+			const inviteMessage = `
+🎮 PixelFit - 8-bit фитнес трекер!
 
 Привет! Я использую PixelFit для отслеживания тренировок. Это как игра - набираешь опыт, прокачиваешь уровень, открываешь достижения!
 
@@ -117,7 +88,7 @@
 
 Присоединяйся, давай тренироваться вместе!`;
 
-			// Use Telegram Share API - url will be added at the END by Telegram
+			// Use Telegram Share API - url will be added with a line break
 			const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(inviteMessage)}`;
 			telegram.openTelegramLink(shareUrl);
 

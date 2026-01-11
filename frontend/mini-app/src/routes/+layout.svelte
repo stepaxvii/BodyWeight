@@ -13,17 +13,6 @@
 	function handleStartParam(param: string | null) {
 		if (!param) return;
 
-		// Handle friend invite deep link (addfriend_{user_id})
-		// Navigate to friends page with auto-add parameter
-		if (param.startsWith('addfriend_')) {
-			const userId = parseInt(param.replace('addfriend_', ''));
-			if (!isNaN(userId)) {
-				// Navigate to friends page with auto-add parameter
-				goto(`/friends?autoadd=${userId}`);
-				return;
-			}
-		}
-
 		// Map startParam values to routes
 		const routes: Record<string, string> = {
 			friends_requests: '/friends?tab=requests',
@@ -48,21 +37,7 @@
 
 		// Handle deep link navigation after auth
 		if (userStore.isAuthenticated && userStore.isOnboarded) {
-			// Check both telegram.startParam and URL hash parameter
-			let startParam = telegram.startParam;
-
-			// Also check URL hash for tgWebAppStartParam (from bot deep links)
-			if (!startParam && window.location.hash) {
-				const hashParams = new URLSearchParams(window.location.hash.slice(1));
-				const hashParam = hashParams.get('tgWebAppStartParam');
-				if (hashParam) {
-					startParam = hashParam;
-					// Clean up hash from URL
-					window.history.replaceState(null, '', window.location.pathname + window.location.search);
-				}
-			}
-
-			handleStartParam(startParam);
+			handleStartParam(telegram.startParam);
 		}
 	});
 </script>
