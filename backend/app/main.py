@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
     # Startup
-    logger.info("Starting BodyWeight API...")
+    logger.info("Starting PixelFit API...")
 
     # NOTE: Database tables should be created via Alembic migrations
     # Run: alembic upgrade head
@@ -44,13 +44,13 @@ async def lifespan(app: FastAPI):
     yield
 
     # Shutdown
-    logger.info("Shutting down BodyWeight API...")
+    logger.info("Shutting down PixelFit API...")
     stop_scheduler()
     await async_engine.dispose()
 
 
 app = FastAPI(
-    title="BodyWeight Fitness API",
+    title="PixelFit Fitness API",
     description="""
     API для Telegram Mini App фитнес-трекера с геймификацией.
 

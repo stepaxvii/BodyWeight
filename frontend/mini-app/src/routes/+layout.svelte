@@ -43,8 +43,8 @@
 </script>
 
 <svelte:head>
-	<title>BodyWeight - Pixel Fitness</title>
-	<meta name="description" content="8-bit style bodyweight workout tracker" />
+	<title>PixelFit - Pixel Fitness</title>
+	<meta name="description" content="8-bit style fitness tracker with gamification" />
 </svelte:head>
 
 {#if userStore.isLoading}

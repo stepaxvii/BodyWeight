@@ -56,7 +56,7 @@ async def cmd_start(message: Message):
     )
 
     welcome_text = f"""
-<b>BodyWeight</b>
+<b>PixelFit</b>
 
 Привет, {user.first_name or 'друг'}!
 
@@ -136,7 +136,7 @@ Keep pushing! Open the app to continue your workout.
 async def cmd_help(message: Message):
     """Handle /help command."""
     help_text = """
-<b>BodyWeight - Workout Tracker</b>
+<b>PixelFit - Workout Tracker</b>
 
 <b>Commands:</b>
 /start - Start the bot
@@ -169,7 +169,7 @@ Questions? Just message me!
 @router.callback_query(F.data == "open_app")
 async def callback_open_app(callback: CallbackQuery):
     """Handle open app callback."""
-    await callback.answer("Opening BodyWeight app...")
+    await callback.answer("Opening PixelFit app...")
 
 
 @router.callback_query(F.data == "view_stats")

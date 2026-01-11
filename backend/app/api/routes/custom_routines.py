@@ -184,6 +184,7 @@ async def update_custom_routine(
         # Remove existing exercises
         for ex in routine.exercises:
             await session.delete(ex)
+        await session.flush()  # Ensure deletions are committed before adding new ones
 
         # Add new exercises
         for i, ex_data in enumerate(data.exercises):

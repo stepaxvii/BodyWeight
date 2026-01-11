@@ -1,7 +1,7 @@
 {
   "welcome": {
-    "ru": "Добро пожаловать в BodyWeight! Готовы к тренировке?",
-    "en": "Welcome to BodyWeight! Ready to work out?"
+    "ru": "Добро пожаловать в PixelFit! Готовы к тренировке?",
+    "en": "Welcome to PixelFit! Ready to work out?"
   },
   "workout_reminder": {
     "ru": "Не забудьте о тренировке сегодня! Ваша серия: {streak} дней",
