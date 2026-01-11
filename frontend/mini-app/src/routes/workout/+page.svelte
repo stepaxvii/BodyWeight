@@ -451,7 +451,14 @@
 	function handleCustomRoutineSave(routine: CustomRoutine) {
 		// Update list
 		const existingIndex = customRoutines.findIndex(r => r.id === routine.id);
+		console.log('handleCustomRoutineSave:', {
+			routineId: routine.id,
+			exercisesCount: routine.exercises.length,
+			existingIndex
+		});
+
 		if (existingIndex >= 0) {
+			// Update existing routine
 			customRoutines = customRoutines.map((r, i) =>
 				i === existingIndex ? {
 					id: routine.id,
@@ -462,6 +469,7 @@
 				} : r
 			);
 		} else {
+			// Add new routine
 			customRoutines = [{
 				id: routine.id,
 				name: routine.name,
@@ -470,6 +478,9 @@
 				exercises_count: routine.exercises.length
 			}, ...customRoutines];
 		}
+
+		console.log('Updated customRoutines:', customRoutines.map(r => ({ id: r.id, exercises_count: r.exercises_count })));
+
 		showCustomRoutineEditor = false;
 		editingCustomRoutine = null;
 	}
