@@ -311,16 +311,16 @@ async def get_invite_link(
     """
     from app.config import settings
 
-    if not settings.bot_username or not settings.mini_app_name:
+    if not settings.bot_username:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Bot username or Mini App name not configured",
+            detail="Bot username not configured",
         )
 
-    # Format: https://t.me/bot_username/app_name?startapp=addfriend_{user_id}
-    # This directly opens the Mini App instead of bot chat
+    # Format: https://t.me/bot_username?start=addfriend_{user_id}
+    # Opens bot chat, bot will show welcome message with Mini App button
     invite_param = f"addfriend_{user.id}"
-    invite_link = f"https://t.me/{settings.bot_username}/{settings.mini_app_name}?startapp={invite_param}"
+    invite_link = f"https://t.me/{settings.bot_username}?start={invite_param}"
 
     return {
         "invite_link": invite_link,

@@ -74,40 +74,62 @@ async def cmd_start(message: Message):
                 friend = result.scalar_one_or_none()
 
             if friend:
-                friend_name = friend.username or friend.first_name or "пользователь"
-                welcome_text = f"""
-<b>PixelFit</b>
+                friend_name = friend.username or friend.first_name or "Пользователь"
+                welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
 
-Привет, {user.first_name or 'друг'}!
+Привет, {user.first_name or 'друг'}! 👋
 
-{friend_name} приглашает тебя добавить в друзья.
-Открой приложение чтобы принять заявку.
+<b>{friend_name}</b> приглашает тебя присоединиться к тренировкам!
+
+💪 Большое количество упражнений
+🏆 Система достижений и наград
+📊 Соревнуйся с друзьями
+⚡ Streaks и ежедневные бонусы
+
+Открой приложение, чтобы автоматически добавиться в друзья и начать тренироваться вместе!
 """
             else:
-                welcome_text = f"""
-<b>PixelFit</b>
+                welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
 
-Привет, {user.first_name or 'друг'}!
+Добро пожаловать, {user.first_name or 'друг'}! 👋
 
-Тренируйся, зарабатывай опыт, соревнуйся с друзьями.
+Тренируйся как в игре! Набирай опыт, прокачивай уровень, открывай достижения.
+
+💪 Большое количество упражнений
+🏆 Система достижений
+📊 Соревнования с друзьями
+⚡ Streaks и бонусы
+
+Открой приложение и начни свой фитнес-путь!
 """
         except (ValueError, Exception) as e:
             logger.error(f"Error parsing friend invite: {e}")
             start_param = None
-            welcome_text = f"""
-<b>PixelFit</b>
+            welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
 
-Привет, {user.first_name or 'друг'}!
+Добро пожаловать, {user.first_name or 'друг'}! 👋
 
-Тренируйся, зарабатывай опыт, соревнуйся с друзьями.
+Тренируйся как в игре! Набирай опыт, прокачивай уровень, открывай достижения.
+
+💪 Большое количество упражнений
+🏆 Система достижений
+📊 Соревнования с друзьями
+⚡ Streaks и бонусы
+
+Открой приложение и начни свой фитнес-путь!
 """
     else:
-        welcome_text = f"""
-<b>PixelFit</b>
+        # Returning user or first time without invite
+        welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
 
-Привет, {user.first_name or 'друг'}!
+С возвращением, {user.first_name or 'друг'}! 👋
 
-Тренируйся, зарабатывай опыт, соревнуйся с друзьями.
+Готов продолжить тренировки? Открой приложение!
+
+💪 Большое количество упражнений
+🏆 Система достижений
+📊 Соревнования с друзьями
+⚡ Streaks и бонусы
 """
 
     await message.answer(
