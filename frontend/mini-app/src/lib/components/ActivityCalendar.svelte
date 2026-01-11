@@ -53,17 +53,20 @@
 		}
 
 		for (const day of days) {
-			const dayOfWeek = day.getDay();
-			const mondayBased = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+			currentWeek.push(day);
 
-			if (mondayBased === 0 && currentWeek.length > 0) {
+			// Check if week is complete (7 days)
+			if (currentWeek.filter(d => d !== null).length === 7 - currentWeek.filter(d => d === null).length && currentWeek.length === 7) {
 				weeks.push(currentWeek);
 				currentWeek = [];
 			}
-			currentWeek.push(day);
 		}
 
+		// Fill last week with empty slots if needed
 		if (currentWeek.length > 0) {
+			while (currentWeek.length < 7) {
+				currentWeek.push(null as any);
+			}
 			weeks.push(currentWeek);
 		}
 
