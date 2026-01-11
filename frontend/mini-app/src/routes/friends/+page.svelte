@@ -101,9 +101,11 @@
 	async function shareInviteLink() {
 		try {
 			telegram.hapticImpact('medium');
-			const { invite_link } = await api.getInviteLink();
 
-			// Create invitation message
+			// Create invitation message with bot link (no deep linking, just bot)
+			const botUsername = 'body_weight_traning_bot';
+			const botLink = `https://t.me/${botUsername}`;
+
 			const inviteMessage = `🎮 PixelFit - 8-bit фитнес трекер!
 
 Привет! Я использую PixelFit для отслеживания тренировок. Это как игра - набираешь опыт, прокачиваешь уровень, открываешь достижения!
@@ -113,10 +115,12 @@
 📊 Соревнования с друзьями
 ⚡ Streaks и бонусы
 
-Присоединяйся, давай тренироваться вместе!`;
+Присоединяйся, давай тренироваться вместе!
+
+${botLink}`;
 
 			// Use Telegram Share API
-			const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(invite_link)}&text=${encodeURIComponent(inviteMessage)}`;
+			const shareUrl = `https://t.me/share/url?text=${encodeURIComponent(inviteMessage)}`;
 			telegram.openTelegramLink(shareUrl);
 
 			telegram.hapticNotification('success');

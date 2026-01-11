@@ -33,18 +33,16 @@ def get_main_keyboard(start_param: str | None = None) -> InlineKeyboardMarkup:
     Get main menu keyboard with single app button.
 
     Args:
-        start_param: Optional startapp parameter for deep linking
+        start_param: Not used anymore, kept for backward compatibility
     """
-    url = settings.mini_app_url
-    if start_param:
-        url = f"{url}#tgWebAppStartParam={start_param}"
-
+    # Just open the app without parameters
+    # Deep linking doesn't work reliably with Mini Apps
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="Открыть приложение",
-                    web_app=WebAppInfo(url=url),
+                    text="🎮 Открыть приложение",
+                    web_app=WebAppInfo(url=settings.mini_app_url),
                 )
             ],
         ]
