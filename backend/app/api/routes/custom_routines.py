@@ -1,7 +1,7 @@
 import logging
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import (
@@ -65,7 +65,7 @@ async def get_custom_routine(
     result = await session.execute(
         select(UserCustomRoutine)
         .options(
-            selectinload(UserCustomRoutine.exercises).selectinload(UserCustomRoutineExercise.exercise)
+            selectinload(UserCustomRoutine.exercises).joinedload(UserCustomRoutineExercise.exercise)
         )
         .where(UserCustomRoutine.id == routine_id)
         .where(UserCustomRoutine.user_id == user.id)
@@ -162,7 +162,7 @@ async def update_custom_routine(
     result = await session.execute(
         select(UserCustomRoutine)
         .options(
-            selectinload(UserCustomRoutine.exercises).selectinload(UserCustomRoutineExercise.exercise)
+            selectinload(UserCustomRoutine.exercises).joinedload(UserCustomRoutineExercise.exercise)
         )
         .where(UserCustomRoutine.id == routine_id)
         .where(UserCustomRoutine.user_id == user.id)
