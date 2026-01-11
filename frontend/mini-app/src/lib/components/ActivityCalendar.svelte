@@ -57,11 +57,6 @@
 		for (const day of days) {
 			currentWeek.push(day);
 
-			// Log week containing January 12
-			if (day.getDate() === 12 && day.getMonth() === 0) {
-				console.log('Week containing Jan 12:', currentWeek.map(d => d ? `${d.toDateString()} [day ${d.getDay()}]` : 'empty'));
-			}
-
 			// Check if week is complete (7 days total)
 			if (currentWeek.length === 7) {
 				weeks.push([...currentWeek]);
@@ -212,34 +207,6 @@
 	.calendar-grid-wrapper {
 		position: relative;
 		overflow: hidden;
-	}
-
-	.calendar-grid-container {
-		display: flex;
-		gap: var(--spacing-xs);
-	}
-
-	.weekday-labels {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		padding-right: var(--spacing-xs);
-		flex-shrink: 0;
-	}
-
-	.weekday-label {
-		height: 10px;
-		font-size: 9px;
-		color: var(--text-secondary);
-		display: flex;
-		align-items: center;
-		line-height: 1;
-	}
-
-	.calendar-scrollable {
-		flex: 1;
-		overflow-x: auto;
-		overflow-y: hidden;
 	}
 
 	.month-labels {
