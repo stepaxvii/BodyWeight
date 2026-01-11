@@ -45,8 +45,10 @@
 
 		// Fill first week with empty slots if it doesn't start on Monday
 		const firstDay = days[0];
-		const firstDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
-		const daysToFill = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1; // Convert to Monday-based
+		let firstDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
+		// Convert Sunday (0) to 7 for easier Monday-based calculation
+		if (firstDayOfWeek === 0) firstDayOfWeek = 7;
+		const daysToFill = firstDayOfWeek - 1; // Monday = 1, so Monday needs 0 empty slots
 
 		for (let i = 0; i < daysToFill; i++) {
 			currentWeek.push(null as any); // Empty slot
@@ -55,8 +57,8 @@
 		for (const day of days) {
 			currentWeek.push(day);
 
-			// Check if week is complete (7 days)
-			if (currentWeek.filter(d => d !== null).length === 7 - currentWeek.filter(d => d === null).length && currentWeek.length === 7) {
+			// Check if week is complete (7 days total)
+			if (currentWeek.length === 7) {
 				weeks.push(currentWeek);
 				currentWeek = [];
 			}
