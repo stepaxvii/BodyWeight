@@ -159,7 +159,9 @@ async def update_custom_routine(
     """Update a custom routine."""
     result = await session.execute(
         select(UserCustomRoutine)
-        .options(selectinload(UserCustomRoutine.exercises))
+        .options(
+            selectinload(UserCustomRoutine.exercises).selectinload(UserCustomRoutineExercise.exercise)
+        )
         .where(UserCustomRoutine.id == routine_id)
         .where(UserCustomRoutine.user_id == user.id)
     )
