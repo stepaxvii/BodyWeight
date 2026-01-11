@@ -97,29 +97,37 @@
 		}
 	}
 
-	async function copyInviteLink() {
+	async function shareInviteLink() {
 		try {
 			telegram.hapticImpact('medium');
 			const { invite_link } = await api.getInviteLink();
 
-			// Copy to clipboard
-			await navigator.clipboard.writeText(invite_link);
+			// Create invitation message
+			const inviteMessage = `🎮 PixelFit - 8-bit фитнес трекер!
 
-			// Show success feedback with detailed instructions
+Привет! Я использую PixelFit для отслеживания тренировок. Это как игра - набираешь опыт, прокачиваешь уровень, открываешь достижения!
+
+💪 Более 100 упражнений
+🏆 Система достижений
+📊 Соревнования с друзьями
+⚡ Streaks и бонусы
+
+Присоединяйся, давай тренироваться вместе!
+${invite_link}`;
+
+			// Use Telegram Share API
+			const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(invite_link)}&text=${encodeURIComponent(inviteMessage)}`;
+			telegram.openTelegramLink(shareUrl);
+
 			telegram.hapticNotification('success');
-			telegram.showPopup({
-				title: '✓ Ссылка скопирована!',
-				message: 'Теперь отправьте эту ссылку другу в любом мессенджере.\n\nКогда друг откроет ссылку, он сразу увидит предложение добавить вас в друзья.',
-				buttons: [{ type: 'ok', text: 'Понятно' }]
-			});
 		} catch (err) {
 			telegram.hapticNotification('error');
 			telegram.showPopup({
 				title: 'Ошибка',
-				message: 'Не удалось скопировать ссылку. Попробуйте ещё раз.',
+				message: 'Не удалось поделиться ссылкой. Попробуйте ещё раз.',
 				buttons: [{ type: 'ok' }]
 			});
-			console.error('Failed to copy invite link:', err);
+			console.error('Failed to share invite link:', err);
 		}
 	}
 
@@ -273,10 +281,11 @@
 				<div class="invite-link-section">
 					<div class="invite-info">
 						<PixelIcon name="link" size="sm" color="var(--primary)" />
-						<span>Не можете найти друга?</span>
+						<span>Пригласить друга</span>
 					</div>
-					<PixelButton size="sm" variant="secondary" onclick={copyInviteLink}>
-						Скопировать ссылку-приглашение
+					<PixelButton size="sm" variant="secondary" onclick={shareInviteLink}>
+						<PixelIcon name="share" />
+						Поделиться приглашением
 					</PixelButton>
 				</div>
 			</PixelCard>

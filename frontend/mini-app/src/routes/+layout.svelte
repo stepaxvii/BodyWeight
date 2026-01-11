@@ -14,13 +14,10 @@
 		if (!param) return;
 
 		// Handle friend invite deep link (addfriend_{user_id})
+		// Don't navigate anywhere - user will see notification badge and can check it themselves
 		if (param.startsWith('addfriend_')) {
-			const userId = parseInt(param.replace('addfriend_', ''));
-			if (!isNaN(userId)) {
-				// Navigate to friends page with special parameter
-				goto(`/friends?tab=search&add=${userId}`);
-				return;
-			}
+			// Just return, let the notification system handle it
+			return;
 		}
 
 		// Map startParam values to routes
@@ -68,7 +65,7 @@
 
 <svelte:head>
 	<title>PixelFit - Pixel Fitness</title>
-	<meta name="description" content="8-bit style fitness tracker with gamification" />
+	<meta name="description" content="8-bit фитнес трекер с геймификацией" />
 </svelte:head>
 
 {#if userStore.isLoading}
