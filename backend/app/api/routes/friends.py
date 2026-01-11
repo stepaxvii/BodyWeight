@@ -297,6 +297,29 @@ async def remove_friend(
     return {"message": "Friend removed"}
 
 
+@router.get("/invite-link")
+async def get_invite_link(
+    user: CurrentUser,
+):
+    """
+    Get invite link to add current user as friend.
+
+    Returns a Telegram deep link that opens the bot with startapp parameter.
+    When another user opens this link, they'll see a prompt to add this user as friend.
+    """
+    from app.config import settings
+
+    # Format: https://t.me/bot_username?startapp=addfriend_{user_id}
+    bot_username = settings.bot_username  # Need to add this to config
+    invite_param = f"addfriend_{user.id}"
+    invite_link = f"https://t.me/{bot_username}?startapp={invite_param}"
+
+    return {
+        "invite_link": invite_link,
+        "user_id": user.id,
+    }
+
+
 @router.get("/search", response_model=list[FriendResponse])
 async def search_users(
     session: AsyncSessionDep,

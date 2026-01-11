@@ -26,10 +26,41 @@
 		const tabParam = $page.url.searchParams.get('tab');
 		if (tabParam === 'requests') {
 			activeTab = 'requests';
+		} else if (tabParam === 'search') {
+			activeTab = 'search';
 		}
 
 		await loadFriends();
+
+		// Handle friend invite deep link
+		const addUserId = $page.url.searchParams.get('add');
+		if (addUserId) {
+			const userId = parseInt(addUserId);
+			if (!isNaN(userId)) {
+				handleFriendInvite(userId);
+			}
+		}
 	});
+
+	async function handleFriendInvite(userId: number) {
+		try {
+			// Fetch user info
+			const response = await api.getUserProfile(userId);
+
+			// Show confirmation dialog
+			const confirmed = await telegram.showConfirm(
+				`Добавить ${response.username || response.first_name || 'пользователя'} в друзья?`
+			);
+
+			if (confirmed) {
+				await addFriend(userId);
+			}
+		} catch (err) {
+			telegram.hapticNotification('error');
+			telegram.showAlert('Не удалось найти пользователя');
+			console.error('Failed to handle friend invite:', err);
+		}
+	}
 
 	async function loadFriends() {
 		isLoading = true;
@@ -63,6 +94,27 @@
 			searchResults = [];
 		} finally {
 			isSearching = false;
+		}
+	}
+
+	async function copyInviteLink() {
+		try {
+			telegram.hapticImpact('medium');
+			const { invite_link } = await api.getInviteLink();
+
+			// Copy to clipboard
+			await navigator.clipboard.writeText(invite_link);
+
+			// Show success feedback
+			telegram.hapticNotification('success');
+			telegram.showPopup({
+				title: 'Ссылка скопирована',
+				message: 'Отправьте эту ссылку другу, чтобы он мог добавить вас в друзья',
+				buttons: [{ type: 'ok' }]
+			});
+		} catch (err) {
+			telegram.hapticNotification('error');
+			console.error('Failed to copy invite link:', err);
 		}
 	}
 
@@ -100,15 +152,24 @@
 		};
 	});
 
-	async function addFriend(username: string) {
+	async function addFriend(usernameOrId: string | number) {
 		telegram.hapticImpact('medium');
 		try {
-			await api.addFriend(username);
+			await api.addFriend(usernameOrId);
+
 			// Update search results to show pending status
-			searchResults = searchResults.map(u =>
-				u.username === username ? { ...u, status: 'pending' as const } : u
-			);
+			if (typeof usernameOrId === 'string') {
+				searchResults = searchResults.map(u =>
+					u.username === usernameOrId ? { ...u, status: 'pending' as const } : u
+				);
+			} else {
+				searchResults = searchResults.map(u =>
+					u.user_id === usernameOrId ? { ...u, status: 'pending' as const } : u
+				);
+			}
+
 			telegram.hapticNotification('success');
+			telegram.showAlert('Заявка отправлена');
 		} catch (err) {
 			telegram.hapticNotification('error');
 			error = 'Не удалось отправить заявку';
@@ -202,6 +263,19 @@
 	<!-- Search Tab -->
 	{#if activeTab === 'search'}
 		<div class="search-section">
+			<!-- Invite Link Button -->
+			<PixelCard padding="sm" style="margin-bottom: 16px;">
+				<div class="invite-link-section">
+					<div class="invite-info">
+						<PixelIcon name="link" size="sm" color="var(--primary)" />
+						<span>Не можете найти друга?</span>
+					</div>
+					<PixelButton size="sm" variant="secondary" onclick={copyInviteLink}>
+						Скопировать ссылку-приглашение
+					</PixelButton>
+				</div>
+			</PixelCard>
+
 			<div class="search-box">
 				<input
 					type="text"
@@ -420,6 +494,20 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
+	}
+
+	.invite-link-section {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+	}
+
+	.invite-info {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
 	}
 
 	.search-box {

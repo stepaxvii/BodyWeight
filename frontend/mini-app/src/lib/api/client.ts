@@ -230,11 +230,20 @@ class ApiClient {
 		return this.request<Friend[]>(`/friends/search?q=${encodeURIComponent(query)}`);
 	}
 
-	async addFriend(username: string): Promise<Friend> {
+	async addFriend(usernameOrId: string | number): Promise<Friend> {
+		const body =
+			typeof usernameOrId === 'number'
+				? { user_id: usernameOrId }
+				: { username: usernameOrId };
+
 		return this.request<Friend>('/friends/add', {
 			method: 'POST',
-			body: JSON.stringify({ username })
+			body: JSON.stringify(body)
 		});
+	}
+
+	async getInviteLink(): Promise<{ invite_link: string; user_id: number }> {
+		return this.request('/friends/invite-link');
 	}
 
 	async acceptFriendRequest(friendshipId: number): Promise<Friend> {

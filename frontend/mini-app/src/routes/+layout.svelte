@@ -13,6 +13,16 @@
 	function handleStartParam(param: string | null) {
 		if (!param) return;
 
+		// Handle friend invite deep link (addfriend_{user_id})
+		if (param.startsWith('addfriend_')) {
+			const userId = parseInt(param.replace('addfriend_', ''));
+			if (!isNaN(userId)) {
+				// Navigate to friends page with special parameter
+				goto(`/friends?tab=search&add=${userId}`);
+				return;
+			}
+		}
+
 		// Map startParam values to routes
 		const routes: Record<string, string> = {
 			friends_requests: '/friends?tab=requests',
