@@ -10,7 +10,7 @@ DEFAULT_DB_PATH = BACKEND_DIR / "bodyweight.db"
 class Settings(BaseSettings):
     # Telegram Bot
     bot_token: str = ""
-    bot_username: str = ""  # Bot username without @, e.g. "bodyweight_bot"
+    bot_username: str = "body_weight_traning_bot"  # Bot username without @
     mini_app_name: str = ""  # Mini App short name from BotFather, e.g. "bodyweight"
 
     # Security

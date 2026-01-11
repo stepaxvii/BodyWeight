@@ -114,7 +114,11 @@
 			});
 		} catch (err) {
 			telegram.hapticNotification('error');
-			telegram.showAlert('Не удалось скопировать ссылку. Попробуйте ещё раз.');
+			telegram.showPopup({
+				title: 'Ошибка',
+				message: 'Не удалось скопировать ссылку. Попробуйте ещё раз.',
+				buttons: [{ type: 'ok' }]
+			});
 			console.error('Failed to copy invite link:', err);
 		}
 	}
