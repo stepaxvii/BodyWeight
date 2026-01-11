@@ -14,10 +14,14 @@
 		if (!param) return;
 
 		// Handle friend invite deep link (addfriend_{user_id})
-		// Don't navigate anywhere - user will see notification badge and can check it themselves
+		// Navigate to friends page with auto-add parameter
 		if (param.startsWith('addfriend_')) {
-			// Just return, let the notification system handle it
-			return;
+			const userId = parseInt(param.replace('addfriend_', ''));
+			if (!isNaN(userId)) {
+				// Navigate to friends page with auto-add parameter
+				goto(`/friends?autoadd=${userId}`);
+				return;
+			}
 		}
 
 		// Map startParam values to routes

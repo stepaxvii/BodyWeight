@@ -32,33 +32,34 @@
 
 		await loadFriends();
 
-		// Handle friend invite deep link
-		const addUserId = $page.url.searchParams.get('add');
-		if (addUserId) {
-			const userId = parseInt(addUserId);
+		// Handle auto-add friend invite (from deep link)
+		const autoAddUserId = $page.url.searchParams.get('autoadd');
+		if (autoAddUserId) {
+			const userId = parseInt(autoAddUserId);
 			if (!isNaN(userId)) {
-				handleFriendInvite(userId);
+				await autoAddFriend(userId);
 			}
 		}
 	});
 
-	async function handleFriendInvite(userId: number) {
+	async function autoAddFriend(userId: number) {
 		try {
-			// Fetch user info
-			const response = await api.getUserProfile(userId);
-
-			// Show confirmation dialog
-			const confirmed = await telegram.showConfirm(
-				`Добавить ${response.username || response.first_name || 'пользователя'} в друзья?`
-			);
-
-			if (confirmed) {
-				await addFriend(userId);
-			}
+			telegram.hapticImpact('medium');
+			// Automatically add friend without confirmation
+			await addFriend(userId);
+			telegram.showPopup({
+				title: '✓ Готово!',
+				message: 'Заявка в друзья отправлена. Как только её примут, вы увидите друга в списке.',
+				buttons: [{ type: 'ok' }]
+			});
 		} catch (err) {
 			telegram.hapticNotification('error');
-			telegram.showAlert('Не удалось найти пользователя');
-			console.error('Failed to handle friend invite:', err);
+			telegram.showPopup({
+				title: 'Ошибка',
+				message: 'Не удалось отправить заявку. Возможно, вы уже друзья или заявка уже отправлена.',
+				buttons: [{ type: 'ok' }]
+			});
+			console.error('Failed to auto-add friend:', err);
 		}
 	}
 
@@ -107,13 +108,12 @@
 
 Привет! Я использую PixelFit для отслеживания тренировок. Это как игра - набираешь опыт, прокачиваешь уровень, открываешь достижения!
 
-💪 Более 100 упражнений
+💪 Большое количество упражнений
 🏆 Система достижений
 📊 Соревнования с друзьями
 ⚡ Streaks и бонусы
 
-Присоединяйся, давай тренироваться вместе!
-${invite_link}`;
+Присоединяйся, давай тренироваться вместе!`;
 
 			// Use Telegram Share API
 			const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(invite_link)}&text=${encodeURIComponent(inviteMessage)}`;
