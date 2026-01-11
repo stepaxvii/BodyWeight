@@ -57,9 +57,14 @@
 		for (const day of days) {
 			currentWeek.push(day);
 
+			// Log week containing January 12
+			if (day.getDate() === 12 && day.getMonth() === 0) {
+				console.log('Week containing Jan 12:', currentWeek.map(d => d ? `${d.toDateString()} [day ${d.getDay()}]` : 'empty'));
+			}
+
 			// Check if week is complete (7 days total)
 			if (currentWeek.length === 7) {
-				weeks.push(currentWeek);
+				weeks.push([...currentWeek]);
 				currentWeek = [];
 			}
 		}
