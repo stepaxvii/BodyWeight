@@ -105,15 +105,16 @@
 			// Copy to clipboard
 			await navigator.clipboard.writeText(invite_link);
 
-			// Show success feedback
+			// Show success feedback with detailed instructions
 			telegram.hapticNotification('success');
 			telegram.showPopup({
-				title: 'Ссылка скопирована',
-				message: 'Отправьте эту ссылку другу, чтобы он мог добавить вас в друзья',
-				buttons: [{ type: 'ok' }]
+				title: '✓ Ссылка скопирована!',
+				message: 'Теперь отправьте эту ссылку другу в любом мессенджере.\n\nКогда друг откроет ссылку, он сразу увидит предложение добавить вас в друзья.',
+				buttons: [{ type: 'ok', text: 'Понятно' }]
 			});
 		} catch (err) {
 			telegram.hapticNotification('error');
+			telegram.showAlert('Не удалось скопировать ссылку. Попробуйте ещё раз.');
 			console.error('Failed to copy invite link:', err);
 		}
 	}

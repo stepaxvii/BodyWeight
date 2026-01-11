@@ -47,7 +47,21 @@
 
 		// Handle deep link navigation after auth
 		if (userStore.isAuthenticated && userStore.isOnboarded) {
-			handleStartParam(telegram.startParam);
+			// Check both telegram.startParam and URL hash parameter
+			let startParam = telegram.startParam;
+
+			// Also check URL hash for tgWebAppStartParam (from bot deep links)
+			if (!startParam && window.location.hash) {
+				const hashParams = new URLSearchParams(window.location.hash.slice(1));
+				const hashParam = hashParams.get('tgWebAppStartParam');
+				if (hashParam) {
+					startParam = hashParam;
+					// Clean up hash from URL
+					window.history.replaceState(null, '', window.location.pathname + window.location.search);
+				}
+			}
+
+			handleStartParam(startParam);
 		}
 	});
 </script>

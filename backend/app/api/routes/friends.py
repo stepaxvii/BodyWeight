@@ -304,15 +304,23 @@ async def get_invite_link(
     """
     Get invite link to add current user as friend.
 
-    Returns a Telegram deep link that opens the bot with startapp parameter.
+    Returns a Telegram deep link that opens the bot with start parameter.
+    Format: https://t.me/bot_username?start=addfriend_{user_id}
+
     When another user opens this link, they'll see a prompt to add this user as friend.
     """
     from app.config import settings
 
-    # Format: https://t.me/bot_username?startapp=addfriend_{user_id}
-    bot_username = settings.bot_username  # Need to add this to config
+    if not settings.bot_username:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Bot username not configured",
+        )
+
+    # Format: https://t.me/bot_username?start=addfriend_{user_id}
+    # Note: use 'start' not 'startapp' for regular bot links
     invite_param = f"addfriend_{user.id}"
-    invite_link = f"https://t.me/{bot_username}?startapp={invite_param}"
+    invite_link = f"https://t.me/{settings.bot_username}?start={invite_param}"
 
     return {
         "invite_link": invite_link,

@@ -42,7 +42,7 @@ async def get_or_create_user(telegram_id: int, username: str | None, first_name:
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    """Handle /start command."""
+    """Handle /start command with optional deep link parameter."""
     user = message.from_user
     if not user:
         return
@@ -55,7 +55,54 @@ async def cmd_start(message: Message):
         last_name=user.last_name,
     )
 
-    welcome_text = f"""
+    # Extract deep link parameter from /start command
+    # Format: /start addfriend_123
+    start_param = None
+    if message.text and ' ' in message.text:
+        _, param = message.text.split(' ', 1)
+        start_param = param.strip()
+
+    # Check if this is a friend invite
+    if start_param and start_param.startswith('addfriend_'):
+        try:
+            friend_id = int(start_param.replace('addfriend_', ''))
+            # Get friend's name from database
+            async with async_session_maker() as session:
+                result = await session.execute(
+                    select(User).where(User.id == friend_id)
+                )
+                friend = result.scalar_one_or_none()
+
+            if friend:
+                friend_name = friend.username or friend.first_name or "пользователь"
+                welcome_text = f"""
+<b>PixelFit</b>
+
+Привет, {user.first_name or 'друг'}!
+
+{friend_name} приглашает тебя добавить в друзья.
+Открой приложение чтобы принять заявку.
+"""
+            else:
+                welcome_text = f"""
+<b>PixelFit</b>
+
+Привет, {user.first_name or 'друг'}!
+
+Тренируйся, зарабатывай опыт, соревнуйся с друзьями.
+"""
+        except (ValueError, Exception) as e:
+            logger.error(f"Error parsing friend invite: {e}")
+            start_param = None
+            welcome_text = f"""
+<b>PixelFit</b>
+
+Привет, {user.first_name or 'друг'}!
+
+Тренируйся, зарабатывай опыт, соревнуйся с друзьями.
+"""
+    else:
+        welcome_text = f"""
 <b>PixelFit</b>
 
 Привет, {user.first_name or 'друг'}!
@@ -65,7 +112,7 @@ async def cmd_start(message: Message):
 
     await message.answer(
         welcome_text,
-        reply_markup=get_main_keyboard(),
+        reply_markup=get_main_keyboard(start_param=start_param),
     )
 
 

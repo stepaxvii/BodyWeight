@@ -204,6 +204,23 @@
 		routines.filter(r => r.category === activeRoutineCategory)
 	);
 
+	// Group favorite exercises by category
+	const groupedFavorites = $derived.by(() => {
+		const groups = new Map<string, { category: ExerciseCategory; exercises: Exercise[] }>();
+
+		for (const exercise of favoriteExercises) {
+			const category = categories.find(c => c.slug === exercise.category_slug);
+			if (!category) continue;
+
+			if (!groups.has(category.slug)) {
+				groups.set(category.slug, { category, exercises: [] });
+			}
+			groups.get(category.slug)!.exercises.push(exercise);
+		}
+
+		return Array.from(groups.values()).sort((a, b) => a.category.sort_order - b.category.sort_order);
+	});
+
 	// Active filter count for badge
 	const activeFilterCount = $derived(
 		selectedEquipment.length + selectedDifficulties.length + selectedTags.length
@@ -829,17 +846,29 @@
 			<!-- Favorites section -->
 			<section class="tab-section">
 				{#if favoriteExercises.length > 0}
-					<div class="exercises-list">
-						{#each favoriteExercises as exercise (exercise.id)}
-							<ExerciseCard
-								{exercise}
-								isSelected={workoutStore.isExerciseSelected(exercise.id)}
-								categoryColor={categoryColors[exercise.category_slug]}
-								onSelect={() => toggleExercise(exercise)}
-								onInfoClick={() => openExerciseInfo(exercise)}
-							/>
-						{/each}
-					</div>
+					{#each groupedFavorites as group (group.category.slug)}
+						<div class="category-group">
+							<div class="category-group-header">
+								<span class="category-group-title" style="color: {categoryColors[group.category.slug]}">
+									{group.category.name_ru}
+								</span>
+								<span class="category-group-count">
+									{group.exercises.length}
+								</span>
+							</div>
+							<div class="exercises-list">
+								{#each group.exercises as exercise (exercise.id)}
+									<ExerciseCard
+										{exercise}
+										isSelected={workoutStore.isExerciseSelected(exercise.id)}
+										categoryColor={categoryColors[exercise.category_slug]}
+										onSelect={() => toggleExercise(exercise)}
+										onInfoClick={() => openExerciseInfo(exercise)}
+									/>
+								{/each}
+							</div>
+						</div>
+					{/each}
 				{:else}
 					<EmptyState
 						icon="heart-empty"
@@ -1682,5 +1711,38 @@
 
 	.modal-actions > :global(*) {
 		flex: 1;
+	}
+
+	/* Category Groups */
+	.category-group {
+		margin-bottom: var(--spacing-xl);
+	}
+
+	.category-group:last-child {
+		margin-bottom: 0;
+	}
+
+	.category-group-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: var(--spacing-sm) var(--spacing-xs);
+		margin-bottom: var(--spacing-sm);
+		border-bottom: 2px solid var(--border-color);
+	}
+
+	.category-group-title {
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-md);
+		font-weight: bold;
+		text-transform: uppercase;
+	}
+
+	.category-group-count {
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+		background: var(--pixel-bg-dark);
+		padding: 2px 8px;
+		border: 2px solid var(--border-color);
 	}
 </style>
