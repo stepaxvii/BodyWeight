@@ -242,7 +242,9 @@
 		const shareText = [
 			`🏋️ ${routine.name}`,
 			'',
-			`⏱ ${formattedTotalTime}  •  +${totalXpEarned} XP  •  🪙 ${totalCoinsEarned} монет`,
+			`⏱ ${formattedTotalTime}`,
+			`+${totalXpEarned} XP`,
+			`🪙 ${totalCoinsEarned} монет`,
 			'',
 			'Упражнения:',
 			...exerciseLines,
@@ -250,7 +252,8 @@
 			`🎮 PixelFit — ${botLink}`
 		].join('\n');
 
-		const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(shareText)}`;
+		// Только text — без url, чтобы Telegram не добавлял ссылку сверху сообщения
+		const shareUrl = `https://t.me/share/url?text=${encodeURIComponent(shareText)}`;
 		telegram.openTelegramLink(shareUrl);
 		telegram.hapticNotification('success');
 	}
@@ -340,7 +343,7 @@
 			<div class="completion-header">
 				<PixelIcon name="trophy" size="xl" color="var(--pixel-yellow)" />
 				<h2 class="completion-title">{routine.name}</h2>
-				<p class="completion-subtitle">Сет завершён</p>
+				<p class="completion-subtitle">завершён</p>
 			</div>
 
 			<div class="completion-stats-grid">
