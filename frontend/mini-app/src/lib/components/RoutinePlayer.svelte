@@ -225,7 +225,7 @@
 		onclose?.();
 	}
 
-	function shareWorkout() {
+	async function shareWorkout() {
 		telegram.hapticImpact('medium');
 		const botUsername = 'body_weight_traning_bot';
 		const botLink = `https://t.me/${botUsername}`;
@@ -252,10 +252,17 @@
 			`🎮 PixelFit — ${botLink}`
 		].join('\n');
 
-		// Только text — без url, чтобы Telegram не добавлял ссылку сверху сообщения
-		const shareUrl = `https://t.me/share/url?text=${encodeURIComponent(shareText)}`;
-		telegram.openTelegramLink(shareUrl);
-		telegram.hapticNotification('success');
+		try {
+			await navigator.clipboard.writeText(shareText);
+			telegram.hapticNotification('success');
+			telegram.showAlert(
+				'Сообщение скопировано. Откройте нужный чат и вставьте его в поле ввода (долгое нажатие → Вставить).'
+			);
+		} catch (err) {
+			console.error('Clipboard copy failed:', err);
+			telegram.hapticNotification('error');
+			telegram.showAlert('Не удалось скопировать. Попробуйте ещё раз.');
+		}
 	}
 
 	function skipExercise() {
