@@ -57,7 +57,7 @@
 					<div class="routine-item">
 						<div class="routine-info">
 							<div class="routine-header">
-								<span class="routine-name">{routine.name}</span>
+								<span class="routine-name" title={routine.name}>{routine.name}</span>
 								<span class="routine-type" style="color: {getTypeColor(routine.routine_type)}">
 									{getTypeLabel(routine.routine_type)}
 								</span>
@@ -134,8 +134,8 @@
 
 	.routine-header {
 		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
+		flex-direction: column;
+		gap: 2px;
 		margin-bottom: var(--spacing-xs);
 	}
 
@@ -145,11 +145,13 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		min-width: 0;
 	}
 
 	.routine-type {
 		font-size: 10px;
 		text-transform: uppercase;
+		align-self: flex-start;
 	}
 
 	.routine-stats {
