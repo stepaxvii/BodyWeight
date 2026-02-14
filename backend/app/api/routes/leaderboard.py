@@ -32,6 +32,7 @@ async def get_global_leaderboard(
 
     result = await session.execute(
         select(User)
+        .where(User.leaderboard_visible == True)
         .order_by(User.total_xp.desc())
         .limit(limit)
     )
@@ -61,10 +62,11 @@ async def get_global_leaderboard(
             is_current_user=is_current,
         ))
 
-    # If current user is not in top, find their rank
+    # If current user is not in top (or not in leaderboard), find their rank among visible users
     if current_user_rank is None:
         rank_result = await session.execute(
             select(func.count(User.id))
+            .where(User.leaderboard_visible == True)
             .where(User.total_xp > user.total_xp)
         )
         current_user_rank = (rank_result.scalar() or 0) + 1
@@ -107,6 +109,7 @@ async def get_weekly_leaderboard(
     result = await session.execute(
         select(User, weekly_xp_subq.c.weekly_xp)
         .join(weekly_xp_subq, User.id == weekly_xp_subq.c.user_id)
+        .where(User.leaderboard_visible == True)
         .order_by(weekly_xp_subq.c.weekly_xp.desc())
         .limit(limit)
     )
@@ -152,7 +155,7 @@ async def get_friends_leaderboard(
     logger.debug(f"[Leaderboard/Friends] Getting friends leaderboard, user_id={user.id}")
 
     # Optimized: One JOIN query instead of two separate queries
-    # Get friends where current user is the requester
+    # Get friends where current user is the requester and friend is visible in leaderboard
     stmt = (
         select(User)
         .join(
@@ -163,6 +166,7 @@ async def get_friends_leaderboard(
                 Friendship.status == "accepted"
             )
         )
+        .where(User.leaderboard_visible == True)
         .order_by(User.total_xp.desc())
         .limit(50)
     )
@@ -171,9 +175,8 @@ async def get_friends_leaderboard(
     friends = list(result.scalars().all())
     logger.debug(f"[Leaderboard/Friends] Found {len(friends)} friends via JOIN")
 
-    # Add current user to the list
-    friends_with_me = [user] + friends
-    # Re-sort to include current user in correct position
+    # Add current user to the list only if they consented to leaderboard
+    friends_with_me = ([user] if user.leaderboard_visible else []) + friends
     friends_with_me.sort(key=lambda u: u.total_xp, reverse=True)
 
     entries = []

@@ -48,6 +48,8 @@ class User(Base):
 
     # Onboarding
     is_onboarded: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Согласие на показ в рейтинге (username или first_name)
+    leaderboard_visible: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

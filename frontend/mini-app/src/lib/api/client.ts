@@ -101,9 +101,10 @@ class ApiClient {
 		});
 	}
 
-	async completeOnboarding(): Promise<User> {
+	async completeOnboarding(leaderboardConsent: boolean): Promise<User> {
 		return this.request<User>('/users/me/complete-onboarding', {
-			method: 'POST'
+			method: 'POST',
+			body: JSON.stringify({ leaderboard_consent: leaderboardConsent })
 		});
 	}
 

@@ -14,6 +14,7 @@ from app.schemas import (
     UserResponse,
     UserStatsResponse,
     UpdateUserRequest,
+    CompleteOnboardingRequest,
     UserProfileResponse,
     DayActivityResponse,
     UserActivityResponse,
@@ -154,10 +155,12 @@ async def update_current_user(
 @router.post("/me/complete-onboarding", response_model=UserResponse)
 async def complete_onboarding(
     user: CurrentUser,
+    body: CompleteOnboardingRequest,
     session: AsyncSessionDep,
 ):
-    """Mark user as onboarded."""
+    """Mark user as onboarded and save leaderboard consent."""
     user.is_onboarded = True
+    user.leaderboard_visible = body.leaderboard_consent
     await session.flush()
     await session.refresh(user)
     return UserResponse.model_validate(user)

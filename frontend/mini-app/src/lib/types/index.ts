@@ -88,6 +88,7 @@ export interface User {
 	notification_time?: string;
 	notifications_enabled: boolean;
 	is_onboarded: boolean;
+	leaderboard_visible: boolean;
 	created_at: string;
 	updated_at: string;
 }

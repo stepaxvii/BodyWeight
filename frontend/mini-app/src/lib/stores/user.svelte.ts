@@ -142,10 +142,10 @@ class UserStore {
 		}
 	}
 
-	async completeOnboarding() {
+	async completeOnboarding(leaderboardConsent: boolean) {
 		if (this.user) {
 			try {
-				this.user = await api.completeOnboarding();
+				this.user = await api.completeOnboarding(leaderboardConsent);
 			} catch (err) {
 				console.error('Failed to complete onboarding:', err);
 			}
