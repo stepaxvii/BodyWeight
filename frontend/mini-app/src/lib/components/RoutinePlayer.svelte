@@ -225,6 +225,36 @@
 		onclose?.();
 	}
 
+	function shareWorkout() {
+		telegram.hapticImpact('medium');
+		const botUsername = 'body_weight_traning_bot';
+		const botLink = `https://t.me/${botUsername}`;
+
+		const exerciseLines = completedExercises.map((ce) => {
+			const ex = allExercises.find((e) => e.slug === ce.exercise_slug);
+			const name = ex?.name_ru || ce.exercise_slug;
+			const setsStr = ce.sets
+				.map((v) => (ce.is_timed ? `${v} сек` : `${v} повт.`))
+				.join(', ');
+			return `• ${name}: ${setsStr}`;
+		});
+
+		const shareText = [
+			`🏋️ ${routine.name}`,
+			'',
+			`⏱ ${formattedTotalTime}  •  +${totalXpEarned} XP  •  🪙 ${totalCoinsEarned} монет`,
+			'',
+			'Упражнения:',
+			...exerciseLines,
+			'',
+			`🎮 PixelFit — ${botLink}`
+		].join('\n');
+
+		const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(shareText)}`;
+		telegram.openTelegramLink(shareUrl);
+		telegram.hapticNotification('success');
+	}
+
 	function skipExercise() {
 		telegram.hapticImpact('light');
 		if (currentStep < routine.exercises.length - 1) {
@@ -309,8 +339,8 @@
 		<div class="completion-screen">
 			<div class="completion-header">
 				<PixelIcon name="trophy" size="xl" color="var(--pixel-yellow)" />
-				<h2 class="completion-title">Отлично!</h2>
-				<p class="completion-subtitle">Сет выполнен</p>
+				<h2 class="completion-title">{routine.name}</h2>
+				<p class="completion-subtitle">Сет завершён</p>
 			</div>
 
 			<div class="completion-stats-grid">
@@ -348,6 +378,10 @@
 			</div>
 
 			<div class="completion-actions">
+				<PixelButton variant="secondary" size="lg" fullWidth onclick={shareWorkout}>
+					<PixelIcon name="share" />
+					Поделиться
+				</PixelButton>
 				<PixelButton variant="success" size="lg" fullWidth onclick={handleClose}>
 					<PixelIcon name="check" />
 					Готово
@@ -811,6 +845,9 @@
 	}
 
 	.completion-actions {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
 		margin-top: var(--spacing-xl);
 		width: 100%;
 	}
