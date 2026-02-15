@@ -1,14 +1,24 @@
 #!/usr/bin/env python3
 """Проверить leaderboard_visible в той же БД, что и API/бот.
-Запуск: docker compose exec backend python scripts/check_leaderboard_visible.py
+
+Запуск на хосте (из корня проекта):  python backend/scripts/check_leaderboard_visible.py
+Запуск в Docker (та же БД, что у API/бота):  docker compose exec backend python scripts/check_leaderboard_visible.py
 """
 import asyncio
 import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-os.chdir(Path(__file__).resolve().parent.parent)
+_backend = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_backend))
+os.chdir(_backend)
+
+# На хосте без .env скрипт подключается к backend/bodyweight.db (пустой). Подставить data/bodyweight.db.
+if not os.environ.get("DATABASE_URL"):
+    for db_path in (_backend / "data" / "bodyweight.db", _backend.parent / "data" / "bodyweight.db"):
+        if db_path.exists():
+            os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{db_path.resolve().as_posix()}"
+            break
 
 from sqlalchemy import select
 from app.config import settings
