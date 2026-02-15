@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Query
-from sqlalchemy import select, func, and_, or_
+from sqlalchemy import select, func, and_
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import User, WorkoutSession, Friendship
@@ -21,8 +21,7 @@ async def get_global_leaderboard(
     user: CurrentUser,
     limit: int = Query(50, ge=1, le=100, description="Максимальное количество пользователей в рейтинге"),
 ):
-    # SQLite может хранить boolean как 0/1 или как строки 'false'/'true'
-    visible = or_(User.leaderboard_visible.is_(True), User.leaderboard_visible == "true")
+    visible = User.leaderboard_visible.is_(True)
     result = await session.execute(
         select(User)
         .where(visible)
@@ -94,7 +93,7 @@ async def get_weekly_leaderboard(
         .subquery()
     )
 
-    visible = or_(User.leaderboard_visible.is_(True), User.leaderboard_visible == "true")
+    visible = User.leaderboard_visible.is_(True)
     result = await session.execute(
         select(User, weekly_xp_subq.c.weekly_xp)
         .join(weekly_xp_subq, User.id == weekly_xp_subq.c.user_id)
@@ -141,7 +140,7 @@ async def get_friends_leaderboard(
     session: AsyncSessionDep,
     user: CurrentUser,
 ):
-    visible = or_(User.leaderboard_visible.is_(True), User.leaderboard_visible == "true")
+    visible = User.leaderboard_visible.is_(True)
     stmt = (
         select(User)
         .join(
