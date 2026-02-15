@@ -23,7 +23,7 @@ async def get_global_leaderboard(
 ):
     result = await session.execute(
         select(User)
-        .where(User.leaderboard_visible == True)
+        .where(User.leaderboard_visible.is_(True))
         .order_by(User.total_xp.desc())
         .limit(limit)
     )
@@ -52,7 +52,7 @@ async def get_global_leaderboard(
     if current_user_rank is None:
         rank_result = await session.execute(
             select(func.count(User.id))
-            .where(User.leaderboard_visible == True)
+            .where(User.leaderboard_visible.is_(True))
             .where(User.total_xp > user.total_xp)
         )
         current_user_rank = (rank_result.scalar() or 0) + 1
@@ -95,7 +95,7 @@ async def get_weekly_leaderboard(
     result = await session.execute(
         select(User, weekly_xp_subq.c.weekly_xp)
         .join(weekly_xp_subq, User.id == weekly_xp_subq.c.user_id)
-        .where(User.leaderboard_visible == True)
+        .where(User.leaderboard_visible.is_(True))
         .order_by(weekly_xp_subq.c.weekly_xp.desc())
         .limit(limit)
     )
@@ -148,7 +148,7 @@ async def get_friends_leaderboard(
                 Friendship.status == "accepted"
             )
         )
-        .where(User.leaderboard_visible == True)
+        .where(User.leaderboard_visible.is_(True))
         .order_by(User.total_xp.desc())
         .limit(50)
     )
