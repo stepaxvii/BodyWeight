@@ -5,9 +5,8 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
 	import { onMount } from 'svelte';
-	import type { Achievement, Notification } from '$lib/types';
+	import type { Notification } from '$lib/types';
 
-	let recentAchievements = $state<Achievement[]>([]);
 	let quickModalOpen = $state(false);
 	let lastReward = $state<{ xp: number; coins: number } | null>(null);
 	let unreadNotifications = $state(0);
@@ -17,8 +16,6 @@
 
 	onMount(async () => {
 		await userStore.loadStats();
-		const response = await api.getAllAchievements();
-		recentAchievements = response.filter(a => a.unlocked).slice(0, 3);
 
 		// Load unread notifications count
 		try {
@@ -237,31 +234,6 @@
 					<span class="weekly-value">{userStore.stats.this_week_xp}</span>
 					<span class="weekly-label">XP</span>
 				</div>
-			</div>
-		</section>
-	{/if}
-
-	<!-- Recent Achievements -->
-	{#if recentAchievements.length > 0}
-		<section class="achievements-section">
-			<div class="section-header">
-				<h3 class="section-title">Последние достижения</h3>
-				<a href="{base}/achievements" class="see-all">Все</a>
-			</div>
-			<div class="achievements-list">
-				{#each recentAchievements as achievement}
-					<PixelCard padding="sm" hoverable>
-						<div class="achievement-item">
-							<div class="achievement-icon">
-								<PixelIcon name="trophy" size="lg" color="var(--pixel-yellow)" />
-							</div>
-							<div class="achievement-info">
-								<span class="achievement-name">{achievement.name_ru}</span>
-								<span class="achievement-desc">{achievement.description_ru}</span>
-							</div>
-						</div>
-					</PixelCard>
-				{/each}
 			</div>
 		</section>
 	{/if}
@@ -697,62 +669,6 @@
 	}
 
 	.weekly-label {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-	}
-
-	/* Achievements Section */
-	.achievements-section {
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.section-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: var(--spacing-sm);
-	}
-
-	.see-all {
-		font-size: var(--font-size-xs);
-		color: var(--pixel-accent);
-		text-transform: uppercase;
-	}
-
-	.achievements-list {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-sm);
-	}
-
-	.achievement-item {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-	}
-
-	.achievement-icon {
-		width: 32px;
-		height: 32px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: var(--pixel-bg-dark);
-		border: 2px solid var(--pixel-yellow);
-	}
-
-	.achievement-info {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-
-	.achievement-name {
-		font-size: var(--font-size-xs);
-		color: var(--text-primary);
-	}
-
-	.achievement-desc {
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
 	}

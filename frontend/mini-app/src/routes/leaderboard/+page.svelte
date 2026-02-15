@@ -38,9 +38,15 @@
 	];
 
 	onMount(async () => {
-		// Актуальные данные пользователя (в т.ч. leaderboard_visible) для карточки «Показывать в рейтинге»
-		await userStore.loadUser();
-		await loadLeaderboard();
+		// Рейтинг грузим сразу; пользователя подтягиваем в фоне для карточки «Показывать в рейтинге»
+		loadLeaderboard();
+		try {
+			const u = await api.getCurrentUser();
+			if (userStore.user) userStore.user = { ...userStore.user, ...u };
+			else userStore.user = u;
+		} catch {
+			// оставляем данные из auth
+		}
 	});
 
 	async function loadLeaderboard() {

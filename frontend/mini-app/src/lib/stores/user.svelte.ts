@@ -78,13 +78,10 @@ class UserStore {
 	async loadUser() {
 		if (!this.isAuthenticated) return;
 
-		this.isLoading = true;
 		try {
 			this.user = await api.getCurrentUser();
 		} catch (err) {
 			this.error = err instanceof Error ? err.message : 'Failed to load user';
-		} finally {
-			this.isLoading = false;
 		}
 	}
 
