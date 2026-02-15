@@ -2,26 +2,30 @@
 """
 Рассылка уведомления о переезде бота всем пользователям из БД.
 
-Запуск на сервере (из корня проекта или из backend):
-  export OLD_BOT_TOKEN=токен_старого_бота
+Запуск на сервере из каталога backend (чтобы подхватился тот же .env и БД, что у API/бота):
+  cd /home/BodyWeight/backend
+  export OLD_BOT_TOKEN=...   # или в .env
   export NEW_BOT_LINK=https://t.me/pixelfitbot
-  export DATABASE_URL=sqlite+aiosqlite:///./data/bodyweight.db   # или путь к вашей БД
   python scripts/send_migration_to_all.py
 
-  Либо положите OLD_BOT_TOKEN и NEW_BOT_LINK в .env в backend/ и запустите из backend/.
+Скрипт берёт DATABASE_URL из app.config (тот же, что у приложения).
+Если в docker БД в volume ./data, на хосте задайте в backend/.env:
+  DATABASE_URL=sqlite+aiosqlite:////home/BodyWeight/data/bodyweight.db
 """
 import asyncio
 import os
 import sys
 from pathlib import Path
 
-# Добавить backend в path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+_backend_dir = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_backend_dir))
+# Рабочая директория = backend, чтобы app.config подхватил .env и пути к БД
+os.chdir(_backend_dir)
 
-# Загрузить .env если есть (без pydantic)
-_env = Path(__file__).resolve().parent.parent / ".env"
-if _env.exists():
-    for line in _env.read_text().splitlines():
+# Подгрузить .env в os.environ до импорта settings (если скрипт вызван не из backend)
+_env_file = _backend_dir / ".env"
+if _env_file.exists():
+    for line in _env_file.read_text().splitlines():
         line = line.strip()
         if line and not line.startswith("#") and "=" in line:
             k, _, v = line.partition("=")
@@ -36,7 +40,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-# Модель User — минимально нужны только telegram_id
+from app.config import settings
 from app.db.models import User
 
 MESSAGE = """🚀 <b>PixelFit переезжает на нового бота!</b>
@@ -56,15 +60,29 @@ def get_keyboard(link: str) -> InlineKeyboardMarkup:
     )
 
 
+def _resolve_db_url() -> str:
+    """Тот же DATABASE_URL, что у приложения; для хоста с docker — fallback на project_root/data/."""
+    db_url = settings.database_url
+    if "sqlite" not in db_url:
+        return db_url
+    path_raw = db_url.replace("sqlite+aiosqlite:///", "").strip()
+    p = Path(path_raw)
+    path_abs = p.resolve() if (p.is_absolute() or path_raw.startswith("/")) else (_backend_dir / path_raw).resolve()
+    if path_abs.exists():
+        return db_url
+    # Дефолт из config = backend/bodyweight.db; на хосте с docker БД часто в project_root/data/
+    fallback = _backend_dir.parent / "data" / "bodyweight.db"
+    if fallback.exists():
+        url = f"sqlite+aiosqlite:///{fallback.resolve().as_posix()}"
+        print("БД по умолчанию не найдена, используем volume:", url)
+        return url
+    return db_url
+
+
 async def main():
     old_token = (os.environ.get("OLD_BOT_TOKEN") or "").strip()
     new_link = (os.environ.get("NEW_BOT_LINK") or "https://t.me/pixelfitbot").strip()
-    db_url = (os.environ.get("DATABASE_URL") or "").strip()
-    if not db_url:
-        # Путь к БД относительно каталога backend (не от cwd)
-        _backend = Path(__file__).resolve().parent.parent
-        _db_file = _backend / "data" / "bodyweight.db"
-        db_url = f"sqlite+aiosqlite:///{_db_file.resolve().as_posix()}"
+    db_url = _resolve_db_url()
 
     if not old_token:
         print("Задайте OLD_BOT_TOKEN (токен старого бота)")
@@ -82,8 +100,8 @@ async def main():
         except Exception as e:
             if "no such table" in str(e).lower() or "users" in str(e):
                 print("Ошибка: таблица users не найдена в БД.")
-                print("Убедитесь, что DATABASE_URL указывает на БД приложения (тот же URL, что и у API/бота).")
-                print("Если используете SQLite — путь по умолчанию:", Path(db_url.replace("sqlite+aiosqlite:///", "")))
+                print("Убедитесь, что DATABASE_URL в backend/.env указывает на ту же БД, что и в docker (volume ./data).")
+                print("На хосте обычно: DATABASE_URL=sqlite+aiosqlite:///АБСОЛЮТНЫЙ_ПУТЬ/data/bodyweight.db")
             raise
 
     await engine.dispose()
