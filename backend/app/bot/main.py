@@ -8,7 +8,6 @@ from aiogram.client.default import DefaultBotProperties
 from app.config import settings
 from app.bot.handlers import start
 from app.db.database import async_engine
-from app.services.notifications import send_migration_notification_to_bobaxvii
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,9 +19,6 @@ logger = logging.getLogger(__name__)
 async def on_startup(bot: Bot):
     """Startup handler."""
     logger.info("Bot starting up...")
-
-    # Один раз отправить @bobaxvii уведомление о переезде (через OLD_BOT_TOKEN)
-    await send_migration_notification_to_bobaxvii()
 
     # Set bot commands
     from aiogram.types import BotCommand

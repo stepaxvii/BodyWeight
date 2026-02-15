@@ -6,9 +6,15 @@ from sqlalchemy import select
 
 from app.db.database import async_session_maker
 from app.db.models import User
-from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button
+from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button, get_leaderboard_consent_keyboard
 
 router = Router()
+
+LEADERBOARD_CONSENT_TEXT = """📊 <b>Рейтинг</b>
+
+Показывать твой username (или имя) в общем рейтинге и у друзей?
+
+Можно изменить позже в настройках приложения."""
 logger = logging.getLogger(__name__)
 
 
@@ -136,6 +142,63 @@ async def cmd_start(message: Message):
         welcome_text,
         reply_markup=get_main_keyboard(start_param=start_param),
     )
+
+    # Запрос согласия на показ в рейтинге (если ещё не в рейтинге — показываем каждый /start)
+    if not db_user.leaderboard_visible:
+        await message.answer(
+            LEADERBOARD_CONSENT_TEXT,
+            reply_markup=get_leaderboard_consent_keyboard(),
+        )
+
+
+@router.callback_query(F.data == "leaderboard_consent_yes")
+async def callback_leaderboard_yes(callback: CallbackQuery):
+    """Пользователь согласился на показ в рейтинге."""
+    if not callback.from_user:
+        await callback.answer()
+        return
+    async with async_session_maker() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == callback.from_user.id)
+        )
+        user = result.scalar_one_or_none()
+        if user:
+            user.leaderboard_visible = True
+            await session.commit()
+    await callback.answer("Ок, ты будешь в рейтинге!")
+    if callback.message:
+        try:
+            await callback.message.edit_text(
+                LEADERBOARD_CONSENT_TEXT + "\n\n✅ Показывать в рейтинге.",
+                reply_markup=None,
+            )
+        except Exception:
+            pass
+
+
+@router.callback_query(F.data == "leaderboard_consent_no")
+async def callback_leaderboard_no(callback: CallbackQuery):
+    """Пользователь отказался от показа в рейтинге."""
+    if not callback.from_user:
+        await callback.answer()
+        return
+    async with async_session_maker() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == callback.from_user.id)
+        )
+        user = result.scalar_one_or_none()
+        if user:
+            user.leaderboard_visible = False
+            await session.commit()
+    await callback.answer("Ок, скрыт из рейтинга.")
+    if callback.message:
+        try:
+            await callback.message.edit_text(
+                LEADERBOARD_CONSENT_TEXT + "\n\n❌ Не показывать в рейтинге.",
+                reply_markup=None,
+            )
+        except Exception:
+            pass
 
 
 @router.message(Command("workout"))

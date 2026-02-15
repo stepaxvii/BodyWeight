@@ -146,6 +146,8 @@ async def update_current_user(
         user.notification_time = request.notification_time
     if request.notifications_enabled is not None:
         user.notifications_enabled = request.notifications_enabled
+    if request.leaderboard_visible is not None:
+        user.leaderboard_visible = request.leaderboard_visible
 
     await session.flush()
     await session.refresh(user)

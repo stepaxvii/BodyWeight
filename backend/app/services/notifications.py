@@ -1,5 +1,4 @@
 import logging
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from aiogram import Bot
@@ -8,94 +7,8 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from app.config import settings
-from app.db.database import async_session_maker
-from app.db.models import User
-from app.bot.keyboards.inline import get_migration_keyboard
 
 logger = logging.getLogger(__name__)
-
-MIGRATION_NOTIFY_USERNAME = "bobaxvii"
-MIGRATION_MESSAGE = """🚀 <b>PixelFit переезжает на нового бота!</b>
-
-Привет! Мы переходим на обновлённого бота — все твои данные (уровень, XP, достижения, друзья) сохранены и будут доступны там.
-
-Нажми кнопку ниже, чтобы перейти к новому боту и нажать <b>Start</b> — после этого всё будет работать как раньше.
-
-До встречи на новой стороне! 💪"""
-
-
-async def send_migration_notification_to_bobaxvii() -> None:
-    """
-    Один раз отправить уведомление о переезде (OLD_BOT_TOKEN).
-    Получатель: migration_notify_telegram_id (по умолчанию 5053194968) или поиск @bobaxvii в БД.
-    """
-    root_log = logging.getLogger()
-    old_token = (getattr(settings, "old_bot_token", None) or "").strip()
-    if not old_token:
-        root_log.info("Migration: OLD_BOT_TOKEN not set, skipping")
-        return
-    link = (settings.new_bot_link or "https://t.me/pixelfitbot").strip()
-    if not link.startswith("http"):
-        link = "https://t.me/pixelfitbot"
-
-    raw_tg_id = (getattr(settings, "migration_notify_telegram_id", None) or "").strip()
-    if raw_tg_id:
-        try:
-            tg_id = int(raw_tg_id)
-            old_bot = Bot(
-                token=old_token,
-                default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-            )
-            try:
-                await old_bot.send_message(
-                    tg_id,
-                    MIGRATION_MESSAGE,
-                    reply_markup=get_migration_keyboard(link),
-                )
-                root_log.info("Migration: notification sent to telegram_id=%s via OLD_BOT_TOKEN", tg_id)
-            except Exception as e:
-                root_log.error("Migration: failed to send to telegram_id=%s: %s", tg_id, e)
-            finally:
-                await old_bot.session.close()
-            return
-        except ValueError:
-            root_log.warning("Migration: invalid migration_notify_telegram_id=%s", raw_tg_id)
-
-    # Fallback: ищем по username в БД
-    root_log.info("Migration: looking for @%s in DB", MIGRATION_NOTIFY_USERNAME)
-    async with async_session_maker() as session:
-        result = await session.execute(
-            select(User.telegram_id, User.username).where(User.username.isnot(None))
-        )
-        rows = result.all()
-        target = MIGRATION_NOTIFY_USERNAME.lower()
-        for tg_id, username in rows:
-            if not username:
-                continue
-            if username.lower().strip().lstrip("@") != target:
-                continue
-            old_bot = Bot(
-                token=old_token,
-                default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-            )
-            try:
-                await old_bot.send_message(
-                    tg_id,
-                    MIGRATION_MESSAGE,
-                    reply_markup=get_migration_keyboard(link),
-                )
-                root_log.info("Migration: notification sent to @%s (telegram_id=%s) via OLD_BOT_TOKEN", username, tg_id)
-            except Exception as e:
-                root_log.error("Migration: failed to send to @%s: %s", username, e)
-            finally:
-                await old_bot.session.close()
-            return
-    usernames = [r[1] for r in rows if r[1]]
-    root_log.warning(
-        "Migration: user @%s not found in DB. Users with username: %s",
-        MIGRATION_NOTIFY_USERNAME,
-        usernames[:20] if len(usernames) > 20 else usernames,
-    )
 
 # Global bot instance for sending notifications
 _bot: Bot | None = None
@@ -185,8 +98,6 @@ async def send_friend_request_notification(
     except Exception as e:
         logger.error(f"Failed to send friend request notification to {telegram_id}: {e}")
         return False
-
-
 
 
 async def send_daily_reminder(telegram_id: int, streak: int = 0) -> bool:

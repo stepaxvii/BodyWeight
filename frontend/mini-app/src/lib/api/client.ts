@@ -94,7 +94,7 @@ class ApiClient {
 		return this.request<UserStats>('/users/me/stats');
 	}
 
-	async updateUser(data: { avatar_id?: string; notifications_enabled?: boolean }): Promise<User> {
+	async updateUser(data: { avatar_id?: string; notifications_enabled?: boolean; leaderboard_visible?: boolean }): Promise<User> {
 		return this.request<User>('/users/me', {
 			method: 'PUT',
 			body: JSON.stringify(data)

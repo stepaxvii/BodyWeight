@@ -28,15 +28,13 @@ def get_webapp_button(start_param: str | None = None) -> InlineKeyboardMarkup:
     )
 
 
-def get_migration_keyboard(new_bot_link: str) -> InlineKeyboardMarkup:
-    """Клавиатура: кнопка перехода на нового бота (режим переезда)."""
+def get_leaderboard_consent_keyboard() -> InlineKeyboardMarkup:
+    """Клавиатура согласия на показ в рейтинге."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(
-                    text="Перейти к новому боту →",
-                    url=new_bot_link,
-                )
+                InlineKeyboardButton(text="Да, показывать", callback_data="leaderboard_consent_yes"),
+                InlineKeyboardButton(text="Нет, скрыть", callback_data="leaderboard_consent_no"),
             ]
         ]
     )

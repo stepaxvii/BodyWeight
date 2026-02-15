@@ -51,6 +51,7 @@ class UpdateUserRequest(BaseModel):
     avatar_id: str | None = None
     notification_time: time | None = None
     notifications_enabled: bool | None = None
+    leaderboard_visible: bool | None = None
 
 
 class CompleteOnboardingRequest(BaseModel):

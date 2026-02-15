@@ -12,6 +12,10 @@ from .models import (
     UserPurchase,
     UserAvatarPurchase,
     UserExerciseProgress,
+    UserFavoriteExercise,
+    UserCustomRoutine,
+    UserCustomRoutineExercise,
+    Notification,
 )
 
 __all__ = [
@@ -31,4 +35,8 @@ __all__ = [
     "UserPurchase",
     "UserAvatarPurchase",
     "UserExerciseProgress",
+    "UserFavoriteExercise",
+    "UserCustomRoutine",
+    "UserCustomRoutineExercise",
+    "Notification",
 ]

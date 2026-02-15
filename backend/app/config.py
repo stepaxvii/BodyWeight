@@ -31,10 +31,6 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: list[str] = ["*"]
 
-    old_bot_token: str = ""
-    new_bot_link: str = "https://t.me/pixelfitbot"
-    migration_notify_telegram_id: str = "5053194968"
-
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
