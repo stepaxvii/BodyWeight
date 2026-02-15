@@ -43,16 +43,20 @@ from app.db.database import async_session_maker
 from app.db.models import User
 
 
-def _mask_url(url: str) -> str:
-    if "postgresql" in url:
-        return "postgresql://... (Postgres)"
-    if "sqlite" in url:
-        return "sqlite (файл в volume)"
-    return url[:50] + "..."
+def _db_path_from_url(url: str) -> str | None:
+    if "sqlite" not in url:
+        return None
+    path = url.replace("sqlite+aiosqlite:///", "").strip()
+    return path if path else None
 
 
 async def main():
-    print("БД:", _mask_url(settings.database_url))
+    url = settings.database_url
+    print("БД:", "postgresql..." if "postgresql" in url else url)
+    path = _db_path_from_url(url)
+    if path:
+        print("Файл (для sqlite3):", path)
+        print("  Проверь тем же путём: sqlite3", repr(path), '"SELECT id, telegram_id, leaderboard_visible FROM users;"')
     print()
     async with async_session_maker() as session:
         result = await session.execute(

@@ -152,9 +152,10 @@ async def cmd_start(message: Message):
         )
         row = r.one_or_none()
     leaderboard_visible = row[0] if row is not None else None
+    raw_val = row[0] if row is not None else None
     logger.info(
-        "cmd_start: telegram_id=%s leaderboard_visible=%s (row=%s)",
-        user.id, leaderboard_visible, row,
+        "cmd_start: telegram_id=%s leaderboard_visible=%s raw_type=%s (для проверки: sqlite3 <путь_к_БД> \"SELECT telegram_id, leaderboard_visible FROM users WHERE telegram_id=%s\")",
+        user.id, leaderboard_visible, type(raw_val).__name__ if raw_val is not None else None, user.id,
     )
     if row is not None and not row[0]:
         try:
