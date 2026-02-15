@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build: ./backend
@@ -30,6 +28,8 @@ services:
     environment:
       - DATABASE_URL=sqlite+aiosqlite:///./data/bodyweight.db
       - BOT_TOKEN=${BOT_TOKEN}
+      - OLD_BOT_TOKEN=${OLD_BOT_TOKEN}
+      - NEW_BOT_LINK=${NEW_BOT_LINK}
       - SECRET_KEY=${SECRET_KEY}
       - MINI_APP_URL=${MINI_APP_URL}
     volumes:

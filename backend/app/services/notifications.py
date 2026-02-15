@@ -29,22 +29,28 @@ async def send_migration_notification_to_bobaxvii() -> None:
     Один раз отправить @bobaxvii уведомление о переезде, используя OLD_BOT_TOKEN.
     Вызывается при старте приложения. BOT_TOKEN при этом остаётся токеном нового бота.
     """
-    if not (getattr(settings, "old_bot_token", None) or "").strip():
+    root_log = logging.getLogger()
+    old_token = (getattr(settings, "old_bot_token", None) or "").strip()
+    if not old_token:
+        root_log.info("Migration: OLD_BOT_TOKEN not set, skipping notification to @%s", MIGRATION_NOTIFY_USERNAME)
         return
     link = (settings.new_bot_link or "https://t.me/pixelfitbot").strip()
     if not link.startswith("http"):
         link = "https://t.me/pixelfitbot"
+    root_log.info("Migration: OLD_BOT_TOKEN set, looking for @%s in DB", MIGRATION_NOTIFY_USERNAME)
     async with async_session_maker() as session:
         result = await session.execute(
             select(User.telegram_id, User.username).where(User.username.isnot(None))
         )
-        for tg_id, username in result.all():
+        rows = result.all()
+        target = MIGRATION_NOTIFY_USERNAME.lower()
+        for tg_id, username in rows:
             if not username:
                 continue
-            if username.lower().strip().lstrip("@") != MIGRATION_NOTIFY_USERNAME.lower():
+            if username.lower().strip().lstrip("@") != target:
                 continue
             old_bot = Bot(
-                token=settings.old_bot_token,
+                token=old_token,
                 default=DefaultBotProperties(parse_mode=ParseMode.HTML),
             )
             try:
@@ -53,12 +59,18 @@ async def send_migration_notification_to_bobaxvii() -> None:
                     MIGRATION_MESSAGE,
                     reply_markup=get_migration_keyboard(link),
                 )
-                logger.info("Migration notification sent to @%s (via OLD_BOT_TOKEN)", username)
+                root_log.info("Migration: notification sent to @%s (telegram_id=%s) via OLD_BOT_TOKEN", username, tg_id)
             except Exception as e:
-                logger.error("Failed to send migration notification to @%s: %s", username, e)
+                root_log.error("Migration: failed to send to @%s: %s", username, e)
             finally:
                 await old_bot.session.close()
             return
+    usernames = [r[1] for r in rows if r[1]]
+    root_log.warning(
+        "Migration: user @%s not found in DB. Users with username: %s",
+        MIGRATION_NOTIFY_USERNAME,
+        usernames[:20] if len(usernames) > 20 else usernames,
+    )
 
 # Global bot instance for sending notifications
 _bot: Bot | None = None
