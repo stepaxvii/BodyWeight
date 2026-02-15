@@ -31,9 +31,9 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: list[str] = ["*"]
 
-    # Один раз отправить @bobaxvii уведомление о переезде (используется OLD_BOT_TOKEN)
     old_bot_token: str = ""
     new_bot_link: str = "https://t.me/pixelfitbot"
+    migration_notify_telegram_id: str = "5053194968"
 
     class Config:
         env_file = ".env"

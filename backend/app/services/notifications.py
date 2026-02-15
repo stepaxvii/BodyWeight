@@ -26,18 +26,43 @@ MIGRATION_MESSAGE = """🚀 <b>PixelFit переезжает на нового �
 
 async def send_migration_notification_to_bobaxvii() -> None:
     """
-    Один раз отправить @bobaxvii уведомление о переезде, используя OLD_BOT_TOKEN.
-    Вызывается при старте приложения. BOT_TOKEN при этом остаётся токеном нового бота.
+    Один раз отправить уведомление о переезде (OLD_BOT_TOKEN).
+    Получатель: migration_notify_telegram_id (по умолчанию 5053194968) или поиск @bobaxvii в БД.
     """
     root_log = logging.getLogger()
     old_token = (getattr(settings, "old_bot_token", None) or "").strip()
     if not old_token:
-        root_log.info("Migration: OLD_BOT_TOKEN not set, skipping notification to @%s", MIGRATION_NOTIFY_USERNAME)
+        root_log.info("Migration: OLD_BOT_TOKEN not set, skipping")
         return
     link = (settings.new_bot_link or "https://t.me/pixelfitbot").strip()
     if not link.startswith("http"):
         link = "https://t.me/pixelfitbot"
-    root_log.info("Migration: OLD_BOT_TOKEN set, looking for @%s in DB", MIGRATION_NOTIFY_USERNAME)
+
+    raw_tg_id = (getattr(settings, "migration_notify_telegram_id", None) or "").strip()
+    if raw_tg_id:
+        try:
+            tg_id = int(raw_tg_id)
+            old_bot = Bot(
+                token=old_token,
+                default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+            )
+            try:
+                await old_bot.send_message(
+                    tg_id,
+                    MIGRATION_MESSAGE,
+                    reply_markup=get_migration_keyboard(link),
+                )
+                root_log.info("Migration: notification sent to telegram_id=%s via OLD_BOT_TOKEN", tg_id)
+            except Exception as e:
+                root_log.error("Migration: failed to send to telegram_id=%s: %s", tg_id, e)
+            finally:
+                await old_bot.session.close()
+            return
+        except ValueError:
+            root_log.warning("Migration: invalid migration_notify_telegram_id=%s", raw_tg_id)
+
+    # Fallback: ищем по username в БД
+    root_log.info("Migration: looking for @%s in DB", MIGRATION_NOTIFY_USERNAME)
     async with async_session_maker() as session:
         result = await session.execute(
             select(User.telegram_id, User.username).where(User.username.isnot(None))
