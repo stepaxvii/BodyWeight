@@ -151,11 +151,22 @@ async def cmd_start(message: Message):
             select(User.leaderboard_visible).where(User.telegram_id == user.id)
         )
         row = r.one_or_none()
+    leaderboard_visible = row[0] if row is not None else None
+    logger.info(
+        "cmd_start: telegram_id=%s leaderboard_visible=%s (row=%s)",
+        user.id, leaderboard_visible, row,
+    )
     if row is not None and not row[0]:
-        await message.answer(
-            LEADERBOARD_CONSENT_TEXT,
-            reply_markup=get_leaderboard_consent_keyboard(),
-        )
+        try:
+            await message.answer(
+                LEADERBOARD_CONSENT_TEXT,
+                reply_markup=get_leaderboard_consent_keyboard(),
+            )
+            logger.info("cmd_start: отправлено сообщение «показывать в рейтинге» telegram_id=%s", user.id)
+        except Exception as e:
+            logger.exception("cmd_start: не удалось отправить сообщение рейтинга telegram_id=%s: %s", user.id, e)
+    else:
+        logger.info("cmd_start: сообщение рейтинга не отправляем (leaderboard_visible=True или нет строки) telegram_id=%s", user.id)
 
 
 @router.callback_query(F.data == "leaderboard_consent_yes")

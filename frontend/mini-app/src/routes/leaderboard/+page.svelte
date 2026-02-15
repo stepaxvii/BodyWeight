@@ -38,14 +38,14 @@
 	];
 
 	onMount(async () => {
-		// Рейтинг грузим сразу; пользователя подтягиваем в фоне для карточки «Показывать в рейтинге»
-		loadLeaderboard();
-		try {
-			const u = await api.getCurrentUser();
-			if (userStore.user) userStore.user = { ...userStore.user, ...u };
-			else userStore.user = u;
-		} catch {
-			// оставляем данные из auth
+		// Рейтинг и пользователь параллельно; без свежего user.leaderboard_visible карточка согласия не покажется верно
+		const [_, u] = await Promise.all([
+			loadLeaderboard(),
+			api.getCurrentUser().catch(() => null),
+		]);
+		if (u) {
+			userStore.user = userStore.user ? { ...userStore.user, ...u } : u;
+			console.log('[leaderboard] user.leaderboard_visible=', u.leaderboard_visible);
 		}
 	});
 
@@ -98,8 +98,8 @@
 	<!-- Tabs -->
 	<PixelTabs tabs={leaderboardTabs} activeTab={activeTab} onTabChange={switchTab} />
 
-	<!-- Предложение «показывать в рейтинге» — только тем, кто ещё не дал согласие -->
-	{#if userStore.isAuthenticated && userStore.user?.leaderboard_visible !== true}
+	<!-- Окно с предложением и кнопка принятия — показываем, если в БД нет согласия на показ в рейтинге -->
+	{#if userStore.isAuthenticated && (userStore.user == null || userStore.user.leaderboard_visible !== true)}
 		<PixelCard class="leaderboard-consent-card">
 			<p class="consent-message">📊 <strong>Рейтинг</strong></p>
 			<p class="consent-message">{leaderboardConsentText}</p>
