@@ -31,4 +31,14 @@ Telegram Mini App — фитнес-трекер с геймификацией в
 bash scripts/cleanup-server.sh
 ```
 
-Том `./data` (БД) не трогается. После очистки следующая сборка займёт больше времени.
+Том `./data` (БД) не трогается. После очистки скрипт удаляет `frontend/mini-app/node_modules` — перед сборкой фронта снова установите зависимости (из **корня репозитория**):
+
+```bash
+cd frontend/mini-app && npm ci && npm run build && cp -r build/* ../../backend/static/
+```
+
+Если вы уже в `frontend/mini-app`:
+
+```bash
+npm ci && npm run build && cp -r build/* /home/BodyWeight/backend/static/
+```

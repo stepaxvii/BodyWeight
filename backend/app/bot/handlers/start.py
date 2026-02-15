@@ -45,6 +45,8 @@ async def get_or_create_user(telegram_id: int, username: str | None, first_name:
             await session.commit()
             await session.refresh(user)
 
+        # Чтобы после закрытия сессии атрибут был доступен у отцепленного объекта
+        _ = user.leaderboard_visible
         return user
 
 
@@ -145,7 +147,6 @@ async def cmd_start(message: Message):
         reply_markup=get_main_keyboard(start_param=start_param),
     )
 
-    # Запрос согласия на показ в рейтинге (если ещё не в рейтинге — показываем каждый /start)
     if not db_user.leaderboard_visible:
         await message.answer(
             LEADERBOARD_CONSENT_TEXT,

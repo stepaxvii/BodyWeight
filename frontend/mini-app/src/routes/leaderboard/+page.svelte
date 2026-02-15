@@ -38,6 +38,8 @@
 	];
 
 	onMount(async () => {
+		// Актуальные данные пользователя (в т.ч. leaderboard_visible) для карточки «Показывать в рейтинге»
+		await userStore.loadUser();
 		await loadLeaderboard();
 	});
 
@@ -90,8 +92,8 @@
 	<!-- Tabs -->
 	<PixelTabs tabs={leaderboardTabs} activeTab={activeTab} onTabChange={switchTab} />
 
-	<!-- Показать меня в рейтинге (если скрыт) -->
-	{#if userStore.user && !userStore.user.leaderboard_visible}
+	<!-- Показать меня в рейтинге (если скрыт или ещё не выбрано) -->
+	{#if userStore.user && userStore.user.leaderboard_visible !== true}
 		<PixelCard class="leaderboard-consent-card">
 			<p class="consent-message">📊 <strong>Рейтинг</strong></p>
 			<p class="consent-message">{leaderboardConsentText}</p>
