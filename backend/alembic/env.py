@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.db.database import Base
-from app.db import models  # noqa: F401 - import models to register them
+from app.db import models  # noqa: F401 — регистрация моделей в Base.metadata
 from app.config import settings
 
 config = context.config

@@ -46,7 +46,6 @@
 		error = null;
 		try {
 			entries = await api.getLeaderboard(activeTab);
-			console.log(`[Leaderboard] Loaded ${entries.length} entries for tab '${activeTab}'`);
 		} catch (err) {
 			console.error('Failed to load leaderboard:', err);
 			error = err instanceof Error ? err.message : 'Ошибка загрузки рейтинга';

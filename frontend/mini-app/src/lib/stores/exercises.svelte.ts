@@ -81,7 +81,6 @@ class ExercisesStore {
 					const { data, timestamp } = JSON.parse(cached);
 					// Use cache if less than 24 hours old
 					if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
-						console.log('Using cached exercises from localStorage');
 						this._exercises = data;
 						this._loaded = true;
 						return data;

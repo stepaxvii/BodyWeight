@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Query
 from sqlalchemy import select, func, and_
@@ -8,7 +7,6 @@ from app.db.models import User, WorkoutSession, Friendship
 from app.schemas import LeaderboardEntry, LeaderboardResponse
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
 
 @router.get(
@@ -23,13 +21,6 @@ async def get_global_leaderboard(
     user: CurrentUser,
     limit: int = Query(50, ge=1, le=100, description="Максимальное количество пользователей в рейтинге"),
 ):
-    logger.debug(f"[Leaderboard/Global] Request received: user_id={user.id}, limit={limit}")
-
-    # Debug: count all users
-    count_result = await session.execute(select(func.count(User.id)))
-    total_count = count_result.scalar()
-    logger.debug(f"[Leaderboard] Total users in database: {total_count}")
-
     result = await session.execute(
         select(User)
         .where(User.leaderboard_visible == True)
@@ -37,11 +28,6 @@ async def get_global_leaderboard(
         .limit(limit)
     )
     users = list(result.scalars().all())
-
-    logger.debug(f"[Leaderboard] Found {len(users)} users in query result")
-    for u in users[:3]:  # Log first 3 users for debug
-        logger.debug(f"[Leaderboard] User: id={u.id}, username={u.username}, xp={u.total_xp}")
-
     entries = []
     current_user_rank = None
 
@@ -152,10 +138,6 @@ async def get_friends_leaderboard(
     session: AsyncSessionDep,
     user: CurrentUser,
 ):
-    logger.debug(f"[Leaderboard/Friends] Getting friends leaderboard, user_id={user.id}")
-
-    # Optimized: One JOIN query instead of two separate queries
-    # Get friends where current user is the requester and friend is visible in leaderboard
     stmt = (
         select(User)
         .join(
@@ -173,9 +155,8 @@ async def get_friends_leaderboard(
 
     result = await session.execute(stmt)
     friends = list(result.scalars().all())
-    logger.debug(f"[Leaderboard/Friends] Found {len(friends)} friends via JOIN")
 
-    # Add current user to the list only if they consented to leaderboard
+    # Add current user only if they consented to leaderboard
     friends_with_me = ([user] if user.leaderboard_visible else []) + friends
     friends_with_me.sort(key=lambda u: u.total_xp, reverse=True)
 

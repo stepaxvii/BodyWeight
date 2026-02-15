@@ -323,29 +323,17 @@ class WorkoutStore {
 			return null;
 		}
 
-		console.log('[completeWorkout] Submitting workout:', {
-			duration: this.timerSeconds,
-			exercises
-		});
-
 		this.isLoading = true;
 		try {
 			this.stopTimer();
 
-			// Use new simplified API
 			const response = await api.submitWorkout({
 				duration_seconds: this.timerSeconds,
 				exercises
 			});
-			console.log('[completeWorkout] API response:', response);
 
 			// Reload user data from server to get updated XP, level, coins, streak
 			await userStore.loadUser();
-
-			// Handle level up notification
-			if (response.level_up && response.new_level) {
-				console.log(`Level up! New level: ${response.new_level}`);
-			}
 
 			this.session = response.workout;
 			this.isActive = false;

@@ -35,6 +35,7 @@ async def get_or_create_user(telegram_id: int, username: str | None, first_name:
             )
             session.add(user)
             await session.commit()
+            await session.refresh(user)
             logger.info(f"Created new user: {telegram_id} ({username})")
         else:
             # Update user info
@@ -42,6 +43,7 @@ async def get_or_create_user(telegram_id: int, username: str | None, first_name:
             user.first_name = first_name
             user.last_name = last_name
             await session.commit()
+            await session.refresh(user)
 
         return user
 

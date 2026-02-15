@@ -1,9 +1,4 @@
-"""
-SQLAlchemy models package.
-
-Импорты в порядке зависимостей: user и exercise первыми (без зависимостей от других моделей),
-затем workout, затем остальные (achievement, goal, shop и т.д.).
-"""
+"""SQLAlchemy models — импорты в порядке зависимостей."""
 from .user import User
 from .exercise import ExerciseCategory, Exercise
 from .workout import WorkoutSession, WorkoutExercise
