@@ -13,8 +13,25 @@ _backend = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_backend))
 os.chdir(_backend)
 
-# На хосте без .env скрипт подключается к backend/bodyweight.db (пустой). Подставить data/bodyweight.db.
-if not os.environ.get("DATABASE_URL"):
+# Загрузить .env из backend/ до импорта config
+_env = _backend / ".env"
+if _env.exists():
+    for line in _env.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            k, _, v = line.partition("=")
+            k, v = k.strip(), v.strip().strip('"').strip("'")
+            if k and os.environ.get(k) is None:
+                os.environ[k] = v
+
+# Если DATABASE_URL=..././bodyweight.db (не в data/), использовать data/bodyweight.db, если есть
+db_url = os.environ.get("DATABASE_URL", "")
+if "sqlite" in db_url and "data" not in db_url and "bodyweight.db" in db_url:
+    for db_path in (_backend / "data" / "bodyweight.db", _backend.parent / "data" / "bodyweight.db"):
+        if db_path.exists():
+            os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{db_path.resolve().as_posix()}"
+            break
+elif not db_url:
     for db_path in (_backend / "data" / "bodyweight.db", _backend.parent / "data" / "bodyweight.db"):
         if db_path.exists():
             os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{db_path.resolve().as_posix()}"
