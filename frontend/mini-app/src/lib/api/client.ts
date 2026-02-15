@@ -204,8 +204,8 @@ class ApiClient {
 	// Leaderboard
 	async getLeaderboard(type: LeaderboardType = 'global'): Promise<LeaderboardEntry[]> {
 		const endpoint = type === 'global' ? '/leaderboard' : `/leaderboard/${type}`;
-		const response = await this.request<{ entries: LeaderboardEntry[], current_user_rank: number | null }>(endpoint);
-		return response.entries;
+		const response = await this.request<{ entries: LeaderboardEntry[]; current_user_rank: number | null }>(endpoint);
+		return Array.isArray(response?.entries) ? response.entries : [];
 	}
 
 	// Goals

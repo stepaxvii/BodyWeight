@@ -38,14 +38,13 @@
 	];
 
 	onMount(async () => {
-		// Рейтинг и пользователь параллельно; без свежего user.leaderboard_visible карточка согласия не покажется верно
-		const [_, u] = await Promise.all([
+		// Рейтинг и пользователь параллельно
+		const [, u] = await Promise.all([
 			loadLeaderboard(),
 			api.getCurrentUser().catch(() => null),
 		]);
 		if (u) {
 			userStore.user = userStore.user ? { ...userStore.user, ...u } : u;
-			console.log('[leaderboard] user.leaderboard_visible=', u.leaderboard_visible);
 		}
 	});
 
@@ -53,7 +52,8 @@
 		isLoading = true;
 		error = null;
 		try {
-			entries = await api.getLeaderboard(activeTab);
+			const list = await api.getLeaderboard(activeTab);
+			entries = Array.isArray(list) ? list : [];
 		} catch (err) {
 			console.error('Failed to load leaderboard:', err);
 			error = err instanceof Error ? err.message : 'Ошибка загрузки рейтинга';
