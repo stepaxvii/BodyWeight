@@ -45,8 +45,6 @@ async def get_or_create_user(telegram_id: int, username: str | None, first_name:
             await session.commit()
             await session.refresh(user)
 
-        # Чтобы после закрытия сессии атрибут был доступен у отцепленного объекта
-        _ = user.leaderboard_visible
         return user
 
 
@@ -147,7 +145,13 @@ async def cmd_start(message: Message):
         reply_markup=get_main_keyboard(start_param=start_param),
     )
 
-    if not db_user.leaderboard_visible:
+    # Показать предложение «показывать в рейтинге» только если в БД False (один явный запрос)
+    async with async_session_maker() as session:
+        r = await session.execute(
+            select(User.leaderboard_visible).where(User.telegram_id == user.id)
+        )
+        row = r.one_or_none()
+    if row is not None and not row[0]:
         await message.answer(
             LEADERBOARD_CONSENT_TEXT,
             reply_markup=get_leaderboard_consent_keyboard(),

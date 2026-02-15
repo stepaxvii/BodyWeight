@@ -98,21 +98,27 @@
 	<!-- Tabs -->
 	<PixelTabs tabs={leaderboardTabs} activeTab={activeTab} onTabChange={switchTab} />
 
-	<!-- Показать меня в рейтинге (если скрыт или ещё не выбрано) -->
-	{#if userStore.user && userStore.user.leaderboard_visible !== true}
+	<!-- Предложение показывать себя в рейтинге — показываем всем авторизованным, кнопка если в БД ещё false -->
+	{#if userStore.isAuthenticated}
 		<PixelCard class="leaderboard-consent-card">
 			<p class="consent-message">📊 <strong>Рейтинг</strong></p>
 			<p class="consent-message">{leaderboardConsentText}</p>
 			<p class="consent-hint">Можно изменить позже в настройках приложения.</p>
-			<PixelButton
-				variant="primary"
-				fullWidth
-				disabled={updatingVisibility}
-				loading={updatingVisibility}
-				onclick={showMeInLeaderboard}
-			>
-				Показывать меня в рейтинге
-			</PixelButton>
+			{#if !userStore.user}
+				<p class="consent-hint">Загрузка…</p>
+			{:else if userStore.user.leaderboard_visible !== true}
+				<PixelButton
+					variant="primary"
+					fullWidth
+					disabled={updatingVisibility}
+					loading={updatingVisibility}
+					onclick={showMeInLeaderboard}
+				>
+					Показывать меня в рейтинге
+				</PixelButton>
+			{:else}
+				<p class="consent-hint">✅ Ты участвуешь в рейтинге.</p>
+			{/if}
 		</PixelCard>
 	{/if}
 
