@@ -28,6 +28,20 @@ def get_webapp_button(start_param: str | None = None) -> InlineKeyboardMarkup:
     )
 
 
+def get_migration_keyboard(new_bot_link: str) -> InlineKeyboardMarkup:
+    """Клавиатура: кнопка перехода на нового бота (режим переезда)."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Перейти к новому боту →",
+                    url=new_bot_link,
+                )
+            ]
+        ]
+    )
+
+
 def get_main_keyboard(start_param: str | None = None) -> InlineKeyboardMarkup:
     """
     Get main menu keyboard with single app button.

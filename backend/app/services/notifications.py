@@ -1,13 +1,64 @@
 import logging
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from aiogram import Bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.db.database import async_session_maker
+from app.db.models import User
+from app.bot.keyboards.inline import get_migration_keyboard
 
 logger = logging.getLogger(__name__)
+
+MIGRATION_NOTIFY_USERNAME = "bobaxvii"
+MIGRATION_MESSAGE = """🚀 <b>PixelFit переезжает на нового бота!</b>
+
+Привет! Мы переходим на обновлённого бота — все твои данные (уровень, XP, достижения, друзья) сохранены и будут доступны там.
+
+Нажми кнопку ниже, чтобы перейти к новому боту и нажать <b>Start</b> — после этого всё будет работать как раньше.
+
+До встречи на новой стороне! 💪"""
+
+
+async def send_migration_notification_to_bobaxvii() -> None:
+    """
+    Один раз отправить @bobaxvii уведомление о переезде, используя OLD_BOT_TOKEN.
+    Вызывается при старте приложения. BOT_TOKEN при этом остаётся токеном нового бота.
+    """
+    if not (getattr(settings, "old_bot_token", None) or "").strip():
+        return
+    link = (settings.new_bot_link or "https://t.me/pixelfitbot").strip()
+    if not link.startswith("http"):
+        link = "https://t.me/pixelfitbot"
+    async with async_session_maker() as session:
+        result = await session.execute(
+            select(User.telegram_id, User.username).where(User.username.isnot(None))
+        )
+        for tg_id, username in result.all():
+            if not username:
+                continue
+            if username.lower().strip().lstrip("@") != MIGRATION_NOTIFY_USERNAME.lower():
+                continue
+            old_bot = Bot(
+                token=settings.old_bot_token,
+                default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+            )
+            try:
+                await old_bot.send_message(
+                    tg_id,
+                    MIGRATION_MESSAGE,
+                    reply_markup=get_migration_keyboard(link),
+                )
+                logger.info("Migration notification sent to @%s (via OLD_BOT_TOKEN)", username)
+            except Exception as e:
+                logger.error("Failed to send migration notification to @%s: %s", username, e)
+            finally:
+                await old_bot.session.close()
+            return
 
 # Global bot instance for sending notifications
 _bot: Bot | None = None

@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: list[str] = ["*"]
 
+    # Один раз отправить @bobaxvii уведомление о переезде (используется OLD_BOT_TOKEN)
+    old_bot_token: str = ""
+    new_bot_link: str = "https://t.me/pixelfitbot"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

@@ -233,10 +233,9 @@
 		const exerciseLines = completedExercises.map((ce) => {
 			const ex = allExercises.find((e) => e.slug === ce.exercise_slug);
 			const name = ex?.name_ru || ce.exercise_slug;
-			const setsStr = ce.sets
-				.map((v) => (ce.is_timed ? `${v} сек` : `${v} повт.`))
-				.join(', ');
-			return `  ▸ ${name}: ${setsStr}`;
+			const total = ce.sets.reduce((a, b) => a + b, 0);
+			const totalStr = ce.is_timed ? `${total} сек` : `${total} повт.`;
+			return `  ▸ ${name}: ${totalStr}`;
 		});
 
 		const shareText = [
