@@ -227,7 +227,7 @@
 
 	function shareWorkout() {
 		telegram.hapticImpact('medium');
-		const botUsername = 'body_weight_traning_bot';
+		const botUsername = 'pixelfitbot';
 		const botLink = `https://t.me/${botUsername}`;
 
 		const exerciseLines = completedExercises.map((ce) => {

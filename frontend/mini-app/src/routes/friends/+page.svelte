@@ -73,7 +73,7 @@
 			telegram.hapticImpact('medium');
 
 			// Create invitation message with bot link (no deep linking, just bot)
-			const botUsername = 'body_weight_traning_bot';
+			const botUsername = 'pixelfitbot';
 			const botLink = `https://t.me/${botUsername}`;
 
 			const inviteMessage = `
