@@ -230,11 +230,21 @@
 		const botUsername = 'pixelfitbot';
 		const botLink = `https://t.me/${botUsername}`;
 
-		const exerciseLines = completedExercises.map((ce) => {
-			const ex = allExercises.find((e) => e.slug === ce.exercise_slug);
-			const name = ex?.name_ru || ce.exercise_slug;
-			const total = ce.sets.reduce((a, b) => a + b, 0);
-			const totalStr = ce.is_timed ? `${total} сек` : `${total} повт.`;
+		// Группируем по упражнению и суммируем повторы/секунды
+		const bySlug = new Map<string, { total: number; is_timed: boolean }>();
+		for (const ce of completedExercises) {
+			const sum = ce.sets.reduce((a, b) => a + b, 0);
+			const existing = bySlug.get(ce.exercise_slug);
+			if (existing) {
+				existing.total += sum;
+			} else {
+				bySlug.set(ce.exercise_slug, { total: sum, is_timed: ce.is_timed });
+			}
+		}
+		const exerciseLines = Array.from(bySlug.entries()).map(([slug, { total, is_timed }]) => {
+			const ex = allExercises.find((e) => e.slug === slug);
+			const name = ex?.name_ru || slug;
+			const totalStr = is_timed ? `${total} сек` : `${total} повт.`;
 			return `  ▸ ${name}: ${totalStr}`;
 		});
 
