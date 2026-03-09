@@ -53,15 +53,6 @@
 	function handleBarClick(date: string, activity: DayActivity | null) {
 		onDayClick?.(date, activity);
 	}
-
-	function formatDayLabel(dateStr: string): string {
-		const d = new Date(dateStr + 'T12:00:00');
-		if (range === 'month' || range === '2weeks') {
-			return `${d.getDate()}`;
-		}
-		const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-		return days[d.getDay()];
-	}
 </script>
 
 <div class="activity-bar-chart">
@@ -92,9 +83,6 @@
 				onclick={() => handleBarClick(date, activity)}
 				type="button"
 			>
-				{#if value > 0 && range === 'week'}
-					<span class="bar-value">{value}</span>
-				{/if}
 				{#if value > 0}
 					<div
 						class="bar {getBarColorClass(value)}"
@@ -103,13 +91,6 @@
 				{:else}
 					<div class="bar-empty-dot"></div>
 				{/if}
-				<span class="bar-label" class:today-label={isToday}>
-					{#if isToday}
-						·
-					{:else}
-						{formatDayLabel(date)}
-					{/if}
-				</span>
 				{#if isToday}
 					<div class="today-dot"></div>
 				{/if}
@@ -163,7 +144,6 @@
 		align-items: flex-end;
 		gap: 2px;
 		height: 120px;
-		padding-bottom: 22px; /* space for labels */
 	}
 
 	/* Bar wrapper */
@@ -216,33 +196,6 @@
 		background: var(--border-color);
 		border-radius: 50%;
 		flex-shrink: 0;
-	}
-
-	/* Value above bar (week only) */
-	.bar-value {
-		font-size: 8px;
-		color: var(--text-secondary);
-		line-height: 1;
-		white-space: nowrap;
-	}
-
-	/* Labels */
-	.bar-label {
-		font-size: 8px;
-		color: var(--text-muted);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		max-width: 100%;
-		text-align: center;
-		position: absolute;
-		bottom: 0;
-		line-height: 18px;
-	}
-
-	.today-label {
-		font-size: 14px;
-		color: var(--pixel-accent);
 	}
 
 	/* Today indicator */
