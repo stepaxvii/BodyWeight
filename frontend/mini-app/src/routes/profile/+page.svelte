@@ -70,10 +70,13 @@
 
 	onMount(async () => {
 		await userStore.loadStats();
-		const response = await api.getAllAchievements();
-		achievements = response;
 
-		// Load activity data for current year
+		try {
+			achievements = await api.getAllAchievements();
+		} catch (err) {
+			console.error('Failed to load achievements:', err);
+		}
+
 		try {
 			activityData = await api.getUserActivity();
 		} catch (err) {

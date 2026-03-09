@@ -323,14 +323,16 @@ class WorkoutStore {
 			return null;
 		}
 
+		const workoutData = {
+			duration_seconds: this.timerSeconds,
+			exercises
+		};
+
 		this.isLoading = true;
 		try {
 			this.stopTimer();
 
-			const response = await api.submitWorkout({
-				duration_seconds: this.timerSeconds,
-				exercises
-			});
+			const response = await api.submitWorkout(workoutData);
 
 			// Reload user data from server to get updated XP, level, coins, streak
 			await userStore.loadUser();
@@ -343,6 +345,51 @@ class WorkoutStore {
 			return response.workout;
 		} catch (err) {
 			console.error('[completeWorkout] Error:', err);
+
+			// Offline: save workout for later sync
+			if (!navigator.onLine) {
+				try {
+					const pending = JSON.parse(localStorage.getItem('pending_workouts') || '[]');
+					pending.push({ data: workoutData, timestamp: Date.now() });
+					localStorage.setItem('pending_workouts', JSON.stringify(pending));
+				} catch { /* ignore */ }
+
+				this.stopTimer();
+
+				// Create a synthetic session for the completion screen
+				const totalReps = exercises.reduce((sum, ex) =>
+					sum + (ex.is_timed ? 0 : ex.sets.reduce((s, v) => s + v, 0)), 0);
+				const totalDuration = exercises.reduce((sum, ex) =>
+					sum + (ex.is_timed ? ex.sets.reduce((s, v) => s + v, 0) : 0), 0);
+
+				// Estimate XP from exercise data
+				let estimatedXp = 0;
+				this.exerciseData.forEach((data) => {
+					if (data.exercise && data.sets.length > 0) {
+						estimatedXp += data.exercise.base_xp * data.sets.length;
+					}
+				});
+
+				this.session = {
+					id: -1,
+					started_at: new Date().toISOString(),
+					finished_at: new Date().toISOString(),
+					duration_seconds: this.timerSeconds,
+					total_xp_earned: estimatedXp,
+					total_coins_earned: 0,
+					total_reps: totalReps,
+					total_duration_seconds: totalDuration,
+					streak_multiplier: 1,
+					status: 'completed',
+					exercises: [],
+				};
+				this.isActive = false;
+				this.selectedExercises = [];
+				this.exerciseData = new Map();
+				telegram.hapticNotification('success');
+				return this.session;
+			}
+
 			this.error = err instanceof Error ? err.message : 'Failed to complete workout';
 			telegram.hapticNotification('error');
 			return null;

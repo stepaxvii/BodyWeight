@@ -7,6 +7,7 @@
 	import AuthScreen from '$lib/components/AuthScreen.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
+	import { api } from '$lib/api/client';
 
 	let { children } = $props();
 	let isTelegramApp = $state(false);
@@ -51,7 +52,43 @@
 		}
 
 		initialized = true;
+
+		// Sync pending offline workouts when online
+		syncPendingWorkouts();
+		window.addEventListener('online', syncPendingWorkouts);
 	});
+
+	async function syncPendingWorkouts() {
+		if (!navigator.onLine) return;
+		try {
+			const raw = localStorage.getItem('pending_workouts');
+			if (!raw) return;
+			const pending = JSON.parse(raw) as Array<{ data: any; timestamp: number }>;
+			if (pending.length === 0) return;
+
+			const remaining = [];
+			for (const item of pending) {
+				try {
+					await api.submitWorkout(item.data);
+				} catch {
+					remaining.push(item);
+				}
+			}
+
+			if (remaining.length === 0) {
+				localStorage.removeItem('pending_workouts');
+			} else {
+				localStorage.setItem('pending_workouts', JSON.stringify(remaining));
+			}
+
+			// Reload user data after sync
+			if (remaining.length < pending.length && userStore.isAuthenticated) {
+				await userStore.loadUser();
+			}
+		} catch {
+			// Ignore sync errors
+		}
+	}
 </script>
 
 <svelte:head>

@@ -9,6 +9,7 @@ import { build, files, version } from '$service-worker';
 
 const CACHE_NAME = `pixelfit-${version}`;
 const API_CACHE = 'pixelfit-api';
+const FONT_CACHE = 'pixelfit-fonts';
 
 // App shell: built JS/CSS + static files (sprites, fonts, etc.)
 const ASSETS = [...build, ...files];
@@ -29,7 +30,7 @@ self.addEventListener('activate', (event) => {
 			.then((keys) =>
 				Promise.all(
 					keys
-						.filter((k) => k !== CACHE_NAME && k !== API_CACHE)
+						.filter((k) => k !== CACHE_NAME && k !== API_CACHE && k !== FONT_CACHE)
 						.map((k) => caches.delete(k))
 				)
 			)
@@ -41,10 +42,30 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
 	const url = new URL(event.request.url);
 
-	// Skip non-GET requests
+	// Skip non-GET requests (POST workout submissions etc.)
 	if (event.request.method !== 'GET') return;
 
-	// Skip external requests (telegram script, google fonts CDN, etc.)
+	// Google Fonts & external CDN: cache-first (fonts rarely change)
+	if (
+		url.hostname === 'fonts.googleapis.com' ||
+		url.hostname === 'fonts.gstatic.com'
+	) {
+		event.respondWith(
+			caches.match(event.request).then((cached) => {
+				if (cached) return cached;
+				return fetch(event.request).then((response) => {
+					if (response.ok) {
+						const clone = response.clone();
+						caches.open(FONT_CACHE).then((cache) => cache.put(event.request, clone));
+					}
+					return response;
+				}).catch(() => new Response('', { status: 503 }));
+			})
+		);
+		return;
+	}
+
+	// Skip other external requests (telegram script etc.)
 	if (url.origin !== self.location.origin) return;
 
 	// API requests: network-first, fallback to cache
@@ -70,12 +91,20 @@ self.addEventListener('fetch', (event) => {
 		return;
 	}
 
-	// Navigation requests (HTML pages): serve index.html from cache (SPA)
+	// Navigation requests (HTML pages): network-first, fallback to cached index.html (SPA)
 	if (event.request.mode === 'navigate') {
 		event.respondWith(
 			fetch(event.request)
+				.then((response) => {
+					if (response.ok) {
+						const clone = response.clone();
+						caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+					}
+					return response;
+				})
 				.catch(() =>
-					caches.match('/bodyweight/index.html')
+					caches.match(event.request)
+						.then((cached) => cached || caches.match('/bodyweight/index.html'))
 						.then((cached) => cached || caches.match('/bodyweight/'))
 						.then((cached) => cached || new Response('Offline', { status: 503 }))
 				)

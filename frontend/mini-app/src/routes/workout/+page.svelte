@@ -262,7 +262,7 @@
 
 	async function loadExercises(reset = false) {
 		if (exercisesLoading) return;
-		
+
 		exercisesLoading = true;
 		try {
 			if (reset) {
@@ -275,18 +275,32 @@
 				skip: exercisesSkip,
 				limit: exercisesLimit
 			});
-			
+
 			exercises = reset ? response.items : [...exercises, ...response.items];
 			exercisesHasMore = response.has_more;
 			exercisesTotal = response.total;
 			exercisesSkip = exercises.length;
-			
+
 			// Mark as fully loaded if no more pages
 			if (!response.has_more) {
 				allExercisesLoaded = true;
 			}
 		} catch (error) {
 			console.error('Failed to load exercises:', error);
+			// Offline fallback: use exercisesStore localStorage cache
+			if (exercises.length === 0) {
+				try {
+					const cached = localStorage.getItem('exercises_cache');
+					if (cached) {
+						const { data } = JSON.parse(cached);
+						exercises = activeCategory
+							? data.filter((e: Exercise) => e.category_slug === activeCategory)
+							: data;
+						exercisesHasMore = false;
+						allExercisesLoaded = true;
+					}
+				} catch {}
+			}
 		} finally {
 			exercisesLoading = false;
 		}
@@ -328,27 +342,56 @@
 
 	onMount(async () => {
 		// Load data in parallel for faster page load
-		const [cats, rts, customRts, _, __] = await Promise.all([
-			api.getCategories(),
-			api.getRoutines(),
-			api.getCustomRoutines(),
+		// Each call has its own try/catch for offline resilience
+		const [cats, rts, customRts] = await Promise.all([
+			api.getCategories().then(data => {
+				try { localStorage.setItem('cache_categories', JSON.stringify(data)); } catch {}
+				return data;
+			}).catch(() => {
+				try {
+					const cached = localStorage.getItem('cache_categories');
+					return cached ? JSON.parse(cached) : [];
+				} catch { return []; }
+			}),
+			api.getRoutines().then(data => {
+				try { localStorage.setItem('cache_routines', JSON.stringify(data)); } catch {}
+				return data;
+			}).catch(() => {
+				try {
+					const cached = localStorage.getItem('cache_routines');
+					return cached ? JSON.parse(cached) : [];
+				} catch { return []; }
+			}),
+			api.getCustomRoutines().then(data => {
+				try { localStorage.setItem('cache_custom_routines', JSON.stringify(data)); } catch {}
+				return data;
+			}).catch(() => {
+				try {
+					const cached = localStorage.getItem('cache_custom_routines');
+					return cached ? JSON.parse(cached) : [];
+				} catch { return []; }
+			}),
+		]);
+
+		// These already handle errors internally
+		await Promise.all([
 			workoutStore.loadActiveWorkout(),
 			favoritesStore.loadFavorites()
 		]);
-		
+
 		categories = cats;
 		routines = rts;
 		customRoutines = customRts;
-		
+
 		// Load exercises with pagination
 		await loadExercises();
-		
+
 		// After exercises are loaded, update exerciseData with exercise objects
 		// This is needed for restored workouts where exercise was null
 		if (workoutStore.isActive) {
 			workoutStore.updateExerciseObjects(exercises);
 		}
-		
+
 		isPageLoading = false;
 
 		// Listen for page visibility changes

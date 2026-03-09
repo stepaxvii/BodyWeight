@@ -76,7 +76,20 @@ class UserStore {
 			this.user = response.user;
 			this.isAuthenticated = true;
 			this.authMode = 'telegram';
+			try { localStorage.setItem('cache_user', JSON.stringify(response.user)); } catch {}
 		} catch (err) {
+			// If offline, try cached user data
+			if (!navigator.onLine) {
+				try {
+					const cached = localStorage.getItem('cache_user');
+					if (cached) {
+						this.user = JSON.parse(cached);
+						this.isAuthenticated = true;
+						this.authMode = 'telegram';
+						return;
+					}
+				} catch {}
+			}
 			this.error = err instanceof Error ? err.message : 'Authentication failed';
 			this.isAuthenticated = false;
 		} finally {
@@ -136,8 +149,22 @@ class UserStore {
 			this.user = user;
 			this.isAuthenticated = true;
 			this.authMode = 'web';
+			// Cache user data for offline use
+			try { localStorage.setItem('cache_user', JSON.stringify(user)); } catch {}
 			return true;
 		} catch {
+			// If offline, try to use cached user data instead of logging out
+			if (!navigator.onLine) {
+				try {
+					const cached = localStorage.getItem('cache_user');
+					if (cached) {
+						this.user = JSON.parse(cached);
+						this.isAuthenticated = true;
+						this.authMode = 'web';
+						return true;
+					}
+				} catch {}
+			}
 			api.clearAuth();
 			this.isAuthenticated = false;
 			return false;
@@ -160,7 +187,10 @@ class UserStore {
 		try {
 			this.user = await api.getCurrentUser();
 		} catch (err) {
-			this.error = err instanceof Error ? err.message : 'Failed to load user';
+			// Don't set error when offline — keep using cached user data
+			if (navigator.onLine) {
+				this.error = err instanceof Error ? err.message : 'Failed to load user';
+			}
 		}
 	}
 
@@ -169,8 +199,16 @@ class UserStore {
 
 		try {
 			this.stats = await api.getUserStats();
+			try { localStorage.setItem('cache_user_stats', JSON.stringify(this.stats)); } catch {}
 		} catch (err) {
 			console.error('Failed to load stats:', err);
+			// Offline fallback
+			if (!this.stats) {
+				try {
+					const cached = localStorage.getItem('cache_user_stats');
+					if (cached) this.stats = JSON.parse(cached);
+				} catch {}
+			}
 		}
 	}
 

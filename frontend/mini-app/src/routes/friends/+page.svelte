@@ -72,34 +72,30 @@
 		try {
 			telegram.hapticImpact('medium');
 
-			// Create invitation message with bot link (no deep linking, just bot)
 			const botUsername = 'pixelfitbot';
 			const botLink = `https://t.me/${botUsername}`;
 
-			const inviteMessage = `
-🎮 PixelFit - 8-bit фитнес трекер!
+			const inviteText = `PixelFit - 8-bit фитнес трекер! Набирай опыт, прокачивай уровень, открывай достижения. Присоединяйся!`;
 
-Привет! Я использую PixelFit для отслеживания тренировок. Это как игра - набираешь опыт, прокачиваешь уровень, открываешь достижения!
-
-💪 Большое количество упражнений
-🏆 Система достижений
-📊 Соревнования с друзьями
-⚡ Streaks и бонусы
-
-Присоединяйся, давай тренироваться вместе!`;
-
-			// Use Telegram Share API - url will be added with a line break
-			const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(inviteMessage)}`;
-			telegram.openTelegramLink(shareUrl);
+			// Try Telegram share if inside TMA
+			if (telegram.webApp) {
+				const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(inviteText)}`;
+				telegram.openTelegramLink(shareUrl);
+			} else if (navigator.share) {
+				// PWA / browser: Web Share API
+				await navigator.share({ title: 'PixelFit', text: inviteText, url: botLink });
+			} else {
+				// Fallback: copy to clipboard
+				await navigator.clipboard.writeText(`${inviteText}\n${botLink}`);
+				error = null;
+				alert('Ссылка скопирована в буфер обмена');
+			}
 
 			telegram.hapticNotification('success');
 		} catch (err) {
+			// User cancelled share — not an error
+			if (err instanceof Error && err.name === 'AbortError') return;
 			telegram.hapticNotification('error');
-			telegram.showPopup({
-				title: 'Ошибка',
-				message: 'Не удалось поделиться ссылкой. Попробуйте ещё раз.',
-				buttons: [{ type: 'ok' }]
-			});
 			console.error('Failed to share invite link:', err);
 		}
 	}
