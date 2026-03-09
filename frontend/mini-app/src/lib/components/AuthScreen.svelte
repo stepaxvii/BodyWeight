@@ -155,6 +155,12 @@
 			<p>Или откройте через Telegram бота</p>
 			<p class="bot-name">@pixelfitbot</p>
 		</div>
+
+		<div class="pwa-hint">
+			<p>Установите как приложение:</p>
+			<p>iOS: Поделиться → На экран «Домой»</p>
+			<p>Android: Меню → Установить приложение</p>
+		</div>
 	</div>
 </div>
 
@@ -335,5 +341,25 @@
 		font-family: 'Press Start 2P', cursive;
 		color: var(--pixel-accent, #e94560) !important;
 		font-size: 10px !important;
+	}
+
+	.pwa-hint {
+		text-align: center;
+		margin-top: 16px;
+		padding: 12px;
+		background: rgba(233, 69, 96, 0.08);
+		border: 1px solid var(--border-color, #2a2a4a);
+		border-radius: 8px;
+	}
+
+	.pwa-hint p {
+		color: var(--pixel-text-secondary, #8b8b9e);
+		font-size: 10px;
+		margin-bottom: 4px;
+		line-height: 1.6;
+	}
+
+	.pwa-hint p:last-child {
+		margin-bottom: 0;
 	}
 </style>

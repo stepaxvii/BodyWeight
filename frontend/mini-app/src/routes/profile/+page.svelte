@@ -23,6 +23,9 @@
 	let accountMessage = $state<string | null>(null);
 	let accountError = $state<string | null>(null);
 	let accountLoading = $state(false);
+	let showWebLink = $state(false);
+
+	const webAppUrl = 'https://stepaproject.ru/bodyweight/';
 
 	async function handleSetPassword() {
 		if (passwordValue.length < 6) {
@@ -33,8 +36,9 @@
 		accountLoading = true;
 		try {
 			await userStore.setPassword(passwordEmail, passwordValue);
-			accountMessage = 'Пароль установлен! Теперь вы можете входить через браузер.';
+			accountMessage = 'Пароль установлен! Откройте веб-версию в браузере и установите как приложение.';
 			showSetPassword = false;
+			showWebLink = true;
 			passwordEmail = '';
 			passwordValue = '';
 		} catch (err) {
@@ -265,12 +269,32 @@
 		</div>
 	</section>
 
+	<!-- Quick Link - Friends -->
+	<section class="links-section">
+		<a href="{base}/friends" class="link-item">
+			<PixelCard hoverable>
+				<div class="link-content">
+					<PixelIcon name="friend" color="var(--pixel-cyan)" />
+					<span>Друзья</span>
+				</div>
+			</PixelCard>
+		</a>
+	</section>
+
 	<!-- Account Settings -->
 	<section class="account-section">
 		<h3 class="section-title">Аккаунт</h3>
 
 		{#if accountMessage}
 			<div class="account-success">{accountMessage}</div>
+		{/if}
+
+		{#if showWebLink || userStore.hasWebAuth}
+			<div class="web-link-card">
+				<p class="web-link-label">Веб-версия (PWA)</p>
+				<a href={webAppUrl} target="_blank" rel="noopener" class="web-link-url">{webAppUrl}</a>
+				<p class="web-link-hint">Откройте в браузере → Установить / Добавить на главный экран</p>
+			</div>
 		{/if}
 
 		<div class="account-info">
@@ -309,17 +333,6 @@
 		</div>
 	</section>
 
-	<!-- Quick Link - Friends only -->
-	<section class="links-section">
-		<a href="{base}/friends" class="link-item">
-			<PixelCard hoverable>
-				<div class="link-content">
-					<PixelIcon name="friend" color="var(--pixel-cyan)" />
-					<span>Друзья</span>
-				</div>
-			</PixelCard>
-		</a>
-	</section>
 </div>
 
 <!-- Set Password Modal -->
@@ -335,6 +348,7 @@
 			<p>- Telegram username: <b>{userStore.user.username}</b></p>
 		{/if}
 		<p>- Telegram ID: <b>{userStore.user?.telegram_id}</b></p>
+		<p style="margin-top: 8px;">Веб-версия: <a href={webAppUrl} target="_blank" rel="noopener" style="color: var(--pixel-accent);">{webAppUrl}</a></p>
 	</div>
 	<form class="modal-form" onsubmit={(e) => { e.preventDefault(); handleSetPassword(); }}>
 		<div class="modal-field">
@@ -778,6 +792,36 @@
 		font-size: var(--font-size-xs);
 		color: var(--pixel-green);
 		margin-bottom: var(--spacing-sm);
+	}
+
+	.web-link-card {
+		padding: var(--spacing-sm) var(--spacing-md);
+		background: var(--pixel-card);
+		border: 2px solid var(--pixel-accent);
+		margin-bottom: var(--spacing-sm);
+		text-align: center;
+	}
+
+	.web-link-label {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		margin: 0 0 var(--spacing-xs);
+		text-transform: uppercase;
+	}
+
+	.web-link-url {
+		display: block;
+		font-size: var(--font-size-xs);
+		color: var(--pixel-accent);
+		word-break: break-all;
+		margin-bottom: var(--spacing-xs);
+	}
+
+	.web-link-hint {
+		font-size: 10px;
+		color: var(--text-muted);
+		margin: 0;
+		line-height: 1.5;
 	}
 
 	.account-info {
