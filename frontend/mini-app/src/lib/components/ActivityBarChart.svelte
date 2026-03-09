@@ -4,10 +4,10 @@
 	interface Props {
 		activityData: Record<string, DayActivity>;
 		range: 'week' | '2weeks' | 'month';
-		metric?: 'xp' | 'workouts';
+		onDayClick?: (date: string, activity: DayActivity | null) => void;
 	}
 
-	let { activityData, range, metric = 'xp' }: Props = $props();
+	let { activityData, range, onDayClick }: Props = $props();
 
 	const dayCount = $derived(range === 'week' ? 7 : range === '2weeks' ? 14 : 30);
 
@@ -28,8 +28,8 @@
 	const chartData = $derived(
 		dates.map((date) => {
 			const day = activityData[date];
-			const value = metric === 'xp' ? (day?.total_xp ?? 0) : (day?.workouts ?? 0);
-			return { date, value, isToday: date === todayStr };
+			const value = day?.total_xp ?? 0;
+			return { date, value, activity: day ?? null, isToday: date === todayStr };
 		})
 	);
 
@@ -40,39 +40,28 @@
 	const totalValue = $derived(chartData.reduce((sum, d) => sum + d.value, 0));
 	const activeDays = $derived(chartData.filter((d) => d.value > 0).length);
 
-	// Y-axis grid lines (3 lines: 25%, 50%, 75%)
-	const gridLines = $derived([
-		{ percent: 75, value: Math.round(maxValue * 0.75) },
-		{ percent: 50, value: Math.round(maxValue * 0.5) },
-		{ percent: 25, value: Math.round(maxValue * 0.25) },
-	]);
-
-	// Bar opacity based on value relative to max (0.3 – 1.0)
-	function barOpacity(value: number): number {
-		if (value === 0) return 0;
-		return 0.35 + (value / maxValue) * 0.65;
+	// Color classes matching ActivityCalendar thresholds
+	function getBarColorClass(xp: number): string {
+		if (xp === 0) return 'bar-empty';
+		if (xp <= 200) return 'bar-light';
+		if (xp <= 400) return 'bar-medium';
+		if (xp <= 600) return 'bar-intense';
+		if (xp < 1000) return 'bar-strong';
+		return 'bar-very-intense';
 	}
 
-	let selectedIndex = $state<number | null>(null);
-
-	function handleBarClick(index: number) {
-		selectedIndex = selectedIndex === index ? null : index;
+	function handleBarClick(date: string, activity: DayActivity | null) {
+		onDayClick?.(date, activity);
 	}
 
 	function formatDayLabel(dateStr: string): string {
 		const d = new Date(dateStr + 'T12:00:00');
-		if (range === 'month') {
+		if (range === 'month' || range === '2weeks') {
 			return `${d.getDate()}`;
 		}
 		const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-		if (range === '2weeks') {
-			return `${d.getDate()}`;
-		}
 		return days[d.getDay()];
 	}
-
-	const metricLabel = $derived(metric === 'xp' ? 'XP' : 'тренировок');
-	const metricUnit = $derived(metric === 'xp' ? 'XP' : '');
 </script>
 
 <div class="activity-bar-chart">
@@ -80,7 +69,7 @@
 	<div class="chart-summary">
 		<div class="summary-item">
 			<span class="summary-value">{totalValue}</span>
-			<span class="summary-label">{metricLabel}</span>
+			<span class="summary-label">XP</span>
 		</div>
 		<div class="summary-divider"></div>
 		<div class="summary-item">
@@ -94,67 +83,38 @@
 		</div>
 	</div>
 
-	<!-- Selected bar tooltip -->
-	{#if selectedIndex !== null}
-		{@const item = chartData[selectedIndex]}
-		<div class="tooltip">
-			<span class="tooltip-date">
-				{new Date(item.date + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', weekday: 'short' })}
-			</span>
-			<span class="tooltip-value">{item.value} {metricUnit}</span>
-		</div>
-	{/if}
-
 	<!-- Chart area -->
 	<div class="chart-area">
-		<!-- Y-axis labels -->
-		<div class="y-axis">
-			<span class="y-label">{maxValue}</span>
-			{#each gridLines as line}
-				<span class="y-label" style="bottom: {line.percent}%">{line.value}</span>
-			{/each}
-			<span class="y-label y-zero">0</span>
-		</div>
-
-		<!-- Bars -->
-		<div class="chart-bars">
-			<!-- Grid lines -->
-			{#each gridLines as line}
-				<div class="grid-line" style="bottom: {line.percent}%"></div>
-			{/each}
-
-			{#each chartData as { date, value, isToday }, i}
-				<button
-					class="bar-wrapper"
-					class:is-today={isToday}
-					class:selected={selectedIndex === i}
-					onclick={() => handleBarClick(i)}
-					type="button"
-				>
-					{#if value > 0 && range === 'week'}
-						<span class="bar-value">{value}</span>
-					{/if}
+		{#each chartData as { date, value, activity, isToday }, i}
+			<button
+				class="bar-wrapper"
+				class:is-today={isToday}
+				onclick={() => handleBarClick(date, activity)}
+				type="button"
+			>
+				{#if value > 0 && range === 'week'}
+					<span class="bar-value">{value}</span>
+				{/if}
+				{#if value > 0}
 					<div
-						class="bar"
-						class:empty={value === 0}
-						style="height: {value > 0 ? Math.max((value / maxValue) * 100, 3) : 0}%; opacity: {barOpacity(value)}"
+						class="bar {getBarColorClass(value)}"
+						style="height: {Math.max((value / maxValue) * 100, 4)}%"
 					></div>
-					{#if value === 0}
-						<div class="bar-empty-dot"></div>
-					{/if}
-					<span class="bar-label" class:today-label={isToday}>
-						{#if isToday}
-							·
-						{:else}
-							{formatDayLabel(date)}
-						{/if}
-					</span>
+				{:else}
+					<div class="bar-empty-dot"></div>
+				{/if}
+				<span class="bar-label" class:today-label={isToday}>
 					{#if isToday}
-						<div class="today-dot"></div>
+						·
+					{:else}
+						{formatDayLabel(date)}
 					{/if}
-				</button>
-			{/each}
-		</div>
+				</span>
+				{#if isToday}
+					<div class="today-dot"></div>
+				{/if}
+			</button>
+		{/each}
 	</div>
 </div>
 
@@ -197,70 +157,13 @@
 		background: var(--border-color);
 	}
 
-	/* Tooltip */
-	.tooltip {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		gap: var(--spacing-sm);
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-		min-height: 20px;
-	}
-
-	.tooltip-value {
-		color: var(--pixel-accent);
-		font-weight: bold;
-	}
-
 	/* Chart area */
 	.chart-area {
 		display: flex;
-		gap: var(--spacing-xs);
-		height: 120px;
-	}
-
-	/* Y-axis */
-	.y-axis {
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-		position: relative;
-		width: 28px;
-		flex-shrink: 0;
-		padding-bottom: 22px; /* space for bar labels */
-	}
-
-	.y-label {
-		font-size: 8px;
-		color: var(--text-muted);
-		text-align: right;
-		line-height: 1;
-	}
-
-	.y-zero {
-		margin-top: auto;
-	}
-
-	/* Bars container */
-	.chart-bars {
-		flex: 1;
-		display: flex;
 		align-items: flex-end;
 		gap: 2px;
-		position: relative;
+		height: 120px;
 		padding-bottom: 22px; /* space for labels */
-	}
-
-	/* Grid lines */
-	.grid-line {
-		position: absolute;
-		left: 0;
-		right: 0;
-		height: 1px;
-		background: var(--border-color);
-		opacity: 0.3;
-		pointer-events: none;
 	}
 
 	/* Bar wrapper */
@@ -281,20 +184,30 @@
 		-webkit-tap-highlight-color: transparent;
 	}
 
-	.bar-wrapper.selected .bar {
-		opacity: 1 !important;
-		box-shadow: 0 0 6px var(--pixel-accent);
-	}
-
-	/* Bar */
+	/* Bar — colors match ActivityCalendar */
 	.bar {
 		width: 100%;
-		background: var(--pixel-accent);
-		transition: height 0.3s ease, opacity 0.3s ease;
+		transition: height 0.3s ease;
 	}
 
-	.bar.empty {
-		display: none;
+	.bar-light {
+		background: #0e4429;
+	}
+
+	.bar-medium {
+		background: #006d32;
+	}
+
+	.bar-intense {
+		background: #1a7f37;
+	}
+
+	.bar-strong {
+		background: #26a641;
+	}
+
+	.bar-very-intense {
+		background: #39d353;
 	}
 
 	.bar-empty-dot {
@@ -343,6 +256,6 @@
 	}
 
 	.bar-wrapper.is-today .bar {
-		background: var(--pixel-green);
+		box-shadow: 0 0 4px rgba(57, 211, 83, 0.4);
 	}
 </style>
