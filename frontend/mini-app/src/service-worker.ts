@@ -13,23 +13,27 @@ const API_CACHE = 'pixelfit-api';
 // App shell: built JS/CSS + static files (sprites, fonts, etc.)
 const ASSETS = [...build, ...files];
 
-// Install: cache app shell
+// Install: cache app shell, skip waiting to activate immediately
 self.addEventListener('install', (event) => {
 	event.waitUntil(
-		caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+		caches.open(CACHE_NAME)
+			.then((cache) => cache.addAll(ASSETS))
+			.then(() => self.skipWaiting())
 	);
 });
 
-// Activate: clean old caches
+// Activate: clean old caches, claim clients immediately
 self.addEventListener('activate', (event) => {
 	event.waitUntil(
-		caches.keys().then((keys) =>
-			Promise.all(
-				keys
-					.filter((k) => k !== CACHE_NAME && k !== API_CACHE)
-					.map((k) => caches.delete(k))
+		caches.keys()
+			.then((keys) =>
+				Promise.all(
+					keys
+						.filter((k) => k !== CACHE_NAME && k !== API_CACHE)
+						.map((k) => caches.delete(k))
+				)
 			)
-		)
+			.then(() => self.clients.claim())
 	);
 });
 
@@ -48,38 +52,51 @@ self.addEventListener('fetch', (event) => {
 		event.respondWith(
 			fetch(event.request)
 				.then((response) => {
-					// Cache successful GET responses
 					if (response.ok) {
 						const clone = response.clone();
 						caches.open(API_CACHE).then((cache) => cache.put(event.request, clone));
 					}
 					return response;
 				})
-				.catch(() => {
-					return caches.match(event.request).then((cached) => {
-						return cached || new Response('{"error":"offline"}', {
+				.catch(() =>
+					caches.match(event.request).then((cached) =>
+						cached || new Response('{"error":"offline"}', {
 							status: 503,
 							headers: { 'Content-Type': 'application/json' }
-						});
-					});
-				})
+						})
+					)
+				)
 		);
 		return;
 	}
 
-	// Static assets: cache-first
+	// Navigation requests (HTML pages): serve index.html from cache (SPA)
+	if (event.request.mode === 'navigate') {
+		event.respondWith(
+			fetch(event.request)
+				.catch(() =>
+					caches.match('/bodyweight/index.html')
+						.then((cached) => cached || caches.match('/bodyweight/'))
+						.then((cached) => cached || new Response('Offline', { status: 503 }))
+				)
+		);
+		return;
+	}
+
+	// Static assets: cache-first with offline fallback
 	event.respondWith(
 		caches.match(event.request).then((cached) => {
 			if (cached) return cached;
 
-			return fetch(event.request).then((response) => {
-				// Cache new static assets
-				if (response.ok && url.pathname.startsWith('/bodyweight/')) {
-					const clone = response.clone();
-					caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-				}
-				return response;
-			});
+			return fetch(event.request)
+				.then((response) => {
+					if (response.ok && url.pathname.startsWith('/bodyweight/')) {
+						const clone = response.clone();
+						caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+					}
+					return response;
+				})
+				.catch(() => new Response('', { status: 503 }));
 		})
 	);
 });
