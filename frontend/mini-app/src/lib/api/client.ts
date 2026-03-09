@@ -14,6 +14,7 @@ import type {
 	Friend,
 	ShopItem,
 	AuthResponse,
+	WebAuthResponse,
 	Routine,
 	CustomRoutine,
 	CustomRoutineListItem,
@@ -23,12 +24,40 @@ import type {
 } from '$lib/types';
 
 const API_BASE = '/bodyweight/api';
+const TOKEN_KEY = 'pixelfit_token';
 
 class ApiClient {
 	private initData: string = '';
+	private jwtToken: string = '';
+
+	constructor() {
+		// Restore JWT token from localStorage
+		if (typeof window !== 'undefined') {
+			this.jwtToken = localStorage.getItem(TOKEN_KEY) || '';
+		}
+	}
 
 	setInitData(initData: string) {
 		this.initData = initData;
+	}
+
+	setJwtToken(token: string) {
+		this.jwtToken = token;
+		if (typeof window !== 'undefined') {
+			localStorage.setItem(TOKEN_KEY, token);
+		}
+	}
+
+	clearAuth() {
+		this.jwtToken = '';
+		this.initData = '';
+		if (typeof window !== 'undefined') {
+			localStorage.removeItem(TOKEN_KEY);
+		}
+	}
+
+	get hasStoredToken(): boolean {
+		return !!this.jwtToken;
 	}
 
 	private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -39,6 +68,8 @@ class ApiClient {
 
 		if (this.initData) {
 			headers['Authorization'] = `tma ${this.initData}`;
+		} else if (this.jwtToken) {
+			headers['Authorization'] = `Bearer ${this.jwtToken}`;
 		}
 
 		const url = `${API_BASE}${endpoint}`;
@@ -68,11 +99,40 @@ class ApiClient {
 		return data;
 	}
 
-	// Auth
+	// Auth - Telegram
 	async validateAuth(): Promise<AuthResponse> {
 		return this.request<AuthResponse>('/auth/validate', {
 			method: 'POST',
 			body: JSON.stringify({ init_data: this.initData })
+		});
+	}
+
+	// Auth - Web
+	async webRegister(data: { email: string; password: string; username?: string; first_name?: string }): Promise<WebAuthResponse> {
+		return this.request<WebAuthResponse>('/auth/register', {
+			method: 'POST',
+			body: JSON.stringify(data)
+		});
+	}
+
+	async webLogin(login: string, password: string): Promise<WebAuthResponse> {
+		return this.request<WebAuthResponse>('/auth/login', {
+			method: 'POST',
+			body: JSON.stringify({ login, password })
+		});
+	}
+
+	async setPassword(email: string, password: string): Promise<WebAuthResponse> {
+		return this.request<WebAuthResponse>('/auth/set-password', {
+			method: 'POST',
+			body: JSON.stringify({ email, password })
+		});
+	}
+
+	async linkTelegram(telegramId: number): Promise<{ message: string }> {
+		return this.request<{ message: string }>('/auth/link-telegram', {
+			method: 'POST',
+			body: JSON.stringify({ telegram_id: telegramId })
 		});
 	}
 
@@ -129,10 +189,6 @@ class ApiClient {
 		return this.request<PaginatedResponse<Exercise>>(`/exercises${query}`);
 	}
 
-	/**
-	 * Get all exercises (for backward compatibility).
-	 * This method loads all exercises by making multiple paginated requests.
-	 */
 	async getAllExercises(category?: string): Promise<Exercise[]> {
 		const allExercises: Exercise[] = [];
 		let skip = 0;
@@ -154,10 +210,6 @@ class ApiClient {
 	}
 
 	// Workouts
-	/**
-	 * Submit a completed workout with all exercise data at once.
-	 * This is the unified API - no need to start session or track exercises during workout.
-	 */
 	async submitWorkout(data: {
 		duration_seconds: number;
 		exercises: Array<{
@@ -181,10 +233,6 @@ class ApiClient {
 		return this.request<PaginatedResponse<Achievement>>(`/achievements${query}`);
 	}
 
-	/**
-	 * Get all achievements (for backward compatibility).
-	 * This method loads all achievements by making multiple paginated requests.
-	 */
 	async getAllAchievements(): Promise<Achievement[]> {
 		const allAchievements: Achievement[] = [];
 		let skip = 0;

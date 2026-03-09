@@ -1,24 +1,26 @@
 """User-related Pydantic schemas."""
 
 from datetime import date, time, datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 class UserResponse(BaseModel):
     """User profile response schema."""
     id: int
-    telegram_id: int
-    username: str | None
-    first_name: str | None
-    last_name: str | None
+    telegram_id: int | None = None
+    username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    email: str | None = None
+    has_password: bool = False
     avatar_id: str
     level: int
     total_xp: int
     coins: int
     current_streak: int
     max_streak: int
-    last_workout_date: date | None
-    notification_time: time | None
+    last_workout_date: date | None = None
+    notification_time: time | None = None
     notifications_enabled: bool
     is_onboarded: bool
     leaderboard_visible: bool
@@ -27,6 +29,16 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+    @model_validator(mode="wrap")
+    @classmethod
+    def _compute_has_password(cls, values, handler):
+        # If validating from ORM model, check password_hash attribute
+        if hasattr(values, "password_hash"):
+            result = handler(values)
+            result.has_password = values.password_hash is not None
+            return result
+        return handler(values)
 
 
 class UserStatsResponse(BaseModel):

@@ -14,6 +14,60 @@
 	let chartRange = $state<'week' | '2weeks' | 'month'>('week');
 	let selectedDay = $state<{ date: string; activity: DayActivity | null } | null>(null);
 
+	// Account settings
+	let showSetPassword = $state(false);
+	let showLinkTelegram = $state(false);
+	let passwordEmail = $state('');
+	let passwordValue = $state('');
+	let telegramIdInput = $state('');
+	let accountMessage = $state<string | null>(null);
+	let accountError = $state<string | null>(null);
+	let accountLoading = $state(false);
+
+	async function handleSetPassword() {
+		if (passwordValue.length < 6) {
+			accountError = 'Пароль должен быть не менее 6 символов';
+			return;
+		}
+		accountError = null;
+		accountLoading = true;
+		try {
+			await userStore.setPassword(passwordEmail, passwordValue);
+			accountMessage = 'Пароль установлен! Теперь вы можете входить через браузер.';
+			showSetPassword = false;
+			passwordEmail = '';
+			passwordValue = '';
+		} catch (err) {
+			accountError = err instanceof Error ? err.message : 'Ошибка';
+		} finally {
+			accountLoading = false;
+		}
+	}
+
+	async function handleLinkTelegram() {
+		const tid = parseInt(telegramIdInput);
+		if (isNaN(tid)) {
+			accountError = 'Введите корректный Telegram ID (число)';
+			return;
+		}
+		accountError = null;
+		accountLoading = true;
+		try {
+			const result = await userStore.linkTelegram(tid);
+			accountMessage = result.message;
+			showLinkTelegram = false;
+			telegramIdInput = '';
+		} catch (err) {
+			accountError = err instanceof Error ? err.message : 'Ошибка';
+		} finally {
+			accountLoading = false;
+		}
+	}
+
+	function handleLogout() {
+		userStore.logout();
+	}
+
 	onMount(async () => {
 		await userStore.loadStats();
 		const response = await api.getAllAchievements();
@@ -208,6 +262,50 @@
 		</div>
 	</section>
 
+	<!-- Account Settings -->
+	<section class="account-section">
+		<h3 class="section-title">Аккаунт</h3>
+
+		{#if accountMessage}
+			<div class="account-success">{accountMessage}</div>
+		{/if}
+
+		<div class="account-info">
+			{#if userStore.user?.email}
+				<div class="account-row">
+					<span class="account-label">Email</span>
+					<span class="account-value">{userStore.user.email}</span>
+				</div>
+			{/if}
+			{#if userStore.user?.telegram_id}
+				<div class="account-row">
+					<span class="account-label">Telegram</span>
+					<span class="account-value">ID: {userStore.user.telegram_id}</span>
+				</div>
+			{/if}
+		</div>
+
+		<div class="account-actions">
+			{#if !userStore.hasWebAuth}
+				<button class="account-btn" onclick={() => { showSetPassword = true; accountError = null; }}>
+					Установить пароль для браузера
+				</button>
+			{/if}
+
+			{#if !userStore.hasTelegram}
+				<button class="account-btn" onclick={() => { showLinkTelegram = true; accountError = null; }}>
+					Привязать Telegram
+				</button>
+			{/if}
+
+			{#if userStore.authMode === 'web'}
+				<button class="account-btn logout-btn" onclick={handleLogout}>
+					Выйти
+				</button>
+			{/if}
+		</div>
+	</section>
+
 	<!-- Quick Link - Friends only -->
 	<section class="links-section">
 		<a href="{base}/friends" class="link-item">
@@ -220,6 +318,63 @@
 		</a>
 	</section>
 </div>
+
+<!-- Set Password Modal -->
+<PixelModal
+	open={showSetPassword}
+	title="Установить пароль"
+	onclose={() => { showSetPassword = false; accountError = null; }}
+>
+	<div class="modal-instructions">
+		<p>После установки пароля вы сможете входить через браузер, используя:</p>
+		<p>- Email</p>
+		{#if userStore.user?.username}
+			<p>- Telegram username: <b>{userStore.user.username}</b></p>
+		{/if}
+		<p>- Telegram ID: <b>{userStore.user?.telegram_id}</b></p>
+	</div>
+	<form class="modal-form" onsubmit={(e) => { e.preventDefault(); handleSetPassword(); }}>
+		<div class="modal-field">
+			<label for="pw-email">Email</label>
+			<input id="pw-email" type="email" bind:value={passwordEmail} placeholder="your@email.com" required />
+		</div>
+		<div class="modal-field">
+			<label for="pw-pass">Пароль</label>
+			<input id="pw-pass" type="password" bind:value={passwordValue} placeholder="Минимум 6 символов" required minlength="6" />
+		</div>
+		{#if accountError}
+			<div class="modal-error">{accountError}</div>
+		{/if}
+		<button type="submit" class="modal-submit" disabled={accountLoading}>
+			{accountLoading ? 'Сохранение...' : 'Сохранить'}
+		</button>
+	</form>
+</PixelModal>
+
+<!-- Link Telegram Modal -->
+<PixelModal
+	open={showLinkTelegram}
+	title="Привязать Telegram"
+	onclose={() => { showLinkTelegram = false; accountError = null; }}
+>
+	<div class="modal-instructions">
+		<p>1. Начните диалог с ботом <b>@pixelfitbot</b></p>
+		<p>2. Введите ваш Telegram ID ниже</p>
+		<p>3. Подтвердите привязку в Telegram</p>
+	</div>
+	<form class="modal-form" onsubmit={(e) => { e.preventDefault(); handleLinkTelegram(); }}>
+		<div class="modal-field">
+			<label for="tg-id">Telegram ID</label>
+			<input id="tg-id" type="text" bind:value={telegramIdInput} placeholder="Например: 123456789" required />
+		</div>
+		{#if accountError}
+			<div class="modal-error">{accountError}</div>
+		{/if}
+		<button type="submit" class="modal-submit" disabled={accountLoading}>
+			{accountLoading ? 'Отправка...' : 'Отправить запрос'}
+		</button>
+	</form>
+</PixelModal>
 
 <!-- Day details modal (from bar chart click) -->
 <PixelModal
@@ -606,5 +761,141 @@
 	.no-activity p {
 		margin: 0;
 		font-size: var(--font-size-sm);
+	}
+
+	/* Account Section */
+	.account-section {
+		margin-bottom: var(--spacing-md);
+	}
+
+	.account-success {
+		padding: var(--spacing-sm);
+		background: rgba(0, 200, 83, 0.1);
+		border: 2px solid var(--pixel-green);
+		font-size: var(--font-size-xs);
+		color: var(--pixel-green);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.account-info {
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		padding: var(--spacing-sm) var(--spacing-md);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.account-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: var(--spacing-xs) 0;
+	}
+
+	.account-row + .account-row {
+		border-top: 1px solid var(--border-color);
+	}
+
+	.account-label {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+
+	.account-value {
+		font-size: var(--font-size-xs);
+		color: var(--text-primary);
+	}
+
+	.account-actions {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+	}
+
+	.account-btn {
+		padding: 10px var(--spacing-md);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		color: var(--pixel-accent);
+		font-family: 'Press Start 2P', cursive;
+		font-size: var(--font-size-xs);
+		cursor: pointer;
+		text-align: left;
+		transition: border-color 0.2s;
+	}
+
+	.account-btn:hover {
+		border-color: var(--pixel-accent);
+	}
+
+	.logout-btn {
+		color: var(--pixel-danger);
+	}
+
+	.logout-btn:hover {
+		border-color: var(--pixel-danger);
+	}
+
+	/* Modal form styles */
+	.modal-form {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+		padding: var(--spacing-sm) 0;
+	}
+
+	.modal-field {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.modal-field label {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+
+	.modal-field input {
+		padding: 10px 12px;
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+		color: var(--text-primary);
+		font-size: 14px;
+		outline: none;
+	}
+
+	.modal-field input:focus {
+		border-color: var(--pixel-accent);
+	}
+
+	.modal-error {
+		color: var(--pixel-danger);
+		font-size: var(--font-size-xs);
+		padding: var(--spacing-xs);
+	}
+
+	.modal-submit {
+		padding: 12px;
+		background: var(--pixel-accent);
+		border: none;
+		color: white;
+		font-family: 'Press Start 2P', cursive;
+		font-size: var(--font-size-xs);
+		cursor: pointer;
+	}
+
+	.modal-submit:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	.modal-instructions {
+		padding: var(--spacing-sm) 0;
+		font-size: 12px;
+		color: var(--text-secondary);
+		line-height: 1.6;
+	}
+
+	.modal-instructions p {
+		margin: 4px 0;
 	}
 </style>
