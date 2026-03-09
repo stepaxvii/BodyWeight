@@ -255,7 +255,8 @@ async def submit_workout(
         old_workout.finished_at = datetime.utcnow()
 
     # Prepare data for processor
-    now = datetime.utcnow()
+    # Use completed_at from request (offline sync) or current time
+    now = request.completed_at or datetime.utcnow()
     completion_data = WorkoutCompletionData(
         user_id=user.id,
         started_at=now - timedelta(seconds=request.duration_seconds),

@@ -198,6 +198,7 @@
 		const workoutData = {
 			duration_seconds: timerSeconds,
 			exercises: completedExercises,
+			completed_at: new Date().toISOString(),
 		};
 
 		try {

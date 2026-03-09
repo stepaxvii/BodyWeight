@@ -15,6 +15,7 @@ class CompleteWorkoutRequest(BaseModel):
     """Request body for completing a workout with all exercise data."""
     duration_seconds: int
     exercises: list[ExerciseSetData]
+    completed_at: datetime | None = None  # ISO timestamp; if omitted, uses server time
 
 
 class WorkoutExerciseResponse(BaseModel):

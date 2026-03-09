@@ -15,7 +15,6 @@
 	let selectedDay = $state<{ date: string; activity: DayActivity | null } | null>(null);
 
 	// Account settings
-	let showSetPassword = $state(false);
 	let showLinkTelegram = $state(false);
 	let passwordEmail = $state('');
 	let passwordValue = $state('');
@@ -23,9 +22,20 @@
 	let accountMessage = $state<string | null>(null);
 	let accountError = $state<string | null>(null);
 	let accountLoading = $state(false);
-	let showWebLink = $state(false);
+	let showInstallPwa = $state(false);
+	let installStep = $state<'password' | 'instructions'>('password');
 
 	const webAppUrl = 'https://stepaproject.ru/bodyweight/';
+
+	function openInstallPwa() {
+		accountError = null;
+		if (userStore.hasWebAuth) {
+			installStep = 'instructions';
+		} else {
+			installStep = 'password';
+		}
+		showInstallPwa = true;
+	}
 
 	async function handleSetPassword() {
 		if (passwordValue.length < 6) {
@@ -36,11 +46,15 @@
 		accountLoading = true;
 		try {
 			await userStore.setPassword(passwordEmail, passwordValue);
-			accountMessage = 'Пароль установлен! Откройте веб-версию в браузере и установите как приложение.';
-			showSetPassword = false;
-			showWebLink = true;
 			passwordEmail = '';
 			passwordValue = '';
+			// If opened from install flow, go to instructions
+			if (showInstallPwa) {
+				installStep = 'instructions';
+			} else {
+				showSetPassword = false;
+				accountMessage = 'Пароль установлен!';
+			}
 		} catch (err) {
 			accountError = err instanceof Error ? err.message : 'Ошибка';
 		} finally {
@@ -289,14 +303,6 @@
 			<div class="account-success">{accountMessage}</div>
 		{/if}
 
-		{#if showWebLink || userStore.hasWebAuth}
-			<div class="web-link-card">
-				<p class="web-link-label">Веб-версия (PWA)</p>
-				<a href={webAppUrl} target="_blank" rel="noopener" class="web-link-url">{webAppUrl}</a>
-				<p class="web-link-hint">Откройте в браузере → Установить / Добавить на главный экран</p>
-			</div>
-		{/if}
-
 		<div class="account-info">
 			{#if userStore.user?.email}
 				<div class="account-row">
@@ -313,11 +319,9 @@
 		</div>
 
 		<div class="account-actions">
-			{#if !userStore.hasWebAuth}
-				<button class="account-btn" onclick={() => { showSetPassword = true; accountError = null; }}>
-					Установить пароль для браузера
-				</button>
-			{/if}
+			<button class="account-btn install-btn" onclick={openInstallPwa}>
+				Установить приложение
+			</button>
 
 			{#if !userStore.hasTelegram}
 				<button class="account-btn" onclick={() => { showLinkTelegram = true; accountError = null; }}>
@@ -335,37 +339,70 @@
 
 </div>
 
-<!-- Set Password Modal -->
+<!-- Install PWA Modal -->
 <PixelModal
-	open={showSetPassword}
-	title="Установить пароль"
-	onclose={() => { showSetPassword = false; accountError = null; }}
+	open={showInstallPwa}
+	title={installStep === 'password' ? 'Шаг 1: Создать логин' : 'Установить приложение'}
+	onclose={() => { showInstallPwa = false; accountError = null; }}
 >
-	<div class="modal-instructions">
-		<p>После установки пароля вы сможете входить через браузер, используя:</p>
-		<p>- Email</p>
-		{#if userStore.user?.username}
-			<p>- Telegram username: <b>{userStore.user.username}</b></p>
-		{/if}
-		<p>- Telegram ID: <b>{userStore.user?.telegram_id}</b></p>
-		<p style="margin-top: 8px;">Веб-версия: <a href={webAppUrl} target="_blank" rel="noopener" style="color: var(--pixel-accent);">{webAppUrl}</a></p>
-	</div>
-	<form class="modal-form" onsubmit={(e) => { e.preventDefault(); handleSetPassword(); }}>
-		<div class="modal-field">
-			<label for="pw-email">Email</label>
-			<input id="pw-email" type="email" bind:value={passwordEmail} placeholder="your@email.com" required />
+	{#if installStep === 'password'}
+		<div class="modal-instructions">
+			<p>Для входа через браузер нужен email и пароль.</p>
+			<p>Для входа можно использовать:</p>
+			<p>- Email</p>
+			{#if userStore.user?.username}
+				<p>- Telegram username: <b>{userStore.user.username}</b></p>
+			{/if}
+			{#if userStore.user?.telegram_id}
+				<p>- Telegram ID: <b>{userStore.user.telegram_id}</b></p>
+			{/if}
 		</div>
-		<div class="modal-field">
-			<label for="pw-pass">Пароль</label>
-			<input id="pw-pass" type="password" bind:value={passwordValue} placeholder="Минимум 6 символов" required minlength="6" />
+		<form class="modal-form" onsubmit={(e) => { e.preventDefault(); handleSetPassword(); }}>
+			<div class="modal-field">
+				<label for="pw-email">Email</label>
+				<input id="pw-email" type="email" bind:value={passwordEmail} placeholder="your@email.com" required />
+			</div>
+			<div class="modal-field">
+				<label for="pw-pass">Пароль</label>
+				<input id="pw-pass" type="password" bind:value={passwordValue} placeholder="Минимум 6 символов" required minlength="6" />
+			</div>
+			{#if accountError}
+				<div class="modal-error">{accountError}</div>
+			{/if}
+			<button type="submit" class="modal-submit" disabled={accountLoading}>
+				{accountLoading ? 'Сохранение...' : 'Далее'}
+			</button>
+		</form>
+	{:else}
+		<div class="install-instructions">
+			<div class="install-step">
+				<span class="step-number">1</span>
+				<div class="step-content">
+					<p>Откройте ссылку в браузере:</p>
+					<a href={webAppUrl} target="_blank" rel="noopener" class="install-link">{webAppUrl}</a>
+				</div>
+			</div>
+			<div class="install-step">
+				<span class="step-number">2</span>
+				<div class="step-content">
+					<p>Войдите с логином и паролем</p>
+				</div>
+			</div>
+			<div class="install-step">
+				<span class="step-number">3</span>
+				<div class="step-content">
+					<p><b>iOS:</b> Поделиться → На экран «Домой»</p>
+					<p><b>Android:</b> Меню (⋮) → Установить приложение</p>
+				</div>
+			</div>
 		</div>
-		{#if accountError}
-			<div class="modal-error">{accountError}</div>
-		{/if}
-		<button type="submit" class="modal-submit" disabled={accountLoading}>
-			{accountLoading ? 'Сохранение...' : 'Сохранить'}
+		<button
+			class="modal-submit"
+			onclick={() => { showInstallPwa = false; }}
+		>
+			Готово
 		</button>
-	</form>
+	{/if}
 </PixelModal>
 
 <!-- Link Telegram Modal -->
@@ -794,34 +831,55 @@
 		margin-bottom: var(--spacing-sm);
 	}
 
-	.web-link-card {
-		padding: var(--spacing-sm) var(--spacing-md);
-		background: var(--pixel-card);
-		border: 2px solid var(--pixel-accent);
-		margin-bottom: var(--spacing-sm);
-		text-align: center;
+	.install-btn {
+		background: var(--pixel-accent) !important;
+		color: white !important;
+		border-color: var(--pixel-accent) !important;
+		text-align: center !important;
 	}
 
-	.web-link-label {
+	.install-instructions {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+		padding: var(--spacing-sm) 0 var(--spacing-md);
+	}
+
+	.install-step {
+		display: flex;
+		gap: var(--spacing-sm);
+		align-items: flex-start;
+	}
+
+	.step-number {
+		width: 24px;
+		height: 24px;
+		background: var(--pixel-accent);
+		color: white;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		font-size: var(--font-size-xs);
+		flex-shrink: 0;
+	}
+
+	.step-content {
+		flex: 1;
+		font-size: 12px;
 		color: var(--text-secondary);
-		margin: 0 0 var(--spacing-xs);
-		text-transform: uppercase;
+		line-height: 1.6;
 	}
 
-	.web-link-url {
-		display: block;
-		font-size: var(--font-size-xs);
+	.step-content p {
+		margin: 0;
+	}
+
+	.install-link {
+		display: inline-block;
 		color: var(--pixel-accent);
 		word-break: break-all;
-		margin-bottom: var(--spacing-xs);
-	}
-
-	.web-link-hint {
-		font-size: 10px;
-		color: var(--text-muted);
-		margin: 0;
-		line-height: 1.5;
+		margin-top: 4px;
+		font-size: 11px;
 	}
 
 	.account-info {

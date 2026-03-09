@@ -217,6 +217,7 @@ class ApiClient {
 			sets: number[];
 			is_timed: boolean;
 		}>;
+		completed_at?: string;
 	}): Promise<WorkoutSummaryResponse> {
 		return this.request<WorkoutSummaryResponse>('/workouts/submit', {
 			method: 'POST',

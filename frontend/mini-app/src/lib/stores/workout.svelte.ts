@@ -325,7 +325,8 @@ class WorkoutStore {
 
 		const workoutData = {
 			duration_seconds: this.timerSeconds,
-			exercises
+			exercises,
+			completed_at: new Date().toISOString()
 		};
 
 		this.isLoading = true;

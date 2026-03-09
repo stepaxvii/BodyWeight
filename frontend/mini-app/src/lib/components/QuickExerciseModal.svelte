@@ -232,6 +232,7 @@
 				sets: timeBased ? [duration] : [reps],
 				is_timed: timeBased,
 			}],
+			completed_at: new Date().toISOString(),
 		};
 
 		try {
