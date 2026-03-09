@@ -1,17 +1,18 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
-	import { PixelCard, PixelProgress, PixelIcon, PixelAvatar, AvatarPicker, PixelModal } from '$lib/components/ui';
-	import ActivityCalendar from '$lib/components/ActivityCalendar.svelte';
+	import { PixelCard, PixelProgress, PixelIcon, PixelAvatar, AvatarPicker } from '$lib/components/ui';
+	import ActivityBarChart from '$lib/components/ActivityBarChart.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
-	import type { Achievement, AvatarId, UserActivity, DayActivity } from '$lib/types';
+	import type { Achievement, AvatarId, UserActivity } from '$lib/types';
 
 	let achievements = $state<Achievement[]>([]);
 	let showAvatarPicker = $state(false);
 	let activityData = $state<UserActivity | null>(null);
-	let selectedDay = $state<{ date: string; activity: DayActivity | null } | null>(null);
+	let chartRange = $state<'week' | '2weeks' | 'month'>('week');
+	let chartMetric = $state<'xp' | 'workouts'>('xp');
 
 	onMount(async () => {
 		await userStore.loadStats();
@@ -49,19 +50,6 @@
 	function handleAvatarSelect(avatarId: AvatarId) {
 		userStore.setAvatar(avatarId);
 	}
-
-	function handleDayClick(date: string, activity: DayActivity | null) {
-		selectedDay = { date, activity };
-	}
-
-	function formatDate(dateStr: string): string {
-		const date = new Date(dateStr);
-		return date.toLocaleDateString('ru-RU', {
-			day: 'numeric',
-			month: 'long',
-			year: 'numeric'
-		});
-	}
 </script>
 
 <div class="page container">
@@ -98,14 +86,58 @@
 		onclose={() => showAvatarPicker = false}
 	/>
 
-	<!-- Activity Calendar - moved up -->
+	<!-- Activity bar chart: week / 2 weeks / month -->
 	{#if activityData}
-		<section class="activity-section">
-			<ActivityCalendar
-				activityData={activityData.days}
-				year={new Date().getFullYear()}
-				onDayClick={handleDayClick}
-			/>
+		<section class="activity-chart-section">
+			<h3 class="chart-section-title">Активность</h3>
+			<div class="chart-controls">
+				<div class="chart-range-btns">
+					<button
+						class="range-btn"
+						class:active={chartRange === 'week'}
+						onclick={() => { chartRange = 'week'; telegram.hapticImpact('light'); }}
+					>
+						7 дней
+					</button>
+					<button
+						class="range-btn"
+						class:active={chartRange === '2weeks'}
+						onclick={() => { chartRange = '2weeks'; telegram.hapticImpact('light'); }}
+					>
+						14 дней
+					</button>
+					<button
+						class="range-btn"
+						class:active={chartRange === 'month'}
+						onclick={() => { chartRange = 'month'; telegram.hapticImpact('light'); }}
+					>
+						30 дней
+					</button>
+				</div>
+				<div class="chart-metric-btns">
+					<button
+						class="metric-btn"
+						class:active={chartMetric === 'xp'}
+						onclick={() => { chartMetric = 'xp'; telegram.hapticImpact('light'); }}
+					>
+						XP
+					</button>
+					<button
+						class="metric-btn"
+						class:active={chartMetric === 'workouts'}
+						onclick={() => { chartMetric = 'workouts'; telegram.hapticImpact('light'); }}
+					>
+						Тренировки
+					</button>
+				</div>
+			</div>
+			<PixelCard padding="md">
+				<ActivityBarChart
+					activityData={activityData.days}
+					range={chartRange}
+					metric={chartMetric}
+				/>
+			</PixelCard>
 		</section>
 	{/if}
 
@@ -159,37 +191,6 @@
 			</div>
 		</section>
 	{/if}
-
-	<!-- Day Details Modal -->
-	<PixelModal
-		open={selectedDay !== null}
-		title={selectedDay ? formatDate(selectedDay.date) : ''}
-		onclose={() => selectedDay = null}
-	>
-		{#if selectedDay?.activity}
-			<div class="day-details">
-				<div class="day-stat">
-					<PixelIcon name="workout" size="md" color="var(--pixel-accent)" />
-					<div class="day-stat-content">
-						<span class="day-stat-label">Тренировки</span>
-						<span class="day-stat-value">{selectedDay.activity.workouts}</span>
-					</div>
-				</div>
-				<div class="day-stat">
-					<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
-					<div class="day-stat-content">
-						<span class="day-stat-label">XP заработано</span>
-						<span class="day-stat-value">{selectedDay.activity.total_xp}</span>
-					</div>
-				</div>
-			</div>
-		{:else}
-			<div class="no-activity">
-				<PixelIcon name="close" size="lg" color="var(--text-muted)" />
-				<p>Нет тренировок в этот день</p>
-			</div>
-		{/if}
-	</PixelModal>
 
 	<!-- Streak Info - Compact -->
 	<section class="streak-section">
@@ -318,9 +319,53 @@
 		text-transform: uppercase;
 	}
 
-	/* Activity Section */
-	.activity-section {
+	/* Activity chart section */
+	.activity-chart-section {
 		margin-bottom: var(--spacing-md);
+	}
+
+	.chart-section-title {
+		font-size: var(--font-size-sm);
+		text-transform: uppercase;
+		margin: 0 0 var(--spacing-sm) 0;
+	}
+
+	.chart-controls {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--spacing-sm);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.chart-range-btns,
+	.chart-metric-btns {
+		display: flex;
+		gap: 4px;
+	}
+
+	.range-btn,
+	.metric-btn {
+		padding: 6px 10px;
+		font-size: var(--font-size-xs);
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+		color: var(--text-secondary);
+		cursor: pointer;
+		transition: all 0.15s;
+	}
+
+	.range-btn:hover,
+	.metric-btn:hover {
+		border-color: var(--pixel-accent);
+		color: var(--text-primary);
+	}
+
+	.range-btn.active,
+	.metric-btn.active {
+		background: var(--pixel-accent);
+		border-color: var(--pixel-accent);
+		color: var(--pixel-bg);
 	}
 
 	/* Stats Row - compact horizontal */
@@ -410,55 +455,6 @@
 	.badge-more:hover {
 		color: var(--pixel-accent);
 		border-color: var(--pixel-accent);
-	}
-
-	/* Day Details Modal */
-	.day-details {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-md);
-		padding: var(--spacing-sm) 0;
-	}
-
-	.day-stat {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-sm);
-		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
-	}
-
-	.day-stat-content {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-	}
-
-	.day-stat-label {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-		text-transform: uppercase;
-	}
-
-	.day-stat-value {
-		font-size: var(--font-size-md);
-		color: var(--text-primary);
-	}
-
-	.no-activity {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-xl);
-		color: var(--text-muted);
-		text-align: center;
-	}
-
-	.no-activity p {
-		margin: 0;
-		font-size: var(--font-size-sm);
 	}
 
 	/* Streak Section - Compact */

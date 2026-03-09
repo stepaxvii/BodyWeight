@@ -10,19 +10,21 @@
 
 	let { activityData, year, onDayClick }: Props = $props();
 
-	// Color thresholds based on XP (excluding achievement XP)
+	// 6 градаций: пусто (0) + 5 уровней, последняя — 1000+ XP
 	const XP_THRESHOLDS = {
-		LIGHT: 1,      // 1-100 XP: light green
-		MEDIUM: 101,   // 101-300 XP: green
-		INTENSE: 301,  // 301-500 XP: bright green
-		VERY_INTENSE: 501 // 500+ XP: red/dark green
+		LIGHT: 1,        // 1–200
+		MEDIUM: 201,     // 201–400
+		INTENSE: 401,    // 401–600
+		STRONG: 601,     // 601–999
+		VERY_INTENSE: 1000 // 1000+
 	};
 
 	function getColorClass(xp: number): string {
 		if (xp === 0) return 'color-empty';
 		if (xp < XP_THRESHOLDS.MEDIUM) return 'color-light';
 		if (xp < XP_THRESHOLDS.INTENSE) return 'color-medium';
-		if (xp < XP_THRESHOLDS.VERY_INTENSE) return 'color-intense';
+		if (xp < XP_THRESHOLDS.STRONG) return 'color-intense';
+		if (xp < XP_THRESHOLDS.VERY_INTENSE) return 'color-strong';
 		return 'color-very-intense';
 	}
 
@@ -128,6 +130,7 @@
 			<div class="legend-box color-light"></div>
 			<div class="legend-box color-medium"></div>
 			<div class="legend-box color-intense"></div>
+			<div class="legend-box color-strong"></div>
 			<div class="legend-box color-very-intense"></div>
 			<span class="legend-label">Больше</span>
 		</div>
@@ -258,25 +261,29 @@
 		cursor: default;
 	}
 
-	/* Color scheme based on XP */
+	/* 6 градаций: пусто + 5 уровней интенсивности (до 1000 XP) */
 	.color-empty {
 		background: var(--pixel-bg-dark);
 	}
 
 	.color-light {
-		background: #0e4429; /* Dark green - light workout */
+		background: #0e4429; /* 1–200 XP */
 	}
 
 	.color-medium {
-		background: #006d32; /* Green - medium workout */
+		background: #006d32; /* 201–400 XP */
 	}
 
 	.color-intense {
-		background: #26a641; /* Bright green - intense workout */
+		background: #1a7f37; /* 401–600 XP */
+	}
+
+	.color-strong {
+		background: #26a641; /* 601–999 XP */
 	}
 
 	.color-very-intense {
-		background: #39d353; /* Very bright green - very intense workout */
+		background: #39d353; /* 1000+ XP */
 	}
 
 	/* Scrollbar styling */

@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import { PixelButton, PixelCard, PixelProgress, PixelIcon } from '$lib/components/ui';
+	import { PixelButton, PixelCard, PixelProgress, PixelIcon, PixelModal } from '$lib/components/ui';
 	import QuickExerciseModal from '$lib/components/QuickExerciseModal.svelte';
+	import ActivityCalendar from '$lib/components/ActivityCalendar.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
+	import { telegram } from '$lib/stores/telegram.svelte';
 	import { onMount } from 'svelte';
-	import type { Notification } from '$lib/types';
+	import type { Notification, UserActivity, DayActivity } from '$lib/types';
 
 	let quickModalOpen = $state(false);
 	let lastReward = $state<{ xp: number; coins: number } | null>(null);
@@ -13,17 +15,38 @@
 	let notifications = $state<Notification[]>([]);
 	let notificationsOpen = $state(false);
 	let notificationsLoading = $state(false);
+	let activityData = $state<UserActivity | null>(null);
+	let selectedDay = $state<{ date: string; activity: DayActivity | null } | null>(null);
 
 	onMount(async () => {
 		await userStore.loadStats();
 
-		// Load unread notifications count
 		try {
 			unreadNotifications = await api.getUnreadNotificationCount();
 		} catch (e) {
 			console.error('Failed to load notifications count:', e);
 		}
+
+		try {
+			activityData = await api.getUserActivity();
+		} catch (e) {
+			console.error('Failed to load activity data:', e);
+		}
 	});
+
+	function handleDayClick(date: string, activity: DayActivity | null) {
+		selectedDay = { date, activity };
+		telegram.hapticImpact('light');
+	}
+
+	function formatDate(dateStr: string): string {
+		const date = new Date(dateStr);
+		return date.toLocaleDateString('ru-RU', {
+			day: 'numeric',
+			month: 'long',
+			year: 'numeric'
+		});
+	}
 
 	// Level XP calculation - use store computed values
 	const xpInLevel = $derived(userStore.xp - userStore.xpForCurrentLevel);
@@ -237,7 +260,49 @@
 			</div>
 		</section>
 	{/if}
+
+	<!-- Activity Calendar (year) -->
+	{#if activityData}
+		<section class="activity-section">
+			<ActivityCalendar
+				activityData={activityData.days}
+				year={new Date().getFullYear()}
+				onDayClick={handleDayClick}
+			/>
+		</section>
+	{/if}
 </div>
+
+	<!-- Day details modal (from calendar click) -->
+	<PixelModal
+		open={selectedDay !== null}
+		title={selectedDay ? formatDate(selectedDay.date) : ''}
+		onclose={() => selectedDay = null}
+	>
+		{#if selectedDay?.activity}
+			<div class="day-details">
+				<div class="day-stat">
+					<PixelIcon name="workout" size="md" color="var(--pixel-accent)" />
+					<div class="day-stat-content">
+						<span class="day-stat-label">Тренировки</span>
+						<span class="day-stat-value">{selectedDay.activity.workouts}</span>
+					</div>
+				</div>
+				<div class="day-stat">
+					<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
+					<div class="day-stat-content">
+						<span class="day-stat-label">XP заработано</span>
+						<span class="day-stat-value">{selectedDay.activity.total_xp}</span>
+					</div>
+				</div>
+			</div>
+		{:else}
+			<div class="no-activity">
+				<PixelIcon name="close" size="lg" color="var(--text-muted)" />
+				<p>Нет тренировок в этот день</p>
+			</div>
+		{/if}
+	</PixelModal>
 
 <QuickExerciseModal
 	bind:open={quickModalOpen}
@@ -640,6 +705,58 @@
 	/* Weekly Section */
 	.weekly-section {
 		margin-bottom: var(--spacing-md);
+	}
+
+	.activity-section {
+		margin-bottom: var(--spacing-md);
+	}
+
+	.day-details {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+		padding: var(--spacing-sm) 0;
+	}
+
+	.day-stat {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+		padding: var(--spacing-sm);
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+	}
+
+	.day-stat-content {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.day-stat-label {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		text-transform: uppercase;
+	}
+
+	.day-stat-value {
+		font-size: var(--font-size-md);
+		color: var(--text-primary);
+	}
+
+	.no-activity {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--spacing-md);
+		padding: var(--spacing-xl);
+		color: var(--text-muted);
+		text-align: center;
+	}
+
+	.no-activity p {
+		margin: 0;
+		font-size: var(--font-size-sm);
 	}
 
 	.section-title {
