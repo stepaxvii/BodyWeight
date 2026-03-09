@@ -152,6 +152,7 @@
 
 	async function completeExercise() {
 		if (!currentExercise) return;
+		if (isSubmitting) return;
 
 		telegram.hapticImpact('medium');
 
@@ -188,6 +189,7 @@
 	}
 
 	async function finishRoutine() {
+		if (isSubmitting) return;
 		if (!workoutStartTime || completedExercises.length === 0) return;
 
 		isSubmitting = true;
@@ -491,10 +493,11 @@
 						<PixelButton
 							variant="success"
 							size="lg"
+							disabled={isSubmitting}
 							onclick={completeExercise}
 						>
 							<PixelIcon name="check" />
-							Готово
+							{isSubmitting ? 'Отправка…' : 'Готово'}
 						</PixelButton>
 					{/if}
 				</div>
