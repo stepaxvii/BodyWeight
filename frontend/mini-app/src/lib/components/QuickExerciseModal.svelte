@@ -4,6 +4,7 @@
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { favoritesStore } from '$lib/stores/favorites.svelte';
+	import { exercisesStore } from '$lib/stores/exercises.svelte';
 	import { getTagName } from '$lib/utils';
 	import type { Exercise, EquipmentType, ExerciseCategory } from '$lib/types';
 	import { onMount } from 'svelte';
@@ -51,13 +52,22 @@
 	];
 
 	onMount(async () => {
-		const [exercisesResponse, categoriesResponse] = await Promise.all([
-			api.getAllExercises(),
-			api.getCategories()
-		]);
-		exercises = exercisesResponse;
-		categories = categoriesResponse;
-		await favoritesStore.loadFavorites();
+		try {
+			const [exercisesResponse, categoriesResponse] = await Promise.all([
+				exercisesStore.loadAll(),
+				api.getCategories().catch(() => [])
+			]);
+			exercises = exercisesResponse;
+			categories = categoriesResponse;
+		} catch {
+			// exercisesStore.loadAll() handles localStorage fallback internally
+			exercises = exercisesStore.exercises;
+		}
+		try {
+			await favoritesStore.loadFavorites();
+		} catch {
+			// Favorites may not load offline, that's ok
+		}
 	});
 
 	// Filtered exercises based on mode, search, and filters
@@ -214,32 +224,46 @@
 		isSubmitting = true;
 		telegram.hapticNotification('success');
 
+		const timeBased = isTimeBased(selectedExercise);
+		const workoutData = {
+			duration_seconds: timeBased ? duration : 30,
+			exercises: [{
+				exercise_slug: selectedExercise.slug,
+				sets: timeBased ? [duration] : [reps],
+				is_timed: timeBased,
+			}],
+			completed_at: new Date().toISOString(),
+		};
+
 		try {
-			const timeBased = isTimeBased(selectedExercise);
-			const startTime = new Date();
-
-			// Submit workout directly with exercise data
-			const response = await api.submitWorkout({
-				duration_seconds: timeBased ? duration : 30, // Estimate 30s for rep-based
-				exercises: [{
-					exercise_slug: selectedExercise.slug,
-					sets: timeBased ? [duration] : [reps],
-					is_timed: timeBased,
-				}],
-			});
-
+			const response = await api.submitWorkout(workoutData);
 			const completed = response.workout;
-
-			// Reload user data from server to get updated XP, level, coins, streak
 			await userStore.loadUser();
-
 			onsave?.(completed.total_xp_earned, completed.total_coins_earned);
 			handleClose();
 		} catch (err) {
-			console.error('Failed to save exercise:', err);
-			telegram.hapticNotification('error');
+			// Offline: save to pending queue for later sync
+			if (!navigator.onLine) {
+				savePendingWorkout(workoutData);
+				telegram.hapticNotification('success');
+				onsave?.(selectedExercise.base_xp, 0);
+				handleClose();
+			} else {
+				console.error('Failed to save exercise:', err);
+				telegram.hapticNotification('error');
+			}
 		} finally {
 			isSubmitting = false;
+		}
+	}
+
+	function savePendingWorkout(data: Parameters<typeof api.submitWorkout>[0]) {
+		try {
+			const pending = JSON.parse(localStorage.getItem('pending_workouts') || '[]');
+			pending.push({ data, timestamp: Date.now() });
+			localStorage.setItem('pending_workouts', JSON.stringify(pending));
+		} catch (e) {
+			console.error('Failed to save pending workout:', e);
 		}
 	}
 

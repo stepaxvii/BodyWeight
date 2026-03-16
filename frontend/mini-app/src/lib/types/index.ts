@@ -74,10 +74,12 @@ export interface Avatar {
 // User types (matches backend UserResponse)
 export interface User {
 	id: number;
-	telegram_id: number;
+	telegram_id?: number | null;
 	username?: string;
 	first_name?: string;
 	last_name?: string;
+	email?: string | null;
+	has_password: boolean;
 	avatar_id: AvatarId;
 	level: number;
 	total_xp: number;
@@ -307,6 +309,13 @@ export interface ApiResponse<T> {
 // AuthResponse (matches backend AuthResponse)
 export interface AuthResponse {
 	user: User;
+	is_new: boolean;
+}
+
+// WebAuthResponse (matches backend WebAuthResponse)
+export interface WebAuthResponse {
+	user: User;
+	token: string;
 	is_new: boolean;
 }
 

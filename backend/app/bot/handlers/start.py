@@ -1,12 +1,15 @@
 import logging
-from aiogram import Router, F
+from aiogram import Bot, Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command, CommandStart
+from aiogram.enums import ParseMode
+from aiogram.client.default import DefaultBotProperties
 from sqlalchemy import select
 
+from app.config import settings
 from app.db.database import async_session_maker
 from app.db.models import User
-from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button, get_leaderboard_consent_keyboard
+from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button, get_leaderboard_consent_keyboard, get_link_confirmation_keyboard
 
 router = Router()
 
@@ -329,3 +332,67 @@ async def callback_view_stats(callback: CallbackQuery):
     if callback.message:
         await cmd_stats(callback.message)
     await callback.answer()
+
+
+# ==================== Telegram Link Confirmation ====================
+
+async def send_link_confirmation(telegram_id: int, web_username: str, link_token: str):
+    """Send link confirmation message to Telegram user."""
+    bot = Bot(
+        token=settings.bot_token,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    )
+    try:
+        await bot.send_message(
+            chat_id=telegram_id,
+            text=f"""🔗 <b>Привязка аккаунта</b>
+
+Получен запрос на привязку вашего Telegram к web-аккаунту <b>{web_username}</b>.
+
+Если это вы — подтвердите привязку.""",
+            reply_markup=get_link_confirmation_keyboard(link_token),
+        )
+    finally:
+        await bot.session.close()
+
+
+@router.callback_query(F.data.startswith("link_confirm_"))
+async def callback_link_confirm(callback: CallbackQuery):
+    """User confirmed linking their Telegram to a web account."""
+    if not callback.from_user or not callback.data:
+        await callback.answer()
+        return
+
+    link_token = callback.data.replace("link_confirm_", "")
+
+    # Call the confirm endpoint internally
+    import httpx
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                f"{settings.mini_app_url}/api/auth/confirm-link/{link_token}"
+            )
+            if resp.status_code == 200:
+                await callback.answer("Аккаунт успешно привязан!")
+                if callback.message:
+                    await callback.message.edit_text(
+                        "🔗 <b>Привязка аккаунта</b>\n\n✅ Аккаунт успешно привязан!",
+                        reply_markup=None,
+                    )
+            else:
+                detail = resp.json().get("detail", "Ошибка")
+                await callback.answer(f"Ошибка: {detail}", show_alert=True)
+    except Exception as e:
+        logger.error(f"Link confirmation error: {e}")
+        await callback.answer("Произошла ошибка. Попробуйте позже.", show_alert=True)
+
+
+@router.callback_query(F.data.startswith("link_reject_"))
+async def callback_link_reject(callback: CallbackQuery):
+    """User rejected linking."""
+    await callback.answer("Привязка отклонена.")
+    if callback.message:
+        await callback.message.edit_text(
+            "🔗 <b>Привязка аккаунта</b>\n\n❌ Привязка отклонена.",
+            reply_markup=None,
+        )

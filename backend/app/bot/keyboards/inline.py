@@ -40,6 +40,18 @@ def get_leaderboard_consent_keyboard() -> InlineKeyboardMarkup:
     )
 
 
+def get_link_confirmation_keyboard(link_token: str) -> InlineKeyboardMarkup:
+    """Keyboard for confirming Telegram account linking."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"link_confirm_{link_token}"),
+                InlineKeyboardButton(text="❌ Отклонить", callback_data=f"link_reject_{link_token}"),
+            ]
+        ]
+    )
+
+
 def get_main_keyboard(start_param: str | None = None) -> InlineKeyboardMarkup:
     """
     Get main menu keyboard with single app button.

@@ -4,16 +4,19 @@
 	import { goto } from '$app/navigation';
 	import { PixelNav } from '$lib/components/ui';
 	import OnboardingScreen from '$lib/components/OnboardingScreen.svelte';
+	import AuthScreen from '$lib/components/AuthScreen.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
+	import { api } from '$lib/api/client';
 
 	let { children } = $props();
+	let isTelegramApp = $state(false);
+	let initialized = $state(false);
 
 	// Handle startParam navigation (deep links from notifications)
 	function handleStartParam(param: string | null) {
 		if (!param) return;
 
-		// Map startParam values to routes
 		const routes: Record<string, string> = {
 			friends_requests: '/friends?tab=requests',
 			friends: '/friends',
@@ -27,19 +30,65 @@
 	}
 
 	onMount(async () => {
-		// Wait for Telegram WebApp to be ready
-		if (telegram.isReady && telegram.initData) {
+		// Detect if running inside Telegram WebApp
+		isTelegramApp = !!(
+			typeof window !== 'undefined' &&
+			window.Telegram?.WebApp?.initData
+		);
+
+		if (isTelegramApp && telegram.isReady && telegram.initData) {
+			// Telegram Mini App auth flow
 			await userStore.authenticate(telegram.initData);
+
+			if (userStore.isAuthenticated && userStore.isOnboarded) {
+				handleStartParam(telegram.startParam);
+			}
+		} else if (!isTelegramApp) {
+			// Browser: try to restore session from stored JWT
+			await userStore.tryRestoreSession();
 		} else {
-			// Dev mode - authenticate with mock data
+			// Dev mode (no Telegram, no stored token)
 			await userStore.authenticate('');
 		}
 
-		// Handle deep link navigation after auth
-		if (userStore.isAuthenticated && userStore.isOnboarded) {
-			handleStartParam(telegram.startParam);
-		}
+		initialized = true;
+
+		// Sync pending offline workouts when online
+		syncPendingWorkouts();
+		window.addEventListener('online', syncPendingWorkouts);
 	});
+
+	async function syncPendingWorkouts() {
+		if (!navigator.onLine) return;
+		try {
+			const raw = localStorage.getItem('pending_workouts');
+			if (!raw) return;
+			const pending = JSON.parse(raw) as Array<{ data: any; timestamp: number }>;
+			if (pending.length === 0) return;
+
+			const remaining = [];
+			for (const item of pending) {
+				try {
+					await api.submitWorkout(item.data);
+				} catch {
+					remaining.push(item);
+				}
+			}
+
+			if (remaining.length === 0) {
+				localStorage.removeItem('pending_workouts');
+			} else {
+				localStorage.setItem('pending_workouts', JSON.stringify(remaining));
+			}
+
+			// Reload user data after sync
+			if (remaining.length < pending.length && userStore.isAuthenticated) {
+				await userStore.loadUser();
+			}
+		} catch {
+			// Ignore sync errors
+		}
+	}
 </script>
 
 <svelte:head>
@@ -47,32 +96,36 @@
 	<meta name="description" content="8-bit фитнес трекер с геймификацией" />
 </svelte:head>
 
-{#if userStore.isLoading}
+{#if !initialized || userStore.isLoading}
 	<div class="loading-screen">
 		<div class="loading-spinner"></div>
 	</div>
-{:else if userStore.error}
+{:else if userStore.error && userStore.isAuthenticated}
 	<div class="error-screen">
 		<div class="error-content">
 			<h2>Ошибка</h2>
 			<p>{userStore.error}</p>
 		</div>
 	</div>
-{:else if userStore.isAuthenticated && !userStore.isOnboarded}
+{:else if !userStore.isAuthenticated}
+	{#if isTelegramApp}
+		<div class="error-screen">
+			<div class="error-content">
+				<h2>Не авторизован</h2>
+				<p>Откройте приложение через Telegram</p>
+			</div>
+		</div>
+	{:else}
+		<AuthScreen />
+	{/if}
+{:else if !userStore.isOnboarded}
 	<OnboardingScreen />
-{:else if userStore.isAuthenticated}
+{:else}
 	<div class="app">
 		<main class="main-content">
 			{@render children()}
 		</main>
 		<PixelNav />
-	</div>
-{:else}
-	<div class="error-screen">
-		<div class="error-content">
-			<h2>Не авторизован</h2>
-			<p>Откройте приложение через Telegram</p>
-		</div>
 	</div>
 {/if}
 

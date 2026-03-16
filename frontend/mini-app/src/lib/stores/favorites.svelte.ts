@@ -20,8 +20,17 @@ class FavoritesStore {
 			const ids = await api.getFavoriteIds();
 			this.favoriteIds = new Set(ids);
 			this.isLoaded = true;
+			try { localStorage.setItem('cache_favorites', JSON.stringify(ids)); } catch {}
 		} catch (err) {
 			console.error('Failed to load favorites:', err);
+			// Offline fallback
+			try {
+				const cached = localStorage.getItem('cache_favorites');
+				if (cached) {
+					this.favoriteIds = new Set(JSON.parse(cached));
+					this.isLoaded = true;
+				}
+			} catch {}
 		} finally {
 			this.isLoading = false;
 		}

@@ -10,13 +10,13 @@
 
 	let { activityData, year, onDayClick }: Props = $props();
 
-	// 6 градаций: пусто (0) + 5 уровней, последняя — 1000+ XP
+	// 6 градаций: пусто (0) + 5 уровней, шаг ≈250 XP, последняя — 1001+ XP
 	const XP_THRESHOLDS = {
-		LIGHT: 1,        // 1–200
-		MEDIUM: 201,     // 201–400
-		INTENSE: 401,    // 401–600
-		STRONG: 601,     // 601–999
-		VERY_INTENSE: 1000 // 1000+
+		LIGHT: 1,        // 1–250
+		MEDIUM: 251,     // 251–500
+		INTENSE: 501,    // 501–750
+		STRONG: 751,     // 751–1000
+		VERY_INTENSE: 1000 // 1001+
 	};
 
 	function getColorClass(xp: number): string {
@@ -267,23 +267,23 @@
 	}
 
 	.color-light {
-		background: #0e4429; /* 1–200 XP */
+		background: #0e4429; /* 1–250 XP */
 	}
 
 	.color-medium {
-		background: #006d32; /* 201–400 XP */
+		background: #006d32; /* 251–500 XP */
 	}
 
 	.color-intense {
-		background: #1a7f37; /* 401–600 XP */
+		background: #1a7f37; /* 501–750 XP */
 	}
 
 	.color-strong {
-		background: #26a641; /* 601–999 XP */
+		background: #26a641; /* 751-1000 XP */
 	}
 
 	.color-very-intense {
-		background: #39d353; /* 1000+ XP */
+		background: #39d353; /* 1001+ XP */
 	}
 
 	/* Scrollbar styling */

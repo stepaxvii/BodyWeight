@@ -195,25 +195,45 @@
 		isSubmitting = true;
 		stopTimer();
 
+		const workoutData = {
+			duration_seconds: timerSeconds,
+			exercises: completedExercises,
+			completed_at: new Date().toISOString(),
+		};
+
 		try {
-			const durationSeconds = timerSeconds;
-			const completed = await api.submitWorkout({
-				duration_seconds: durationSeconds,
-				exercises: completedExercises,
-			});
+			const completed = await api.submitWorkout(workoutData);
 
 			isCompleted = true;
 			totalXpEarned = completed.workout.total_xp_earned;
 			totalCoinsEarned = completed.workout.total_coins_earned;
 
-			// Update user stats
 			userStore.addXp(completed.workout.total_xp_earned);
 			userStore.addCoins(completed.workout.total_coins_earned);
 
 			telegram.hapticNotification('success');
 		} catch (err) {
 			console.error('Failed to complete routine:', err);
-			telegram.hapticNotification('error');
+
+			// Offline: save for later sync and show completion screen anyway
+			if (!navigator.onLine) {
+				try {
+					const pending = JSON.parse(localStorage.getItem('pending_workouts') || '[]');
+					pending.push({ data: workoutData, timestamp: Date.now() });
+					localStorage.setItem('pending_workouts', JSON.stringify(pending));
+				} catch { /* ignore */ }
+
+				isCompleted = true;
+				// Estimate XP from exercises
+				totalXpEarned = completedExercises.reduce((sum, ex) => {
+					const exercise = allExercises.find(e => e.slug === ex.exercise_slug);
+					return sum + (exercise?.base_xp ?? 5) * ex.sets.length;
+				}, 0);
+				totalCoinsEarned = 0;
+				telegram.hapticNotification('success');
+			} else {
+				telegram.hapticNotification('error');
+			}
 		} finally {
 			isSubmitting = false;
 		}
@@ -227,7 +247,7 @@
 		onclose?.();
 	}
 
-	function shareWorkout() {
+	async function shareWorkout() {
 		telegram.hapticImpact('medium');
 		const botUsername = 'pixelfitbot';
 		const botLink = `https://t.me/${botUsername}`;
@@ -251,7 +271,6 @@
 		});
 
 		const shareText = [
-			'',
 			`🏆 ${routine.name}`,
 			'',
 			`⏱️ ${formattedTotalTime}`,
@@ -264,8 +283,27 @@
 			...exerciseLines
 		].join('\n');
 
-		const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(shareText)}`;
-		telegram.openTelegramLink(shareUrl);
+		// In Telegram WebApp — use native Telegram share
+		if (telegram.webApp) {
+			const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(shareText)}`;
+			telegram.openTelegramLink(shareUrl);
+		}
+		// In browser/PWA — use Web Share API or clipboard
+		else if (navigator.share) {
+			try {
+				await navigator.share({
+					title: `PixelFit - ${routine.name}`,
+					text: shareText,
+					url: botLink,
+				});
+			} catch { /* user cancelled */ }
+		} else {
+			// Fallback: copy to clipboard
+			try {
+				await navigator.clipboard.writeText(`${shareText}\n\n${botLink}`);
+			} catch { /* ignore */ }
+		}
+
 		telegram.hapticNotification('success');
 	}
 
