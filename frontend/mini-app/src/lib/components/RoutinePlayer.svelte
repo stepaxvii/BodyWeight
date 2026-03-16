@@ -129,7 +129,12 @@
 		isStarted = true;
 		workoutStartTime = new Date();
 		completedExercises = [];
-		telegram.hapticImpact('medium');
+
+		try {
+			telegram.hapticImpact('medium');
+		} catch (e) {
+			console.warn('[RoutinePlayer] hapticImpact failed (probably offline / no Telegram API):', e);
+		}
 
 		// Start the total workout timer immediately
 		startTimer();
