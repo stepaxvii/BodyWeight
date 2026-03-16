@@ -254,8 +254,6 @@
 
 	async function shareWorkout() {
 		telegram.hapticImpact('medium');
-		const botUsername = 'pixelfitbot';
-		const botLink = `https://t.me/${botUsername}`;
 
 		// Группируем по упражнению и суммируем повторы/секунды
 		const bySlug = new Map<string, { total: number; is_timed: boolean }>();
@@ -288,25 +286,31 @@
 			...exerciseLines
 		].join('\n');
 
-		// In Telegram WebApp — use native Telegram share
+		// Внутри Telegram WebApp – всё как раньше
 		if (telegram.webApp) {
+			const botUsername = 'pixelfitbot';
+			const botLink = `https://t.me/${botUsername}`;
 			const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(shareText)}`;
 			telegram.openTelegramLink(shareUrl);
 		}
-		// In browser/PWA — use Web Share API or clipboard
+		// В PWA/браузере – системное меню «Поделиться» только с текстом тренировки
 		else if (navigator.share) {
 			try {
 				await navigator.share({
 					title: `PixelFit - ${routine.name}`,
-					text: shareText,
-					url: botLink,
+					text: shareText
+					// без url: чтобы не форсить переход в Telegram
 				});
-			} catch { /* user cancelled */ }
+			} catch {
+				// пользователь закрыл шейр – просто игнорируем
+			}
 		} else {
-			// Fallback: copy to clipboard
+			// Fallback: скопировать в буфер обмена весь текст
 			try {
-				await navigator.clipboard.writeText(`${shareText}\n\n${botLink}`);
-			} catch { /* ignore */ }
+				await navigator.clipboard.writeText(shareText);
+			} catch {
+				// нет доступа к буферу – ничего не делаем
+			}
 		}
 
 		telegram.hapticNotification('success');
