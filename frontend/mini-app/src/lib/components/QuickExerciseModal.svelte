@@ -113,6 +113,10 @@
 			result = result.filter(e => e.tags.some(t => selectedTags.includes(t)));
 		}
 
+		// Cycling is handled by a dedicated quick-flow (distance + duration),
+		// not by the generic reps/sets UI.
+		result = result.filter(e => e.slug !== 'cycling');
+
 		return result;
 	});
 
@@ -314,7 +318,7 @@
 		}
 	}
 
-	const cyclingSpeedKmh = $derived.by(() => {
+		const cyclingSpeedKmh = $derived.by(() => {
 		if (cyclingDurationMin <= 0) return 0;
 		return cyclingDistanceKm / (cyclingDurationMin / 60);
 	});
@@ -353,7 +357,7 @@
 					onclick={selectCycling}
 				>
 					<PixelIcon name="workout" size="lg" color="var(--pixel-green)" />
-					<span>Велосипед</span>
+					<span>Поездка на велосипеде</span>
 				</button>
 				<button
 					class="mode-option"
@@ -590,7 +594,7 @@
 				<button class="back-btn" onclick={goBack}>
 					<PixelIcon name="arrow-left" size="sm" />
 				</button>
-				<p class="step-hint">Велосипед</p>
+				<p class="step-hint">Поездка на велосипеде</p>
 			</div>
 			<div class="input-section">
 				<p class="input-label">Дистанция (км):</p>
