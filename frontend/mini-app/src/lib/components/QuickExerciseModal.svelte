@@ -131,6 +131,15 @@
 	}
 
 	function selectExercise(ex: Exercise) {
+		// Cycling uses a dedicated flow (distance + duration),
+		// so route it explicitly even if it appears in some lists (e.g. cached favorites).
+		if (ex.slug === 'cycling') {
+			step = 'cycling-input';
+			selectedExercise = null;
+			telegram.hapticImpact('light');
+			return;
+		}
+
 		selectedExercise = ex;
 		step = 'input';
 		telegram.hapticImpact('light');
