@@ -40,7 +40,8 @@
 		{ id: 'dumbbell', label: 'Гантели' },
 		{ id: 'resistance-band', label: 'Эспандер' },
 		{ id: 'bench', label: 'Скамья' },
-		{ id: 'wall', label: 'Стена' }
+		{ id: 'wall', label: 'Стена' },
+		{ id: 'bike', label: 'Велосипед' }
 	];
 
 	// Muscle tag IDs - labels come from getTagName()

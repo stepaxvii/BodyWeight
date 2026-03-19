@@ -534,6 +534,25 @@
     "description_ru": "Встань на одну ногу и выброси другую прямую ногу вперёд на уровень бедра. Подпрыгни и поменяй ноги, выбрасывая противоположную ногу вперёд, пока первая приземляется. Продолжай чередовать в ритмичном прыгающем движении. Держи удары контролируемыми, кор напряжённым. Улучшает силу сгибателей бедра, баланс и кардио."
   },
   {
+    "slug": "cycling",
+    "category": "cardio",
+    "name": "Cycling",
+    "name_ru": "Велосипед",
+    "tags": [
+      "quads",
+      "glutes",
+      "calves",
+      "intermediate",
+      "outdoor"
+    ],
+    "difficulty": 2,
+    "base_xp": 10,
+    "required_level": 1,
+    "equipment": "bike",
+    "description": "Outdoor or indoor bike ride tracked by distance and duration. XP is based on distance with a bonus for higher average speed.",
+    "description_ru": "Поездка на велосипеде (улица или тренажер), где учитываются дистанция и время. XP начисляется за дистанцию с бонусом за среднюю скорость."
+  },
+  {
     "slug": "sprawl",
     "category": "cardio",
     "name": "Sprawls",
