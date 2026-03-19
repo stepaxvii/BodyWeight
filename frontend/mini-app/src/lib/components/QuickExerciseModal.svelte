@@ -47,7 +47,7 @@
 		{ id: 'dip-bars', label: 'Брусья' },
 		{ id: 'bench', label: 'Скамья' },
 		{ id: 'wall', label: 'Стена' },
-		{ id: 'bike', label: 'Велосипед' }
+		{ id: 'bike', label: 'Велосипед' },
 		{ id: 'dumbbell', label: 'Гантели' }
 	];
 
