@@ -22,7 +22,7 @@
 			'dip-bars': 'Брусья',
 			'bench': 'Скамья',
 			'wall': 'Стена',
-			'bike': 'Велосипед'
+			'bike': 'Велосипед',
 			'dumbbell': 'Гантели'
 		};
 		return labels[equipment] || equipment;
