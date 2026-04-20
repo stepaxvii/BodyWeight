@@ -29,6 +29,7 @@ from app.db.models import (
 )
 from app.services.xp_calculator import (
     calculate_xp,
+    calculate_cycling_xp,
     calculate_coins,
     get_level_from_xp,
     get_streak_multiplier,
@@ -43,6 +44,8 @@ class ExerciseSetData:
     exercise_slug: str
     sets: list[int]  # Array of reps per set (or seconds for timed exercises)
     is_timed: bool = False
+    distance_km: float | None = None
+    duration_minutes: int | None = None
 
 
 @dataclass
@@ -146,34 +149,50 @@ async def process_workout_completion(
         if not exercise:
             continue  # Skip unknown exercises
 
-        # ALGORITHM: Calculate XP for EACH set separately, then sum
-        # Each set contributes fairly to total XP
         sets_count = len(ex_data.sets)
         total_reps = 0
         total_duration = 0
         xp_earned = 0
 
-        for set_value in ex_data.sets:
-            # Convert timed exercises: 10 seconds = 1 rep equivalent
-            if ex_data.is_timed:
-                set_duration = set_value
-                total_duration += set_duration
-                reps_for_xp = max(1, set_duration // 10)
-            else:
-                total_reps += set_value
-                reps_for_xp = set_value
+        # Special handling for cycling activity
+        if ex_data.exercise_slug == "cycling" and ex_data.distance_km is not None and ex_data.duration_minutes is not None:
+            if ex_data.duration_minutes < 5:
+                raise ValueError("Cycling duration must be at least 5 minutes")
+            if ex_data.distance_km <= 0:
+                raise ValueError("Cycling distance must be positive")
 
-            # Calculate XP for THIS set
-            # Formula: base_xp × difficulty_mult × volume_mult ×
-            #          streak_mult × first_bonus
-            set_xp = calculate_xp(
-                base_xp=exercise.base_xp,
-                difficulty=exercise.difficulty,
-                reps=reps_for_xp,  # For this set only
-                streak_days=user.current_streak,
-                is_first_today=is_first_today,
+            xp_earned = calculate_cycling_xp(
+                distance_km=ex_data.distance_km,
+                duration_minutes=ex_data.duration_minutes,
             )
-            xp_earned += set_xp
+            # Store distance in 100m units to keep progress-compatible integer metric
+            total_reps = int(round(ex_data.distance_km * 10))
+            total_duration = ex_data.duration_minutes * 60
+            sets_count = 1
+        else:
+            # ALGORITHM: Calculate XP for EACH set separately, then sum
+            # Each set contributes fairly to total XP
+            for set_value in ex_data.sets:
+                # Convert timed exercises: 10 seconds = 1 rep equivalent
+                if ex_data.is_timed:
+                    set_duration = set_value
+                    total_duration += set_duration
+                    reps_for_xp = max(1, set_duration // 10)
+                else:
+                    total_reps += set_value
+                    reps_for_xp = set_value
+
+                # Calculate XP for THIS set
+                # Formula: base_xp × difficulty_mult × volume_mult ×
+                #          streak_mult × first_bonus
+                set_xp = calculate_xp(
+                    base_xp=exercise.base_xp,
+                    difficulty=exercise.difficulty,
+                    reps=reps_for_xp,  # For this set only
+                    streak_days=user.current_streak,
+                    is_first_today=is_first_today,
+                )
+                xp_earned += set_xp
 
         # Create workout exercise entry
         workout_exercise = WorkoutExercise(

@@ -141,7 +141,7 @@ export interface ExerciseCategory {
 	exercises_count: number;
 }
 
-export type EquipmentType = 'none' | 'pullup-bar' | 'dip-bars' | 'bench' | 'wall';
+export type EquipmentType = 'none' | 'pullup-bar' | 'dip-bars' | 'bench' | 'wall' | 'bike';
 
 // Exercise (matches backend ExerciseResponse)
 export interface Exercise {

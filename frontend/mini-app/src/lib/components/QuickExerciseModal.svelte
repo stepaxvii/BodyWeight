@@ -5,6 +5,7 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { favoritesStore } from '$lib/stores/favorites.svelte';
 	import { exercisesStore } from '$lib/stores/exercises.svelte';
+	import { calculateCyclingXp } from '$lib/utils/xp';
 	import { getTagName } from '$lib/utils';
 	import type { Exercise, EquipmentType, ExerciseCategory } from '$lib/types';
 	import { onMount } from 'svelte';
@@ -17,7 +18,7 @@
 
 	let { open = false, onclose, onsave }: Props = $props();
 
-	type Step = 'mode' | 'exercise' | 'input' | 'filters';
+	type Step = 'mode' | 'exercise' | 'input' | 'filters' | 'cycling-input';
 	type ExerciseMode = 'favorites' | 'all';
 
 	let step = $state<Step>('mode');
@@ -27,6 +28,8 @@
 	let selectedExercise = $state<Exercise | null>(null);
 	let reps = $state(10);
 	let duration = $state(30);
+	let cyclingDistanceKm = $state(6.5);
+	let cyclingDurationMin = $state(23);
 	let isSubmitting = $state(false);
 	
 	// Search and filter state
@@ -43,7 +46,9 @@
 		{ id: 'pullup-bar', label: 'Турник' },
 		{ id: 'dip-bars', label: 'Брусья' },
 		{ id: 'bench', label: 'Скамья' },
-		{ id: 'wall', label: 'Стена' }
+		{ id: 'wall', label: 'Стена' },
+		{ id: 'bike', label: 'Велосипед' },
+		{ id: 'dumbbell', label: 'Гантели' }
 	];
 
 	const MUSCLE_TAG_IDS = [
@@ -108,6 +113,10 @@
 			result = result.filter(e => e.tags.some(t => selectedTags.includes(t)));
 		}
 
+		// Cycling is handled by a dedicated quick-flow (distance + duration),
+		// not by the generic reps/sets UI.
+		result = result.filter(e => e.slug !== 'cycling');
+
 		return result;
 	});
 
@@ -122,8 +131,22 @@
 	}
 
 	function selectExercise(ex: Exercise) {
+		// Cycling uses a dedicated flow (distance + duration),
+		// so route it explicitly even if it appears in some lists (e.g. cached favorites).
+		if (ex.slug === 'cycling') {
+			step = 'cycling-input';
+			selectedExercise = null;
+			telegram.hapticImpact('light');
+			return;
+		}
+
 		selectedExercise = ex;
 		step = 'input';
+		telegram.hapticImpact('light');
+	}
+
+	function selectCycling() {
+		step = 'cycling-input';
 		telegram.hapticImpact('light');
 	}
 
@@ -140,6 +163,8 @@
 			step = 'exercise';
 		} else if (step === 'filters') {
 			step = 'exercise';
+		} else if (step === 'cycling-input') {
+			step = 'mode';
 		}
 		telegram.hapticImpact('light');
 	}
@@ -200,6 +225,8 @@
 		selectedExercise = null;
 		reps = 10;
 		duration = 30;
+		cyclingDistanceKm = 6.5;
+		cyclingDurationMin = 23;
 		searchQuery = '';
 		selectedEquipment = [];
 		selectedDifficulties = [];
@@ -257,6 +284,58 @@
 		}
 	}
 
+	async function handleSaveCycling() {
+		if (isSubmitting) return;
+		if (cyclingDistanceKm <= 0 || cyclingDurationMin < 5) {
+			telegram.hapticNotification('error');
+			return;
+		}
+
+		isSubmitting = true;
+		telegram.hapticNotification('success');
+
+		const workoutData = {
+			duration_seconds: cyclingDurationMin * 60,
+			exercises: [{
+				exercise_slug: 'cycling',
+				sets: [Math.max(1, Math.round(cyclingDistanceKm * 10))], // 100m units
+				is_timed: false,
+				distance_km: cyclingDistanceKm,
+				duration_minutes: cyclingDurationMin
+			}],
+			completed_at: new Date().toISOString()
+		};
+
+		try {
+			const response = await api.submitWorkout(workoutData);
+			const completed = response.workout;
+			await userStore.loadUser();
+			onsave?.(completed.total_xp_earned, completed.total_coins_earned);
+			handleClose();
+		} catch (err) {
+			if (!navigator.onLine) {
+				savePendingWorkout(workoutData);
+				telegram.hapticNotification('success');
+				onsave?.(calculateCyclingXp(cyclingDistanceKm, cyclingDurationMin), 0);
+				handleClose();
+			} else {
+				console.error('Failed to save cycling activity:', err);
+				telegram.hapticNotification('error');
+			}
+		} finally {
+			isSubmitting = false;
+		}
+	}
+
+		const cyclingSpeedKmh = $derived.by(() => {
+		if (cyclingDurationMin <= 0) return 0;
+		return cyclingDistanceKm / (cyclingDurationMin / 60);
+	});
+
+	const cyclingEstimatedXp = $derived.by(() => (
+		calculateCyclingXp(cyclingDistanceKm, cyclingDurationMin)
+	));
+
 	function savePendingWorkout(data: Parameters<typeof api.submitWorkout>[0]) {
 		try {
 			const pending = JSON.parse(localStorage.getItem('pending_workouts') || '[]');
@@ -282,6 +361,13 @@
 		{#if step === 'mode'}
 			<p class="step-hint">Выбери режим:</p>
 			<div class="mode-list">
+				<button
+					class="mode-option"
+					onclick={selectCycling}
+				>
+					<PixelIcon name="workout" size="lg" color="var(--pixel-green)" />
+					<span>Поездка на велосипеде</span>
+				</button>
 				<button
 					class="mode-option"
 					onclick={() => selectMode('favorites')}
@@ -510,6 +596,48 @@
 					onclick={handleSave}
 				>
 					Записать
+				</PixelButton>
+			</div>
+		{:else if step === 'cycling-input'}
+			<div class="step-header">
+				<button class="back-btn" onclick={goBack}>
+					<PixelIcon name="arrow-left" size="sm" />
+				</button>
+				<p class="step-hint">Поездка на велосипеде</p>
+			</div>
+			<div class="input-section">
+				<p class="input-label">Дистанция (км):</p>
+				<input
+					type="number"
+					min="0.1"
+					step="0.1"
+					class="search-input"
+					bind:value={cyclingDistanceKm}
+				/>
+
+				<p class="input-label">Время (мин):</p>
+				<input
+					type="number"
+					min="5"
+					step="1"
+					class="search-input"
+					bind:value={cyclingDurationMin}
+				/>
+
+				<div class="cycling-summary">
+					<span>Ср. скорость: {cyclingSpeedKmh.toFixed(1)} км/ч</span>
+					<span>Ожидаемо: +{cyclingEstimatedXp} XP</span>
+				</div>
+			</div>
+			<div class="save-section">
+				<PixelButton
+					variant="success"
+					size="lg"
+					fullWidth
+					loading={isSubmitting}
+					onclick={handleSaveCycling}
+				>
+					Записать поездку
 				</PixelButton>
 			</div>
 		{/if}
@@ -852,5 +980,14 @@
 	.save-section {
 		padding-top: var(--spacing-md);
 		border-top: 2px solid var(--border-color);
+	}
+
+	.cycling-summary {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		align-items: center;
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
 	}
 </style>

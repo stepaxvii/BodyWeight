@@ -216,6 +216,8 @@ class ApiClient {
 			exercise_slug: string;
 			sets: number[];
 			is_timed: boolean;
+			distance_km?: number;
+			duration_minutes?: number;
 		}>;
 		completed_at?: string;
 	}): Promise<WorkoutSummaryResponse> {

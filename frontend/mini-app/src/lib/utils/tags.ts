@@ -39,6 +39,7 @@ export const TAG_TRANSLATIONS: Record<string, string> = {
 	'pullup-bar': 'турник',
 	'dip-bars': 'брусья',
 	'bench': 'скамья',
+	'bike': 'велосипед',
 	'wall': 'стена',
 	'floor': 'пол',
 	'no-equipment': 'без инвентаря',

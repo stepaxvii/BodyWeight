@@ -9,6 +9,8 @@ class ExerciseSetData(BaseModel):
     exercise_slug: str
     sets: list[int]  # Array of reps per set (or seconds for timed exercises)
     is_timed: bool = False
+    distance_km: float | None = None  # Optional for cycling activity
+    duration_minutes: int | None = None  # Optional for cycling activity
 
 
 class CompleteWorkoutRequest(BaseModel):
