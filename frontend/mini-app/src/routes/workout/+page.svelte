@@ -42,6 +42,9 @@
 	let showCustomRoutineEditor = $state(false);
 	let editingCustomRoutine = $state<CustomRoutine | null>(null);
 
+	// Confirmation dialog state
+	let confirmDelete = $state<{ id: number; name: string } | null>(null);
+
 	// Page loading state
 	let isPageLoading = $state(true);
 
@@ -174,6 +177,10 @@
 			result = result.filter(e => e.tags.some(t => selectedTags.includes(t)));
 		}
 
+		// Cycling is handled by dedicated input UI (Quick record),
+		// so we don't offer it in the generic workout builder.
+		result = result.filter(e => e.slug !== 'cycling');
+
 		return result;
 	});
 
@@ -200,6 +207,23 @@
 	const filteredRoutines = $derived(
 		routines.filter(r => r.category === activeRoutineCategory)
 	);
+
+	// Group favorite exercises by category
+	const groupedFavorites = $derived.by(() => {
+		const groups = new Map<string, { category: ExerciseCategory; exercises: Exercise[] }>();
+
+		for (const exercise of favoriteExercises) {
+			const category = categories.find(c => c.slug === exercise.category_slug);
+			if (!category) continue;
+
+			if (!groups.has(category.slug)) {
+				groups.set(category.slug, { category, exercises: [] });
+			}
+			groups.get(category.slug)!.exercises.push(exercise);
+		}
+
+		return Array.from(groups.values()).sort((a, b) => a.category.sort_order - b.category.sort_order);
+	});
 
 	// Active filter count for badge
 	const activeFilterCount = $derived(
@@ -242,7 +266,7 @@
 
 	async function loadExercises(reset = false) {
 		if (exercisesLoading) return;
-		
+
 		exercisesLoading = true;
 		try {
 			if (reset) {
@@ -255,18 +279,32 @@
 				skip: exercisesSkip,
 				limit: exercisesLimit
 			});
-			
+
 			exercises = reset ? response.items : [...exercises, ...response.items];
 			exercisesHasMore = response.has_more;
 			exercisesTotal = response.total;
 			exercisesSkip = exercises.length;
-			
+
 			// Mark as fully loaded if no more pages
 			if (!response.has_more) {
 				allExercisesLoaded = true;
 			}
 		} catch (error) {
 			console.error('Failed to load exercises:', error);
+			// Offline fallback: use exercisesStore localStorage cache
+			if (exercises.length === 0) {
+				try {
+					const cached = localStorage.getItem('exercises_cache');
+					if (cached) {
+						const { data } = JSON.parse(cached);
+						exercises = activeCategory
+							? data.filter((e: Exercise) => e.category_slug === activeCategory)
+							: data;
+						exercisesHasMore = false;
+						allExercisesLoaded = true;
+					}
+				} catch {}
+			}
 		} finally {
 			exercisesLoading = false;
 		}
@@ -308,27 +346,56 @@
 
 	onMount(async () => {
 		// Load data in parallel for faster page load
-		const [cats, rts, customRts, _, __] = await Promise.all([
-			api.getCategories(),
-			api.getRoutines(),
-			api.getCustomRoutines(),
+		// Each call has its own try/catch for offline resilience
+		const [cats, rts, customRts] = await Promise.all([
+			api.getCategories().then(data => {
+				try { localStorage.setItem('cache_categories', JSON.stringify(data)); } catch {}
+				return data;
+			}).catch(() => {
+				try {
+					const cached = localStorage.getItem('cache_categories');
+					return cached ? JSON.parse(cached) : [];
+				} catch { return []; }
+			}),
+			api.getRoutines().then(data => {
+				try { localStorage.setItem('cache_routines', JSON.stringify(data)); } catch {}
+				return data;
+			}).catch(() => {
+				try {
+					const cached = localStorage.getItem('cache_routines');
+					return cached ? JSON.parse(cached) : [];
+				} catch { return []; }
+			}),
+			api.getCustomRoutines().then(data => {
+				try { localStorage.setItem('cache_custom_routines', JSON.stringify(data)); } catch {}
+				return data;
+			}).catch(() => {
+				try {
+					const cached = localStorage.getItem('cache_custom_routines');
+					return cached ? JSON.parse(cached) : [];
+				} catch { return []; }
+			}),
+		]);
+
+		// These already handle errors internally
+		await Promise.all([
 			workoutStore.loadActiveWorkout(),
 			favoritesStore.loadFavorites()
 		]);
-		
+
 		categories = cats;
 		routines = rts;
 		customRoutines = customRts;
-		
+
 		// Load exercises with pagination
 		await loadExercises();
-		
+
 		// After exercises are loaded, update exerciseData with exercise objects
 		// This is needed for restored workouts where exercise was null
 		if (workoutStore.isActive) {
 			workoutStore.updateExerciseObjects(exercises);
 		}
-		
+
 		isPageLoading = false;
 
 		// Listen for page visibility changes
@@ -451,7 +518,9 @@
 	function handleCustomRoutineSave(routine: CustomRoutine) {
 		// Update list
 		const existingIndex = customRoutines.findIndex(r => r.id === routine.id);
+
 		if (existingIndex >= 0) {
+			// Update existing routine
 			customRoutines = customRoutines.map((r, i) =>
 				i === existingIndex ? {
 					id: routine.id,
@@ -462,6 +531,7 @@
 				} : r
 			);
 		} else {
+			// Add new routine
 			customRoutines = [{
 				id: routine.id,
 				name: routine.name,
@@ -470,12 +540,34 @@
 				exercises_count: routine.exercises.length
 			}, ...customRoutines];
 		}
+
 		showCustomRoutineEditor = false;
 		editingCustomRoutine = null;
 	}
 
-	function handleCustomRoutineDelete(routineId: number) {
-		customRoutines = customRoutines.filter(r => r.id !== routineId);
+	function handleCustomRoutineDelete(routineId: number, routineName: string) {
+		confirmDelete = { id: routineId, name: routineName };
+		telegram.hapticImpact('light');
+	}
+
+	function cancelDelete() {
+		confirmDelete = null;
+	}
+
+	async function confirmDeleteRoutine() {
+		if (!confirmDelete) return;
+
+		telegram.hapticImpact('medium');
+		try {
+			await api.deleteCustomRoutine(confirmDelete.id);
+			customRoutines = customRoutines.filter(r => r.id !== confirmDelete!.id);
+			telegram.hapticNotification('success');
+		} catch (err) {
+			telegram.hapticNotification('error');
+			console.error('Failed to delete routine:', err);
+		} finally {
+			confirmDelete = null;
+		}
 	}
 
 	function closeCustomRoutineEditor() {
@@ -801,17 +893,29 @@
 			<!-- Favorites section -->
 			<section class="tab-section">
 				{#if favoriteExercises.length > 0}
-					<div class="exercises-list">
-						{#each favoriteExercises as exercise (exercise.id)}
-							<ExerciseCard
-								{exercise}
-								isSelected={workoutStore.isExerciseSelected(exercise.id)}
-								categoryColor={categoryColors[exercise.category_slug]}
-								onSelect={() => toggleExercise(exercise)}
-								onInfoClick={() => openExerciseInfo(exercise)}
-							/>
-						{/each}
-					</div>
+					{#each groupedFavorites as group (group.category.slug)}
+						<div class="category-group">
+							<div class="category-group-header">
+								<span class="category-group-title" style="color: {categoryColors[group.category.slug]}">
+									{group.category.name_ru}
+								</span>
+								<span class="category-group-count">
+									{group.exercises.length}
+								</span>
+							</div>
+							<div class="exercises-list">
+								{#each group.exercises as exercise (exercise.id)}
+									<ExerciseCard
+										{exercise}
+										isSelected={workoutStore.isExerciseSelected(exercise.id)}
+										categoryColor={categoryColors[exercise.category_slug]}
+										onSelect={() => toggleExercise(exercise)}
+										onInfoClick={() => openExerciseInfo(exercise)}
+									/>
+								{/each}
+							</div>
+						</div>
+					{/each}
 				{:else}
 					<EmptyState
 						icon="heart-empty"
@@ -985,6 +1089,31 @@
 	onClose={() => showFilterModal = false}
 	onApply={handleFilterApply}
 />
+
+<!-- Delete confirmation modal -->
+{#if confirmDelete}
+	<div class="modal-overlay" onclick={cancelDelete}>
+		<div class="modal-dialog" onclick={(e) => e.stopPropagation()}>
+			<div class="modal-header">
+				<PixelIcon name="warning" size="lg" color="var(--pixel-yellow)" />
+			</div>
+			<div class="modal-body">
+				<p class="modal-title">Удалить сет?</p>
+				<p class="modal-text">
+					Вы уверены, что хотите удалить сет "{confirmDelete.name}"?
+				</p>
+			</div>
+			<div class="modal-actions">
+				<PixelButton variant="secondary" onclick={cancelDelete}>
+					Отмена
+				</PixelButton>
+				<PixelButton variant="danger" onclick={confirmDeleteRoutine}>
+					Удалить
+				</PixelButton>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <!-- Exercise info modal -->
 {#if showInfoForExercise}
@@ -1572,5 +1701,95 @@
 	.loading-text {
 		color: var(--text-secondary);
 		font-size: var(--font-size-sm);
+	}
+
+	/* Delete Confirmation Modal */
+	.modal-dialog {
+		background: var(--pixel-card);
+		border: 4px solid var(--border-color);
+		max-width: 320px;
+		width: 100%;
+		animation: modal-appear 0.2s ease-out;
+	}
+
+	@keyframes modal-appear {
+		from {
+			opacity: 0;
+			transform: scale(0.9);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+
+	.modal-header {
+		display: flex;
+		justify-content: center;
+		padding: var(--spacing-md);
+		background: rgba(255, 204, 0, 0.1);
+		border-bottom: 2px solid var(--border-color);
+	}
+
+	.modal-body {
+		padding: var(--spacing-md);
+		text-align: center;
+	}
+
+	.modal-body .modal-title {
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-md);
+		margin-bottom: var(--spacing-sm);
+		color: var(--text-primary);
+	}
+
+	.modal-text {
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+		line-height: 1.4;
+	}
+
+	.modal-actions {
+		display: flex;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-md);
+		border-top: 2px solid var(--border-color);
+	}
+
+	.modal-actions > :global(*) {
+		flex: 1;
+	}
+
+	/* Category Groups */
+	.category-group {
+		margin-bottom: var(--spacing-xl);
+	}
+
+	.category-group:last-child {
+		margin-bottom: 0;
+	}
+
+	.category-group-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: var(--spacing-sm) var(--spacing-xs);
+		margin-bottom: var(--spacing-sm);
+		border-bottom: 2px solid var(--border-color);
+	}
+
+	.category-group-title {
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-md);
+		font-weight: bold;
+		text-transform: uppercase;
+	}
+
+	.category-group-count {
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+		background: var(--pixel-bg-dark);
+		padding: 2px 8px;
+		border: 2px solid var(--border-color);
 	}
 </style>

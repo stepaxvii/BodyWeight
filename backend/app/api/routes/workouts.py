@@ -244,6 +244,29 @@ async def submit_workout(
             detail="Cannot submit workout with no exercises",
         )
 
+    for ex in request.exercises:
+        if ex.exercise_slug == "cycling":
+            if ex.distance_km is None or ex.duration_minutes is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        "Cycling requires distance_km and "
+                        "duration_minutes"
+                    ),
+                )
+            if ex.distance_km <= 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Cycling distance must be positive",
+                )
+            if ex.duration_minutes < 5:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        "Cycling duration must be at least 5 minutes"
+                    ),
+                )
+
     # Cancel any stale active workouts
     active_result = await session.execute(
         select(WorkoutSession)
@@ -255,7 +278,8 @@ async def submit_workout(
         old_workout.finished_at = datetime.utcnow()
 
     # Prepare data for processor
-    now = datetime.utcnow()
+    # Use completed_at from request (offline sync) or current time
+    now = request.completed_at or datetime.utcnow()
     completion_data = WorkoutCompletionData(
         user_id=user.id,
         started_at=now - timedelta(seconds=request.duration_seconds),
@@ -265,6 +289,8 @@ async def submit_workout(
                 exercise_slug=ex.exercise_slug,
                 sets=ex.sets,
                 is_timed=ex.is_timed,
+                distance_km=ex.distance_km,
+                duration_minutes=ex.duration_minutes,
             )
             for ex in request.exercises
         ],

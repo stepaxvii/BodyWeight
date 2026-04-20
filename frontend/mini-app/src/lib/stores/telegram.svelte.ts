@@ -106,6 +106,28 @@ class TelegramStore {
 	close() {
 		this.webApp?.close();
 	}
+
+	// Open Telegram link (share, bot, etc)
+	openTelegramLink(url: string) {
+		this.webApp?.openTelegramLink(url);
+	}
+
+	// Popup helpers
+	showPopup(params: { title?: string; message: string; buttons?: Array<{ type?: string; text?: string }> }) {
+		this.webApp?.showPopup(params);
+	}
+
+	showAlert(message: string) {
+		this.webApp?.showAlert(message);
+	}
+
+	async showConfirm(message: string): Promise<boolean> {
+		return new Promise((resolve) => {
+			this.webApp?.showConfirm(message, (confirmed) => {
+				resolve(confirmed);
+			});
+		});
+	}
 }
 
 export const telegram = new TelegramStore();

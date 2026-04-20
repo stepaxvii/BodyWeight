@@ -297,6 +297,37 @@ async def remove_friend(
     return {"message": "Friend removed"}
 
 
+@router.get("/invite-link")
+async def get_invite_link(
+    user: CurrentUser,
+):
+    """
+    Get invite link to add current user as friend.
+
+    Returns a Telegram deep link that opens the bot with start parameter.
+    Format: https://t.me/bot_username?start=addfriend_{user_id}
+
+    When another user opens this link, they'll see a prompt to add this user as friend.
+    """
+    from app.config import settings
+
+    if not settings.bot_username:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Bot username not configured",
+        )
+
+    # Format: https://t.me/bot_username?start=addfriend_{user_id}
+    # Opens bot chat, bot will show welcome message with Mini App button
+    invite_param = f"addfriend_{user.id}"
+    invite_link = f"https://t.me/{settings.bot_username}?start={invite_param}"
+
+    return {
+        "invite_link": invite_link,
+        "user_id": user.id,
+    }
+
+
 @router.get("/search", response_model=list[FriendResponse])
 async def search_users(
     session: AsyncSessionDep,

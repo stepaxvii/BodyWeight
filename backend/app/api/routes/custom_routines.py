@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -15,6 +16,7 @@ from app.schemas import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 # ============== Endpoints ==============
@@ -62,9 +64,7 @@ async def get_custom_routine(
     """Get a specific custom routine with all exercises."""
     result = await session.execute(
         select(UserCustomRoutine)
-        .options(
-            selectinload(UserCustomRoutine.exercises).selectinload(UserCustomRoutineExercise.exercise)
-        )
+        .options(selectinload(UserCustomRoutine.exercises))
         .where(UserCustomRoutine.id == routine_id)
         .where(UserCustomRoutine.user_id == user.id)
     )
@@ -75,6 +75,13 @@ async def get_custom_routine(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Routine not found",
         )
+
+    # Load exercise data separately to avoid deduplication issues with duplicates
+    exercise_ids = list(set(ex.exercise_id for ex in routine.exercises))
+    exercises_result = await session.execute(
+        select(Exercise).where(Exercise.id.in_(exercise_ids))
+    )
+    exercises_map = {ex.id: ex for ex in exercises_result.scalars().all()}
 
     return CustomRoutineResponse(
         id=routine.id,
@@ -87,9 +94,9 @@ async def get_custom_routine(
             RoutineExerciseResponse(
                 id=ex.id,
                 exercise_id=ex.exercise_id,
-                exercise_slug=ex.exercise.slug,
-                exercise_name_ru=ex.exercise.name_ru,
-                is_timed=ex.exercise.is_timed,
+                exercise_slug=exercises_map[ex.exercise_id].slug,
+                exercise_name_ru=exercises_map[ex.exercise_id].name_ru,
+                is_timed=exercises_map[ex.exercise_id].is_timed,
                 sort_order=ex.sort_order,
                 target_reps=ex.target_reps,
                 target_duration=ex.target_duration,
@@ -181,12 +188,16 @@ async def update_custom_routine(
 
     # Update exercises if provided
     if data.exercises is not None:
+        logger.info(f"Updating routine {routine_id} with {len(data.exercises)} exercises")
+
         # Remove existing exercises
         for ex in routine.exercises:
             await session.delete(ex)
+        await session.flush()  # Ensure deletions are committed before adding new ones
 
         # Add new exercises
         for i, ex_data in enumerate(data.exercises):
+            logger.info(f"Adding exercise {i}: exercise_id={ex_data.exercise_id}, target_reps={ex_data.target_reps}, target_duration={ex_data.target_duration}")
             # Verify exercise exists
             ex_result = await session.execute(
                 select(Exercise).where(Exercise.id == ex_data.exercise_id)
@@ -208,13 +219,18 @@ async def update_custom_routine(
             )
             session.add(routine_exercise)
 
+        logger.info(f"Added {len(data.exercises)} exercises to routine {routine_id}")
+
         # Recalculate duration
         routine.duration_minutes = max(1, len(data.exercises) * 30 // 60 + sum(e.rest_seconds for e in data.exercises) // 60)
 
     await session.commit()
+    await session.refresh(routine)
 
     # Reload with exercises
-    return await get_custom_routine(routine.id, session, user)
+    result = await get_custom_routine(routine.id, session, user)
+    logger.info(f"Returning routine {routine_id} with {len(result.exercises)} exercises")
+    return result
 
 
 @router.delete("/{routine_id}", status_code=status.HTTP_204_NO_CONTENT)

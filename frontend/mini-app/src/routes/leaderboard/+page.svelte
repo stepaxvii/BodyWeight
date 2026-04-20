@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { PixelCard, PixelIcon, PixelAvatar, EmptyState, PixelTabs } from '$lib/components/ui';
+	import { PixelCard, PixelIcon, PixelAvatar, EmptyState, PixelTabs, PixelButton } from '$lib/components/ui';
 	import UserProfileModal from '$lib/components/UserProfileModal.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { userStore } from '$lib/stores/user.svelte';
 	import type { LeaderboardEntry, LeaderboardType } from '$lib/types';
 
 	let entries = $state<LeaderboardEntry[]>([]);
@@ -11,6 +12,24 @@
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
 	let selectedUserId = $state<number | null>(null);
+	let updatingVisibility = $state(false);
+
+	const leaderboardConsentText = `Показывать твой username (или имя) в общем рейтинге и у друзей?`;
+
+	async function showMeInLeaderboard() {
+		if (updatingVisibility || userStore.user?.leaderboard_visible) return;
+		updatingVisibility = true;
+		try {
+				const updated = await api.updateUser({ leaderboard_visible: true });
+			if (userStore.user) userStore.user = { ...userStore.user, ...updated };
+			telegram.hapticImpact('light');
+			await loadLeaderboard();
+		} catch (e) {
+			console.error('Failed to set leaderboard visible:', e);
+		} finally {
+			updatingVisibility = false;
+		}
+	}
 
 	const leaderboardTabs: { id: LeaderboardType; label: string }[] = [
 		{ id: 'global', label: 'Все' },
@@ -19,15 +38,22 @@
 	];
 
 	onMount(async () => {
-		await loadLeaderboard();
+		// Рейтинг и пользователь параллельно
+		const [, u] = await Promise.all([
+			loadLeaderboard(),
+			api.getCurrentUser().catch(() => null),
+		]);
+		if (u) {
+			userStore.user = userStore.user ? { ...userStore.user, ...u } : u;
+		}
 	});
 
 	async function loadLeaderboard() {
 		isLoading = true;
 		error = null;
 		try {
-			entries = await api.getLeaderboard(activeTab);
-			console.log(`[Leaderboard] Loaded ${entries.length} entries for tab '${activeTab}'`);
+			const list = await api.getLeaderboard(activeTab);
+			entries = Array.isArray(list) ? list : [];
 		} catch (err) {
 			console.error('Failed to load leaderboard:', err);
 			error = err instanceof Error ? err.message : 'Ошибка загрузки рейтинга';
@@ -71,6 +97,24 @@
 
 	<!-- Tabs -->
 	<PixelTabs tabs={leaderboardTabs} activeTab={activeTab} onTabChange={switchTab} />
+
+	<!-- Окно с предложением и кнопка принятия — показываем, если в БД нет согласия на показ в рейтинге -->
+	{#if userStore.isAuthenticated && (userStore.user == null || userStore.user.leaderboard_visible !== true)}
+		<PixelCard class="leaderboard-consent-card">
+			<p class="consent-message">📊 <strong>Рейтинг</strong></p>
+			<p class="consent-message">{leaderboardConsentText}</p>
+			<p class="consent-hint">Можно изменить позже в настройках приложения.</p>
+			<PixelButton
+				variant="primary"
+				fullWidth
+				disabled={updatingVisibility}
+				loading={updatingVisibility}
+				onclick={showMeInLeaderboard}
+			>
+				Показывать меня в рейтинге
+			</PixelButton>
+		</PixelCard>
+	{/if}
 
 	<!-- Leaderboard Content -->
 	{#if isLoading}
@@ -414,5 +458,18 @@
 	@keyframes pixel-bounce {
 		0%, 100% { transform: translateY(0); }
 		50% { transform: translateY(-4px); }
+	}
+
+	.leaderboard-consent-card {
+		margin-bottom: var(--spacing-md);
+	}
+	.consent-message {
+		margin: 0 0 var(--spacing-xs);
+		font-size: var(--font-size-sm);
+	}
+	.consent-hint {
+		margin: 0 0 var(--spacing-sm);
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
 	}
 </style>

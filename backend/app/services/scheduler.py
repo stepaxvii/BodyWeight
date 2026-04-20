@@ -19,7 +19,11 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from app.db.models import User
-from app.services.notifications import send_daily_reminder, send_inactivity_reminder, save_notification
+from app.services.notifications import (
+    send_daily_reminder,
+    send_inactivity_reminder,
+    save_notification,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -103,18 +107,23 @@ async def check_inactivity_reminders(session: AsyncSession) -> int:
     - Haven't worked out in 3+ days
     - Have done at least one workout before
 
+    Reminders are sent only on specific days: 3, 7, 14 days of inactivity.
+    After 14 days, no more reminders are sent.
+
     Returns:
         Number of reminders sent
     """
     today = date.today()
-    three_days_ago = today - timedelta(days=3)
+
+    # Days when we send reminders (not every day)
+    reminder_days = {3, 7, 14}
 
     # Find users who last worked out 3+ days ago
     result = await session.execute(
         select(User)
         .where(User.notifications_enabled == True)
         .where(User.last_workout_date.isnot(None))
-        .where(User.last_workout_date <= three_days_ago)
+        .where(User.last_workout_date <= today - timedelta(days=3))
     )
     users = result.scalars().all()
 
@@ -122,6 +131,10 @@ async def check_inactivity_reminders(session: AsyncSession) -> int:
 
     for user in users:
         days_inactive = (today - user.last_workout_date).days
+
+        # Only send on specific days (3, 7, 14)
+        if days_inactive not in reminder_days:
+            continue
 
         # Send Telegram push
         success = await send_inactivity_reminder(

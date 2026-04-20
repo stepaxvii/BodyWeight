@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
-	import { PixelCard, PixelProgress, PixelIcon, PixelAvatar, AvatarPicker, PixelModal } from '$lib/components/ui';
-	import ActivityCalendar from '$lib/components/ActivityCalendar.svelte';
+	import { PixelCard, PixelProgress, PixelIcon, PixelAvatar, PixelModal, AvatarPicker } from '$lib/components/ui';
+	import ActivityBarChart from '$lib/components/ActivityBarChart.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
@@ -11,14 +11,90 @@
 	let achievements = $state<Achievement[]>([]);
 	let showAvatarPicker = $state(false);
 	let activityData = $state<UserActivity | null>(null);
+	let chartRange = $state<'week' | '2weeks' | 'month'>('week');
 	let selectedDay = $state<{ date: string; activity: DayActivity | null } | null>(null);
+
+	// Account settings
+	let showLinkTelegram = $state(false);
+	let passwordEmail = $state('');
+	let passwordValue = $state('');
+	let telegramIdInput = $state('');
+	let accountMessage = $state<string | null>(null);
+	let accountError = $state<string | null>(null);
+	let accountLoading = $state(false);
+	let showInstallPwa = $state(false);
+	let installStep = $state<'password' | 'instructions'>('password');
+
+	const webAppUrl = 'https://stepaproject.ru/bodyweight/';
+
+	function openInstallPwa() {
+		accountError = null;
+		if (userStore.hasWebAuth) {
+			installStep = 'instructions';
+		} else {
+			installStep = 'password';
+		}
+		showInstallPwa = true;
+	}
+
+	async function handleSetPassword() {
+		if (passwordValue.length < 6) {
+			accountError = 'Пароль должен быть не менее 6 символов';
+			return;
+		}
+		accountError = null;
+		accountLoading = true;
+		try {
+			await userStore.setPassword(passwordEmail, passwordValue);
+			passwordEmail = '';
+			passwordValue = '';
+			// If opened from install flow, go to instructions
+			if (showInstallPwa) {
+				installStep = 'instructions';
+			} else {
+				showSetPassword = false;
+				accountMessage = 'Пароль установлен!';
+			}
+		} catch (err) {
+			accountError = err instanceof Error ? err.message : 'Ошибка';
+		} finally {
+			accountLoading = false;
+		}
+	}
+
+	async function handleLinkTelegram() {
+		const tid = parseInt(telegramIdInput);
+		if (isNaN(tid)) {
+			accountError = 'Введите корректный Telegram ID (число)';
+			return;
+		}
+		accountError = null;
+		accountLoading = true;
+		try {
+			const result = await userStore.linkTelegram(tid);
+			accountMessage = result.message;
+			showLinkTelegram = false;
+			telegramIdInput = '';
+		} catch (err) {
+			accountError = err instanceof Error ? err.message : 'Ошибка';
+		} finally {
+			accountLoading = false;
+		}
+	}
+
+	function handleLogout() {
+		userStore.logout();
+	}
 
 	onMount(async () => {
 		await userStore.loadStats();
-		const response = await api.getAllAchievements();
-		achievements = response;
 
-		// Load activity data for current year
+		try {
+			achievements = await api.getAllAchievements();
+		} catch (err) {
+			console.error('Failed to load achievements:', err);
+		}
+
 		try {
 			activityData = await api.getUserActivity();
 		} catch (err) {
@@ -52,6 +128,7 @@
 
 	function handleDayClick(date: string, activity: DayActivity | null) {
 		selectedDay = { date, activity };
+		telegram.hapticImpact('light');
 	}
 
 	function formatDate(dateStr: string): string {
@@ -98,14 +175,42 @@
 		onclose={() => showAvatarPicker = false}
 	/>
 
-	<!-- Activity Calendar - moved up -->
+	<!-- Activity bar chart: week / 2 weeks / month -->
 	{#if activityData}
-		<section class="activity-section">
-			<ActivityCalendar
-				activityData={activityData.days}
-				year={new Date().getFullYear()}
-				onDayClick={handleDayClick}
-			/>
+		<section class="activity-chart-section">
+			<h3 class="chart-section-title">Активность</h3>
+			<div class="chart-controls">
+				<div class="chart-range-btns">
+					<button
+						class="range-btn"
+						class:active={chartRange === 'week'}
+						onclick={() => { chartRange = 'week'; telegram.hapticImpact('light'); }}
+					>
+						7 дней
+					</button>
+					<button
+						class="range-btn"
+						class:active={chartRange === '2weeks'}
+						onclick={() => { chartRange = '2weeks'; telegram.hapticImpact('light'); }}
+					>
+						14 дней
+					</button>
+					<button
+						class="range-btn"
+						class:active={chartRange === 'month'}
+						onclick={() => { chartRange = 'month'; telegram.hapticImpact('light'); }}
+					>
+						30 дней
+					</button>
+				</div>
+			</div>
+			<PixelCard padding="md">
+				<ActivityBarChart
+					activityData={activityData.days}
+					range={chartRange}
+					onDayClick={handleDayClick}
+				/>
+			</PixelCard>
 		</section>
 	{/if}
 
@@ -160,37 +265,6 @@
 		</section>
 	{/if}
 
-	<!-- Day Details Modal -->
-	<PixelModal
-		open={selectedDay !== null}
-		title={selectedDay ? formatDate(selectedDay.date) : ''}
-		onclose={() => selectedDay = null}
-	>
-		{#if selectedDay?.activity}
-			<div class="day-details">
-				<div class="day-stat">
-					<PixelIcon name="workout" size="md" color="var(--pixel-accent)" />
-					<div class="day-stat-content">
-						<span class="day-stat-label">Тренировки</span>
-						<span class="day-stat-value">{selectedDay.activity.workouts}</span>
-					</div>
-				</div>
-				<div class="day-stat">
-					<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
-					<div class="day-stat-content">
-						<span class="day-stat-label">XP заработано</span>
-						<span class="day-stat-value">{selectedDay.activity.total_xp}</span>
-					</div>
-				</div>
-			</div>
-		{:else}
-			<div class="no-activity">
-				<PixelIcon name="close" size="lg" color="var(--text-muted)" />
-				<p>Нет тренировок в этот день</p>
-			</div>
-		{/if}
-	</PixelModal>
-
 	<!-- Streak Info - Compact -->
 	<section class="streak-section">
 		<div class="streak-card">
@@ -209,7 +283,7 @@
 		</div>
 	</section>
 
-	<!-- Quick Link - Friends only -->
+	<!-- Quick Link - Friends -->
 	<section class="links-section">
 		<a href="{base}/friends" class="link-item">
 			<PixelCard hoverable>
@@ -220,7 +294,172 @@
 			</PixelCard>
 		</a>
 	</section>
+
+	<!-- Account Settings -->
+	<section class="account-section">
+		<h3 class="section-title">Аккаунт</h3>
+
+		{#if accountMessage}
+			<div class="account-success">{accountMessage}</div>
+		{/if}
+
+		<div class="account-info">
+			{#if userStore.user?.email}
+				<div class="account-row">
+					<span class="account-label">Email</span>
+					<span class="account-value">{userStore.user.email}</span>
+				</div>
+			{/if}
+			{#if userStore.user?.telegram_id}
+				<div class="account-row">
+					<span class="account-label">Telegram</span>
+					<span class="account-value">ID: {userStore.user.telegram_id}</span>
+				</div>
+			{/if}
+		</div>
+
+		<div class="account-actions">
+			<button class="account-btn install-btn" onclick={openInstallPwa}>
+				Установить приложение
+			</button>
+
+			{#if !userStore.hasTelegram}
+				<button class="account-btn" onclick={() => { showLinkTelegram = true; accountError = null; }}>
+					Привязать Telegram
+				</button>
+			{/if}
+
+			{#if userStore.authMode === 'web'}
+				<button class="account-btn logout-btn" onclick={handleLogout}>
+					Выйти
+				</button>
+			{/if}
+		</div>
+	</section>
+
 </div>
+
+<!-- Install PWA Modal -->
+<PixelModal
+	open={showInstallPwa}
+	title={installStep === 'password' ? 'Шаг 1: Создать логин' : 'Установить приложение'}
+	onclose={() => { showInstallPwa = false; accountError = null; }}
+>
+	{#if installStep === 'password'}
+		<div class="modal-instructions">
+			<p>Для входа через браузер нужен email и пароль.</p>
+			<p>Для входа можно использовать:</p>
+			<p>- Email</p>
+			{#if userStore.user?.username}
+				<p>- Telegram username: <b>{userStore.user.username}</b></p>
+			{/if}
+			{#if userStore.user?.telegram_id}
+				<p>- Telegram ID: <b>{userStore.user.telegram_id}</b></p>
+			{/if}
+		</div>
+		<form class="modal-form" onsubmit={(e) => { e.preventDefault(); handleSetPassword(); }}>
+			<div class="modal-field">
+				<label for="pw-email">Email</label>
+				<input id="pw-email" type="email" bind:value={passwordEmail} placeholder="your@email.com" required />
+			</div>
+			<div class="modal-field">
+				<label for="pw-pass">Пароль</label>
+				<input id="pw-pass" type="password" bind:value={passwordValue} placeholder="Минимум 6 символов" required minlength="6" />
+			</div>
+			{#if accountError}
+				<div class="modal-error">{accountError}</div>
+			{/if}
+			<button type="submit" class="modal-submit" disabled={accountLoading}>
+				{accountLoading ? 'Сохранение...' : 'Далее'}
+			</button>
+		</form>
+	{:else}
+		<div class="install-instructions">
+			<div class="install-step">
+				<span class="step-number">1</span>
+				<div class="step-content">
+					<p>Откройте ссылку в браузере:</p>
+					<a href={webAppUrl} target="_blank" rel="noopener" class="install-link">{webAppUrl}</a>
+				</div>
+			</div>
+			<div class="install-step">
+				<span class="step-number">2</span>
+				<div class="step-content">
+					<p>Войдите с логином и паролем</p>
+				</div>
+			</div>
+			<div class="install-step">
+				<span class="step-number">3</span>
+				<div class="step-content">
+					<p><b>iOS:</b> Поделиться → На экран «Домой»</p>
+					<p><b>Android:</b> Меню (⋮) → Установить приложение</p>
+				</div>
+			</div>
+		</div>
+		<button
+			class="modal-submit"
+			onclick={() => { showInstallPwa = false; }}
+		>
+			Готово
+		</button>
+	{/if}
+</PixelModal>
+
+<!-- Link Telegram Modal -->
+<PixelModal
+	open={showLinkTelegram}
+	title="Привязать Telegram"
+	onclose={() => { showLinkTelegram = false; accountError = null; }}
+>
+	<div class="modal-instructions">
+		<p>1. Начните диалог с ботом <b>@pixelfitbot</b></p>
+		<p>2. Введите ваш Telegram ID ниже</p>
+		<p>3. Подтвердите привязку в Telegram</p>
+	</div>
+	<form class="modal-form" onsubmit={(e) => { e.preventDefault(); handleLinkTelegram(); }}>
+		<div class="modal-field">
+			<label for="tg-id">Telegram ID</label>
+			<input id="tg-id" type="text" bind:value={telegramIdInput} placeholder="Например: 123456789" required />
+		</div>
+		{#if accountError}
+			<div class="modal-error">{accountError}</div>
+		{/if}
+		<button type="submit" class="modal-submit" disabled={accountLoading}>
+			{accountLoading ? 'Отправка...' : 'Отправить запрос'}
+		</button>
+	</form>
+</PixelModal>
+
+<!-- Day details modal (from bar chart click) -->
+<PixelModal
+	open={selectedDay !== null}
+	title={selectedDay ? formatDate(selectedDay.date) : ''}
+	onclose={() => selectedDay = null}
+>
+	{#if selectedDay?.activity}
+		<div class="day-details">
+			<div class="day-stat">
+				<PixelIcon name="workout" size="md" color="var(--pixel-accent)" />
+				<div class="day-stat-content">
+					<span class="day-stat-label">Тренировки</span>
+					<span class="day-stat-value">{selectedDay.activity.workouts}</span>
+				</div>
+			</div>
+			<div class="day-stat">
+				<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
+				<div class="day-stat-content">
+					<span class="day-stat-label">XP заработано</span>
+					<span class="day-stat-value">{selectedDay.activity.total_xp}</span>
+				</div>
+			</div>
+		</div>
+	{:else}
+		<div class="no-activity">
+			<PixelIcon name="close" size="lg" color="var(--text-muted)" />
+			<p>Нет тренировок в этот день</p>
+		</div>
+	{/if}
+</PixelModal>
 
 <style>
 	.page {
@@ -318,9 +557,49 @@
 		text-transform: uppercase;
 	}
 
-	/* Activity Section */
-	.activity-section {
+	/* Activity chart section */
+	.activity-chart-section {
 		margin-bottom: var(--spacing-md);
+	}
+
+	.chart-section-title {
+		font-size: var(--font-size-sm);
+		text-transform: uppercase;
+		margin: 0 0 var(--spacing-sm) 0;
+	}
+
+	.chart-controls {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--spacing-sm);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.chart-range-btns {
+		display: flex;
+		gap: 4px;
+	}
+
+	.range-btn {
+		padding: 6px 10px;
+		font-size: var(--font-size-xs);
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+		color: var(--text-secondary);
+		cursor: pointer;
+		transition: all 0.15s;
+	}
+
+	.range-btn:hover {
+		border-color: var(--pixel-accent);
+		color: var(--text-primary);
+	}
+
+	.range-btn.active {
+		background: var(--pixel-accent);
+		border-color: var(--pixel-accent);
+		color: var(--pixel-bg);
 	}
 
 	/* Stats Row - compact horizontal */
@@ -412,55 +691,6 @@
 		border-color: var(--pixel-accent);
 	}
 
-	/* Day Details Modal */
-	.day-details {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-md);
-		padding: var(--spacing-sm) 0;
-	}
-
-	.day-stat {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-sm);
-		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
-	}
-
-	.day-stat-content {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-	}
-
-	.day-stat-label {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-		text-transform: uppercase;
-	}
-
-	.day-stat-value {
-		font-size: var(--font-size-md);
-		color: var(--text-primary);
-	}
-
-	.no-activity {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-xl);
-		color: var(--text-muted);
-		text-align: center;
-	}
-
-	.no-activity p {
-		margin: 0;
-		font-size: var(--font-size-sm);
-	}
-
 	/* Streak Section - Compact */
 	.streak-section {
 		margin-bottom: var(--spacing-md);
@@ -536,5 +766,241 @@
 		margin-left: auto;
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
+	}
+
+	/* Day details modal */
+	.day-details {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+		padding: var(--spacing-sm) 0;
+	}
+
+	.day-stat {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+		padding: var(--spacing-sm);
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+	}
+
+	.day-stat-content {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.day-stat-label {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		text-transform: uppercase;
+	}
+
+	.day-stat-value {
+		font-size: var(--font-size-md);
+		color: var(--text-primary);
+	}
+
+	.no-activity {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--spacing-md);
+		padding: var(--spacing-xl);
+		color: var(--text-muted);
+		text-align: center;
+	}
+
+	.no-activity p {
+		margin: 0;
+		font-size: var(--font-size-sm);
+	}
+
+	/* Account Section */
+	.account-section {
+		margin-bottom: var(--spacing-md);
+	}
+
+	.account-success {
+		padding: var(--spacing-sm);
+		background: rgba(0, 200, 83, 0.1);
+		border: 2px solid var(--pixel-green);
+		font-size: var(--font-size-xs);
+		color: var(--pixel-green);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.install-btn {
+		background: var(--pixel-accent) !important;
+		color: white !important;
+		border-color: var(--pixel-accent) !important;
+		text-align: center !important;
+	}
+
+	.install-instructions {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+		padding: var(--spacing-sm) 0 var(--spacing-md);
+	}
+
+	.install-step {
+		display: flex;
+		gap: var(--spacing-sm);
+		align-items: flex-start;
+	}
+
+	.step-number {
+		width: 24px;
+		height: 24px;
+		background: var(--pixel-accent);
+		color: white;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: var(--font-size-xs);
+		flex-shrink: 0;
+	}
+
+	.step-content {
+		flex: 1;
+		font-size: 12px;
+		color: var(--text-secondary);
+		line-height: 1.6;
+	}
+
+	.step-content p {
+		margin: 0;
+	}
+
+	.install-link {
+		display: inline-block;
+		color: var(--pixel-accent);
+		word-break: break-all;
+		margin-top: 4px;
+		font-size: 11px;
+	}
+
+	.account-info {
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		padding: var(--spacing-sm) var(--spacing-md);
+		margin-bottom: var(--spacing-sm);
+	}
+
+	.account-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: var(--spacing-xs) 0;
+	}
+
+	.account-row + .account-row {
+		border-top: 1px solid var(--border-color);
+	}
+
+	.account-label {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+
+	.account-value {
+		font-size: var(--font-size-xs);
+		color: var(--text-primary);
+	}
+
+	.account-actions {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+	}
+
+	.account-btn {
+		padding: 10px var(--spacing-md);
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		color: var(--pixel-accent);
+		font-family: 'Press Start 2P', cursive;
+		font-size: var(--font-size-xs);
+		cursor: pointer;
+		text-align: left;
+		transition: border-color 0.2s;
+	}
+
+	.account-btn:hover {
+		border-color: var(--pixel-accent);
+	}
+
+	.logout-btn {
+		color: var(--pixel-danger);
+	}
+
+	.logout-btn:hover {
+		border-color: var(--pixel-danger);
+	}
+
+	/* Modal form styles */
+	.modal-form {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
+		padding: var(--spacing-sm) 0;
+	}
+
+	.modal-field {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.modal-field label {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+
+	.modal-field input {
+		padding: 10px 12px;
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+		color: var(--text-primary);
+		font-size: 14px;
+		outline: none;
+	}
+
+	.modal-field input:focus {
+		border-color: var(--pixel-accent);
+	}
+
+	.modal-error {
+		color: var(--pixel-danger);
+		font-size: var(--font-size-xs);
+		padding: var(--spacing-xs);
+	}
+
+	.modal-submit {
+		padding: 12px;
+		background: var(--pixel-accent);
+		border: none;
+		color: white;
+		font-family: 'Press Start 2P', cursive;
+		font-size: var(--font-size-xs);
+		cursor: pointer;
+	}
+
+	.modal-submit:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	.modal-instructions {
+		padding: var(--spacing-sm) 0;
+		font-size: 12px;
+		color: var(--text-secondary);
+		line-height: 1.6;
+	}
+
+	.modal-instructions p {
+		margin: 4px 0;
 	}
 </style>

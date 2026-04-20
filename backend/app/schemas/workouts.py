@@ -9,12 +9,15 @@ class ExerciseSetData(BaseModel):
     exercise_slug: str
     sets: list[int]  # Array of reps per set (or seconds for timed exercises)
     is_timed: bool = False
+    distance_km: float | None = None  # Optional for cycling activity
+    duration_minutes: int | None = None  # Optional for cycling activity
 
 
 class CompleteWorkoutRequest(BaseModel):
     """Request body for completing a workout with all exercise data."""
     duration_seconds: int
     exercises: list[ExerciseSetData]
+    completed_at: datetime | None = None  # ISO timestamp; if omitted, uses server time
 
 
 class WorkoutExerciseResponse(BaseModel):

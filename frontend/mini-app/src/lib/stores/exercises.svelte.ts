@@ -74,14 +74,12 @@ class ExercisesStore {
 			console.error('Failed to load exercises:', error);
 			this._error = error instanceof Error ? error.message : 'Unknown error';
 
-			// Try to load from localStorage cache as fallback
+			// Try to load from localStorage cache as fallback (any age when offline)
 			try {
 				const cached = localStorage.getItem('exercises_cache');
 				if (cached) {
-					const { data, timestamp } = JSON.parse(cached);
-					// Use cache if less than 24 hours old
-					if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
-						console.log('Using cached exercises from localStorage');
+					const { data } = JSON.parse(cached);
+					if (data && data.length > 0) {
 						this._exercises = data;
 						this._loaded = true;
 						return data;

@@ -14,6 +14,7 @@ import type {
 	Friend,
 	ShopItem,
 	AuthResponse,
+	WebAuthResponse,
 	Routine,
 	CustomRoutine,
 	CustomRoutineListItem,
@@ -23,12 +24,40 @@ import type {
 } from '$lib/types';
 
 const API_BASE = '/bodyweight/api';
+const TOKEN_KEY = 'pixelfit_token';
 
 class ApiClient {
 	private initData: string = '';
+	private jwtToken: string = '';
+
+	constructor() {
+		// Restore JWT token from localStorage
+		if (typeof window !== 'undefined') {
+			this.jwtToken = localStorage.getItem(TOKEN_KEY) || '';
+		}
+	}
 
 	setInitData(initData: string) {
 		this.initData = initData;
+	}
+
+	setJwtToken(token: string) {
+		this.jwtToken = token;
+		if (typeof window !== 'undefined') {
+			localStorage.setItem(TOKEN_KEY, token);
+		}
+	}
+
+	clearAuth() {
+		this.jwtToken = '';
+		this.initData = '';
+		if (typeof window !== 'undefined') {
+			localStorage.removeItem(TOKEN_KEY);
+		}
+	}
+
+	get hasStoredToken(): boolean {
+		return !!this.jwtToken;
 	}
 
 	private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -39,11 +68,11 @@ class ApiClient {
 
 		if (this.initData) {
 			headers['Authorization'] = `tma ${this.initData}`;
+		} else if (this.jwtToken) {
+			headers['Authorization'] = `Bearer ${this.jwtToken}`;
 		}
 
 		const url = `${API_BASE}${endpoint}`;
-		console.log(`[API] ${options.method || 'GET'} ${url}`, options.body ? JSON.parse(options.body as string) : '');
-
 		const response = await fetch(url, {
 			...options,
 			headers
@@ -62,16 +91,48 @@ class ApiClient {
 			throw new Error(errorMessage);
 		}
 
+		if (response.status === 204) {
+			return undefined as T;
+		}
+
 		const data = await response.json();
-		console.log(`[API] Response:`, data);
 		return data;
 	}
 
-	// Auth
+	// Auth - Telegram
 	async validateAuth(): Promise<AuthResponse> {
 		return this.request<AuthResponse>('/auth/validate', {
 			method: 'POST',
 			body: JSON.stringify({ init_data: this.initData })
+		});
+	}
+
+	// Auth - Web
+	async webRegister(data: { email: string; password: string; username?: string; first_name?: string }): Promise<WebAuthResponse> {
+		return this.request<WebAuthResponse>('/auth/register', {
+			method: 'POST',
+			body: JSON.stringify(data)
+		});
+	}
+
+	async webLogin(login: string, password: string): Promise<WebAuthResponse> {
+		return this.request<WebAuthResponse>('/auth/login', {
+			method: 'POST',
+			body: JSON.stringify({ login, password })
+		});
+	}
+
+	async setPassword(email: string, password: string): Promise<WebAuthResponse> {
+		return this.request<WebAuthResponse>('/auth/set-password', {
+			method: 'POST',
+			body: JSON.stringify({ email, password })
+		});
+	}
+
+	async linkTelegram(telegramId: number): Promise<{ message: string }> {
+		return this.request<{ message: string }>('/auth/link-telegram', {
+			method: 'POST',
+			body: JSON.stringify({ telegram_id: telegramId })
 		});
 	}
 
@@ -88,16 +149,17 @@ class ApiClient {
 		return this.request<UserStats>('/users/me/stats');
 	}
 
-	async updateUser(data: { avatar_id?: string; notifications_enabled?: boolean }): Promise<User> {
+	async updateUser(data: { avatar_id?: string; notifications_enabled?: boolean; leaderboard_visible?: boolean }): Promise<User> {
 		return this.request<User>('/users/me', {
 			method: 'PUT',
 			body: JSON.stringify(data)
 		});
 	}
 
-	async completeOnboarding(): Promise<User> {
+	async completeOnboarding(leaderboardConsent: boolean): Promise<User> {
 		return this.request<User>('/users/me/complete-onboarding', {
-			method: 'POST'
+			method: 'POST',
+			body: JSON.stringify({ leaderboard_consent: leaderboardConsent })
 		});
 	}
 
@@ -127,10 +189,6 @@ class ApiClient {
 		return this.request<PaginatedResponse<Exercise>>(`/exercises${query}`);
 	}
 
-	/**
-	 * Get all exercises (for backward compatibility).
-	 * This method loads all exercises by making multiple paginated requests.
-	 */
 	async getAllExercises(category?: string): Promise<Exercise[]> {
 		const allExercises: Exercise[] = [];
 		let skip = 0;
@@ -152,17 +210,16 @@ class ApiClient {
 	}
 
 	// Workouts
-	/**
-	 * Submit a completed workout with all exercise data at once.
-	 * This is the unified API - no need to start session or track exercises during workout.
-	 */
 	async submitWorkout(data: {
 		duration_seconds: number;
 		exercises: Array<{
 			exercise_slug: string;
 			sets: number[];
 			is_timed: boolean;
+			distance_km?: number;
+			duration_minutes?: number;
 		}>;
+		completed_at?: string;
 	}): Promise<WorkoutSummaryResponse> {
 		return this.request<WorkoutSummaryResponse>('/workouts/submit', {
 			method: 'POST',
@@ -179,10 +236,6 @@ class ApiClient {
 		return this.request<PaginatedResponse<Achievement>>(`/achievements${query}`);
 	}
 
-	/**
-	 * Get all achievements (for backward compatibility).
-	 * This method loads all achievements by making multiple paginated requests.
-	 */
 	async getAllAchievements(): Promise<Achievement[]> {
 		const allAchievements: Achievement[] = [];
 		let skip = 0;
@@ -202,8 +255,8 @@ class ApiClient {
 	// Leaderboard
 	async getLeaderboard(type: LeaderboardType = 'global'): Promise<LeaderboardEntry[]> {
 		const endpoint = type === 'global' ? '/leaderboard' : `/leaderboard/${type}`;
-		const response = await this.request<{ entries: LeaderboardEntry[], current_user_rank: number | null }>(endpoint);
-		return response.entries;
+		const response = await this.request<{ entries: LeaderboardEntry[]; current_user_rank: number | null }>(endpoint);
+		return Array.isArray(response?.entries) ? response.entries : [];
 	}
 
 	// Goals
@@ -224,11 +277,20 @@ class ApiClient {
 		return this.request<Friend[]>(`/friends/search?q=${encodeURIComponent(query)}`);
 	}
 
-	async addFriend(username: string): Promise<Friend> {
+	async addFriend(usernameOrId: string | number): Promise<Friend> {
+		const body =
+			typeof usernameOrId === 'number'
+				? { user_id: usernameOrId }
+				: { username: usernameOrId };
+
 		return this.request<Friend>('/friends/add', {
 			method: 'POST',
-			body: JSON.stringify({ username })
+			body: JSON.stringify(body)
 		});
+	}
+
+	async getInviteLink(): Promise<{ invite_link: string; user_id: number }> {
+		return this.request('/friends/invite-link');
 	}
 
 	async acceptFriendRequest(friendshipId: number): Promise<Friend> {

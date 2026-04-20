@@ -74,10 +74,12 @@ export interface Avatar {
 // User types (matches backend UserResponse)
 export interface User {
 	id: number;
-	telegram_id: number;
+	telegram_id?: number | null;
 	username?: string;
 	first_name?: string;
 	last_name?: string;
+	email?: string | null;
+	has_password: boolean;
 	avatar_id: AvatarId;
 	level: number;
 	total_xp: number;
@@ -88,6 +90,7 @@ export interface User {
 	notification_time?: string;
 	notifications_enabled: boolean;
 	is_onboarded: boolean;
+	leaderboard_visible: boolean;
 	created_at: string;
 	updated_at: string;
 }
@@ -138,7 +141,7 @@ export interface ExerciseCategory {
 	exercises_count: number;
 }
 
-export type EquipmentType = 'none' | 'pullup-bar' | 'dip-bars' | 'bench' | 'wall';
+export type EquipmentType = 'none' | 'pullup-bar' | 'dip-bars' | 'bench' | 'wall' | 'bike';
 
 // Exercise (matches backend ExerciseResponse)
 export interface Exercise {
@@ -306,6 +309,13 @@ export interface ApiResponse<T> {
 // AuthResponse (matches backend AuthResponse)
 export interface AuthResponse {
 	user: User;
+	is_new: boolean;
+}
+
+// WebAuthResponse (matches backend WebAuthResponse)
+export interface WebAuthResponse {
+	user: User;
+	token: string;
 	is_new: boolean;
 }
 

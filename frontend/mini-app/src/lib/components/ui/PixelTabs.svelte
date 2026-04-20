@@ -44,12 +44,14 @@
 <style>
 	.tabs {
 		display: flex;
+		flex-wrap: wrap;
 		gap: var(--spacing-xs);
 		margin-bottom: var(--spacing-lg);
 	}
 
 	.tab {
-		flex: 1;
+		flex: 1 1 auto;
+		min-width: 0;
 		display: flex;
 		align-items: center;
 		justify-content: center;

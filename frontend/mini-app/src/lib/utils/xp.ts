@@ -125,6 +125,20 @@ export function getStreakMultiplier(streakDays: number): number {
 }
 
 /**
+ * Calculate cycling XP from distance and average speed.
+ * Formula mirrors backend implementation.
+ */
+export function calculateCyclingXp(distanceKm: number, durationMinutes: number): number {
+	if (distanceKm <= 0 || durationMinutes <= 0) return 0;
+
+	const baseXp = distanceKm * 15;
+	const avgSpeed = distanceKm / (durationMinutes / 60);
+	const multiplier = Math.max(1, Math.min(1.6, 1 + (avgSpeed - 10) * 0.025));
+
+	return Math.floor(baseXp * multiplier);
+}
+
+/**
  * Format XP with K suffix for large numbers
  */
 export function formatXp(xp: number): string {

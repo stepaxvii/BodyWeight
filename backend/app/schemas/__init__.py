@@ -5,11 +5,21 @@ from .users import (
     UserResponse,
     UserStatsResponse,
     UpdateUserRequest,
+    CompleteOnboardingRequest,
     UserProfileResponse,
     DayActivityResponse,
     UserActivityResponse,
 )
-from .auth import AuthRequest, AuthResponse
+from .auth import (
+    AuthRequest,
+    AuthResponse,
+    WebAuthResponse,
+    WebRegisterRequest,
+    WebLoginRequest,
+    SetPasswordRequest,
+    LinkTelegramRequest,
+    ConfirmLinkResponse,
+)
 from .workouts import (
     ExerciseSetData,
     CompleteWorkoutRequest,
@@ -49,12 +59,19 @@ __all__ = [
     "UserResponse",
     "UserStatsResponse",
     "UpdateUserRequest",
+    "CompleteOnboardingRequest",
     "UserProfileResponse",
     "DayActivityResponse",
     "UserActivityResponse",
     # Auth
     "AuthRequest",
     "AuthResponse",
+    "WebAuthResponse",
+    "WebRegisterRequest",
+    "WebLoginRequest",
+    "SetPasswordRequest",
+    "LinkTelegramRequest",
+    "ConfirmLinkResponse",
     # Workouts
     "ExerciseSetData",
     "CompleteWorkoutRequest",

@@ -10,11 +10,13 @@ DEFAULT_DB_PATH = BACKEND_DIR / "bodyweight.db"
 class Settings(BaseSettings):
     # Telegram Bot
     bot_token: str = ""
-    bot_username: str = ""  # Bot username without @, e.g. "bodyweight_bot"
-    mini_app_name: str = ""  # Mini App short name from BotFather, e.g. "bodyweight"
+    bot_username: str = "pixelfitbot"  # Bot username without @
+    mini_app_name: str = "pixelfitbot"  # Mini App short name from BotFather
 
     # Security
     secret_key: str = "change-me-in-production"
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 60 * 24 * 30  # 30 days
 
     # Database (use absolute path to ensure bot and API use same DB)
     database_url: str = f"sqlite+aiosqlite:///{DEFAULT_DB_PATH}"
@@ -34,6 +36,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"
 
 
 @lru_cache

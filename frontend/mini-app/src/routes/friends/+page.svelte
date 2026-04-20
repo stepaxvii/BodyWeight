@@ -26,6 +26,8 @@
 		const tabParam = $page.url.searchParams.get('tab');
 		if (tabParam === 'requests') {
 			activeTab = 'requests';
+		} else if (tabParam === 'search') {
+			activeTab = 'search';
 		}
 
 		await loadFriends();
@@ -66,6 +68,38 @@
 		}
 	}
 
+	async function shareInviteLink() {
+		try {
+			telegram.hapticImpact('medium');
+
+			const botUsername = 'pixelfitbot';
+			const botLink = `https://t.me/${botUsername}`;
+
+			const inviteText = `PixelFit - 8-bit фитнес трекер! Набирай опыт, прокачивай уровень, открывай достижения. Присоединяйся!`;
+
+			// Try Telegram share if inside TMA
+			if (telegram.webApp) {
+				const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(inviteText)}`;
+				telegram.openTelegramLink(shareUrl);
+			} else if (navigator.share) {
+				// PWA / browser: Web Share API
+				await navigator.share({ title: 'PixelFit', text: inviteText, url: botLink });
+			} else {
+				// Fallback: copy to clipboard
+				await navigator.clipboard.writeText(`${inviteText}\n${botLink}`);
+				error = null;
+				alert('Ссылка скопирована в буфер обмена');
+			}
+
+			telegram.hapticNotification('success');
+		} catch (err) {
+			// User cancelled share — not an error
+			if (err instanceof Error && err.name === 'AbortError') return;
+			telegram.hapticNotification('error');
+			console.error('Failed to share invite link:', err);
+		}
+	}
+
 	// Auto-search with debounce when searchQuery changes
 	$effect(() => {
 		// Clear previous timeout
@@ -100,15 +134,24 @@
 		};
 	});
 
-	async function addFriend(username: string) {
+	async function addFriend(usernameOrId: string | number) {
 		telegram.hapticImpact('medium');
 		try {
-			await api.addFriend(username);
+			await api.addFriend(usernameOrId);
+
 			// Update search results to show pending status
-			searchResults = searchResults.map(u =>
-				u.username === username ? { ...u, status: 'pending' as const } : u
-			);
+			if (typeof usernameOrId === 'string') {
+				searchResults = searchResults.map(u =>
+					u.username === usernameOrId ? { ...u, status: 'pending' as const } : u
+				);
+			} else {
+				searchResults = searchResults.map(u =>
+					u.user_id === usernameOrId ? { ...u, status: 'pending' as const } : u
+				);
+			}
+
 			telegram.hapticNotification('success');
+			telegram.showAlert('Заявка отправлена');
 		} catch (err) {
 			telegram.hapticNotification('error');
 			error = 'Не удалось отправить заявку';
@@ -202,6 +245,20 @@
 	<!-- Search Tab -->
 	{#if activeTab === 'search'}
 		<div class="search-section">
+			<!-- Invite Link Button -->
+			<PixelCard padding="sm" style="margin-bottom: 16px;">
+				<div class="invite-link-section">
+					<div class="invite-info">
+						<PixelIcon name="link" size="sm" color="var(--primary)" />
+						<span>Пригласить друга</span>
+					</div>
+					<PixelButton size="sm" variant="secondary" onclick={shareInviteLink}>
+						<PixelIcon name="share" />
+						Поделиться приглашением
+					</PixelButton>
+				</div>
+			</PixelCard>
+
 			<div class="search-box">
 				<input
 					type="text"
@@ -420,6 +477,20 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
+	}
+
+	.invite-link-section {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+	}
+
+	.invite-info {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
 	}
 
 	.search-box {

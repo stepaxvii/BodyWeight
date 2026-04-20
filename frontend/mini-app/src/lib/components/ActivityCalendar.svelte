@@ -10,19 +10,21 @@
 
 	let { activityData, year, onDayClick }: Props = $props();
 
-	// Color thresholds based on XP (excluding achievement XP)
+	// 6 градаций: пусто (0) + 5 уровней, шаг ≈250 XP, последняя — 1001+ XP
 	const XP_THRESHOLDS = {
-		LIGHT: 1,      // 1-100 XP: light green
-		MEDIUM: 101,   // 101-300 XP: green
-		INTENSE: 301,  // 301-500 XP: bright green
-		VERY_INTENSE: 501 // 500+ XP: red/dark green
+		LIGHT: 1,        // 1–250
+		MEDIUM: 251,     // 251–500
+		INTENSE: 501,    // 501–750
+		STRONG: 751,     // 751–1000
+		VERY_INTENSE: 1000 // 1001+
 	};
 
 	function getColorClass(xp: number): string {
 		if (xp === 0) return 'color-empty';
 		if (xp < XP_THRESHOLDS.MEDIUM) return 'color-light';
 		if (xp < XP_THRESHOLDS.INTENSE) return 'color-medium';
-		if (xp < XP_THRESHOLDS.VERY_INTENSE) return 'color-intense';
+		if (xp < XP_THRESHOLDS.STRONG) return 'color-intense';
+		if (xp < XP_THRESHOLDS.VERY_INTENSE) return 'color-strong';
 		return 'color-very-intense';
 	}
 
@@ -45,25 +47,30 @@
 
 		// Fill first week with empty slots if it doesn't start on Monday
 		const firstDay = days[0];
-		const firstDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
-		const daysToFill = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1; // Convert to Monday-based
+		let firstDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
+		// Convert Sunday (0) to 7 for easier Monday-based calculation
+		if (firstDayOfWeek === 0) firstDayOfWeek = 7;
+		const daysToFill = firstDayOfWeek - 1; // Monday = 1, so Monday needs 0 empty slots
 
 		for (let i = 0; i < daysToFill; i++) {
 			currentWeek.push(null as any); // Empty slot
 		}
 
 		for (const day of days) {
-			const dayOfWeek = day.getDay();
-			const mondayBased = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+			currentWeek.push(day);
 
-			if (mondayBased === 0 && currentWeek.length > 0) {
-				weeks.push(currentWeek);
+			// Check if week is complete (7 days total)
+			if (currentWeek.length === 7) {
+				weeks.push([...currentWeek]);
 				currentWeek = [];
 			}
-			currentWeek.push(day);
 		}
 
+		// Fill last week with empty slots if needed
 		if (currentWeek.length > 0) {
+			while (currentWeek.length < 7) {
+				currentWeek.push(null as any);
+			}
 			weeks.push(currentWeek);
 		}
 
@@ -123,6 +130,7 @@
 			<div class="legend-box color-light"></div>
 			<div class="legend-box color-medium"></div>
 			<div class="legend-box color-intense"></div>
+			<div class="legend-box color-strong"></div>
 			<div class="legend-box color-very-intense"></div>
 			<span class="legend-label">Больше</span>
 		</div>
@@ -204,34 +212,6 @@
 		overflow: hidden;
 	}
 
-	.calendar-grid-container {
-		display: flex;
-		gap: var(--spacing-xs);
-	}
-
-	.weekday-labels {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		padding-right: var(--spacing-xs);
-		flex-shrink: 0;
-	}
-
-	.weekday-label {
-		height: 10px;
-		font-size: 9px;
-		color: var(--text-secondary);
-		display: flex;
-		align-items: center;
-		line-height: 1;
-	}
-
-	.calendar-scrollable {
-		flex: 1;
-		overflow-x: auto;
-		overflow-y: hidden;
-	}
-
 	.month-labels {
 		position: relative;
 		height: 14px;
@@ -281,25 +261,29 @@
 		cursor: default;
 	}
 
-	/* Color scheme based on XP */
+	/* 6 градаций: пусто + 5 уровней интенсивности (до 1000 XP) */
 	.color-empty {
 		background: var(--pixel-bg-dark);
 	}
 
 	.color-light {
-		background: #0e4429; /* Dark green - light workout */
+		background: #0e4429; /* 1–250 XP */
 	}
 
 	.color-medium {
-		background: #006d32; /* Green - medium workout */
+		background: #006d32; /* 251–500 XP */
 	}
 
 	.color-intense {
-		background: #26a641; /* Bright green - intense workout */
+		background: #1a7f37; /* 501–750 XP */
+	}
+
+	.color-strong {
+		background: #26a641; /* 751-1000 XP */
 	}
 
 	.color-very-intense {
-		background: #39d353; /* Very bright green - very intense workout */
+		background: #39d353; /* 1001+ XP */
 	}
 
 	/* Scrollbar styling */

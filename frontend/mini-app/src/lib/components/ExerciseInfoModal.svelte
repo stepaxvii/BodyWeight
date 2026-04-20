@@ -21,7 +21,9 @@
 			'pullup-bar': 'Турник',
 			'dip-bars': 'Брусья',
 			'bench': 'Скамья',
-			'wall': 'Стена'
+			'wall': 'Стена',
+			'bike': 'Велосипед',
+			'dumbbell': 'Гантели'
 		};
 		return labels[equipment] || equipment;
 	}

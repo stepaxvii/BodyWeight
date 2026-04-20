@@ -128,7 +128,15 @@ async def load_exercises(session: AsyncSession) -> None:
             session.add(exercise)
             await session.flush()
         else:
-            # Update existing exercise
+            # Keep existing DB rows in sync with JSON source
+            exercise.name = ex_data["name"]
+            exercise.name_ru = ex_data["name_ru"]
+            exercise.description = ex_data.get("description")
+            exercise.description_ru = ex_data.get("description_ru")
+            exercise.difficulty = ex_data.get("difficulty", 1)
+            exercise.base_xp = ex_data.get("base_xp", 10)
+            exercise.required_level = ex_data.get("required_level", 1)
+            exercise.equipment = ex_data.get("equipment", "none")
             exercise.is_timed = is_timed
             exercise.tags = tags
             exercise.category_id = category_id

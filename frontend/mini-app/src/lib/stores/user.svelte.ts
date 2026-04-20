@@ -1,6 +1,8 @@
 import type { User, UserStats, AvatarId } from '$lib/types';
 import { api } from '$lib/api/client';
 
+export type AuthMode = 'telegram' | 'web' | null;
+
 // User state using Svelte 5 runes
 class UserStore {
 	user = $state<User | null>(null);
@@ -8,10 +10,10 @@ class UserStore {
 	isLoading = $state(false);
 	isAuthenticated = $state(false);
 	error = $state<string | null>(null);
+	authMode = $state<AuthMode>(null);
 
 	// Derived values
 	get level() {
-		// Ensure level is at least 1
 		return Math.max(1, this.user?.level ?? 1);
 	}
 
@@ -28,13 +30,11 @@ class UserStore {
 	}
 
 	get xpForCurrentLevel() {
-		// Level 1 starts at 0 XP, Level 2 at 100 XP, Level 3 at 400 XP, etc.
 		const lvl = this.level - 1;
 		return 100 * lvl * lvl;
 	}
 
 	get xpForNextLevel() {
-		// Level 2 requires 100 XP, Level 3 requires 400 XP, etc.
 		const lvl = this.level;
 		return 100 * lvl * lvl;
 	}
@@ -49,15 +49,23 @@ class UserStore {
 
 	get displayName() {
 		if (!this.user) return 'Guest';
-		// Prefer username over first_name
 		if (this.user.username) return `${this.user.username}`;
-		return this.user.first_name || 'Guest';
+		return this.user.first_name || this.user.email || 'Guest';
 	}
 
 	get isOnboarded() {
 		return this.user?.is_onboarded ?? false;
 	}
 
+	get hasTelegram() {
+		return !!this.user?.telegram_id;
+	}
+
+	get hasWebAuth() {
+		return !!this.user?.email && !!this.user?.has_password;
+	}
+
+	// Telegram Mini App auth
 	async authenticate(initData: string) {
 		this.isLoading = true;
 		this.error = null;
@@ -67,7 +75,21 @@ class UserStore {
 			const response = await api.validateAuth();
 			this.user = response.user;
 			this.isAuthenticated = true;
+			this.authMode = 'telegram';
+			try { localStorage.setItem('cache_user', JSON.stringify(response.user)); } catch {}
 		} catch (err) {
+			// If offline, try cached user data
+			if (!navigator.onLine) {
+				try {
+					const cached = localStorage.getItem('cache_user');
+					if (cached) {
+						this.user = JSON.parse(cached);
+						this.isAuthenticated = true;
+						this.authMode = 'telegram';
+						return;
+					}
+				} catch {}
+			}
 			this.error = err instanceof Error ? err.message : 'Authentication failed';
 			this.isAuthenticated = false;
 		} finally {
@@ -75,16 +97,100 @@ class UserStore {
 		}
 	}
 
+	// Web login
+	async webLogin(login: string, password: string) {
+		this.isLoading = true;
+		this.error = null;
+
+		try {
+			const response = await api.webLogin(login, password);
+			api.setJwtToken(response.token);
+			this.user = response.user;
+			this.isAuthenticated = true;
+			this.authMode = 'web';
+		} catch (err) {
+			this.error = err instanceof Error ? err.message : 'Login failed';
+			this.isAuthenticated = false;
+			throw err;
+		} finally {
+			this.isLoading = false;
+		}
+	}
+
+	// Web register
+	async webRegister(data: { email: string; password: string; username?: string; first_name?: string }) {
+		this.isLoading = true;
+		this.error = null;
+
+		try {
+			const response = await api.webRegister(data);
+			api.setJwtToken(response.token);
+			this.user = response.user;
+			this.isAuthenticated = true;
+			this.authMode = 'web';
+		} catch (err) {
+			this.error = err instanceof Error ? err.message : 'Registration failed';
+			this.isAuthenticated = false;
+			throw err;
+		} finally {
+			this.isLoading = false;
+		}
+	}
+
+	// Try to restore session from stored JWT
+	async tryRestoreSession() {
+		if (!api.hasStoredToken) return false;
+
+		this.isLoading = true;
+		this.error = null;
+
+		try {
+			const user = await api.getCurrentUser();
+			this.user = user;
+			this.isAuthenticated = true;
+			this.authMode = 'web';
+			// Cache user data for offline use
+			try { localStorage.setItem('cache_user', JSON.stringify(user)); } catch {}
+			return true;
+		} catch {
+			// If offline, try to use cached user data instead of logging out
+			if (!navigator.onLine) {
+				try {
+					const cached = localStorage.getItem('cache_user');
+					if (cached) {
+						this.user = JSON.parse(cached);
+						this.isAuthenticated = true;
+						this.authMode = 'web';
+						return true;
+					}
+				} catch {}
+			}
+			api.clearAuth();
+			this.isAuthenticated = false;
+			return false;
+		} finally {
+			this.isLoading = false;
+		}
+	}
+
+	logout() {
+		api.clearAuth();
+		this.user = null;
+		this.isAuthenticated = false;
+		this.authMode = null;
+		this.error = null;
+	}
+
 	async loadUser() {
 		if (!this.isAuthenticated) return;
 
-		this.isLoading = true;
 		try {
 			this.user = await api.getCurrentUser();
 		} catch (err) {
-			this.error = err instanceof Error ? err.message : 'Failed to load user';
-		} finally {
-			this.isLoading = false;
+			// Don't set error when offline — keep using cached user data
+			if (navigator.onLine) {
+				this.error = err instanceof Error ? err.message : 'Failed to load user';
+			}
 		}
 	}
 
@@ -93,15 +199,22 @@ class UserStore {
 
 		try {
 			this.stats = await api.getUserStats();
+			try { localStorage.setItem('cache_user_stats', JSON.stringify(this.stats)); } catch {}
 		} catch (err) {
 			console.error('Failed to load stats:', err);
+			// Offline fallback
+			if (!this.stats) {
+				try {
+					const cached = localStorage.getItem('cache_user_stats');
+					if (cached) this.stats = JSON.parse(cached);
+				} catch {}
+			}
 		}
 	}
 
 	addXp(amount: number) {
 		if (this.user) {
 			this.user.total_xp += amount;
-			// Check for level up
 			while (this.user.total_xp >= this.xpForNextLevel) {
 				this.user.level++;
 			}
@@ -142,14 +255,26 @@ class UserStore {
 		}
 	}
 
-	async completeOnboarding() {
+	async completeOnboarding(leaderboardConsent: boolean) {
 		if (this.user) {
 			try {
-				this.user = await api.completeOnboarding();
+				this.user = await api.completeOnboarding(leaderboardConsent);
 			} catch (err) {
 				console.error('Failed to complete onboarding:', err);
 			}
 		}
+	}
+
+	// Set password for TMA user
+	async setPassword(email: string, password: string) {
+		const response = await api.setPassword(email, password);
+		api.setJwtToken(response.token);
+		this.user = response.user;
+	}
+
+	// Link Telegram account
+	async linkTelegram(telegramId: number) {
+		return await api.linkTelegram(telegramId);
 	}
 }
 

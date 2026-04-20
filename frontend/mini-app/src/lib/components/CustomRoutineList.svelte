@@ -1,20 +1,16 @@
 <script lang="ts">
 	import { PixelButton, PixelCard, PixelIcon, EmptyState } from '$lib/components/ui';
-	import { api } from '$lib/api/client';
-	import { telegram } from '$lib/stores/telegram.svelte';
-	import type { CustomRoutineListItem, CustomRoutine } from '$lib/types';
+	import type { CustomRoutineListItem } from '$lib/types';
 
 	interface Props {
 		routines: CustomRoutineListItem[];
 		onplay: (routineId: number) => void;
 		onedit: (routineId: number) => void;
-		ondelete: (routineId: number) => void;
+		ondelete: (routineId: number, routineName: string) => void;
 		oncreate: () => void;
 	}
 
 	let { routines, onplay, onedit, ondelete, oncreate }: Props = $props();
-
-	let deletingId = $state<number | null>(null);
 
 	function getTypeLabel(type: string): string {
 		switch (type) {
@@ -34,28 +30,6 @@
 		}
 	}
 
-	async function confirmDelete(id: number) {
-		if (deletingId === id) {
-			// Second tap - actually delete
-			try {
-				await api.deleteCustomRoutine(id);
-				ondelete(id);
-				telegram.hapticNotification('success');
-			} catch (err) {
-				console.error('Failed to delete routine:', err);
-				telegram.hapticNotification('error');
-			}
-			deletingId = null;
-		} else {
-			// First tap - show confirmation
-			deletingId = id;
-			telegram.hapticImpact('medium');
-			// Auto-reset after 3 seconds
-			setTimeout(() => {
-				deletingId = null;
-			}, 3000);
-		}
-	}
 </script>
 
 <div class="routine-list">
@@ -83,7 +57,7 @@
 					<div class="routine-item">
 						<div class="routine-info">
 							<div class="routine-header">
-								<span class="routine-name">{routine.name}</span>
+								<span class="routine-name" title={routine.name}>{routine.name}</span>
 								<span class="routine-type" style="color: {getTypeColor(routine.routine_type)}">
 									{getTypeLabel(routine.routine_type)}
 								</span>
@@ -117,15 +91,10 @@
 							</button>
 							<button
 								class="action-btn delete"
-								class:confirming={deletingId === routine.id}
-								onclick={() => confirmDelete(routine.id)}
-								title={deletingId === routine.id ? 'Нажмите ещё раз для удаления' : 'Удалить'}
+								onclick={() => ondelete(routine.id, routine.name)}
+								title="Удалить"
 							>
-								{#if deletingId === routine.id}
-									<PixelIcon name="check" />
-								{:else}
-									<PixelIcon name="close" />
-								{/if}
+								<PixelIcon name="close" />
 							</button>
 						</div>
 					</div>
@@ -165,8 +134,8 @@
 
 	.routine-header {
 		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
+		flex-direction: column;
+		gap: 2px;
 		margin-bottom: var(--spacing-xs);
 	}
 
@@ -176,11 +145,13 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		min-width: 0;
 	}
 
 	.routine-type {
 		font-size: 10px;
 		text-transform: uppercase;
+		align-self: flex-start;
 	}
 
 	.routine-stats {
@@ -224,15 +195,5 @@
 	.action-btn.delete {
 		background: var(--pixel-bg-dark);
 		border-color: var(--pixel-red);
-	}
-
-	.action-btn.delete.confirming {
-		background: var(--pixel-red);
-		animation: pulse 0.5s ease-in-out infinite;
-	}
-
-	@keyframes pulse {
-		0%, 100% { opacity: 1; }
-		50% { opacity: 0.7; }
 	}
 </style>

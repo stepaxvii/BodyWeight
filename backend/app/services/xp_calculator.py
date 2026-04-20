@@ -79,6 +79,28 @@ def calculate_coins(xp_earned: int, streak_days: int = 0, workout_duration_minut
     return coins
 
 
+def calculate_cycling_xp(distance_km: float, duration_minutes: int) -> int:
+    """
+    Calculate XP for cycling based on distance and average speed.
+
+    Formula:
+    - base_xp = distance_km * 15
+    - avg_speed = distance_km / (duration_minutes / 60)
+    - multiplier = clamp(1 + (avg_speed - 10) * 0.025, 1, 1.6)
+    - xp = floor(base_xp * multiplier)
+    """
+    if distance_km <= 0:
+        raise ValueError("distance_km must be positive")
+    if duration_minutes <= 0:
+        raise ValueError("duration_minutes must be positive")
+
+    base_xp = distance_km * 15
+    avg_speed = distance_km / (duration_minutes / 60)
+    multiplier = max(1.0, min(1.6, 1 + (avg_speed - 10) * 0.025))
+
+    return int(base_xp * multiplier)
+
+
 def xp_for_level(level: int) -> int:
     """
     Calculate total XP required to reach a level.

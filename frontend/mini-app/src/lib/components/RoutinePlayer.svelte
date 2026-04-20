@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { PixelButton, PixelCard, PixelIcon, PixelProgress } from '$lib/components/ui';
+	import ExerciseInfoModal from '$lib/components/ExerciseInfoModal.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -44,6 +45,7 @@
 	let totalXpEarned = $state(0);
 	let totalCoinsEarned = $state(0);
 	let completedExercisesCount = $state(0);
+	let showInfoExercise = $state<Exercise | null>(null);
 
 	const currentExercise = $derived(routine.exercises[currentStep]);
 	const exerciseData = $derived(allExercises.find(e => e.slug === currentExercise?.slug));
@@ -127,7 +129,12 @@
 		isStarted = true;
 		workoutStartTime = new Date();
 		completedExercises = [];
-		telegram.hapticImpact('medium');
+
+		try {
+			telegram.hapticImpact('medium');
+		} catch (e) {
+			console.warn('[RoutinePlayer] hapticImpact failed (probably offline / no Telegram API):', e);
+		}
 
 		// Start the total workout timer immediately
 		startTimer();
@@ -150,6 +157,7 @@
 
 	async function completeExercise() {
 		if (!currentExercise) return;
+		if (isSubmitting) return;
 
 		telegram.hapticImpact('medium');
 
@@ -186,30 +194,51 @@
 	}
 
 	async function finishRoutine() {
+		if (isSubmitting) return;
 		if (!workoutStartTime || completedExercises.length === 0) return;
 
 		isSubmitting = true;
 		stopTimer();
 
+		const workoutData = {
+			duration_seconds: timerSeconds,
+			exercises: completedExercises,
+			completed_at: new Date().toISOString(),
+		};
+
 		try {
-			const durationSeconds = timerSeconds;
-			const completed = await api.submitWorkout({
-				duration_seconds: durationSeconds,
-				exercises: completedExercises,
-			});
+			const completed = await api.submitWorkout(workoutData);
 
 			isCompleted = true;
 			totalXpEarned = completed.workout.total_xp_earned;
 			totalCoinsEarned = completed.workout.total_coins_earned;
 
-			// Update user stats
 			userStore.addXp(completed.workout.total_xp_earned);
 			userStore.addCoins(completed.workout.total_coins_earned);
 
 			telegram.hapticNotification('success');
 		} catch (err) {
 			console.error('Failed to complete routine:', err);
-			telegram.hapticNotification('error');
+
+			// Offline: save for later sync and show completion screen anyway
+			if (!navigator.onLine) {
+				try {
+					const pending = JSON.parse(localStorage.getItem('pending_workouts') || '[]');
+					pending.push({ data: workoutData, timestamp: Date.now() });
+					localStorage.setItem('pending_workouts', JSON.stringify(pending));
+				} catch { /* ignore */ }
+
+				isCompleted = true;
+				// Estimate XP from exercises
+				totalXpEarned = completedExercises.reduce((sum, ex) => {
+					const exercise = allExercises.find(e => e.slug === ex.exercise_slug);
+					return sum + (exercise?.base_xp ?? 5) * ex.sets.length;
+				}, 0);
+				totalCoinsEarned = 0;
+				telegram.hapticNotification('success');
+			} else {
+				telegram.hapticNotification('error');
+			}
 		} finally {
 			isSubmitting = false;
 		}
@@ -221,6 +250,70 @@
 			oncomplete?.(totalXpEarned, totalCoinsEarned);
 		}
 		onclose?.();
+	}
+
+	async function shareWorkout() {
+		telegram.hapticImpact('medium');
+
+		// Группируем по упражнению и суммируем повторы/секунды
+		const bySlug = new Map<string, { total: number; is_timed: boolean }>();
+		for (const ce of completedExercises) {
+			const sum = ce.sets.reduce((a, b) => a + b, 0);
+			const existing = bySlug.get(ce.exercise_slug);
+			if (existing) {
+				existing.total += sum;
+			} else {
+				bySlug.set(ce.exercise_slug, { total: sum, is_timed: ce.is_timed });
+			}
+		}
+		const exerciseLines = Array.from(bySlug.entries()).map(([slug, { total, is_timed }]) => {
+			const ex = allExercises.find((e) => e.slug === slug);
+			const name = ex?.name_ru || slug;
+			const totalStr = is_timed ? `${total} сек` : `${total} повт.`;
+			return `  ▸ ${name}: ${totalStr}`;
+		});
+
+		const shareText = [
+			`🏆 ${routine.name}`,
+			'',
+			`⏱️ ${formattedTotalTime}`,
+			`🌟 +${totalXpEarned} XP`,
+			`🪙 ${totalCoinsEarned} монет`,
+			'',
+			'━━━━━━━━━━',
+			'💪 Упражнения',
+			'━━━━━━━━━━',
+			...exerciseLines
+		].join('\n');
+
+		// Внутри Telegram WebApp – всё как раньше
+		if (telegram.webApp) {
+			const botUsername = 'pixelfitbot';
+			const botLink = `https://t.me/${botUsername}`;
+			const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(shareText)}`;
+			telegram.openTelegramLink(shareUrl);
+		}
+		// В PWA/браузере – системное меню «Поделиться» только с текстом тренировки
+		else if (navigator.share) {
+			try {
+				await navigator.share({
+					title: `PixelFit - ${routine.name}`,
+					text: shareText
+					// без url: чтобы не форсить переход в Telegram
+				});
+			} catch {
+				// пользователь закрыл шейр – просто игнорируем
+			}
+		} else {
+			// Fallback: скопировать в буфер обмена весь текст
+			try {
+				await navigator.clipboard.writeText(shareText);
+			} catch {
+				// нет доступа к буферу – ничего не делаем
+			}
+		}
+
+		telegram.hapticNotification('success');
 	}
 
 	function skipExercise() {
@@ -265,12 +358,13 @@
 				<h3 class="section-title">Упражнения</h3>
 				<div class="exercise-list">
 					{#each routine.exercises as ex, i}
+						{@const exData = allExercises.find(e => e.slug === ex.slug)}
 						<div class="exercise-preview-item">
 							<span class="exercise-number">{i + 1}</span>
 							{#if exercisesLoading}
 								<span class="exercise-name loading-skeleton"></span>
 							{:else}
-								<span class="exercise-name">{allExercises.find(e => e.slug === ex.slug)?.name_ru || ex.slug}</span>
+								<span class="exercise-name">{exData?.name_ru || ex.slug}</span>
 							{/if}
 							<span class="exercise-target">
 								{#if ex.duration}
@@ -279,6 +373,15 @@
 									{ex.reps} повт.
 								{/if}
 							</span>
+							{#if !exercisesLoading && exData}
+								<button
+									class="exercise-info-btn"
+									onclick={() => { showInfoExercise = exData; telegram.hapticImpact('light'); }}
+									title="Подробнее"
+								>
+									?
+								</button>
+							{/if}
 						</div>
 					{/each}
 				</div>
@@ -297,8 +400,8 @@
 		<div class="completion-screen">
 			<div class="completion-header">
 				<PixelIcon name="trophy" size="xl" color="var(--pixel-yellow)" />
-				<h2 class="completion-title">Отлично!</h2>
-				<p class="completion-subtitle">Сет выполнен</p>
+				<h2 class="completion-title">{routine.name}</h2>
+				<p class="completion-subtitle">завершён</p>
 			</div>
 
 			<div class="completion-stats-grid">
@@ -336,6 +439,10 @@
 			</div>
 
 			<div class="completion-actions">
+				<PixelButton variant="secondary" size="lg" fullWidth onclick={shareWorkout}>
+					<PixelIcon name="share" />
+					Поделиться
+				</PixelButton>
 				<PixelButton variant="success" size="lg" fullWidth onclick={handleClose}>
 					<PixelIcon name="check" />
 					Готово
@@ -433,10 +540,11 @@
 						<PixelButton
 							variant="success"
 							size="lg"
+							disabled={isSubmitting}
 							onclick={completeExercise}
 						>
 							<PixelIcon name="check" />
-							Готово
+							{isSubmitting ? 'Отправка…' : 'Готово'}
 						</PixelButton>
 					{/if}
 				</div>
@@ -444,6 +552,13 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Exercise Info Modal -->
+<ExerciseInfoModal
+	exercise={showInfoExercise}
+	open={showInfoExercise !== null}
+	onclose={() => showInfoExercise = null}
+/>
 
 <style>
 	.routine-player {
@@ -560,6 +675,27 @@
 
 	.exercise-target {
 		color: var(--pixel-green);
+	}
+
+	.exercise-info-btn {
+		width: 24px;
+		height: 24px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+		font-family: var(--font-pixel);
+		font-size: var(--font-size-sm);
+		font-weight: bold;
+		color: var(--text-secondary);
+		cursor: pointer;
+		flex-shrink: 0;
+	}
+
+	.exercise-info-btn:hover {
+		border-color: var(--pixel-accent);
+		color: var(--pixel-accent);
 	}
 
 	.start-section {
@@ -771,6 +907,9 @@
 	}
 
 	.completion-actions {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-md);
 		margin-top: var(--spacing-xl);
 		width: 100%;
 	}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { PixelCard, PixelIcon, PixelProgress, PixelButton, EmptyState, PixelTabs } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
@@ -92,10 +93,15 @@
 			>
 				<div class="achievement" class:unlocked={achievement.unlocked}>
 					<div class="achievement-icon" class:locked={!achievement.unlocked}>
-						{#if achievement.unlocked}
-							<PixelIcon name="trophy" size="xl" color="var(--pixel-yellow)" />
-						{:else}
-							<PixelIcon name="lock" size="xl" color="var(--text-muted)" />
+						<img
+							src="{base}/sprites/badges/{achievement.slug}.svg"
+							alt={achievement.name_ru}
+							class="achievement-badge-icon"
+						/>
+						{#if !achievement.unlocked}
+							<div class="lock-overlay">
+								<PixelIcon name="lock" size="sm" color="var(--text-muted)" />
+							</div>
 						{/if}
 					</div>
 
@@ -213,11 +219,35 @@
 		align-items: center;
 		justify-content: center;
 		margin: 0 auto;
+		position: relative;
 	}
 
 	.achievement-icon.locked {
 		border-color: var(--border-color);
 		opacity: 0.6;
+	}
+
+	.achievement-badge-icon {
+		width: 70%;
+		height: 70%;
+		image-rendering: pixelated;
+	}
+
+	.achievement-icon.locked .achievement-badge-icon {
+		filter: grayscale(1);
+		opacity: 0.5;
+	}
+
+	.lock-overlay {
+		position: absolute;
+		bottom: -4px;
+		right: -4px;
+		background: var(--pixel-bg-dark);
+		border: 1px solid var(--border-color);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 2px;
 	}
 
 	.achievement.unlocked .achievement-icon {

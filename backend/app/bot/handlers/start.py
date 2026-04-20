@@ -1,14 +1,23 @@
 import logging
-from aiogram import Router, F
+from aiogram import Bot, Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command, CommandStart
+from aiogram.enums import ParseMode
+from aiogram.client.default import DefaultBotProperties
 from sqlalchemy import select
 
+from app.config import settings
 from app.db.database import async_session_maker
 from app.db.models import User
-from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button
+from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button, get_leaderboard_consent_keyboard, get_link_confirmation_keyboard
 
 router = Router()
+
+LEADERBOARD_CONSENT_TEXT = """📊 <b>Рейтинг</b>
+
+Показывать твой username (или имя) в общем рейтинге и у друзей?
+
+Можно изменить позже в настройках приложения."""
 logger = logging.getLogger(__name__)
 
 
@@ -29,6 +38,7 @@ async def get_or_create_user(telegram_id: int, username: str | None, first_name:
             )
             session.add(user)
             await session.commit()
+            await session.refresh(user)
             logger.info(f"Created new user: {telegram_id} ({username})")
         else:
             # Update user info
@@ -36,13 +46,14 @@ async def get_or_create_user(telegram_id: int, username: str | None, first_name:
             user.first_name = first_name
             user.last_name = last_name
             await session.commit()
+            await session.refresh(user)
 
         return user
 
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    """Handle /start command."""
+    """Handle /start command with optional deep link parameter."""
     user = message.from_user
     if not user:
         return
@@ -55,18 +66,161 @@ async def cmd_start(message: Message):
         last_name=user.last_name,
     )
 
-    welcome_text = f"""
-<b>BodyWeight</b>
+    # Extract deep link parameter from /start command
+    # Format: /start addfriend_123
+    start_param = None
+    if message.text and ' ' in message.text:
+        _, param = message.text.split(' ', 1)
+        start_param = param.strip()
 
-Привет, {user.first_name or 'друг'}!
+    # Check if this is a friend invite
+    if start_param and start_param.startswith('addfriend_'):
+        try:
+            friend_id = int(start_param.replace('addfriend_', ''))
+            # Get friend's name from database
+            async with async_session_maker() as session:
+                result = await session.execute(
+                    select(User).where(User.id == friend_id)
+                )
+                friend = result.scalar_one_or_none()
 
-Тренируйся, зарабатывай опыт, соревнуйся с друзьями.
+            if friend:
+                friend_name = friend.username or friend.first_name or "Пользователь"
+                welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
+
+Привет, {user.first_name or 'друг'}! 👋
+
+<b>{friend_name}</b> приглашает тебя присоединиться к тренировкам!
+
+💪 Большое количество упражнений
+🏆 Система достижений и наград
+📊 Соревнуйся с друзьями
+⚡ Streaks и ежедневные бонусы
+
+Открой приложение и начни тренироваться вместе!
+"""
+            else:
+                welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
+
+Добро пожаловать, {user.first_name or 'друг'}! 👋
+
+Тренируйся как в игре! Набирай опыт, прокачивай уровень, открывай достижения.
+
+💪 Большое количество упражнений
+🏆 Система достижений
+📊 Соревнования с друзьями
+⚡ Streaks и бонусы
+
+Открой приложение и начни свой фитнес-путь!
+"""
+        except (ValueError, Exception) as e:
+            logger.error(f"Error parsing friend invite: {e}")
+            start_param = None
+            welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
+
+Добро пожаловать, {user.first_name or 'друг'}! 👋
+
+Тренируйся как в игре! Набирай опыт, прокачивай уровень, открывай достижения.
+
+💪 Большое количество упражнений
+🏆 Система достижений
+📊 Соревнования с друзьями
+⚡ Streaks и бонусы
+
+Открой приложение и начни свой фитнес-путь!
+"""
+    else:
+        # Returning user or first time without invite
+        welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
+
+С возвращением, {user.first_name or 'друг'}! 👋
+
+Готов продолжить тренировки? Открой приложение!
+
+💪 Большое количество упражнений
+🏆 Система достижений
+📊 Соревнования с друзьями
+⚡ Streaks и бонусы
 """
 
     await message.answer(
         welcome_text,
-        reply_markup=get_main_keyboard(),
+        reply_markup=get_main_keyboard(start_param=start_param),
     )
+
+    # Показать предложение «показывать в рейтинге» только если в БД False (один явный запрос)
+    async with async_session_maker() as session:
+        r = await session.execute(
+            select(User.leaderboard_visible).where(User.telegram_id == user.id)
+        )
+        row = r.one_or_none()
+    leaderboard_visible = row[0] if row is not None else None
+    raw_val = row[0] if row is not None else None
+    logger.info(
+        "cmd_start: telegram_id=%s leaderboard_visible=%s raw_type=%s (для проверки: sqlite3 <путь_к_БД> \"SELECT telegram_id, leaderboard_visible FROM users WHERE telegram_id=%s\")",
+        user.id, leaderboard_visible, type(raw_val).__name__ if raw_val is not None else None, user.id,
+    )
+    if row is not None and not row[0]:
+        try:
+            await message.answer(
+                LEADERBOARD_CONSENT_TEXT,
+                reply_markup=get_leaderboard_consent_keyboard(),
+            )
+            logger.info("cmd_start: отправлено сообщение «показывать в рейтинге» telegram_id=%s", user.id)
+        except Exception as e:
+            logger.exception("cmd_start: не удалось отправить сообщение рейтинга telegram_id=%s: %s", user.id, e)
+    else:
+        logger.info("cmd_start: сообщение рейтинга не отправляем (leaderboard_visible=True или нет строки) telegram_id=%s", user.id)
+
+
+@router.callback_query(F.data == "leaderboard_consent_yes")
+async def callback_leaderboard_yes(callback: CallbackQuery):
+    """Пользователь согласился на показ в рейтинге."""
+    if not callback.from_user:
+        await callback.answer()
+        return
+    async with async_session_maker() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == callback.from_user.id)
+        )
+        user = result.scalar_one_or_none()
+        if user:
+            user.leaderboard_visible = True
+            await session.commit()
+    await callback.answer("Ок, ты будешь в рейтинге!")
+    if callback.message:
+        try:
+            await callback.message.edit_text(
+                LEADERBOARD_CONSENT_TEXT + "\n\n✅ Показывать в рейтинге.",
+                reply_markup=None,
+            )
+        except Exception:
+            pass
+
+
+@router.callback_query(F.data == "leaderboard_consent_no")
+async def callback_leaderboard_no(callback: CallbackQuery):
+    """Пользователь отказался от показа в рейтинге."""
+    if not callback.from_user:
+        await callback.answer()
+        return
+    async with async_session_maker() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == callback.from_user.id)
+        )
+        user = result.scalar_one_or_none()
+        if user:
+            user.leaderboard_visible = False
+            await session.commit()
+    await callback.answer("Ок, скрыт из рейтинга.")
+    if callback.message:
+        try:
+            await callback.message.edit_text(
+                LEADERBOARD_CONSENT_TEXT + "\n\n❌ Не показывать в рейтинге.",
+                reply_markup=None,
+            )
+        except Exception:
+            pass
 
 
 @router.message(Command("workout"))
@@ -136,7 +290,7 @@ Keep pushing! Open the app to continue your workout.
 async def cmd_help(message: Message):
     """Handle /help command."""
     help_text = """
-<b>BodyWeight - Workout Tracker</b>
+<b>PixelFit - Workout Tracker</b>
 
 <b>Commands:</b>
 /start - Start the bot
@@ -169,7 +323,7 @@ Questions? Just message me!
 @router.callback_query(F.data == "open_app")
 async def callback_open_app(callback: CallbackQuery):
     """Handle open app callback."""
-    await callback.answer("Opening BodyWeight app...")
+    await callback.answer("Opening PixelFit app...")
 
 
 @router.callback_query(F.data == "view_stats")
@@ -178,3 +332,67 @@ async def callback_view_stats(callback: CallbackQuery):
     if callback.message:
         await cmd_stats(callback.message)
     await callback.answer()
+
+
+# ==================== Telegram Link Confirmation ====================
+
+async def send_link_confirmation(telegram_id: int, web_username: str, link_token: str):
+    """Send link confirmation message to Telegram user."""
+    bot = Bot(
+        token=settings.bot_token,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    )
+    try:
+        await bot.send_message(
+            chat_id=telegram_id,
+            text=f"""🔗 <b>Привязка аккаунта</b>
+
+Получен запрос на привязку вашего Telegram к web-аккаунту <b>{web_username}</b>.
+
+Если это вы — подтвердите привязку.""",
+            reply_markup=get_link_confirmation_keyboard(link_token),
+        )
+    finally:
+        await bot.session.close()
+
+
+@router.callback_query(F.data.startswith("link_confirm_"))
+async def callback_link_confirm(callback: CallbackQuery):
+    """User confirmed linking their Telegram to a web account."""
+    if not callback.from_user or not callback.data:
+        await callback.answer()
+        return
+
+    link_token = callback.data.replace("link_confirm_", "")
+
+    # Call the confirm endpoint internally
+    import httpx
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                f"{settings.mini_app_url}/api/auth/confirm-link/{link_token}"
+            )
+            if resp.status_code == 200:
+                await callback.answer("Аккаунт успешно привязан!")
+                if callback.message:
+                    await callback.message.edit_text(
+                        "🔗 <b>Привязка аккаунта</b>\n\n✅ Аккаунт успешно привязан!",
+                        reply_markup=None,
+                    )
+            else:
+                detail = resp.json().get("detail", "Ошибка")
+                await callback.answer(f"Ошибка: {detail}", show_alert=True)
+    except Exception as e:
+        logger.error(f"Link confirmation error: {e}")
+        await callback.answer("Произошла ошибка. Попробуйте позже.", show_alert=True)
+
+
+@router.callback_query(F.data.startswith("link_reject_"))
+async def callback_link_reject(callback: CallbackQuery):
+    """User rejected linking."""
+    await callback.answer("Привязка отклонена.")
+    if callback.message:
+        await callback.message.edit_text(
+            "🔗 <b>Привязка аккаунта</b>\n\n❌ Привязка отклонена.",
+            reply_markup=None,
+        )

@@ -155,20 +155,30 @@
 		{ id: 'stretch', label: 'Растяжка' }
 	];
 
-	function addExercise(exercise: Exercise) {
-		// Check if already added
-		if (selectedExercises.some(e => e.exercise.id === exercise.id)) {
-			telegram.hapticNotification('warning');
-			return;
-		}
+	// Pending exercise for sets selection
+	let pendingExercise = $state<Exercise | null>(null);
+	let pendingSets = $state(1);
 
-		selectedExercises = [...selectedExercises, {
-			exercise,
-			target_reps: exercise.is_timed ? undefined : 10,
-			target_duration: exercise.is_timed ? 30 : undefined,
-			rest_seconds: 30
-		}];
+	function selectExerciseToAdd(exercise: Exercise) {
+		pendingExercise = exercise;
+		pendingSets = 1;
+	}
+
+	function confirmAddExercise() {
+		if (!pendingExercise) return;
+		const items: RoutineExerciseItem[] = [];
+		for (let i = 0; i < pendingSets; i++) {
+			items.push({
+				exercise: pendingExercise,
+				target_reps: pendingExercise.is_timed ? undefined : 10,
+				target_duration: pendingExercise.is_timed ? 30 : undefined,
+				rest_seconds: 30
+			});
+		}
+		selectedExercises = [...selectedExercises, ...items];
 		telegram.hapticImpact('light');
+		pendingExercise = null;
+		showExercisePicker = false;
 	}
 
 	function selectPickerCategory(slug: string) {
@@ -355,13 +365,20 @@
 					<div class="empty-exercises">
 						<PixelIcon name="play" size="xl" color="var(--text-muted)" />
 						<p>Нет упражнений</p>
-						<PixelButton variant="primary" onclick={() => showExercisePicker = true}>
+						<PixelButton variant="primary" onclick={() => { clearPickerFilters(); showExercisePicker = true; }}>
 							Добавить упражнение
 						</PixelButton>
 					</div>
 				{:else}
+					<div class="add-exercise-btn">
+						<PixelButton variant="secondary" fullWidth onclick={() => { clearPickerFilters(); showExercisePicker = true; }}>
+							<PixelIcon name="plus" />
+							Добавить упражнение
+						</PixelButton>
+					</div>
+
 					<div class="exercise-list">
-						{#each selectedExercises as item, index (item.exercise.id)}
+						{#each selectedExercises as item, index (index)}
 							<div class="exercise-item">
 								<div class="exercise-order">
 									<button
@@ -399,13 +416,6 @@
 								</div>
 							</div>
 						{/each}
-					</div>
-
-					<div class="add-exercise-btn">
-						<PixelButton variant="secondary" fullWidth onclick={() => showExercisePicker = true}>
-							<PixelIcon name="plus" />
-							Добавить упражнение
-						</PixelButton>
 					</div>
 				{/if}
 			{/if}
@@ -502,12 +512,11 @@
 					</div>
 				{:else}
 					{#each filteredExercises as exercise (exercise.id)}
-					{@const isAdded = selectedExercises.some(e => e.exercise.id === exercise.id)}
-					<div class="picker-item" class:added={isAdded}>
+					{@const isFav = favoritesStore.isFavorite(exercise.id)}
+					<div class="picker-item">
 						<button
 							class="picker-item-main"
-							onclick={() => { addExercise(exercise); showExercisePicker = false; }}
-							disabled={isAdded}
+							onclick={() => selectExerciseToAdd(exercise)}
 						>
 							<div class="picker-item-info">
 								<span class="picker-item-name">{exercise.name_ru}</span>
@@ -515,6 +524,13 @@
 									{exercise.is_timed ? 'На время' : 'Повторения'}
 								</span>
 							</div>
+						</button>
+						<button
+							class="picker-item-action favorite"
+							onclick={() => { favoritesStore.toggleFavorite(exercise.id); telegram.hapticImpact('light'); }}
+							title="Избранное"
+						>
+							<PixelIcon name={isFav ? 'heart' : 'heart-empty'} size="sm" color={isFav ? 'var(--pixel-red)' : 'var(--text-muted)'} />
 						</button>
 						<button
 							class="picker-item-action info"
@@ -525,18 +541,49 @@
 						</button>
 						<button
 							class="picker-item-action add"
-							onclick={() => { addExercise(exercise); showExercisePicker = false; }}
-							disabled={isAdded}
+							onclick={() => selectExerciseToAdd(exercise)}
 						>
-							{#if isAdded}
-								<PixelIcon name="check" size="sm" color="var(--pixel-green)" />
-							{:else}
-								<PixelIcon name="plus" size="sm" color="var(--pixel-accent)" />
-							{/if}
+							<PixelIcon name="plus" size="sm" color="var(--pixel-accent)" />
 						</button>
 					</div>
 					{/each}
 				{/if}
+			</div>
+		</div>
+	</div>
+{/if}
+
+<!-- Sets Count Modal -->
+{#if pendingExercise}
+	<div class="settings-overlay" onclick={() => pendingExercise = null}>
+		<div class="settings-container" onclick={(e) => e.stopPropagation()}>
+			<div class="settings-header">
+				<h3>{pendingExercise.name_ru}</h3>
+				<button class="close-btn" onclick={() => pendingExercise = null}>
+					<PixelIcon name="close" />
+				</button>
+			</div>
+
+			<div class="settings-content">
+				<div class="form-section">
+					<label class="form-label">Количество подходов</label>
+					<div class="number-input">
+						<button onclick={() => pendingSets = Math.max(1, pendingSets - 1)}>-</button>
+						<input
+							type="number"
+							bind:value={pendingSets}
+							min="1"
+							max="20"
+						/>
+						<button onclick={() => pendingSets = Math.min(20, pendingSets + 1)}>+</button>
+					</div>
+				</div>
+			</div>
+
+			<div class="settings-footer">
+				<PixelButton variant="primary" fullWidth onclick={confirmAddExercise}>
+					Добавить {pendingSets > 1 ? `${pendingSets} подхода` : ''}
+				</PixelButton>
 			</div>
 		</div>
 	</div>
@@ -904,7 +951,7 @@
 	}
 
 	.add-exercise-btn {
-		margin-top: var(--spacing-md);
+		margin-bottom: var(--spacing-md);
 	}
 
 	/* Picker modal */

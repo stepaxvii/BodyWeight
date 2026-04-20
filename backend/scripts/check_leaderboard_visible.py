@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""Проверить leaderboard_visible в той же БД, что и API/бот.
+
+Запуск на хосте (из корня проекта):  python backend/scripts/check_leaderboard_visible.py
+Запуск в Docker (та же БД, что у API/бота):  docker compose exec backend python scripts/check_leaderboard_visible.py
+"""
+import asyncio
+import os
+import sys
+from pathlib import Path
+
+_backend = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_backend))
+os.chdir(_backend)
+
+# Загрузить .env из backend/ до импорта config
+_env = _backend / ".env"
+if _env.exists():
+    for line in _env.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            k, _, v = line.partition("=")
+            k, v = k.strip(), v.strip().strip('"').strip("'")
+            if k and os.environ.get(k) is None:
+                os.environ[k] = v
+
+# Если DATABASE_URL=..././bodyweight.db (не в data/), использовать data/bodyweight.db, если есть
+db_url = os.environ.get("DATABASE_URL", "")
+if "sqlite" in db_url and "data" not in db_url and "bodyweight.db" in db_url:
+    for db_path in (_backend / "data" / "bodyweight.db", _backend.parent / "data" / "bodyweight.db"):
+        if db_path.exists():
+            os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{db_path.resolve().as_posix()}"
+            break
+elif not db_url:
+    for db_path in (_backend / "data" / "bodyweight.db", _backend.parent / "data" / "bodyweight.db"):
+        if db_path.exists():
+            os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{db_path.resolve().as_posix()}"
+            break
+
+from sqlalchemy import select
+from app.config import settings
+from app.db.database import async_session_maker
+from app.db.models import User
+
+
+def _db_path_from_url(url: str) -> str | None:
+    if "sqlite" not in url:
+        return None
+    path = url.replace("sqlite+aiosqlite:///", "").strip()
+    return path if path else None
+
+
+async def main():
+    url = settings.database_url
+    print("БД:", "postgresql..." if "postgresql" in url else url)
+    path = _db_path_from_url(url)
+    if path:
+        print("Файл (для sqlite3):", path)
+        print("  Проверь тем же путём: sqlite3", repr(path), '"SELECT id, telegram_id, leaderboard_visible FROM users;"')
+    print()
+    async with async_session_maker() as session:
+        result = await session.execute(
+            select(User.id, User.telegram_id, User.username, User.leaderboard_visible, User.total_xp)
+        )
+        rows = result.all()
+    print("id | telegram_id | username | leaderboard_visible | total_xp")
+    print("-" * 60)
+    for r in rows:
+        print(f"{r[0]} | {r[1]} | {r[2] or '-'} | {r[3]} | {r[4]}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
