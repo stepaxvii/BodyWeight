@@ -139,6 +139,15 @@ export function calculateCyclingXp(distanceKm: number, durationMinutes: number):
 }
 
 /**
+ * Calculate walking XP from total step count.
+ * Formula mirrors backend: 1 XP per 50 steps.
+ */
+export function calculateWalkingXp(steps: number): number {
+	if (steps <= 0) return 0;
+	return Math.floor(steps / 50);
+}
+
+/**
  * Format XP with K suffix for large numbers
  */
 export function formatXp(xp: number): string {

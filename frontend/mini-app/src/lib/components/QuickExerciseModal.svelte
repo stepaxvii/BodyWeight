@@ -5,7 +5,7 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { favoritesStore } from '$lib/stores/favorites.svelte';
 	import { exercisesStore } from '$lib/stores/exercises.svelte';
-	import { calculateCyclingXp } from '$lib/utils/xp';
+	import { calculateCyclingXp, calculateWalkingXp } from '$lib/utils/xp';
 	import { getTagName } from '$lib/utils';
 	import type { Exercise, EquipmentType, ExerciseCategory } from '$lib/types';
 	import { onMount } from 'svelte';
@@ -18,7 +18,7 @@
 
 	let { open = false, onclose, onsave }: Props = $props();
 
-	type Step = 'mode' | 'exercise' | 'input' | 'filters' | 'cycling-input';
+	type Step = 'mode' | 'exercise' | 'input' | 'filters' | 'cycling-input' | 'walking-input';
 	type ExerciseMode = 'favorites' | 'all';
 
 	let step = $state<Step>('mode');
@@ -30,6 +30,7 @@
 	let duration = $state(30);
 	let cyclingDistanceKm = $state(6.5);
 	let cyclingDurationMin = $state(23);
+	let walkingSteps = $state(10000);
 	let isSubmitting = $state(false);
 	
 	// Search and filter state
@@ -113,9 +114,9 @@
 			result = result.filter(e => e.tags.some(t => selectedTags.includes(t)));
 		}
 
-		// Cycling is handled by a dedicated quick-flow (distance + duration),
+		// Cycling and walking are handled by dedicated quick-flows,
 		// not by the generic reps/sets UI.
-		result = result.filter(e => e.slug !== 'cycling');
+		result = result.filter(e => e.slug !== 'cycling' && e.slug !== 'walking');
 
 		return result;
 	});
@@ -131,10 +132,16 @@
 	}
 
 	function selectExercise(ex: Exercise) {
-		// Cycling uses a dedicated flow (distance + duration),
-		// so route it explicitly even if it appears in some lists (e.g. cached favorites).
+		// Cycling/walking use dedicated flows,
+		// so route them explicitly even if they appear in some lists (e.g. cached favorites).
 		if (ex.slug === 'cycling') {
 			step = 'cycling-input';
+			selectedExercise = null;
+			telegram.hapticImpact('light');
+			return;
+		}
+		if (ex.slug === 'walking') {
+			step = 'walking-input';
 			selectedExercise = null;
 			telegram.hapticImpact('light');
 			return;
@@ -147,6 +154,11 @@
 
 	function selectCycling() {
 		step = 'cycling-input';
+		telegram.hapticImpact('light');
+	}
+
+	function selectWalking() {
+		step = 'walking-input';
 		telegram.hapticImpact('light');
 	}
 
@@ -164,6 +176,8 @@
 		} else if (step === 'filters') {
 			step = 'exercise';
 		} else if (step === 'cycling-input') {
+			step = 'mode';
+		} else if (step === 'walking-input') {
 			step = 'mode';
 		}
 		telegram.hapticImpact('light');
@@ -227,6 +241,7 @@
 		duration = 30;
 		cyclingDistanceKm = 6.5;
 		cyclingDurationMin = 23;
+		walkingSteps = 10000;
 		searchQuery = '';
 		selectedEquipment = [];
 		selectedDifficulties = [];
@@ -336,6 +351,50 @@
 		calculateCyclingXp(cyclingDistanceKm, cyclingDurationMin)
 	));
 
+	const walkingEstimatedXp = $derived.by(() => calculateWalkingXp(walkingSteps));
+
+	async function handleSaveWalking() {
+		if (isSubmitting) return;
+		if (walkingSteps <= 0) {
+			telegram.hapticNotification('error');
+			return;
+		}
+
+		isSubmitting = true;
+		telegram.hapticNotification('success');
+
+		const workoutData = {
+			duration_seconds: 0,
+			exercises: [{
+				exercise_slug: 'walking',
+				sets: [walkingSteps],
+				is_timed: false,
+				steps: walkingSteps
+			}],
+			completed_at: new Date().toISOString()
+		};
+
+		try {
+			const response = await api.submitWorkout(workoutData);
+			const completed = response.workout;
+			await userStore.loadUser();
+			onsave?.(completed.total_xp_earned, completed.total_coins_earned);
+			handleClose();
+		} catch (err) {
+			if (!navigator.onLine) {
+				savePendingWorkout(workoutData);
+				telegram.hapticNotification('success');
+				onsave?.(calculateWalkingXp(walkingSteps), 0);
+				handleClose();
+			} else {
+				console.error('Failed to save walking activity:', err);
+				telegram.hapticNotification('error');
+			}
+		} finally {
+			isSubmitting = false;
+		}
+	}
+
 	function savePendingWorkout(data: Parameters<typeof api.submitWorkout>[0]) {
 		try {
 			const pending = JSON.parse(localStorage.getItem('pending_workouts') || '[]');
@@ -367,6 +426,13 @@
 				>
 					<PixelIcon name="workout" size="lg" color="var(--pixel-green)" />
 					<span>Поездка на велосипеде</span>
+				</button>
+				<button
+					class="mode-option"
+					onclick={selectWalking}
+				>
+					<PixelIcon name="workout" size="lg" color="var(--pixel-accent)" />
+					<span>Ходьба</span>
 				</button>
 				<button
 					class="mode-option"
@@ -638,6 +704,38 @@
 					onclick={handleSaveCycling}
 				>
 					Записать поездку
+				</PixelButton>
+			</div>
+		{:else if step === 'walking-input'}
+			<div class="step-header">
+				<button class="back-btn" onclick={goBack}>
+					<PixelIcon name="arrow-left" size="sm" />
+				</button>
+				<p class="step-hint">Ходьба</p>
+			</div>
+			<div class="input-section">
+				<p class="input-label">Количество шагов:</p>
+				<input
+					type="number"
+					min="1"
+					step="100"
+					class="search-input"
+					bind:value={walkingSteps}
+				/>
+
+				<div class="cycling-summary">
+					<span>Ожидаемо: +{walkingEstimatedXp} XP</span>
+				</div>
+			</div>
+			<div class="save-section">
+				<PixelButton
+					variant="success"
+					size="lg"
+					fullWidth
+					loading={isSubmitting}
+					onclick={handleSaveWalking}
+				>
+					Записать ходьбу
 				</PixelButton>
 			</div>
 		{/if}

@@ -266,6 +266,17 @@ async def submit_workout(
                         "Cycling duration must be at least 5 minutes"
                     ),
                 )
+        elif ex.exercise_slug == "walking":
+            if ex.steps is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Walking requires steps",
+                )
+            if ex.steps <= 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Walking steps must be positive",
+                )
 
     # Cancel any stale active workouts
     active_result = await session.execute(
@@ -291,6 +302,7 @@ async def submit_workout(
                 is_timed=ex.is_timed,
                 distance_km=ex.distance_km,
                 duration_minutes=ex.duration_minutes,
+                steps=ex.steps,
             )
             for ex in request.exercises
         ],
