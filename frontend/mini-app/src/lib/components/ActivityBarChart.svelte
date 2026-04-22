@@ -3,13 +3,17 @@
 
 	interface Props {
 		activityData: Record<string, DayActivity>;
-		range: 'week' | '2weeks' | 'month';
+		range: 'week' | '2weeks' | 'month' | '3months';
 		onDayClick?: (date: string, activity: DayActivity | null) => void;
 	}
 
 	let { activityData, range, onDayClick }: Props = $props();
 
-	const dayCount = $derived(range === 'week' ? 7 : range === '2weeks' ? 14 : 30);
+	const dayCount = $derived(
+		range === 'week' ? 7 :
+		range === '2weeks' ? 14 :
+		range === 'month' ? 30 : 90
+	);
 
 	const todayStr = $derived(new Date().toISOString().split('T')[0]);
 
