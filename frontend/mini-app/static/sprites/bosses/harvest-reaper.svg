@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Harvest Reaper — жнец с черепом и косой -->
+  <rect width="32" height="32" fill="#0f1729"/>
+
+  <!-- Капюшон — внешняя тень -->
+  <rect x="3" y="2" width="26" height="6" fill="#1a1a2e"/>
+  <rect x="2" y="4" width="28" height="4" fill="#422006"/>
+  <rect x="3" y="3" width="26" height="2" fill="#422006"/>
+  <rect x="4" y="2" width="24" height="1" fill="#713f12"/>
+
+  <!-- Капюшон — основная часть -->
+  <rect x="2" y="5" width="28" height="22" fill="#422006"/>
+  <rect x="3" y="6" width="26" height="21" fill="#713f12"/>
+
+  <!-- Внутренняя тень капюшона (создаёт глубину) -->
+  <rect x="6" y="8" width="20" height="14" fill="#0f1729"/>
+
+  <!-- Череп -->
+  <rect x="9" y="9" width="14" height="13" fill="#fde68a"/>
+  <rect x="10" y="10" width="12" height="11" fill="#fef3c7"/>
+
+  <!-- Тени черепа -->
+  <rect x="9" y="9" width="1" height="13" fill="#ca8a04"/>
+  <rect x="22" y="9" width="1" height="13" fill="#ca8a04"/>
+  <rect x="9" y="21" width="14" height="1" fill="#ca8a04"/>
+
+  <!-- Глазницы — пустые, светятся жуткие красным -->
+  <rect x="11" y="12" width="3" height="4" fill="#1a1a2e"/>
+  <rect x="18" y="12" width="3" height="4" fill="#1a1a2e"/>
+  <rect x="12" y="13" width="1" height="2" fill="#f87171"/>
+  <rect x="19" y="13" width="1" height="2" fill="#f87171"/>
+  <rect x="12" y="13" width="1" height="1" fill="#fee2e2"/>
+  <rect x="19" y="13" width="1" height="1" fill="#fee2e2"/>
+
+  <!-- Носовая впадина -->
+  <rect x="15" y="15" width="2" height="3" fill="#1a1a2e"/>
+  <rect x="15" y="14" width="2" height="1" fill="#ca8a04"/>
+
+  <!-- Зубы / нижняя челюсть -->
+  <rect x="11" y="18" width="10" height="3" fill="#1a1a2e"/>
+  <rect x="12" y="19" width="1" height="2" fill="#fde68a"/>
+  <rect x="14" y="19" width="1" height="2" fill="#fde68a"/>
+  <rect x="16" y="19" width="1" height="2" fill="#fde68a"/>
+  <rect x="18" y="19" width="1" height="2" fill="#fde68a"/>
+  <rect x="20" y="19" width="1" height="2" fill="#fde68a"/>
+
+  <!-- Лезвие косы (диагональ слева сверху) -->
+  <rect x="0" y="0" width="2" height="2" fill="#9ca3af"/>
+  <rect x="2" y="2" width="2" height="2" fill="#cbd5e0"/>
+  <rect x="3" y="3" width="2" height="2" fill="#9ca3af"/>
+  <rect x="0" y="2" width="1" height="2" fill="#6b7280"/>
+
+  <!-- Древко косы по диагонали -->
+  <rect x="4" y="4" width="2" height="2" fill="#422006"/>
+  <rect x="6" y="6" width="1" height="1" fill="#422006"/>
+  <rect x="7" y="7" width="1" height="1" fill="#422006"/>
+
+  <!-- Колосья снизу (символ жатвы) -->
+  <rect x="4" y="28" width="1" height="3" fill="#ca8a04"/>
+  <rect x="3" y="27" width="3" height="1" fill="#fde68a"/>
+  <rect x="9" y="28" width="1" height="3" fill="#ca8a04"/>
+  <rect x="8" y="27" width="3" height="1" fill="#fde68a"/>
+  <rect x="22" y="28" width="1" height="3" fill="#ca8a04"/>
+  <rect x="21" y="27" width="3" height="1" fill="#fde68a"/>
+  <rect x="27" y="28" width="1" height="3" fill="#ca8a04"/>
+  <rect x="26" y="27" width="3" height="1" fill="#fde68a"/>
+</svg>

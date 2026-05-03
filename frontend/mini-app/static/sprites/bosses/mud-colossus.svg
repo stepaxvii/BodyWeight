@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Mud Colossus — каменно-грязевой гигант с золотыми глазами -->
+  <rect width="32" height="32" fill="#0f1729"/>
+
+  <!-- Каменные наплечники / рога -->
+  <rect x="4" y="3" width="3" height="4" fill="#3d2817"/>
+  <rect x="25" y="3" width="3" height="4" fill="#3d2817"/>
+  <rect x="5" y="4" width="1" height="2" fill="#5d4037"/>
+  <rect x="26" y="4" width="1" height="2" fill="#5d4037"/>
+
+  <!-- Голова — массивная, угловатая, в трещинах -->
+  <rect x="3" y="6" width="26" height="20" fill="#3d2817"/>
+  <rect x="4" y="7" width="24" height="18" fill="#5d4037"/>
+  <rect x="5" y="8" width="22" height="16" fill="#795548"/>
+
+  <!-- Камни/выступы -->
+  <rect x="6" y="9" width="3" height="3" fill="#a1887f"/>
+  <rect x="23" y="9" width="3" height="3" fill="#a1887f"/>
+  <rect x="14" y="8" width="4" height="2" fill="#a1887f"/>
+  <rect x="6" y="20" width="2" height="2" fill="#a1887f"/>
+  <rect x="24" y="20" width="2" height="2" fill="#a1887f"/>
+
+  <!-- Грязевые потёки -->
+  <rect x="9" y="22" width="1" height="3" fill="#3d2817"/>
+  <rect x="22" y="22" width="1" height="3" fill="#3d2817"/>
+  <rect x="13" y="23" width="1" height="2" fill="#3d2817"/>
+  <rect x="18" y="23" width="1" height="2" fill="#3d2817"/>
+
+  <!-- Брови-камни -->
+  <rect x="7" y="11" width="7" height="2" fill="#3d2817"/>
+  <rect x="18" y="11" width="7" height="2" fill="#3d2817"/>
+
+  <!-- Глаза — золотые, светящиеся -->
+  <rect x="8" y="13" width="6" height="4" fill="#1a1a2e"/>
+  <rect x="18" y="13" width="6" height="4" fill="#1a1a2e"/>
+  <rect x="9" y="14" width="4" height="2" fill="#f59e0b"/>
+  <rect x="19" y="14" width="4" height="2" fill="#f59e0b"/>
+  <rect x="10" y="14" width="2" height="1" fill="#fcd34d"/>
+  <rect x="20" y="14" width="2" height="1" fill="#fcd34d"/>
+  <rect x="10" y="15" width="1" height="1" fill="#ffffff"/>
+  <rect x="20" y="15" width="1" height="1" fill="#ffffff"/>
+
+  <!-- Нос/пятак -->
+  <rect x="14" y="17" width="4" height="2" fill="#5d4037"/>
+
+  <!-- Рот — каменная щель с золотым свечением -->
+  <rect x="11" y="20" width="10" height="3" fill="#1a1a2e"/>
+  <rect x="12" y="21" width="8" height="1" fill="#7c2d12"/>
+  <rect x="14" y="21" width="1" height="1" fill="#f59e0b"/>
+  <rect x="17" y="21" width="1" height="1" fill="#f59e0b"/>
+
+  <!-- Плечи -->
+  <rect x="1" y="25" width="30" height="6" fill="#3d2817"/>
+  <rect x="2" y="26" width="28" height="5" fill="#5d4037"/>
+  <rect x="3" y="27" width="3" height="2" fill="#795548"/>
+  <rect x="26" y="27" width="3" height="2" fill="#795548"/>
+  <rect x="13" y="27" width="6" height="3" fill="#795548"/>
+</svg>

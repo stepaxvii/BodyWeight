@@ -16,6 +16,7 @@ class MonthlyBoss(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     name_ru: Mapped[str] = mapped_column(String(100), nullable=False)
     image_emoji: Mapped[str] = mapped_column(String(16), nullable=False)
+    image_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     theme: Mapped[str] = mapped_column(String(30), nullable=False)
     legend_ru: Mapped[str] = mapped_column(Text, nullable=False)
 

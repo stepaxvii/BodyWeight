@@ -108,7 +108,7 @@
 		{#if boss}
 			<PixelCard padding="md">
 				<div class="boss-hero">
-					<div class="boss-emoji-large">{boss.image_emoji}</div>
+					<img src="{base}{boss.image_url}" alt={boss.name_ru} class="boss-img-large" />
 					<div class="boss-info">
 						<h2 class="boss-title">{boss.name_ru}</h2>
 						<p class="boss-period">{formatDate(boss.start_date)} — {formatDate(boss.end_date)}</p>
@@ -213,7 +213,7 @@
 				{#each history.bosses as h (h.id)}
 					<PixelCard padding="md">
 						<div class="hist-row">
-							<div class="hist-emoji">{h.image_emoji}</div>
+							<img src="{base}{h.image_url}" alt={h.name_ru} class="hist-img" />
 							<div class="hist-info">
 								<div class="hist-name">{h.name_ru}</div>
 								<div class="hist-period">{formatDate(h.start_date)} — {formatDate(h.end_date)}</div>
@@ -294,9 +294,11 @@
 		margin-bottom: var(--spacing-md);
 	}
 
-	.boss-emoji-large {
-		font-size: 48px;
-		line-height: 1;
+	.boss-img-large {
+		width: 96px;
+		height: 96px;
+		image-rendering: pixelated;
+		flex-shrink: 0;
 	}
 
 	.boss-info {
@@ -515,9 +517,11 @@
 		align-items: flex-start;
 	}
 
-	.hist-emoji {
-		font-size: 32px;
-		line-height: 1;
+	.hist-img {
+		width: 48px;
+		height: 48px;
+		image-rendering: pixelated;
+		flex-shrink: 0;
 	}
 
 	.hist-info {

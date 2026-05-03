@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Foliage Eldritch — кошмар из опавшей листвы -->
+  <rect width="32" height="32" fill="#0f1729"/>
+
+  <!-- Кружащиеся листья вокруг -->
+  <rect x="2" y="3" width="2" height="2" fill="#ea580c"/>
+  <rect x="3" y="4" width="1" height="1" fill="#fbbf24"/>
+  <rect x="28" y="2" width="2" height="2" fill="#c2410c"/>
+  <rect x="29" y="3" width="1" height="1" fill="#fbbf24"/>
+  <rect x="1" y="14" width="2" height="2" fill="#ea580c"/>
+  <rect x="29" y="16" width="2" height="2" fill="#c2410c"/>
+  <rect x="3" y="28" width="2" height="2" fill="#92400e"/>
+  <rect x="28" y="27" width="2" height="2" fill="#92400e"/>
+
+  <!-- Внешний слой кучи листвы (угловатый силуэт) -->
+  <rect x="4" y="5" width="3" height="3" fill="#422006"/>
+  <rect x="7" y="3" width="4" height="3" fill="#92400e"/>
+  <rect x="11" y="2" width="4" height="2" fill="#c2410c"/>
+  <rect x="15" y="1" width="4" height="3" fill="#ea580c"/>
+  <rect x="19" y="2" width="4" height="2" fill="#c2410c"/>
+  <rect x="23" y="3" width="4" height="3" fill="#92400e"/>
+  <rect x="25" y="5" width="3" height="3" fill="#422006"/>
+
+  <!-- Слой 2 -->
+  <rect x="3" y="7" width="26" height="3" fill="#92400e"/>
+  <rect x="4" y="6" width="24" height="2" fill="#c2410c"/>
+
+  <!-- Основная масса -->
+  <rect x="2" y="9" width="28" height="16" fill="#422006"/>
+  <rect x="3" y="10" width="26" height="14" fill="#92400e"/>
+  <rect x="4" y="11" width="24" height="12" fill="#c2410c"/>
+
+  <!-- Листва-цветовые пятна на теле -->
+  <rect x="6" y="11" width="2" height="2" fill="#ea580c"/>
+  <rect x="11" y="11" width="2" height="2" fill="#fbbf24"/>
+  <rect x="20" y="11" width="2" height="2" fill="#fbbf24"/>
+  <rect x="25" y="11" width="2" height="2" fill="#ea580c"/>
+  <rect x="6" y="20" width="2" height="2" fill="#fbbf24"/>
+  <rect x="24" y="20" width="2" height="2" fill="#ea580c"/>
+
+  <!-- Глаза в глубине — несколько пар, жуткое существо -->
+  <rect x="8" y="14" width="3" height="3" fill="#0f1729"/>
+  <rect x="14" y="13" width="3" height="3" fill="#0f1729"/>
+  <rect x="20" y="14" width="3" height="3" fill="#0f1729"/>
+
+  <rect x="9" y="15" width="1" height="1" fill="#166534"/>
+  <rect x="15" y="14" width="1" height="1" fill="#166534"/>
+  <rect x="21" y="15" width="1" height="1" fill="#166534"/>
+
+  <rect x="9" y="15" width="1" height="1" fill="#fbbf24"/>
+  <rect x="15" y="14" width="1" height="1" fill="#fbbf24"/>
+  <rect x="21" y="15" width="1" height="1" fill="#fbbf24"/>
+
+  <!-- Зубастый рот-провал -->
+  <rect x="11" y="19" width="10" height="4" fill="#0f1729"/>
+  <rect x="12" y="20" width="1" height="3" fill="#fbbf24"/>
+  <rect x="14" y="20" width="1" height="2" fill="#fbbf24"/>
+  <rect x="16" y="20" width="1" height="3" fill="#fbbf24"/>
+  <rect x="18" y="20" width="1" height="2" fill="#fbbf24"/>
+  <rect x="20" y="20" width="1" height="3" fill="#fbbf24"/>
+
+  <!-- Веточки/корни внизу -->
+  <rect x="5" y="25" width="1" height="6" fill="#422006"/>
+  <rect x="9" y="25" width="2" height="5" fill="#422006"/>
+  <rect x="14" y="25" width="2" height="6" fill="#422006"/>
+  <rect x="19" y="25" width="2" height="5" fill="#422006"/>
+  <rect x="24" y="25" width="2" height="6" fill="#422006"/>
+</svg>

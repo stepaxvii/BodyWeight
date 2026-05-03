@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Spore Awakener — оживший гриб с ядовитыми глазами -->
+  <rect width="32" height="32" fill="#0f1729"/>
+
+  <!-- Споры в воздухе -->
+  <rect x="2" y="4" width="1" height="1" fill="#4ade80" opacity="0.8"/>
+  <rect x="29" y="3" width="1" height="1" fill="#4ade80" opacity="0.8"/>
+  <rect x="5" y="2" width="1" height="1" fill="#86efac" opacity="0.7"/>
+  <rect x="27" y="6" width="1" height="1" fill="#86efac" opacity="0.7"/>
+  <rect x="1" y="10" width="1" height="1" fill="#4ade80" opacity="0.6"/>
+  <rect x="30" y="11" width="1" height="1" fill="#4ade80" opacity="0.6"/>
+
+  <!-- Шляпка гриба -->
+  <rect x="3" y="6" width="26" height="3" fill="#4a2545"/>
+  <rect x="2" y="7" width="28" height="3" fill="#7c3a73"/>
+  <rect x="4" y="5" width="24" height="2" fill="#7c3a73"/>
+  <rect x="5" y="4" width="22" height="1" fill="#9f6c92"/>
+  <rect x="3" y="9" width="26" height="3" fill="#9f6c92"/>
+
+  <!-- Пятна на шляпке -->
+  <rect x="6" y="6" width="2" height="2" fill="#d4a5cb"/>
+  <rect x="11" y="5" width="2" height="2" fill="#d4a5cb"/>
+  <rect x="17" y="6" width="2" height="2" fill="#d4a5cb"/>
+  <rect x="23" y="5" width="2" height="2" fill="#d4a5cb"/>
+  <rect x="14" y="9" width="2" height="2" fill="#d4a5cb"/>
+  <rect x="20" y="9" width="2" height="2" fill="#d4a5cb"/>
+
+  <!-- Тень под шляпкой -->
+  <rect x="6" y="12" width="20" height="2" fill="#1a1a2e"/>
+
+  <!-- Ножка-тело -->
+  <rect x="8" y="13" width="16" height="13" fill="#d4a5cb"/>
+  <rect x="9" y="14" width="14" height="11" fill="#f3e8f1"/>
+
+  <!-- Глаза-провалы — ядовито-зелёные -->
+  <rect x="11" y="16" width="3" height="4" fill="#0f1729"/>
+  <rect x="18" y="16" width="3" height="4" fill="#0f1729"/>
+  <rect x="11" y="16" width="3" height="1" fill="#166534"/>
+  <rect x="18" y="16" width="3" height="1" fill="#166534"/>
+  <rect x="12" y="17" width="2" height="2" fill="#4ade80"/>
+  <rect x="19" y="17" width="2" height="2" fill="#4ade80"/>
+  <rect x="12" y="17" width="1" height="1" fill="#86efac"/>
+  <rect x="19" y="17" width="1" height="1" fill="#86efac"/>
+
+  <!-- Зловещий рот (трещина) -->
+  <rect x="13" y="22" width="6" height="2" fill="#0f1729"/>
+  <rect x="14" y="22" width="1" height="2" fill="#4ade80"/>
+  <rect x="17" y="22" width="1" height="2" fill="#4ade80"/>
+
+  <!-- Корни-щупальца -->
+  <rect x="4" y="26" width="2" height="6" fill="#4a2545"/>
+  <rect x="5" y="27" width="1" height="5" fill="#7c3a73"/>
+  <rect x="9" y="26" width="2" height="6" fill="#4a2545"/>
+  <rect x="14" y="26" width="2" height="6" fill="#7c3a73"/>
+  <rect x="19" y="26" width="2" height="6" fill="#4a2545"/>
+  <rect x="23" y="26" width="2" height="6" fill="#7c3a73"/>
+  <rect x="27" y="26" width="2" height="6" fill="#4a2545"/>
+  <rect x="28" y="27" width="1" height="5" fill="#7c3a73"/>
+</svg>

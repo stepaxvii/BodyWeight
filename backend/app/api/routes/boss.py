@@ -198,6 +198,7 @@ async def get_boss_history(user: CurrentUser, session: AsyncSessionDep):
                 id=boss.id,
                 name_ru=boss.name_ru,
                 image_emoji=boss.image_emoji,
+                image_url=boss.image_url,
                 theme=boss.theme,
                 start_date=boss.start_date,
                 end_date=boss.end_date,

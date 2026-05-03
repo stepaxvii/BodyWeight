@@ -36,7 +36,11 @@
 	<div class="boss-skeleton"></div>
 {:else if boss}
 	<a href="{base}/boss" class="boss-bar" class:defeated={isDefeated} class:expired={isExpired}>
-		<div class="boss-emoji">{boss.image_emoji}</div>
+		<img
+			src="{base}{boss.image_url}"
+			alt={boss.name_ru}
+			class="boss-img"
+		/>
 		<div class="boss-content">
 			<div class="boss-header">
 				<span class="boss-name">{boss.name_ru}</span>
@@ -89,9 +93,10 @@
 		opacity: 0.7;
 	}
 
-	.boss-emoji {
-		font-size: 32px;
-		line-height: 1;
+	.boss-img {
+		width: 40px;
+		height: 40px;
+		image-rendering: pixelated;
 		flex-shrink: 0;
 	}
 

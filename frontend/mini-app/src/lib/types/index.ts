@@ -418,6 +418,7 @@ export interface Boss {
 	slug: string;
 	name_ru: string;
 	image_emoji: string;
+	image_url: string | null;
 	theme: string;
 	legend_ru: string;
 	max_hp: number;
@@ -465,6 +466,7 @@ export interface BossHistoryItem {
 	id: number;
 	name_ru: string;
 	image_emoji: string;
+	image_url: string | null;
 	theme: string;
 	start_date: string;
 	end_date: string;

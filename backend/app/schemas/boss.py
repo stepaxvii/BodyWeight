@@ -8,6 +8,7 @@ class BossResponse(BaseModel):
     slug: str
     name_ru: str
     image_emoji: str
+    image_url: str | None = None
     theme: str
     legend_ru: str
     max_hp: int
@@ -58,6 +59,7 @@ class BossHistoryEntry(BaseModel):
     id: int
     name_ru: str
     image_emoji: str
+    image_url: str | None = None
     theme: str
     start_date: date
     end_date: date

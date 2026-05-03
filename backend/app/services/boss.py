@@ -28,9 +28,10 @@ logger = logging.getLogger(__name__)
 DAMAGE_CAP_PER_WORKOUT = 1500
 REWARD_TIERS = [
     # (min_damage, tier_id, coins_full, coins_half_on_expiry)
-    (50_000, "tier4", 150, 75),
-    (10_000, "tier3", 50, 25),
-    (1_000, "tier2", 15, 8),
+    # Calibrated for 50K boss HP: tier4 = 5% of HP solo, tier1 = participation.
+    (2_500, "tier4", 150, 75),
+    (500, "tier3", 50, 25),
+    (100, "tier2", 15, 8),
     (1, "tier1", 5, 3),
 ]
 TOP10_BONUS_COINS = 200
@@ -85,6 +86,7 @@ async def get_or_create_current_boss(session: AsyncSession) -> MonthlyBoss:
         name=template["name"],
         name_ru=template["name_ru"],
         image_emoji=template["image_emoji"],
+        image_url=template.get("image_url"),
         theme=template["theme"],
         legend_ru=template["legend_ru"],
         max_hp=template["max_hp"],
