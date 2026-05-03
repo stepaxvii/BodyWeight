@@ -25,7 +25,13 @@ import type {
 	BossLeaderboard,
 	BossMyContribution,
 	BossClaimResult,
-	BossHistory
+	BossHistory,
+	ChallengeListItem,
+	ChallengeDetails,
+	ChallengeCalendar,
+	ChallengeClaimResult,
+	ChallengeCreatePayload,
+	ChallengeStatus
 } from '$lib/types';
 
 const API_BASE = '/bodyweight/api';
@@ -416,6 +422,44 @@ class ApiClient {
 
 	async getBossHistory(): Promise<BossHistory> {
 		return this.request<BossHistory>('/boss/history');
+	}
+
+	// ============== Challenges ==============
+
+	async listChallenges(opts: { status?: ChallengeStatus; mine?: boolean } = {}): Promise<ChallengeListItem[]> {
+		const params = new URLSearchParams();
+		if (opts.status) params.set('status', opts.status);
+		if (opts.mine) params.set('mine', 'true');
+		const q = params.toString();
+		return this.request<ChallengeListItem[]>(`/challenges${q ? '?' + q : ''}`);
+	}
+
+	async getChallenge(id: number): Promise<ChallengeDetails> {
+		return this.request<ChallengeDetails>(`/challenges/${id}`);
+	}
+
+	async createChallenge(payload: ChallengeCreatePayload): Promise<ChallengeDetails> {
+		return this.request<ChallengeDetails>('/challenges', {
+			method: 'POST',
+			body: JSON.stringify(payload)
+		});
+	}
+
+	async joinChallenge(id: number): Promise<ChallengeDetails> {
+		return this.request<ChallengeDetails>(`/challenges/${id}/join`, {
+			method: 'POST'
+		});
+	}
+
+	async getChallengeCalendar(id: number, userId?: number): Promise<ChallengeCalendar> {
+		const q = userId ? `?user_id=${userId}` : '';
+		return this.request<ChallengeCalendar>(`/challenges/${id}/calendar${q}`);
+	}
+
+	async claimChallengeReward(id: number): Promise<ChallengeClaimResult> {
+		return this.request<ChallengeClaimResult>(`/challenges/${id}/claim`, {
+			method: 'POST'
+		});
 	}
 }
 

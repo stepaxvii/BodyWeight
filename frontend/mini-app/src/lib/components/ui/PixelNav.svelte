@@ -18,8 +18,9 @@
 	const navItems: NavItemConfig[] = [
 		{ id: 'home', label: 'Главная', href: `${base}/`, icon: 'home' },
 		{ id: 'workout', label: 'Тренировка', href: `${base}/workout`, icon: 'workout' },
-		{ id: 'profile', label: 'Профиль', href: `${base}/profile`, icon: 'profile' },
-		{ id: 'leaderboard', label: 'Рейтинг', href: `${base}/leaderboard`, icon: 'trophy' }
+		{ id: 'challenges', label: 'Челленджи', href: `${base}/challenges`, icon: 'calendar' },
+		{ id: 'leaderboard', label: 'Рейтинг', href: `${base}/leaderboard`, icon: 'trophy' },
+		{ id: 'profile', label: 'Профиль', href: `${base}/profile`, icon: 'profile' }
 	];
 
 	// Confirmation dialog state
@@ -83,7 +84,7 @@
 				aria-current={active ? 'page' : undefined}
 			>
 				<div class="icon-wrapper">
-					<svg class="icon" viewBox="0 0 16 16" fill="currentColor">
+					<svg class="icon" viewBox="0 0 16 16" fill="currentColor" aria-label={item.label}>
 						{#if item.icon === 'home'}
 							<path d="M8 1L1 7h2v7h4v-4h2v4h4V7h2L8 1zm0 2.5L12 7v6h-2v-4H6v4H4V7l4-3.5z"/>
 						{:else if item.icon === 'workout'}
@@ -92,10 +93,11 @@
 							<path d="M8 2a3 3 0 100 6 3 3 0 000-6zM4 10c0-1 1-2 4-2s4 1 4 2v3H4v-3z"/>
 						{:else if item.icon === 'trophy'}
 							<path d="M4 2h8v2h2v3c0 1-1 2-2 2h-1c0 2-1 3-3 3s-3-1-3-3H4c-1 0-2-1-2-2V4h2V2zm1 2v2h1c0 1 1 2 2 2s2-1 2-2h1V4H5zm1 8h4v2H6v-2z"/>
+						{:else if item.icon === 'calendar'}
+							<path d="M3 2h2v1h6V2h2v1h2v11H1V3h2v-1zm0 2v2h10V4H3zm0 3v6h10V7H3zm1 1h2v2H4V8zm3 0h2v2H7V8zm3 0h2v2h-2V8zM4 11h2v1H4v-1zm3 0h2v1H7v-1z"/>
 						{/if}
 					</svg>
 				</div>
-				<span class="label">{item.label}</span>
 				{#if active}
 					<div class="active-indicator"></div>
 				{/if}
@@ -153,13 +155,13 @@
 
 	.nav-item {
 		display: flex;
-		flex-direction: column;
 		align-items: center;
-		gap: var(--spacing-xs);
-		padding: var(--spacing-xs) var(--spacing-md);
+		justify-content: center;
+		padding: var(--spacing-sm) var(--spacing-md);
 		color: var(--text-secondary);
 		text-decoration: none;
 		position: relative;
+		flex: 1;
 		transition: color var(--transition-fast);
 	}
 
@@ -172,32 +174,26 @@
 	}
 
 	.icon-wrapper {
-		width: 24px;
-		height: 24px;
+		width: 28px;
+		height: 28px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 	}
 
 	.icon {
-		width: 16px;
-		height: 16px;
+		width: 22px;
+		height: 22px;
 		image-rendering: pixelated;
-	}
-
-	.label {
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-xs);
-		text-transform: uppercase;
 	}
 
 	.active-indicator {
 		position: absolute;
-		top: -2px;
+		top: 2px;
 		left: 50%;
 		transform: translateX(-50%);
-		width: 4px;
-		height: 4px;
+		width: 6px;
+		height: 6px;
 		background: var(--pixel-accent);
 	}
 

@@ -320,7 +320,7 @@ export interface WebAuthResponse {
 }
 
 // Navigation
-export type NavItem = 'home' | 'workout' | 'profile' | 'leaderboard';
+export type NavItem = 'home' | 'workout' | 'challenges' | 'profile' | 'leaderboard';
 
 // Routine types (workout complexes)
 export type RoutineCategory = 'morning' | 'home' | 'pullup-bar' | 'dip-bars' | 'dumbbell' | 'resistance-band';
@@ -479,4 +479,91 @@ export interface BossHistoryItem {
 
 export interface BossHistory {
 	bosses: BossHistoryItem[];
+}
+
+// Challenge types
+export type ChallengeStatus = 'upcoming' | 'active' | 'finished';
+
+export interface ChallengeExerciseInput {
+	exercise_slug: string;
+	daily_target: number;
+}
+
+export interface ChallengeCreatePayload {
+	title: string;
+	description?: string;
+	start_date: string;  // ISO date
+	end_date: string;
+	exercises: ChallengeExerciseInput[];
+}
+
+export interface ChallengeExerciseInfo {
+	exercise_id: number;
+	exercise_slug: string;
+	exercise_name_ru: string;
+	daily_target: number;
+	is_timed: boolean;
+	order_index: number;
+}
+
+export interface ChallengeListItem {
+	id: number;
+	title: string;
+	creator_user_id: number | null;
+	creator_name: string | null;
+	start_date: string;
+	end_date: string;
+	status: ChallengeStatus;
+	participants_count: number;
+	exercises_count: number;
+	is_member: boolean;
+}
+
+export interface ChallengeParticipant {
+	user_id: number;
+	username: string | null;
+	first_name: string | null;
+	avatar_id: AvatarId | null;
+	completion_percent: number;
+	completed_days: number;
+	reward_tier: string | null;
+	reward_coins: number;
+	reward_claimable: boolean;
+	reward_claimed_at: string | null;
+}
+
+export interface ChallengeDetails {
+	id: number;
+	title: string;
+	description: string | null;
+	creator_user_id: number | null;
+	creator_name: string | null;
+	start_date: string;
+	end_date: string;
+	duration_days: number;
+	status: ChallengeStatus;
+	finalized_at: string | null;
+	exercises: ChallengeExerciseInfo[];
+	participants: ChallengeParticipant[];
+	is_member: boolean;
+	can_join: boolean;
+}
+
+export interface ChallengeDayProgress {
+	progress_date: string;
+	exercise_id: number;
+	exercise_slug: string;
+	exercise_name_ru: string;
+	accumulated: number;
+	target: number;
+	completed: boolean;
+}
+
+export interface ChallengeCalendar {
+	challenge_id: number;
+	rows: ChallengeDayProgress[];
+}
+
+export interface ChallengeClaimResult {
+	coins_awarded: number;
 }

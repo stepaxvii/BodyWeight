@@ -38,6 +38,7 @@ from app.services.xp_calculator import (
 from app.services.achievement_checker import check_achievements
 from app.services.notifications import save_notification, send_friend_workout_notification
 from app.services.boss import deal_damage as boss_deal_damage
+from app.services.challenges import record_progress as challenges_record_progress
 
 
 @dataclass
@@ -142,6 +143,9 @@ async def process_workout_completion(
     total_coins = 0
     workout_exercises = []
 
+    # Aggregate per-exercise quantities for challenge progress hook (called below)
+    challenge_quantity_by_slug: dict[str, int] = {}
+
     for ex_data in data.exercises:
         # Get exercise from DB
         exercise_result = await session.execute(
@@ -205,6 +209,17 @@ async def process_workout_completion(
                     is_first_today=is_first_today,
                 )
                 xp_earned += set_xp
+
+        # Capture per-slug quantity for challenge progress.
+        # Timed exercises use total_duration (seconds == target unit).
+        # Reps-based exercises (incl. walking with steps stored in total_reps,
+        # and cycling with 100m units stored in total_reps) use total_reps.
+        challenge_quantity = total_duration if ex_data.is_timed else total_reps
+        if challenge_quantity > 0:
+            challenge_quantity_by_slug[ex_data.exercise_slug] = (
+                challenge_quantity_by_slug.get(ex_data.exercise_slug, 0)
+                + challenge_quantity
+            )
 
         # Create workout exercise entry
         workout_exercise = WorkoutExercise(
@@ -304,6 +319,19 @@ async def process_workout_completion(
     except Exception:
         import logging
         logging.getLogger(__name__).exception("Failed to deal boss damage")
+
+    # 8.6 Record challenge progress for any active challenges this user joined
+    # (best-effort — never block workout completion)
+    try:
+        await challenges_record_progress(
+            session,
+            user,
+            workout_date=data.finished_at.date(),
+            reps_by_slug=challenge_quantity_by_slug,
+        )
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("Failed to record challenge progress")
 
     await session.flush()
 

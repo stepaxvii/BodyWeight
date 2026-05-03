@@ -249,6 +249,32 @@ async def send_friend_workout_notification(
         return False
 
 
+async def send_announcement_push(telegram_id: int, text: str) -> bool:
+    """
+    Send a generic announcement push to a user via Telegram bot.
+    Used for one-off feature announcements (new release, etc.).
+
+    Args:
+        telegram_id: Telegram ID of the user to notify
+        text: HTML-formatted message body
+
+    Returns:
+        True if notification was sent successfully
+    """
+    try:
+        bot = get_bot()
+        await bot.send_message(
+            chat_id=telegram_id,
+            text=text,
+            reply_markup=get_open_app_keyboard(),
+        )
+        logger.info(f"Announcement push sent to {telegram_id}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send announcement push to {telegram_id}: {e}")
+        return False
+
+
 async def close_bot():
     """Close bot session (call on app shutdown)."""
     global _bot

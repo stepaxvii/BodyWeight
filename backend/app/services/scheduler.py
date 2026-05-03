@@ -214,6 +214,31 @@ async def daily_boss_finalization_job():
             logger.error(f"Error in daily boss finalization job: {e}")
 
 
+async def daily_challenge_lifecycle_job():
+    """
+    Run shortly after midnight UTC. Transitions challenge statuses
+    (upcoming->active->finished) and finalizes finished challenges.
+    Idempotent.
+    """
+    from app.db.database import async_session_maker
+    from app.services.challenges import (
+        update_all_statuses,
+        finalize_due_challenges,
+    )
+
+    async with async_session_maker() as session:
+        try:
+            changed = await update_all_statuses(session)
+            finalized = await finalize_due_challenges(session)
+            await session.commit()
+            if changed or finalized:
+                logger.info(
+                    f"Daily job: challenges changed={changed}, finalized={finalized}"
+                )
+        except Exception as e:
+            logger.error(f"Error in daily challenge lifecycle job: {e}")
+
+
 def start_scheduler():
     """
     Start the APScheduler for periodic notification checks.
@@ -251,6 +276,15 @@ def start_scheduler():
         trigger=CronTrigger(hour=0, minute=5, timezone="UTC"),
         id="daily_boss_finalization",
         name="Finalize bosses + spawn new monthly boss (UTC midnight)",
+        replace_existing=True,
+    )
+
+    # Transition challenge statuses + finalize finished ones
+    scheduler.add_job(
+        daily_challenge_lifecycle_job,
+        trigger=CronTrigger(hour=0, minute=10, timezone="UTC"),
+        id="daily_challenge_lifecycle",
+        name="Challenge lifecycle (UTC midnight)",
         replace_existing=True,
     )
 

@@ -10,6 +10,12 @@ from .user_exercise import UserExerciseProgress, UserFavoriteExercise
 from .custom_routine import UserCustomRoutine, UserCustomRoutineExercise
 from .notification import Notification
 from .boss import MonthlyBoss, BossContribution
+from .challenge import (
+    Challenge,
+    ChallengeExercise,
+    ChallengeParticipant,
+    ChallengeProgress,
+)
 
 __all__ = [
     "User",
@@ -30,4 +36,8 @@ __all__ = [
     "Notification",
     "MonthlyBoss",
     "BossContribution",
+    "Challenge",
+    "ChallengeExercise",
+    "ChallengeParticipant",
+    "ChallengeProgress",
 ]
