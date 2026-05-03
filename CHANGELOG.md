@@ -73,6 +73,20 @@
 - Расширен тип `range` в `ActivityBarChart` до `'week' | '2weeks' | 'month' | '3months'`
 - Бэкенд не менялся — `/users/me/activity` уже отдавал данные за весь год
 
+### 🚮 Удалена поддержка PWA
+
+- **PWA-функциональность полностью выпилена** — никто не пользовался, мешала остальному UI
+  - Удалены файлы:
+    - `frontend/mini-app/src/service-worker.ts` (offline-кэш и стратегии)
+    - `frontend/mini-app/static/manifest.json`
+    - `frontend/mini-app/static/icon-192.png`, `icon-512.png` (PWA-иконки)
+  - Удалены meta-теги в `app.html`: `<link rel="manifest">`, `mobile-web-app-capable`, `apple-mobile-web-app-*`, `apple-touch-icon`
+  - Удалена кнопка "Установить приложение" + модалка с инструкциями iOS/Android в `profile/+page.svelte`
+  - Удалена связанная логика установки пароля внутри install-флоу (метод `userStore.setPassword` оставлен — backend-эндпоинт работает, можно вернуть отдельную кнопку при необходимости)
+  - Удалена подсказка "Установите как приложение" в `AuthScreen.svelte`
+  - Переформулированы комментарии "PWA / browser" в Web Share API (`friends`, `RoutinePlayer`) — функциональность шаринга работает в любом браузере, формулировка PWA была неверной
+- Telegram Mini App и обычный веб-вход через `AuthScreen` продолжают работать как раньше — никаких регрессий
+
 ### 🐛 Исправление быстрой записи велосипеда
 
 - **Починен flow быстрой записи поездки на велосипеде**

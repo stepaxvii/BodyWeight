@@ -82,7 +82,7 @@
 				const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(inviteText)}`;
 				telegram.openTelegramLink(shareUrl);
 			} else if (navigator.share) {
-				// PWA / browser: Web Share API
+				// Browser: native Web Share API
 				await navigator.share({ title: 'PixelFit', text: inviteText, url: botLink });
 			} else {
 				// Fallback: copy to clipboard
