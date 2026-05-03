@@ -16,51 +16,10 @@
 
 	// Account settings
 	let showLinkTelegram = $state(false);
-	let passwordEmail = $state('');
-	let passwordValue = $state('');
 	let telegramIdInput = $state('');
 	let accountMessage = $state<string | null>(null);
 	let accountError = $state<string | null>(null);
 	let accountLoading = $state(false);
-	let showInstallPwa = $state(false);
-	let installStep = $state<'password' | 'instructions'>('password');
-
-	const webAppUrl = 'https://stepaproject.ru/bodyweight/';
-
-	function openInstallPwa() {
-		accountError = null;
-		if (userStore.hasWebAuth) {
-			installStep = 'instructions';
-		} else {
-			installStep = 'password';
-		}
-		showInstallPwa = true;
-	}
-
-	async function handleSetPassword() {
-		if (passwordValue.length < 6) {
-			accountError = 'Пароль должен быть не менее 6 символов';
-			return;
-		}
-		accountError = null;
-		accountLoading = true;
-		try {
-			await userStore.setPassword(passwordEmail, passwordValue);
-			passwordEmail = '';
-			passwordValue = '';
-			// If opened from install flow, go to instructions
-			if (showInstallPwa) {
-				installStep = 'instructions';
-			} else {
-				showSetPassword = false;
-				accountMessage = 'Пароль установлен!';
-			}
-		} catch (err) {
-			accountError = err instanceof Error ? err.message : 'Ошибка';
-		} finally {
-			accountLoading = false;
-		}
-	}
 
 	async function handleLinkTelegram() {
 		const tid = parseInt(telegramIdInput);
@@ -326,10 +285,6 @@
 		</div>
 
 		<div class="account-actions">
-			<button class="account-btn install-btn" onclick={openInstallPwa}>
-				Установить приложение
-			</button>
-
 			{#if !userStore.hasTelegram}
 				<button class="account-btn" onclick={() => { showLinkTelegram = true; accountError = null; }}>
 					Привязать Telegram
@@ -345,72 +300,6 @@
 	</section>
 
 </div>
-
-<!-- Install PWA Modal -->
-<PixelModal
-	open={showInstallPwa}
-	title={installStep === 'password' ? 'Шаг 1: Создать логин' : 'Установить приложение'}
-	onclose={() => { showInstallPwa = false; accountError = null; }}
->
-	{#if installStep === 'password'}
-		<div class="modal-instructions">
-			<p>Для входа через браузер нужен email и пароль.</p>
-			<p>Для входа можно использовать:</p>
-			<p>- Email</p>
-			{#if userStore.user?.username}
-				<p>- Telegram username: <b>{userStore.user.username}</b></p>
-			{/if}
-			{#if userStore.user?.telegram_id}
-				<p>- Telegram ID: <b>{userStore.user.telegram_id}</b></p>
-			{/if}
-		</div>
-		<form class="modal-form" onsubmit={(e) => { e.preventDefault(); handleSetPassword(); }}>
-			<div class="modal-field">
-				<label for="pw-email">Email</label>
-				<input id="pw-email" type="email" bind:value={passwordEmail} placeholder="your@email.com" required />
-			</div>
-			<div class="modal-field">
-				<label for="pw-pass">Пароль</label>
-				<input id="pw-pass" type="password" bind:value={passwordValue} placeholder="Минимум 6 символов" required minlength="6" />
-			</div>
-			{#if accountError}
-				<div class="modal-error">{accountError}</div>
-			{/if}
-			<button type="submit" class="modal-submit" disabled={accountLoading}>
-				{accountLoading ? 'Сохранение...' : 'Далее'}
-			</button>
-		</form>
-	{:else}
-		<div class="install-instructions">
-			<div class="install-step">
-				<span class="step-number">1</span>
-				<div class="step-content">
-					<p>Откройте ссылку в браузере:</p>
-					<a href={webAppUrl} target="_blank" rel="noopener" class="install-link">{webAppUrl}</a>
-				</div>
-			</div>
-			<div class="install-step">
-				<span class="step-number">2</span>
-				<div class="step-content">
-					<p>Войдите с логином и паролем</p>
-				</div>
-			</div>
-			<div class="install-step">
-				<span class="step-number">3</span>
-				<div class="step-content">
-					<p><b>iOS:</b> Поделиться → На экран «Домой»</p>
-					<p><b>Android:</b> Меню (⋮) → Установить приложение</p>
-				</div>
-			</div>
-		</div>
-		<button
-			class="modal-submit"
-			onclick={() => { showInstallPwa = false; }}
-		>
-			Готово
-		</button>
-	{/if}
-</PixelModal>
 
 <!-- Link Telegram Modal -->
 <PixelModal
@@ -836,57 +725,6 @@
 		font-size: var(--font-size-xs);
 		color: var(--pixel-green);
 		margin-bottom: var(--spacing-sm);
-	}
-
-	.install-btn {
-		background: var(--pixel-accent) !important;
-		color: white !important;
-		border-color: var(--pixel-accent) !important;
-		text-align: center !important;
-	}
-
-	.install-instructions {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-md);
-		padding: var(--spacing-sm) 0 var(--spacing-md);
-	}
-
-	.install-step {
-		display: flex;
-		gap: var(--spacing-sm);
-		align-items: flex-start;
-	}
-
-	.step-number {
-		width: 24px;
-		height: 24px;
-		background: var(--pixel-accent);
-		color: white;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: var(--font-size-xs);
-		flex-shrink: 0;
-	}
-
-	.step-content {
-		flex: 1;
-		font-size: 12px;
-		color: var(--text-secondary);
-		line-height: 1.6;
-	}
-
-	.step-content p {
-		margin: 0;
-	}
-
-	.install-link {
-		display: inline-block;
-		color: var(--pixel-accent);
-		word-break: break-all;
-		margin-top: 4px;
-		font-size: 11px;
 	}
 
 	.account-info {

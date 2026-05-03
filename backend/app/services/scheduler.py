@@ -193,6 +193,27 @@ async def daily_inactivity_job():
             logger.error(f"Error in daily inactivity job: {e}")
 
 
+async def daily_boss_finalization_job():
+    """
+    Run shortly after midnight UTC. Finalizes any boss whose end_date passed
+    or who was defeated. Idempotent — safe if no work to do.
+    """
+    from app.db.database import async_session_maker
+    from app.services.boss import finalize_due_bosses, get_or_create_current_boss
+
+    async with async_session_maker() as session:
+        try:
+            count = await finalize_due_bosses(session)
+            # Ensure a fresh boss exists for the new month so it shows up
+            # to users immediately rather than on first /boss/current call.
+            await get_or_create_current_boss(session)
+            await session.commit()
+            if count > 0:
+                logger.info(f"Daily job: finalized {count} boss(es)")
+        except Exception as e:
+            logger.error(f"Error in daily boss finalization job: {e}")
+
+
 def start_scheduler():
     """
     Start the APScheduler for periodic notification checks.
@@ -221,6 +242,15 @@ def start_scheduler():
         trigger=CronTrigger(hour=12, minute=0),
         id="daily_inactivity",
         name="Check inactivity reminders (daily)",
+        replace_existing=True,
+    )
+
+    # Finalize bosses + spawn new monthly boss shortly after UTC midnight
+    scheduler.add_job(
+        daily_boss_finalization_job,
+        trigger=CronTrigger(hour=0, minute=5, timezone="UTC"),
+        id="daily_boss_finalization",
+        name="Finalize bosses + spawn new monthly boss (UTC midnight)",
         replace_existing=True,
     )
 

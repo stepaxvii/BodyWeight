@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Winter King — морозный король с короной и седой бородой -->
+  <rect width="32" height="32" fill="#0f1729"/>
+
+  <!-- Снежинки -->
+  <rect x="2" y="4" width="1" height="1" fill="#ffffff" opacity="0.8"/>
+  <rect x="29" y="6" width="1" height="1" fill="#ffffff" opacity="0.8"/>
+  <rect x="3" y="22" width="1" height="1" fill="#ffffff" opacity="0.7"/>
+  <rect x="28" y="20" width="1" height="1" fill="#ffffff" opacity="0.7"/>
+
+  <!-- Корона ледяная — высокие зубцы -->
+  <rect x="6" y="2" width="2" height="4" fill="#a5b4fc"/>
+  <rect x="6" y="0" width="2" height="2" fill="#bee3f8"/>
+  <rect x="11" y="0" width="2" height="6" fill="#a5b4fc"/>
+  <rect x="11" y="-1" width="2" height="2" fill="#bee3f8"/>
+  <rect x="15" y="0" width="2" height="6" fill="#a5b4fc"/>
+  <rect x="15" y="-1" width="2" height="2" fill="#ffffff"/>
+  <rect x="19" y="0" width="2" height="6" fill="#a5b4fc"/>
+  <rect x="19" y="-1" width="2" height="2" fill="#bee3f8"/>
+  <rect x="24" y="2" width="2" height="4" fill="#a5b4fc"/>
+  <rect x="24" y="0" width="2" height="2" fill="#bee3f8"/>
+
+  <!-- Основание короны -->
+  <rect x="4" y="6" width="24" height="3" fill="#312e81"/>
+  <rect x="5" y="7" width="22" height="2" fill="#4f46e5"/>
+
+  <!-- Рубины в короне -->
+  <rect x="9" y="7" width="2" height="2" fill="#fde68a"/>
+  <rect x="9" y="7" width="1" height="1" fill="#ffffff"/>
+  <rect x="15" y="7" width="2" height="2" fill="#fde68a"/>
+  <rect x="15" y="7" width="1" height="1" fill="#ffffff"/>
+  <rect x="21" y="7" width="2" height="2" fill="#fde68a"/>
+  <rect x="21" y="7" width="1" height="1" fill="#ffffff"/>
+
+  <!-- Лицо/голова -->
+  <rect x="5" y="9" width="22" height="13" fill="#312e81"/>
+  <rect x="6" y="10" width="20" height="11" fill="#4f46e5"/>
+  <rect x="7" y="10" width="18" height="10" fill="#6366f1"/>
+
+  <!-- Бледная кожа лба -->
+  <rect x="9" y="11" width="14" height="3" fill="#a5b4fc"/>
+  <rect x="10" y="12" width="12" height="2" fill="#bee3f8"/>
+
+  <!-- Брови -->
+  <rect x="9" y="14" width="5" height="1" fill="#ffffff"/>
+  <rect x="18" y="14" width="5" height="1" fill="#ffffff"/>
+
+  <!-- Глаза — ледяные голубые -->
+  <rect x="10" y="15" width="4" height="3" fill="#0f1729"/>
+  <rect x="18" y="15" width="4" height="3" fill="#0f1729"/>
+  <rect x="11" y="15" width="2" height="2" fill="#bee3f8"/>
+  <rect x="19" y="15" width="2" height="2" fill="#bee3f8"/>
+  <rect x="11" y="15" width="1" height="1" fill="#ffffff"/>
+  <rect x="19" y="15" width="1" height="1" fill="#ffffff"/>
+
+  <!-- Седая борода — большая, ледяная -->
+  <rect x="6" y="18" width="20" height="10" fill="#bee3f8"/>
+  <rect x="5" y="19" width="22" height="9" fill="#ffffff"/>
+  <rect x="6" y="20" width="20" height="8" fill="#f7fafc"/>
+
+  <!-- Тени бороды -->
+  <rect x="6" y="20" width="2" height="6" fill="#bee3f8"/>
+  <rect x="24" y="20" width="2" height="6" fill="#bee3f8"/>
+
+  <!-- Усы -->
+  <rect x="9" y="18" width="6" height="2" fill="#ffffff"/>
+  <rect x="17" y="18" width="6" height="2" fill="#ffffff"/>
+
+  <!-- Рот в бороде -->
+  <rect x="13" y="20" width="6" height="1" fill="#1e3a5f"/>
+  <rect x="14" y="21" width="4" height="1" fill="#312e81"/>
+
+  <!-- Сосульки на бороде -->
+  <rect x="8" y="28" width="1" height="3" fill="#bee3f8"/>
+  <rect x="13" y="29" width="1" height="3" fill="#bee3f8"/>
+  <rect x="18" y="28" width="1" height="3" fill="#bee3f8"/>
+  <rect x="23" y="29" width="1" height="3" fill="#bee3f8"/>
+
+  <!-- Плечи -->
+  <rect x="2" y="26" width="28" height="6" fill="#312e81"/>
+  <rect x="3" y="27" width="2" height="5" fill="#4f46e5"/>
+  <rect x="27" y="27" width="2" height="5" fill="#4f46e5"/>
+</svg>

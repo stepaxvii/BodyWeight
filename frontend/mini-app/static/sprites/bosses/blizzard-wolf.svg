@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Blizzard Wolf — седой волк-альфа с красными глазами -->
+  <rect width="32" height="32" fill="#0f1729"/>
+
+  <!-- Уши — острые -->
+  <rect x="3" y="2" width="4" height="6" fill="#1f2937"/>
+  <rect x="4" y="3" width="2" height="5" fill="#4a5568"/>
+  <rect x="4" y="4" width="1" height="3" fill="#1f2937"/>
+  <rect x="25" y="2" width="4" height="6" fill="#1f2937"/>
+  <rect x="26" y="3" width="2" height="5" fill="#4a5568"/>
+  <rect x="27" y="4" width="1" height="3" fill="#1f2937"/>
+
+  <!-- Голова — широкая, угловатая -->
+  <rect x="5" y="6" width="22" height="16" fill="#2d3748"/>
+  <rect x="6" y="7" width="20" height="14" fill="#4a5568"/>
+  <rect x="7" y="8" width="18" height="12" fill="#718096"/>
+
+  <!-- Седые отметины (морда) -->
+  <rect x="9" y="9" width="2" height="2" fill="#cbd5e0"/>
+  <rect x="21" y="9" width="2" height="2" fill="#cbd5e0"/>
+  <rect x="10" y="14" width="3" height="1" fill="#cbd5e0"/>
+  <rect x="19" y="14" width="3" height="1" fill="#cbd5e0"/>
+
+  <!-- Брови (нахмурен) -->
+  <rect x="8" y="11" width="6" height="1" fill="#1f2937"/>
+  <rect x="18" y="11" width="6" height="1" fill="#1f2937"/>
+  <rect x="9" y="10" width="2" height="1" fill="#1f2937"/>
+  <rect x="22" y="10" width="2" height="1" fill="#1f2937"/>
+
+  <!-- Глаза — кроваво-красные -->
+  <rect x="9" y="12" width="5" height="3" fill="#1a1a2e"/>
+  <rect x="18" y="12" width="5" height="3" fill="#1a1a2e"/>
+  <rect x="10" y="12" width="3" height="2" fill="#e53e3e"/>
+  <rect x="19" y="12" width="3" height="2" fill="#e53e3e"/>
+  <rect x="11" y="13" width="1" height="1" fill="#fef2f2"/>
+  <rect x="20" y="13" width="1" height="1" fill="#fef2f2"/>
+
+  <!-- Морда — нос -->
+  <rect x="13" y="15" width="6" height="3" fill="#2d3748"/>
+  <rect x="14" y="15" width="4" height="2" fill="#1a1a2e"/>
+  <rect x="15" y="14" width="2" height="2" fill="#1a1a2e"/>
+
+  <!-- Пасть с клыками -->
+  <rect x="9" y="18" width="14" height="4" fill="#1a1a2e"/>
+  <rect x="10" y="19" width="1" height="3" fill="#f7fafc"/>
+  <rect x="13" y="19" width="1" height="3" fill="#f7fafc"/>
+  <rect x="18" y="19" width="1" height="3" fill="#f7fafc"/>
+  <rect x="21" y="19" width="1" height="3" fill="#f7fafc"/>
+  <rect x="11" y="20" width="2" height="1" fill="#7f1d1d"/>
+  <rect x="19" y="20" width="2" height="1" fill="#7f1d1d"/>
+
+  <!-- Грива/мех плеч -->
+  <rect x="2" y="22" width="28" height="6" fill="#2d3748"/>
+  <rect x="3" y="23" width="2" height="5" fill="#4a5568"/>
+  <rect x="27" y="23" width="2" height="5" fill="#4a5568"/>
+  <rect x="6" y="24" width="2" height="2" fill="#cbd5e0"/>
+  <rect x="24" y="24" width="2" height="2" fill="#cbd5e0"/>
+  <rect x="14" y="25" width="4" height="3" fill="#4a5568"/>
+</svg>

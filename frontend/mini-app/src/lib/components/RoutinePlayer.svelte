@@ -293,7 +293,7 @@
 			const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(shareText)}`;
 			telegram.openTelegramLink(shareUrl);
 		}
-		// В PWA/браузере – системное меню «Поделиться» только с текстом тренировки
+		// В браузере — системное меню «Поделиться» только с текстом тренировки
 		else if (navigator.share) {
 			try {
 				await navigator.share({

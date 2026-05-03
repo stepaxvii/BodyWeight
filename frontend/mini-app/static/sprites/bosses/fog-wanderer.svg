@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Fog Wanderer — призрачный странник в тумане -->
+  <rect width="32" height="32" fill="#0f1729"/>
+
+  <!-- Туман вокруг (полупрозрачные пятна) -->
+  <rect x="0" y="6" width="4" height="3" fill="#374151" opacity="0.5"/>
+  <rect x="28" y="8" width="4" height="3" fill="#374151" opacity="0.5"/>
+  <rect x="0" y="20" width="3" height="4" fill="#374151" opacity="0.5"/>
+  <rect x="29" y="22" width="3" height="3" fill="#374151" opacity="0.5"/>
+  <rect x="2" y="14" width="3" height="2" fill="#6b7280" opacity="0.4"/>
+  <rect x="27" y="16" width="3" height="2" fill="#6b7280" opacity="0.4"/>
+
+  <!-- Капюшон с острым верхом -->
+  <rect x="13" y="0" width="6" height="2" fill="#1f2937"/>
+  <rect x="11" y="2" width="10" height="2" fill="#1f2937"/>
+  <rect x="9" y="4" width="14" height="2" fill="#1f2937"/>
+  <rect x="7" y="6" width="18" height="3" fill="#1f2937"/>
+
+  <!-- Внутренняя тень капюшона -->
+  <rect x="5" y="9" width="22" height="18" fill="#1f2937"/>
+  <rect x="6" y="10" width="20" height="16" fill="#374151"/>
+
+  <!-- Чернота внутри капюшона (нет лица — есть пустота) -->
+  <rect x="8" y="11" width="16" height="14" fill="#0f1729"/>
+  <rect x="9" y="12" width="14" height="12" fill="#1a1a2e"/>
+
+  <!-- Глаза-точки — белые звёзды в пустоте -->
+  <rect x="11" y="14" width="3" height="3" fill="#374151"/>
+  <rect x="18" y="14" width="3" height="3" fill="#374151"/>
+  <rect x="12" y="15" width="1" height="1" fill="#ffffff"/>
+  <rect x="19" y="15" width="1" height="1" fill="#ffffff"/>
+  <!-- Свет от глаз — ореол -->
+  <rect x="11" y="14" width="3" height="1" fill="#9ca3af" opacity="0.6"/>
+  <rect x="18" y="14" width="3" height="1" fill="#9ca3af" opacity="0.6"/>
+  <rect x="11" y="17" width="3" height="1" fill="#9ca3af" opacity="0.4"/>
+  <rect x="18" y="17" width="3" height="1" fill="#9ca3af" opacity="0.4"/>
+
+  <!-- Намёк на рот — длинная щель -->
+  <rect x="12" y="20" width="8" height="1" fill="#0f1729"/>
+  <rect x="13" y="21" width="6" height="1" fill="#374151"/>
+
+  <!-- Плащ — рваный низ -->
+  <rect x="3" y="25" width="26" height="4" fill="#1f2937"/>
+  <rect x="4" y="26" width="24" height="3" fill="#374151"/>
+  <!-- Рваные клочья -->
+  <rect x="3" y="29" width="2" height="3" fill="#1f2937"/>
+  <rect x="7" y="29" width="2" height="2" fill="#1f2937"/>
+  <rect x="11" y="29" width="2" height="3" fill="#1f2937"/>
+  <rect x="15" y="29" width="2" height="2" fill="#1f2937"/>
+  <rect x="19" y="29" width="2" height="3" fill="#1f2937"/>
+  <rect x="23" y="29" width="2" height="2" fill="#1f2937"/>
+  <rect x="27" y="29" width="2" height="3" fill="#1f2937"/>
+
+  <!-- Бледные руки — призрачные -->
+  <rect x="2" y="20" width="3" height="6" fill="#374151" opacity="0.7"/>
+  <rect x="3" y="21" width="2" height="4" fill="#6b7280" opacity="0.6"/>
+  <rect x="27" y="20" width="3" height="6" fill="#374151" opacity="0.7"/>
+  <rect x="27" y="21" width="2" height="4" fill="#6b7280" opacity="0.6"/>
+</svg>
