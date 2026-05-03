@@ -11,7 +11,7 @@
 	let achievements = $state<Achievement[]>([]);
 	let showAvatarPicker = $state(false);
 	let activityData = $state<UserActivity | null>(null);
-	let chartRange = $state<'week' | '2weeks' | 'month'>('week');
+	let chartRange = $state<'week' | '2weeks' | 'month' | '3months'>('week');
 	let selectedDay = $state<{ date: string; activity: DayActivity | null } | null>(null);
 
 	// Account settings
@@ -201,6 +201,13 @@
 						onclick={() => { chartRange = 'month'; telegram.hapticImpact('light'); }}
 					>
 						30 дней
+					</button>
+					<button
+						class="range-btn"
+						class:active={chartRange === '3months'}
+						onclick={() => { chartRange = '3months'; telegram.hapticImpact('light'); }}
+					>
+						90 дней
 					</button>
 				</div>
 			</div>

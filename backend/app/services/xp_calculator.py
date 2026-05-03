@@ -101,6 +101,18 @@ def calculate_cycling_xp(distance_km: float, duration_minutes: int) -> int:
     return int(base_xp * multiplier)
 
 
+def calculate_walking_xp(steps: int) -> int:
+    """
+    Calculate XP for walking based on total step count.
+
+    Formula: xp = steps // 50 (10 000 steps = 200 XP)
+    """
+    if steps <= 0:
+        raise ValueError("steps must be positive")
+
+    return steps // 50
+
+
 def xp_for_level(level: int) -> int:
     """
     Calculate total XP required to reach a level.

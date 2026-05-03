@@ -30,6 +30,7 @@ from app.db.models import (
 from app.services.xp_calculator import (
     calculate_xp,
     calculate_cycling_xp,
+    calculate_walking_xp,
     calculate_coins,
     get_level_from_xp,
     get_streak_multiplier,
@@ -46,6 +47,7 @@ class ExerciseSetData:
     is_timed: bool = False
     distance_km: float | None = None
     duration_minutes: int | None = None
+    steps: int | None = None
 
 
 @dataclass
@@ -168,6 +170,15 @@ async def process_workout_completion(
             # Store distance in 100m units to keep progress-compatible integer metric
             total_reps = int(round(ex_data.distance_km * 10))
             total_duration = ex_data.duration_minutes * 60
+            sets_count = 1
+        # Special handling for walking activity
+        elif ex_data.exercise_slug == "walking" and ex_data.steps is not None:
+            if ex_data.steps <= 0:
+                raise ValueError("Walking steps must be positive")
+
+            xp_earned = calculate_walking_xp(steps=ex_data.steps)
+            total_reps = ex_data.steps
+            total_duration = 0
             sets_count = 1
         else:
             # ALGORITHM: Calculate XP for EACH set separately, then sum

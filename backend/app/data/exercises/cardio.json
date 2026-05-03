@@ -553,6 +553,25 @@
     "description_ru": "Поездка на велосипеде (улица или тренажер), где учитываются дистанция и время. XP начисляется за дистанцию с бонусом за среднюю скорость."
   },
   {
+    "slug": "walking",
+    "category": "cardio",
+    "name": "Walking",
+    "name_ru": "Ходьба",
+    "tags": [
+      "quads",
+      "glutes",
+      "calves",
+      "beginner",
+      "outdoor"
+    ],
+    "difficulty": 1,
+    "base_xp": 5,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Daily walking tracked by total step count. XP is awarded per step (1 XP per 50 steps).",
+    "description_ru": "Ежедневная ходьба по количеству шагов. XP начисляется за каждый шаг (1 XP за 50 шагов)."
+  },
+  {
     "slug": "sprawl",
     "category": "cardio",
     "name": "Sprawls",

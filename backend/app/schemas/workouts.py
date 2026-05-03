@@ -11,6 +11,7 @@ class ExerciseSetData(BaseModel):
     is_timed: bool = False
     distance_km: float | None = None  # Optional for cycling activity
     duration_minutes: int | None = None  # Optional for cycling activity
+    steps: int | None = None  # Optional for walking activity
 
 
 class CompleteWorkoutRequest(BaseModel):
