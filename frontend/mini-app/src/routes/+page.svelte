@@ -3,6 +3,7 @@
 	import { PixelButton, PixelCard, PixelProgress, PixelIcon, PixelModal } from '$lib/components/ui';
 	import QuickExerciseModal from '$lib/components/QuickExerciseModal.svelte';
 	import ActivityCalendar from '$lib/components/ActivityCalendar.svelte';
+	import BossBar from '$lib/components/BossBar.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
@@ -195,6 +196,11 @@
 				<span>+{lastReward.coins} монет</span>
 			</div>
 		{/if}
+	</section>
+
+	<!-- Monthly Boss bar -->
+	<section class="boss-section">
+		<BossBar />
 	</section>
 
 	<!-- Progress Card - Level + XP -->
@@ -607,6 +613,11 @@
 			opacity: 1;
 			transform: translateY(0);
 		}
+	}
+
+	/* Boss Section */
+	.boss-section {
+		margin-bottom: var(--spacing-md);
 	}
 
 	/* Progress Section */

@@ -409,3 +409,72 @@ export interface DayActivity {
 export interface UserActivity {
 	days: Record<string, DayActivity>; // Map of date string to activity data
 }
+
+// Boss raid types (matches backend boss schemas)
+export type BossStatus = 'active' | 'defeated' | 'expired';
+
+export interface Boss {
+	id: number;
+	slug: string;
+	name_ru: string;
+	image_emoji: string;
+	theme: string;
+	legend_ru: string;
+	max_hp: number;
+	current_hp: number;
+	start_date: string;
+	end_date: string;
+	status: BossStatus;
+	defeated_at: string | null;
+	finalized_at: string | null;
+}
+
+export interface BossLeaderboardEntry {
+	rank: number;
+	user_id: number;
+	username: string | null;
+	first_name: string | null;
+	avatar_id: AvatarId | null;
+	total_damage: number;
+	attacks_count: number;
+}
+
+export interface BossLeaderboard {
+	boss_id: number;
+	entries: BossLeaderboardEntry[];
+}
+
+export interface BossMyContribution {
+	boss_id: number;
+	rank: number | null;
+	total_damage: number;
+	attacks_count: number;
+	last_attack_at: string | null;
+	reward_tier: string | null;
+	reward_coins: number;
+	is_top10: boolean;
+	reward_claimable: boolean;
+	reward_claimed_at: string | null;
+}
+
+export interface BossClaimResult {
+	coins_awarded: number;
+}
+
+export interface BossHistoryItem {
+	id: number;
+	name_ru: string;
+	image_emoji: string;
+	theme: string;
+	start_date: string;
+	end_date: string;
+	status: BossStatus;
+	my_total_damage: number;
+	my_rank: number | null;
+	my_reward_coins: number;
+	my_reward_claimed: boolean;
+}
+
+export interface BossHistory {
+	bosses: BossHistoryItem[];
+}

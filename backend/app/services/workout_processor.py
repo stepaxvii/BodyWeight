@@ -37,6 +37,7 @@ from app.services.xp_calculator import (
 )
 from app.services.achievement_checker import check_achievements
 from app.services.notifications import save_notification, send_friend_workout_notification
+from app.services.boss import deal_damage as boss_deal_damage
 
 
 @dataclass
@@ -296,6 +297,13 @@ async def process_workout_completion(
 
     user.max_streak = max(user.max_streak, user.current_streak)
     user.last_workout_date = today
+
+    # 8.5 Deal damage to monthly boss (best-effort; isolated from main flow)
+    try:
+        await boss_deal_damage(session, user, total_xp)
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("Failed to deal boss damage")
 
     await session.flush()
 

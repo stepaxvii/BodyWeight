@@ -9,6 +9,7 @@ from .shop import ShopItem, UserPurchase, UserAvatarPurchase
 from .user_exercise import UserExerciseProgress, UserFavoriteExercise
 from .custom_routine import UserCustomRoutine, UserCustomRoutineExercise
 from .notification import Notification
+from .boss import MonthlyBoss, BossContribution
 
 __all__ = [
     "User",
@@ -27,4 +28,6 @@ __all__ = [
     "UserCustomRoutine",
     "UserCustomRoutineExercise",
     "Notification",
+    "MonthlyBoss",
+    "BossContribution",
 ]

@@ -51,6 +51,15 @@ from .custom_routines import (
     CustomRoutineResponse,
     CustomRoutineListItem,
 )
+from .boss import (
+    BossResponse,
+    BossLeaderboardEntry,
+    BossLeaderboardResponse,
+    BossMyContributionResponse,
+    BossClaimResponse,
+    BossHistoryEntry,
+    BossHistoryResponse,
+)
 
 __all__ = [
     # Common
@@ -112,4 +121,12 @@ __all__ = [
     "CustomRoutineUpdate",
     "CustomRoutineResponse",
     "CustomRoutineListItem",
+    # Boss
+    "BossResponse",
+    "BossLeaderboardEntry",
+    "BossLeaderboardResponse",
+    "BossMyContributionResponse",
+    "BossClaimResponse",
+    "BossHistoryEntry",
+    "BossHistoryResponse",
 ]

@@ -20,7 +20,12 @@ import type {
 	CustomRoutineListItem,
 	CustomRoutineCreate,
 	Notification,
-	PaginatedResponse
+	PaginatedResponse,
+	Boss,
+	BossLeaderboard,
+	BossMyContribution,
+	BossClaimResult,
+	BossHistory
 } from '$lib/types';
 
 const API_BASE = '/bodyweight/api';
@@ -387,6 +392,30 @@ class ApiClient {
 
 	async getNotifications(limit: number = 20): Promise<Notification[]> {
 		return this.request<Notification[]>(`/notifications?limit=${limit}`);
+	}
+
+	// ============== Boss ==============
+
+	async getCurrentBoss(): Promise<Boss> {
+		return this.request<Boss>('/boss/current');
+	}
+
+	async getBossLeaderboard(): Promise<BossLeaderboard> {
+		return this.request<BossLeaderboard>('/boss/leaderboard');
+	}
+
+	async getMyBossContribution(): Promise<BossMyContribution> {
+		return this.request<BossMyContribution>('/boss/me');
+	}
+
+	async claimBossReward(bossId: number): Promise<BossClaimResult> {
+		return this.request<BossClaimResult>(`/boss/${bossId}/claim`, {
+			method: 'POST'
+		});
+	}
+
+	async getBossHistory(): Promise<BossHistory> {
+		return this.request<BossHistory>('/boss/history');
 	}
 }
 
