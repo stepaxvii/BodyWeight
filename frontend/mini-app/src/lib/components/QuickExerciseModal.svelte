@@ -331,7 +331,7 @@
 			if (!navigator.onLine) {
 				savePendingWorkout(workoutData);
 				telegram.hapticNotification('success');
-				onsave?.(calculateCyclingXp(cyclingDistanceKm, cyclingDurationMin), 0);
+				onsave?.(calculateCyclingXp(cyclingDistanceKm, cyclingDurationMin, userStore.streak), 0);
 				handleClose();
 			} else {
 				console.error('Failed to save cycling activity:', err);
@@ -348,10 +348,10 @@
 	});
 
 	const cyclingEstimatedXp = $derived.by(() => (
-		calculateCyclingXp(cyclingDistanceKm, cyclingDurationMin)
+		calculateCyclingXp(cyclingDistanceKm, cyclingDurationMin, userStore.streak)
 	));
 
-	const walkingEstimatedXp = $derived.by(() => calculateWalkingXp(walkingSteps));
+	const walkingEstimatedXp = $derived.by(() => calculateWalkingXp(walkingSteps, userStore.streak));
 
 	async function handleSaveWalking() {
 		if (isSubmitting) return;
@@ -384,7 +384,7 @@
 			if (!navigator.onLine) {
 				savePendingWorkout(workoutData);
 				telegram.hapticNotification('success');
-				onsave?.(calculateWalkingXp(walkingSteps), 0);
+				onsave?.(calculateWalkingXp(walkingSteps, userStore.streak), 0);
 				handleClose();
 			} else {
 				console.error('Failed to save walking activity:', err);

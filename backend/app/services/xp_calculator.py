@@ -34,8 +34,8 @@ def calculate_xp(
     else:
         volume_mult = 1.4 + (reps - 20) * 0.01  # slower growth
 
-    # 3. Streak multiplier: max 50% at 30+ days
-    streak_mult = 1 + min(streak_days, 30) * 0.0167  # ~1.5 max
+    # 3. Streak multiplier: ramps to +50% over one week (see get_streak_multiplier)
+    streak_mult = get_streak_multiplier(streak_days)
 
     # 4. First workout of the day bonus
     first_bonus = 1.2 if is_first_today else 1.0
@@ -79,15 +79,15 @@ def calculate_coins(xp_earned: int, streak_days: int = 0, workout_duration_minut
     return coins
 
 
-def calculate_cycling_xp(distance_km: float, duration_minutes: int) -> int:
+def calculate_cycling_xp(distance_km: float, duration_minutes: int, streak_days: int = 0) -> int:
     """
-    Calculate XP for cycling based on distance and average speed.
+    Calculate XP for cycling based on distance, average speed and streak.
 
     Formula:
     - base_xp = distance_km * 15
     - avg_speed = distance_km / (duration_minutes / 60)
     - multiplier = clamp(1 + (avg_speed - 10) * 0.025, 1, 1.6)
-    - xp = floor(base_xp * multiplier)
+    - xp = floor(base_xp * multiplier * streak_mult)
     """
     if distance_km <= 0:
         raise ValueError("distance_km must be positive")
@@ -98,19 +98,19 @@ def calculate_cycling_xp(distance_km: float, duration_minutes: int) -> int:
     avg_speed = distance_km / (duration_minutes / 60)
     multiplier = max(1.0, min(1.6, 1 + (avg_speed - 10) * 0.025))
 
-    return int(base_xp * multiplier)
+    return int(base_xp * multiplier * get_streak_multiplier(streak_days))
 
 
-def calculate_walking_xp(steps: int) -> int:
+def calculate_walking_xp(steps: int, streak_days: int = 0) -> int:
     """
-    Calculate XP for walking based on total step count.
+    Calculate XP for walking based on total step count and streak.
 
-    Formula: xp = steps // 50 (10 000 steps = 200 XP)
+    Formula: xp = floor(steps // 50 * streak_mult) (10 000 steps = 200 XP at no streak)
     """
     if steps <= 0:
         raise ValueError("steps must be positive")
 
-    return steps // 50
+    return int((steps // 50) * get_streak_multiplier(streak_days))
 
 
 def xp_for_level(level: int) -> int:
@@ -153,7 +153,10 @@ def get_level_from_xp(total_xp: int) -> int:
 
 def get_streak_multiplier(streak_days: int) -> float:
     """
-    Calculate streak multiplier for display.
+    Calculate streak multiplier.
+
+    Ramps linearly from 1.0 (no streak) to 1.5 (+50%) over one week,
+    then stays capped at 1.5 for 7+ days.
 
     Args:
         streak_days: Current streak in days
@@ -161,4 +164,4 @@ def get_streak_multiplier(streak_days: int) -> float:
     Returns:
         Multiplier value (1.0 to 1.5)
     """
-    return 1 + min(streak_days, 30) * 0.0167
+    return 1 + min(streak_days, 7) / 7 * 0.5

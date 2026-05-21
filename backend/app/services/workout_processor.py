@@ -171,6 +171,7 @@ async def process_workout_completion(
             xp_earned = calculate_cycling_xp(
                 distance_km=ex_data.distance_km,
                 duration_minutes=ex_data.duration_minutes,
+                streak_days=user.current_streak,
             )
             # Store distance in 100m units to keep progress-compatible integer metric
             total_reps = int(round(ex_data.distance_km * 10))
@@ -181,7 +182,7 @@ async def process_workout_completion(
             if ex_data.steps <= 0:
                 raise ValueError("Walking steps must be positive")
 
-            xp_earned = calculate_walking_xp(steps=ex_data.steps)
+            xp_earned = calculate_walking_xp(steps=ex_data.steps, streak_days=user.current_streak)
             total_reps = ex_data.steps
             total_duration = 0
             sets_count = 1

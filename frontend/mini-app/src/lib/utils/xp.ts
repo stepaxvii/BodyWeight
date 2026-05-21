@@ -16,8 +16,8 @@ export function calculateXp(
 	// Difficulty multiplier: 1.0, 1.25, 1.5, 1.75, 2.0
 	const difficultyMult = 1 + (difficulty - 1) * 0.25;
 
-	// Streak bonus (max 50% at 30+ days)
-	const streakMult = 1 + Math.min(streakDays, 30) * 0.0167;
+	// Streak bonus: ramps to +50% over one week
+	const streakMult = getStreakMultiplier(streakDays);
 
 	// Volume bonus (diminishing returns after 20 reps)
 	let volumeMult: number;
@@ -118,33 +118,39 @@ export function getLevelProgress(totalXp: number): {
 }
 
 /**
- * Calculate streak multiplier
+ * Calculate streak multiplier.
+ * Ramps linearly from 1.0 (no streak) to 1.5 (+50%) over one week,
+ * then stays capped at 1.5 for 7+ days.
  */
 export function getStreakMultiplier(streakDays: number): number {
-	return 1 + Math.min(streakDays, 30) * 0.0167;
+	return 1 + (Math.min(streakDays, 7) / 7) * 0.5;
 }
 
 /**
- * Calculate cycling XP from distance and average speed.
+ * Calculate cycling XP from distance, average speed and streak.
  * Formula mirrors backend implementation.
  */
-export function calculateCyclingXp(distanceKm: number, durationMinutes: number): number {
+export function calculateCyclingXp(
+	distanceKm: number,
+	durationMinutes: number,
+	streakDays: number = 0
+): number {
 	if (distanceKm <= 0 || durationMinutes <= 0) return 0;
 
 	const baseXp = distanceKm * 15;
 	const avgSpeed = distanceKm / (durationMinutes / 60);
 	const multiplier = Math.max(1, Math.min(1.6, 1 + (avgSpeed - 10) * 0.025));
 
-	return Math.floor(baseXp * multiplier);
+	return Math.floor(baseXp * multiplier * getStreakMultiplier(streakDays));
 }
 
 /**
- * Calculate walking XP from total step count.
- * Formula mirrors backend: 1 XP per 50 steps.
+ * Calculate walking XP from total step count and streak.
+ * Formula mirrors backend: 1 XP per 50 steps, scaled by streak.
  */
-export function calculateWalkingXp(steps: number): number {
+export function calculateWalkingXp(steps: number, streakDays: number = 0): number {
 	if (steps <= 0) return 0;
-	return Math.floor(steps / 50);
+	return Math.floor(Math.floor(steps / 50) * getStreakMultiplier(streakDays));
 }
 
 /**
