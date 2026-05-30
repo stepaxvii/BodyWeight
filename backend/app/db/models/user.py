@@ -31,6 +31,8 @@ class User(Base):
     current_streak: Mapped[int] = mapped_column(Integer, default=0)
     max_streak: Mapped[int] = mapped_column(Integer, default=0)
     last_workout_date: Mapped[date | None] = mapped_column(Date)
+    # Purchased "streak freezes" — auto-spent overnight to cover a missed day
+    streak_freezes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     # Settings
     notification_time: Mapped[time | None] = mapped_column(Time)

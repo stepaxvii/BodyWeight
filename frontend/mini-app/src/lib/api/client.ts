@@ -174,6 +174,12 @@ class ApiClient {
 		});
 	}
 
+	async buyStreakFreeze(): Promise<User> {
+		return this.request<User>('/users/me/streak-freezes/buy', {
+			method: 'POST'
+		});
+	}
+
 	async getUserProfile(userId: number): Promise<UserProfile> {
 		return this.request<UserProfile>(`/users/${userId}/profile`);
 	}

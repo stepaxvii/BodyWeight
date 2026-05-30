@@ -86,6 +86,7 @@ export interface User {
 	coins: number;
 	current_streak: number;
 	max_streak: number;
+	streak_freezes: number;
 	last_workout_date?: string;
 	notification_time?: string;
 	notifications_enabled: boolean;
@@ -106,6 +107,7 @@ export interface UserStats {
 	xp_progress_percent: number;
 	current_streak: number;
 	max_streak: number;
+	streak_freezes: number;
 	achievements_count: number;
 	coins: number;
 	this_week_workouts: number;

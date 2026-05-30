@@ -193,6 +193,27 @@ async def daily_inactivity_job():
             logger.error(f"Error in daily inactivity job: {e}")
 
 
+async def daily_streak_freeze_job():
+    """
+    Run shortly after UTC midnight (before boss/challenge jobs). Spends a
+    streak freeze for users who missed yesterday, or breaks the streak if
+    they have none. Idempotent within a day.
+    """
+    from app.db.database import async_session_maker
+    from app.services.streak import process_streak_freezes
+
+    async with async_session_maker() as session:
+        try:
+            stats = await process_streak_freezes(session)
+            await session.commit()
+            if stats["frozen"] or stats["broken"]:
+                logger.info(
+                    f"Daily job: streaks frozen={stats['frozen']}, broken={stats['broken']}"
+                )
+        except Exception as e:
+            logger.error(f"Error in daily streak freeze job: {e}")
+
+
 async def daily_boss_finalization_job():
     """
     Run shortly after midnight UTC. Finalizes any boss whose end_date passed
@@ -267,6 +288,16 @@ def start_scheduler():
         trigger=CronTrigger(hour=12, minute=0),
         id="daily_inactivity",
         name="Check inactivity reminders (daily)",
+        replace_existing=True,
+    )
+
+    # Spend/break streaks for the day that just ended — must run BEFORE the
+    # boss/challenge jobs and before users start training today.
+    scheduler.add_job(
+        daily_streak_freeze_job,
+        trigger=CronTrigger(hour=0, minute=1, timezone="UTC"),
+        id="daily_streak_freeze",
+        name="Streak freeze maintenance (UTC midnight)",
         replace_existing=True,
     )
 
