@@ -28,7 +28,8 @@ from app.db.models import (
     Notification,
 )
 from app.services.xp_calculator import (
-    calculate_xp,
+    calculate_exercise_xp,
+    calculate_timed_xp,
     calculate_cycling_xp,
     calculate_walking_xp,
     calculate_coins,
@@ -187,29 +188,27 @@ async def process_workout_completion(
             total_duration = 0
             sets_count = 1
         else:
-            # ALGORITHM: Calculate XP for EACH set separately, then sum
-            # Each set contributes fairly to total XP
+            # Accumulate total volume across sets. The number of sets does NOT
+            # affect XP — only the TOTAL reps (or total hold time) matter, so
+            # 30 reps award the same XP whether logged as 1×30, 3×10 or 6×5.
             for set_value in ex_data.sets:
-                # Convert timed exercises: 10 seconds = 1 rep equivalent
                 if ex_data.is_timed:
-                    set_duration = set_value
-                    total_duration += set_duration
-                    reps_for_xp = max(1, set_duration // 10)
+                    total_duration += set_value
                 else:
                     total_reps += set_value
-                    reps_for_xp = set_value
 
-                # Calculate XP for THIS set
-                # Formula: base_xp × difficulty_mult × volume_mult ×
-                #          streak_mult × first_bonus
-                set_xp = calculate_xp(
+            if ex_data.is_timed:
+                xp_earned = calculate_timed_xp(
                     base_xp=exercise.base_xp,
-                    difficulty=exercise.difficulty,
-                    reps=reps_for_xp,  # For this set only
+                    total_duration_seconds=total_duration,
                     streak_days=user.current_streak,
-                    is_first_today=is_first_today,
                 )
-                xp_earned += set_xp
+            else:
+                xp_earned = calculate_exercise_xp(
+                    base_xp=exercise.base_xp,
+                    total_reps=total_reps,
+                    streak_days=user.current_streak,
+                )
 
         # Capture per-slug quantity for challenge progress.
         # Timed exercises use total_duration (seconds == target unit).

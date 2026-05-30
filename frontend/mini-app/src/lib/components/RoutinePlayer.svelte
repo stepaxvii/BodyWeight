@@ -5,6 +5,7 @@
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { exercisesStore } from '$lib/stores/exercises.svelte';
+	import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
 	import type { Routine, RoutineExercise, Exercise } from '$lib/types';
 	import { onMount, onDestroy } from 'svelte';
 
@@ -229,10 +230,16 @@
 				} catch { /* ignore */ }
 
 				isCompleted = true;
-				// Estimate XP from exercises
+				// Estimate XP (mirrors backend: total volume × base_xp × rate × streak)
 				totalXpEarned = completedExercises.reduce((sum, ex) => {
 					const exercise = allExercises.find(e => e.slug === ex.exercise_slug);
-					return sum + (exercise?.base_xp ?? 5) * ex.sets.length;
+					if (!exercise) return sum;
+					const baseXp = exercise.base_xp ?? 5;
+					const totalVolume = ex.sets.reduce((s, v) => s + v, 0);
+					const xp = ex.is_timed
+						? calculateTimedXp(baseXp, totalVolume, userStore.streak)
+						: calculateExerciseXp(baseXp, totalVolume, userStore.streak);
+					return sum + xp;
 				}, 0);
 				totalCoinsEarned = 0;
 				telegram.hapticNotification('success');

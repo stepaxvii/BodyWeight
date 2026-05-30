@@ -3,35 +3,52 @@
  * Based on the formulas from DEVELOPMENT_PLAN.md
  */
 
+// XP per rep = base_xp × rate + flat bonus. The rate gives a classic push-up
+// (base_xp = 10) 3 XP/rep; the flat +1 bonus compensates for the removed
+// difficulty/first-workout multipliers (push-up ends at 4 XP/rep). Difficulty
+// is baked into base_xp. MUST mirror backend xp_calculator.py.
+export const XP_PER_REP_RATE = 0.3;
+export const XP_PER_REP_BONUS = 1;
+
+// A timed hold of this many seconds counts as one rep-equivalent.
+export const SECONDS_PER_REP_EQUIVALENT = 10;
+
+/** XP for a single rep (or rep-equivalent) of this exercise. */
+export function xpPerRep(baseXp: number): number {
+	return baseXp * XP_PER_REP_RATE + XP_PER_REP_BONUS;
+}
+
 /**
- * Calculate XP for completing an exercise set
+ * XP for a reps-based exercise. Mirrors backend calculate_exercise_xp.
+ *
+ * XP = total_reps × (base_xp × XP_PER_REP_RATE) × streak_mult
+ *
+ * Strictly proportional to total reps; independent of how the work was
+ * split into sets (30 reps = 1×30 = 3×10 = 6×5).
  */
-export function calculateXp(
+export function calculateExerciseXp(
 	baseXp: number,
-	difficulty: number,
-	reps: number,
-	streakDays: number,
-	isFirstToday: boolean
+	totalReps: number,
+	streakDays: number = 0
 ): number {
-	// Difficulty multiplier: 1.0, 1.25, 1.5, 1.75, 2.0
-	const difficultyMult = 1 + (difficulty - 1) * 0.25;
+	if (totalReps <= 0) return 0;
+	return Math.floor(totalReps * xpPerRep(baseXp) * getStreakMultiplier(streakDays));
+}
 
-	// Streak bonus: ramps to +50% over one week
-	const streakMult = getStreakMultiplier(streakDays);
-
-	// Volume bonus (diminishing returns after 20 reps)
-	let volumeMult: number;
-	if (reps <= 20) {
-		volumeMult = 1 + reps * 0.02; // 1.0 to 1.4
-	} else {
-		volumeMult = 1.4 + (reps - 20) * 0.01; // slower growth
-	}
-
-	// First workout bonus
-	const firstBonus = isFirstToday ? 1.2 : 1.0;
-
-	const xp = baseXp * difficultyMult * streakMult * volumeMult * firstBonus;
-	return Math.floor(xp);
+/**
+ * XP for a timed/hold exercise. Mirrors backend calculate_timed_xp.
+ *
+ * rep_equivalent = total_seconds / 10
+ * XP = rep_equivalent × (base_xp × XP_PER_REP_RATE) × streak_mult
+ */
+export function calculateTimedXp(
+	baseXp: number,
+	totalDurationSeconds: number,
+	streakDays: number = 0
+): number {
+	if (totalDurationSeconds <= 0) return 0;
+	const repEquiv = totalDurationSeconds / SECONDS_PER_REP_EQUIVALENT;
+	return Math.floor(repEquiv * xpPerRep(baseXp) * getStreakMultiplier(streakDays));
 }
 
 /**

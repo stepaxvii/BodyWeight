@@ -2,6 +2,7 @@ import type { WorkoutSession, Exercise, WorkoutExercise } from '$lib/types';
 import { api } from '$lib/api/client';
 import { userStore } from './user.svelte';
 import { telegram } from './telegram.svelte';
+import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
 
 // Set data for each exercise
 interface ExerciseSetData {
@@ -63,42 +64,22 @@ class WorkoutStore {
 		if (this.totalSets === 0) {
 			return 0;
 		}
-		
-		// ALGORITHM: Calculate XP for each set separately
+
+		// Mirror backend: per-exercise XP from TOTAL volume × base_xp × rate ×
+		// streak, floored per exercise then summed. Set count is irrelevant.
+		const streak = userStore.streak;
 		let total = 0;
 		this.exerciseData.forEach(data => {
 			if (!data.exercise || data.sets.length === 0) {
 				return;
 			}
-			
-			const baseXp = data.exercise.base_xp;
-			const difficulty = data.exercise.difficulty || 1;
-			const difficultyMult = 1 + (difficulty - 1) * 0.25;
-
-			// Calculate XP for EACH set separately
-			data.sets.forEach(setValue => {
-				// Convert timed: 10 sec = 1 rep
-				let repsValue: number;
-				if (data.isTimed) {
-					repsValue = Math.max(1, Math.floor(setValue / 10));
-				} else {
-					repsValue = setValue;
-				}
-				
-				// Volume multiplier for THIS set
-				let volumeMult: number;
-				if (repsValue <= 20) {
-					volumeMult = 1 + repsValue * 0.02;
-				} else {
-					volumeMult = 1.4 + (repsValue - 20) * 0.01;
-				}
-				
-				// XP for this set (without streak/first_bonus)
-				total += baseXp * difficultyMult * volumeMult;
-			});
+			const totalVolume = data.sets.reduce((sum, v) => sum + v, 0);
+			total += data.isTimed
+				? calculateTimedXp(data.exercise.base_xp, totalVolume, streak)
+				: calculateExerciseXp(data.exercise.base_xp, totalVolume, streak);
 		});
-		
-		return Math.floor(total);
+
+		return total;
 	}
 
 	get totalCoins() {
@@ -363,11 +344,15 @@ class WorkoutStore {
 				const totalDuration = exercises.reduce((sum, ex) =>
 					sum + (ex.is_timed ? ex.sets.reduce((s, v) => s + v, 0) : 0), 0);
 
-				// Estimate XP from exercise data
+				// Estimate XP (mirrors backend: total volume × base_xp × rate × streak)
+				const streak = userStore.streak;
 				let estimatedXp = 0;
 				this.exerciseData.forEach((data) => {
 					if (data.exercise && data.sets.length > 0) {
-						estimatedXp += data.exercise.base_xp * data.sets.length;
+						const totalVolume = data.sets.reduce((sum, v) => sum + v, 0);
+						estimatedXp += data.isTimed
+							? calculateTimedXp(data.exercise.base_xp, totalVolume, streak)
+							: calculateExerciseXp(data.exercise.base_xp, totalVolume, streak);
 					}
 				});
 
