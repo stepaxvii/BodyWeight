@@ -1,10 +1,7 @@
-# XP per rep = base_xp × rate + flat bonus. The rate is calibrated so a classic
-# push-up (base_xp = 10) is worth 3 XP per rep from the rate alone; the flat +1
-# bonus compensates for the removed difficulty/first-workout multipliers, so the
-# push-up ends up at 4 XP per rep. Difficulty is already baked into each
+# XP per rep = base_xp × rate. The rate is calibrated so a classic push-up
+# (base_xp = 10) is worth 3 XP per rep. Difficulty is already baked into each
 # exercise's base_xp, so there is no separate difficulty multiplier.
 XP_PER_REP_RATE = 0.3
-XP_PER_REP_BONUS = 1
 
 # A timed hold of this many seconds counts as one rep-equivalent.
 SECONDS_PER_REP_EQUIVALENT = 10
@@ -12,7 +9,7 @@ SECONDS_PER_REP_EQUIVALENT = 10
 
 def xp_per_rep(base_xp: int) -> float:
     """XP awarded for a single rep (or rep-equivalent) of this exercise."""
-    return base_xp * XP_PER_REP_RATE + XP_PER_REP_BONUS
+    return base_xp * XP_PER_REP_RATE
 
 
 def calculate_exercise_xp(base_xp: int, total_reps: int, streak_days: int) -> int:

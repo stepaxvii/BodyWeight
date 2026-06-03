@@ -3,19 +3,17 @@
  * Based on the formulas from DEVELOPMENT_PLAN.md
  */
 
-// XP per rep = base_xp × rate + flat bonus. The rate gives a classic push-up
-// (base_xp = 10) 3 XP/rep; the flat +1 bonus compensates for the removed
-// difficulty/first-workout multipliers (push-up ends at 4 XP/rep). Difficulty
-// is baked into base_xp. MUST mirror backend xp_calculator.py.
+// XP per rep = base_xp × rate. The rate gives a classic push-up
+// (base_xp = 10) 3 XP/rep. Difficulty is baked into base_xp.
+// MUST mirror backend xp_calculator.py.
 export const XP_PER_REP_RATE = 0.3;
-export const XP_PER_REP_BONUS = 1;
 
 // A timed hold of this many seconds counts as one rep-equivalent.
 export const SECONDS_PER_REP_EQUIVALENT = 10;
 
 /** XP for a single rep (or rep-equivalent) of this exercise. */
 export function xpPerRep(baseXp: number): number {
-	return baseXp * XP_PER_REP_RATE + XP_PER_REP_BONUS;
+	return baseXp * XP_PER_REP_RATE;
 }
 
 /**
