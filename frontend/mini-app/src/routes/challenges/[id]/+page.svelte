@@ -519,7 +519,7 @@
 
 	.cal-partial {
 		background: var(--pixel-yellow);
-		color: var(--stat-text);
+		color: var(--pixel-bg);
 		border-color: var(--pixel-yellow);
 	}
 

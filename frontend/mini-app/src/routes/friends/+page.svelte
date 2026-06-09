@@ -619,7 +619,7 @@
 
 	.status-badge.pending {
 		background: var(--pixel-yellow);
-		color: var(--text-primary);
+		color: var(--pixel-bg);
 	}
 
 	.request-actions {

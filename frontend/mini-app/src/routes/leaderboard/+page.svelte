@@ -305,18 +305,21 @@
 		background: var(--pixel-yellow);
 		border-color: var(--border-color);
 		margin-bottom: var(--spacing-md);
+		color: var(--pixel-bg);
 	}
 
 	.podium-item.second {
 		background: #dfe5cf;
 		border-color: var(--border-color);
 		padding-bottom: var(--spacing-md);
+		color: var(--pixel-bg);
 	}
 
 	.podium-item.third {
 		background: #d89a5a;
 		border-color: var(--border-color);
 		padding-bottom: var(--spacing-md);
+		color: var(--pixel-bg);
 	}
 
 	.podium-crown {
@@ -335,7 +338,7 @@
 
 	.podium-xp {
 		font-size: var(--font-size-xs);
-		color: var(--text-primary);
+		color: var(--pixel-bg);
 		margin-bottom: 4px;
 	}
 
@@ -379,7 +382,7 @@
 	.entry-card.accent {
 		border-color: var(--border-color);
 		background: var(--pixel-accent);
-		color: #fff;
+		color: var(--pixel-bg);
 	}
 
 	.entry {
@@ -422,7 +425,7 @@
 		font-size: 6px;
 		padding: 1px 4px;
 		background: var(--pixel-yellow);
-		color: var(--text-primary);
+		color: var(--pixel-bg);
 	}
 
 	.entry-level {
@@ -430,12 +433,12 @@
 		color: var(--text-secondary);
 	}
 
-	/* Current-user row sits on accent (blue) block — text reads white */
+	/* Current-user row sits on amber accent block — text reads dark */
 	.entry-card.accent .entry-level,
 	.entry-card.accent .entry-xp,
 	.entry-card.accent .entry-xp-label,
 	.entry-card.accent .entry-streak {
-		color: #fff;
+		color: var(--pixel-bg);
 	}
 
 	.entry-stats {

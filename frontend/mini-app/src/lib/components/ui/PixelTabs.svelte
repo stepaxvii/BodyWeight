@@ -77,7 +77,7 @@
 	.tab.active {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent-hover);
-		color: var(--pixel-white);
+		color: var(--pixel-bg);
 	}
 
 	.badge {

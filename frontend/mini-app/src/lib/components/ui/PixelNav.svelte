@@ -171,7 +171,7 @@
 
 	.nav-item.active {
 		background: var(--pixel-accent);
-		color: var(--pixel-white);
+		color: var(--pixel-bg);
 		border-radius: var(--radius-sm);
 	}
 
@@ -196,7 +196,7 @@
 		transform: translateX(-50%);
 		width: 6px;
 		height: 6px;
-		background: var(--pixel-yellow);
+		background: var(--pixel-bg);
 	}
 
 	/* Modal styles */

@@ -1159,7 +1159,7 @@
 
 	.filter-badge {
 		background: var(--pixel-accent);
-		color: #fff;
+		color: var(--pixel-bg);
 		padding: 1px 4px;
 		font-size: 8px;
 		min-width: 12px;
@@ -1378,7 +1378,7 @@
 
 	.set-badge {
 		background: var(--pixel-accent);
-		color: #fff;
+		color: var(--pixel-bg);
 		padding: 2px 8px;
 		font-size: var(--font-size-xs);
 	}
@@ -1424,7 +1424,7 @@
 	.routine-tab.active {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent);
-		color: #fff;
+		color: var(--pixel-bg);
 	}
 
 	.routines-list {
@@ -1474,7 +1474,7 @@
 
 	.category-tab.active {
 		background: var(--cat-color);
-		color: #fff;
+		color: var(--pixel-bg);
 	}
 
 	/* Exercises list */
@@ -1592,7 +1592,7 @@
 
 	.info-toggle:hover {
 		background: var(--pixel-accent);
-		color: #fff;
+		color: var(--pixel-bg);
 	}
 
 	/* Exercise info modal */
