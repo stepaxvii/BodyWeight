@@ -5,42 +5,47 @@
    CSS Variables - Color Palette
    ============================================ */
 :root {
-	/* Background colors */
-	--pixel-bg: #1a1a2e;
-	--pixel-bg-dark: #0f0f1a;
-	--pixel-card: #16213e;
-	--pixel-card-hover: #1a2848;
+	/* Surfaces — Stardew "Bold Pop": warm parchment, not white */
+	--pixel-bg: #e7cf9b;
+	--pixel-bg-dark: #f0dca6;
+	--pixel-card: #fbe8c4;
+	--pixel-card-hover: #f3ddb0;
 
-	/* Accent colors */
-	--pixel-accent: #e94560;
-	--pixel-accent-hover: #ff5a75;
+	/* Accent — sky blue */
+	--pixel-accent: #4d8fcc;
+	--pixel-accent-hover: #2f7ec0;
 
-	/* Status colors */
-	--pixel-green: #00a800;
-	--pixel-green-light: #00d800;
-	--pixel-yellow: #fcc800;
-	--pixel-orange: #fc7400;
-	--pixel-red: #d82800;
-	--pixel-blue: #0058f8;
-	--pixel-cyan: #00a8a8;
-	--pixel-purple: #6800a8;
-	--pixel-pink: #f878f8;
+	/* Status / palette */
+	--pixel-green: #57a23f;
+	--pixel-green-light: #6cbf50;
+	--pixel-yellow: #f4c542;
+	--pixel-orange: #f0b54a;
+	--pixel-red: #c8463f;
+	--pixel-blue: #4d8fcc;
+	--pixel-cyan: #3a9e8c;
+	--pixel-purple: #8a5fb0;
+	--pixel-pink: #d77fae;
 
-	/* Neutral colors */
-	--pixel-black: #0f0f0f;
-	--pixel-dark: #2d2d2d;
-	--pixel-gray: #5a5a5a;
-	--pixel-light: #9a9a9a;
-	--pixel-white: #fcfcfc;
+	/* Aliases some redesign components reference */
+	--gold: var(--pixel-yellow);
+	--danger: var(--pixel-red);
 
-	/* Text colors */
-	--text-primary: #fcfcfc;
-	--text-secondary: #9a9a9a;
-	--text-muted: #5a5a5a;
+	/* Neutral colors — warm wood. --pixel-black drives all hard shadows. */
+	--pixel-black: #4a2f18;
+	--pixel-dark: #5a3a1c;
+	--pixel-gray: #87694a;
+	--pixel-light: #b39a72;
+	--pixel-white: #fff8ea;
+
+	/* Text — dark wood on parchment */
+	--text-primary: #3a2718;
+	--text-secondary: #87694a;
+	--text-muted: #b39a72;
 
 	/* Borders */
-	--border-color: #3a3a5e;
-	--border-light: #4a4a7e;
+	--border-color: #5a3a1c;
+	--border-light: #7a5630;
+	--border-width: 3px;
 
 	/* Spacing */
 	--spacing-xs: 4px;
@@ -49,23 +54,46 @@
 	--spacing-lg: 24px;
 	--spacing-xl: 32px;
 
-	/* Border radius (pixelated = 0, but we use small values for subtle rounding) */
-	--radius-sm: 2px;
-	--radius-md: 4px;
+	/* Border radius — pixel-sharp, no rounding */
+	--radius-sm: 0;
+	--radius-md: 0;
 
-	/* Shadows (pixel-style, no blur) */
+	/* Shadows — hard pixel offset, dark-wood colour (no blur) */
 	--shadow-sm: 2px 2px 0px var(--pixel-black);
 	--shadow-md: 4px 4px 0px var(--pixel-black);
 	--shadow-lg: 6px 6px 0px var(--pixel-black);
+	--shadow-hard: 4px 4px 0 var(--pixel-black);
 
-	/* Font */
-	--font-pixel: 'Press Start 2P', monospace;
-	--font-size-xs: 8px;
-	--font-size-sm: 10px;
-	--font-size-md: 12px;
-	--font-size-lg: 14px;
-	--font-size-xl: 16px;
-	--font-size-2xl: 20px;
+	/* Color-blocking role tokens (Stardew variant) */
+	--hero-bg: #4d8fcc;
+	--hero-text: #ffffff;
+	--hero-num: #f4c542;
+	--hero-edge: #4a2f18;
+	--cta-bg: #57a23f;
+	--cta-text: #ffffff;
+	--cta-edge: #4a2f18;
+	--stat-bg: #f0b54a;
+	--stat-text: #3a2718;
+	--stat-edge: #4a2f18;
+
+	/* Activity heatmap — 5 levels: empty parchment → deep grass */
+	--hm0: #ddca9f;
+	--hm1: #b9d488;
+	--hm2: #8bc24a;
+	--hm3: #5aa033;
+	--hm4: #2f6e25;
+
+	/* Fonts — Silkscreen (display/data), Pixelify Sans (UI/body) */
+	--font-pixel: 'Pixelify Sans', monospace;
+	--font-ui: 'Pixelify Sans', monospace;
+	--font-display: 'Silkscreen', monospace;
+	--font-data: 'Silkscreen', monospace;
+	--font-size-xs: 9px;
+	--font-size-sm: 11px;
+	--font-size-md: 13px;
+	--font-size-lg: 15px;
+	--font-size-xl: 18px;
+	--font-size-2xl: 22px;
 
 	/* Transitions */
 	--transition-fast: 100ms;
@@ -107,7 +135,7 @@ img, canvas {
    Typography
    ============================================ */
 h1, h2, h3, h4, h5, h6 {
-	font-family: var(--font-pixel);
+	font-family: var(--font-display);
 	font-weight: normal;
 	line-height: 1.4;
 	color: var(--text-primary);
@@ -216,12 +244,12 @@ a:hover {
    Pixel Border Helper
    ============================================ */
 .pixel-border {
-	border: 2px solid var(--border-color);
+	border: var(--border-width) solid var(--border-color);
 	box-shadow: var(--shadow-sm);
 }
 
 .pixel-border-light {
-	border: 2px solid var(--border-light);
+	border: var(--border-width) solid var(--border-light);
 }
 
 /* Pixel corners (NES-style cut corners) */
@@ -331,7 +359,7 @@ a:hover {
 	padding: var(--spacing-xs) var(--spacing-sm);
 	font-size: var(--font-size-xs);
 	background: var(--pixel-card);
-	border: 2px solid var(--border-color);
+	border: var(--border-width) solid var(--border-color);
 	text-transform: uppercase;
 }
 

@@ -262,25 +262,25 @@
 		cursor: default;
 	}
 
-	/* 4 градации: пусто + 4 уровня по доле дневной нормы */
+	/* 4 градации: пусто + 4 уровня по доле дневной нормы (Stardew heatmap) */
 	.color-empty {
-		background: var(--pixel-bg-dark);
+		background: var(--hm0); /* пустой день — пергамент */
 	}
 
 	.color-1 {
-		background: #0e4429; /* до 25% нормы */
+		background: var(--hm1); /* до 25% нормы */
 	}
 
 	.color-2 {
-		background: #006d32; /* 25–50% нормы */
+		background: var(--hm2); /* 25–50% нормы */
 	}
 
 	.color-3 {
-		background: #26a641; /* 50–75% нормы */
+		background: var(--hm3); /* 50–75% нормы */
 	}
 
 	.color-4 {
-		background: #39d353; /* 75%+ — норма достигнута */
+		background: var(--hm4); /* 75%+ — норма достигнута */
 	}
 
 	/* Scrollbar styling */

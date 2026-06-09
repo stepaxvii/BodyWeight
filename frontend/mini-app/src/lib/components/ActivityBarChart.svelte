@@ -186,19 +186,19 @@
 	}
 
 	.bar-1 {
-		background: #0e4429;
+		background: var(--hm1);
 	}
 
 	.bar-2 {
-		background: #006d32;
+		background: var(--hm2);
 	}
 
 	.bar-3 {
-		background: #26a641;
+		background: var(--hm3);
 	}
 
 	.bar-4 {
-		background: #39d353;
+		background: var(--hm4);
 	}
 
 	.bar-empty-dot {
