@@ -25,16 +25,35 @@ else
 	exit 1
 fi
 
-echo "==> [1/4] git pull"
+BUILD_DIR="frontend/mini-app/build"
+
+echo "==> [1/5] git pull"
 git pull --ff-only
 
-echo "==> [2/4] build frontend (static -> frontend/mini-app/build, served by host nginx)"
+echo "==> [2/5] build frontend (static -> $BUILD_DIR, served by host nginx)"
+# Marker to prove the build actually (re)wrote its output during THIS run.
+marker="$(mktemp)"
 ( cd frontend/mini-app && npm install && npm run build )
 
-echo "==> [3/4] rebuild + restart backend & bot (migrations run on container start)"
+echo "==> [3/5] verify frontend build"
+if [ ! -f "$BUILD_DIR/index.html" ]; then
+	echo "ERROR: frontend build failed — $BUILD_DIR/index.html not found." >&2
+	rm -f "$marker"
+	exit 1
+fi
+if [ ! "$BUILD_DIR/index.html" -nt "$marker" ]; then
+	echo "ERROR: $BUILD_DIR/index.html was not rebuilt this run (stale output)." >&2
+	rm -f "$marker"
+	exit 1
+fi
+rm -f "$marker"
+file_count=$(find "$BUILD_DIR" -type f | wc -l)
+echo "    OK: frontend rebuilt — ${file_count} files, index.html $(stat -c '%y' "$BUILD_DIR/index.html")"
+
+echo "==> [4/5] rebuild + restart backend & bot (migrations run on container start)"
 $DC up -d --build backend bot
 
-echo "==> [4/4] status"
+echo "==> [5/5] status"
 $DC ps
 
-echo "==> done."
+echo "==> done. Frontend built OK and containers are up."
