@@ -5,42 +5,42 @@
    CSS Variables - Color Palette
    ============================================ */
 :root {
-	/* Surfaces — Stardew "Bold Pop": warm parchment, not white */
-	--pixel-bg: #e7cf9b;
-	--pixel-bg-dark: #f0dca6;
-	--pixel-card: #fbe8c4;
-	--pixel-card-hover: #f3ddb0;
+	/* Surfaces — "Voltage": deep indigo, high contrast (designer variant B) */
+	--pixel-bg: #15123a;
+	--pixel-bg-dark: #0c0a26;
+	--pixel-card: #211c52;
+	--pixel-card-hover: #2c2668;
 
-	/* Accent — sky blue */
-	--pixel-accent: #4d8fcc;
-	--pixel-accent-hover: #2f7ec0;
+	/* Accent — neon cyan */
+	--pixel-accent: #19e3ff;
+	--pixel-accent-hover: #5fecff;
 
 	/* Status / palette */
-	--pixel-green: #57a23f;
-	--pixel-green-light: #6cbf50;
-	--pixel-yellow: #f4c542;
-	--pixel-orange: #f0b54a;
-	--pixel-red: #c8463f;
-	--pixel-blue: #4d8fcc;
-	--pixel-cyan: #3a9e8c;
-	--pixel-purple: #8a5fb0;
-	--pixel-pink: #d77fae;
+	--pixel-green: #2fe6a0;
+	--pixel-green-light: #5cf0b8;
+	--pixel-yellow: #ffe14d;
+	--pixel-orange: #ff9f43;
+	--pixel-red: #ff2e7e;
+	--pixel-blue: #19e3ff;
+	--pixel-cyan: #19e3ff;
+	--pixel-purple: #8a5fc0;
+	--pixel-pink: #ff2e7e;
 
-	/* Neutral colors — warm wood. --pixel-black drives all hard shadows. */
-	--pixel-black: #4a2f18;
-	--pixel-dark: #5a3a1c;
-	--pixel-gray: #87694a;
-	--pixel-light: #b39a72;
-	--pixel-white: #fff8ea;
+	/* Neutral colors. --pixel-black drives all hard shadows (deep indigo-black). */
+	--pixel-black: #0c0a26;
+	--pixel-dark: #2c2668;
+	--pixel-gray: #6b64ad;
+	--pixel-light: #a9a3e0;
+	--pixel-white: #f4f2ff;
 
-	/* Text — dark wood on parchment */
-	--text-primary: #3a2718;
-	--text-secondary: #87694a;
-	--text-muted: #b39a72;
+	/* Text — light on indigo */
+	--text-primary: #f4f2ff;
+	--text-secondary: #a9a3e0;
+	--text-muted: #6b64ad;
 
 	/* Borders */
-	--border-color: #5a3a1c;
-	--border-light: #7a5630;
+	--border-color: #4a4290;
+	--border-light: #6b64ad;
 	--border-width: 3px;
 
 	/* Spacing */
@@ -54,33 +54,33 @@
 	--radius-sm: 0;
 	--radius-md: 0;
 
-	/* Shadows — hard pixel offset, dark-wood colour (no blur) */
+	/* Shadows — hard pixel offset, deep indigo (no blur) */
 	--shadow-sm: 2px 2px 0px var(--pixel-black);
 	--shadow-md: 4px 4px 0px var(--pixel-black);
 	--shadow-lg: 6px 6px 0px var(--pixel-black);
 
-	/* Color-blocking role tokens (Stardew variant) */
-	--hero-bg: #4d8fcc;
-	--hero-text: #ffffff;
-	--hero-num: #f4c542;
-	--hero-edge: #4a2f18;
-	--cta-bg: #57a23f;
+	/* Color-blocking role tokens (Voltage variant) */
+	--hero-bg: #19e3ff;
+	--hero-text: #06223a;
+	--hero-num: #ff2e7e;
+	--hero-edge: #0c0a26;
+	--cta-bg: #ff2e7e;
 	--cta-text: #ffffff;
-	--cta-edge: #4a2f18;
-	--stat-bg: #f0b54a;
-	--stat-text: #3a2718;
-	--stat-edge: #4a2f18;
+	--cta-edge: #0c0a26;
+	--stat-bg: #211c52;
+	--stat-text: #f4f2ff;
+	--stat-edge: #0c0a26;
 
-	/* Activity heatmap — 5 levels: empty parchment → deep grass */
-	--hm0: #ddca9f;
-	--hm1: #b9d488;
-	--hm2: #8bc24a;
-	--hm3: #5aa033;
-	--hm4: #2f6e25;
+	/* Activity heatmap — 5 levels: empty card → neon cyan */
+	--hm0: #211c52;
+	--hm1: #1d5e7a;
+	--hm2: #1c93b0;
+	--hm3: #17c3e0;
+	--hm4: #19e3ff;
 
-	/* Fonts — Pixelify Sans (UI/body), Silkscreen (headings/numbers) */
+	/* Fonts — Pixelify Sans everywhere (readable pixel sans; no Silkscreen) */
 	--font-pixel: 'Pixelify Sans', monospace;
-	--font-display: 'Silkscreen', monospace;
+	--font-display: 'Pixelify Sans', monospace;
 	--font-size-xs: 9px;
 	--font-size-sm: 11px;
 	--font-size-md: 13px;
