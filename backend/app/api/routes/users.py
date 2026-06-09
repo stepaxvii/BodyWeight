@@ -10,6 +10,11 @@ from app.db.models import (
     UserAvatarPurchase,
 )
 from app.services.xp_calculator import xp_for_level
+from app.services.activity_norm import (
+    get_norm_history,
+    resolve_norm,
+    set_user_norm,
+)
 from app.schemas import (
     UserResponse,
     UserStatsResponse,
@@ -148,6 +153,9 @@ async def update_current_user(
         user.notifications_enabled = request.notifications_enabled
     if request.leaderboard_visible is not None:
         user.leaderboard_visible = request.leaderboard_visible
+    if request.daily_activity_norm is not None:
+        # Records a history row for today and updates the current-norm column.
+        await set_user_norm(session, user, request.daily_activity_norm)
 
     await session.flush()
     await session.refresh(user)
@@ -344,12 +352,22 @@ async def get_user_activity(
         days_data[date_str]["workouts"] += 1
         days_data[date_str]["total_xp"] += row.total_xp_earned or 0
 
+    # Each day carries the activity norm that was in force on that date, so the
+    # calendar colours historically (e.g. days before a norm change keep their
+    # original target). Fetched once; resolved per day below.
+    norm_history = await get_norm_history(session, user.id)
+
     # Convert to response format
     response_days = {
         date_str: DayActivityResponse(
             date=date_str,
             workouts=data["workouts"],
-            total_xp=data["total_xp"]
+            total_xp=data["total_xp"],
+            norm=resolve_norm(
+                norm_history,
+                date.fromisoformat(date_str),
+                fallback=user.daily_activity_norm,
+            ),
         )
         for date_str, data in days_data.items()
     }

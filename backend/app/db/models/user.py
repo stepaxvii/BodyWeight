@@ -37,6 +37,8 @@ class User(Base):
     # Settings
     notification_time: Mapped[time | None] = mapped_column(Time)
     notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Target XP per day for the activity calendar (history in user_activity_norms)
+    daily_activity_norm: Mapped[int] = mapped_column(Integer, default=1400, server_default="1400")
 
     # Onboarding
     is_onboarded: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -50,6 +52,7 @@ class User(Base):
     workout_sessions: Mapped[list["WorkoutSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     achievements: Mapped[list["UserAchievement"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     goals: Mapped[list["UserGoal"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    activity_norms: Mapped[list["UserActivityNorm"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     purchases: Mapped[list["UserPurchase"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     exercise_progress: Mapped[list["UserExerciseProgress"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     favorite_exercises: Mapped[list["UserFavoriteExercise"]] = relationship(back_populates="user", cascade="all, delete-orphan")

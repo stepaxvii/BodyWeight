@@ -33,6 +33,10 @@ class UserStore {
 		return this.user?.streak_freezes ?? 0;
 	}
 
+	get dailyActivityNorm() {
+		return this.user?.daily_activity_norm ?? 1400;
+	}
+
 	get xpForCurrentLevel() {
 		const lvl = this.level - 1;
 		return 100 * lvl * lvl;
@@ -251,6 +255,13 @@ class UserStore {
 	/** Buy one streak freeze. Throws on error (not enough coins / at cap). */
 	async buyStreakFreeze(): Promise<User> {
 		const updated = await api.buyStreakFreeze();
+		this.user = updated;
+		return updated;
+	}
+
+	/** Set the daily activity norm (XP/day). Throws on error. */
+	async setActivityNorm(norm: number): Promise<User> {
+		const updated = await api.updateUser({ daily_activity_norm: norm });
 		this.user = updated;
 		return updated;
 	}

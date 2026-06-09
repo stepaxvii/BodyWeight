@@ -9,13 +9,23 @@
 
 	let { activityData, range, onDayClick }: Props = $props();
 
+	const DEFAULT_NORM = 1400;
+
 	const dayCount = $derived(
 		range === 'week' ? 7 :
 		range === '2weeks' ? 14 :
 		range === 'month' ? 30 : 90
 	);
 
-	const todayStr = $derived(new Date().toISOString().split('T')[0]);
+	// Local calendar day (NOT toISOString/UTC, which shifts the day in UTC+ zones).
+	function toDateStr(date: Date): string {
+		const y = date.getFullYear();
+		const m = String(date.getMonth() + 1).padStart(2, '0');
+		const d = String(date.getDate()).padStart(2, '0');
+		return `${y}-${m}-${d}`;
+	}
+
+	const todayStr = $derived(toDateStr(new Date()));
 
 	// Даты за выбранный период (от старых к новым)
 	const dates = $derived((() => {
@@ -24,7 +34,7 @@
 		for (let i = dayCount - 1; i >= 0; i--) {
 			const d = new Date(end);
 			d.setDate(d.getDate() - i);
-			list.push(d.toISOString().split('T')[0]);
+			list.push(toDateStr(d));
 		}
 		return list;
 	})());
@@ -33,7 +43,8 @@
 		dates.map((date) => {
 			const day = activityData[date];
 			const value = day?.total_xp ?? 0;
-			return { date, value, activity: day ?? null, isToday: date === todayStr };
+			const norm = day?.norm ?? DEFAULT_NORM;
+			return { date, value, norm, activity: day ?? null, isToday: date === todayStr };
 		})
 	);
 
@@ -44,14 +55,14 @@
 	const totalValue = $derived(chartData.reduce((sum, d) => sum + d.value, 0));
 	const activeDays = $derived(chartData.filter((d) => d.value > 0).length);
 
-	// Color classes matching ActivityCalendar thresholds
-	function getBarColorClass(xp: number): string {
-		if (xp === 0) return 'bar-empty';
-		if (xp <= 200) return 'bar-light';
-		if (xp <= 400) return 'bar-medium';
-		if (xp <= 600) return 'bar-intense';
-		if (xp < 1000) return 'bar-strong';
-		return 'bar-very-intense';
+	// 4 уровня заливки по доле дневной нормы — как в ActivityCalendar.
+	function getBarColorClass(xp: number, norm: number): string {
+		if (xp <= 0) return 'bar-empty';
+		const step = Math.max(1, norm || DEFAULT_NORM) / 4;
+		if (xp <= step) return 'bar-1';
+		if (xp <= step * 2) return 'bar-2';
+		if (xp <= step * 3) return 'bar-3';
+		return 'bar-4';
 	}
 
 	function handleBarClick(date: string, activity: DayActivity | null) {
@@ -80,7 +91,7 @@
 
 	<!-- Chart area -->
 	<div class="chart-area">
-		{#each chartData as { date, value, activity, isToday }, i}
+		{#each chartData as { date, value, norm, activity, isToday }, i}
 			<button
 				class="bar-wrapper"
 				class:is-today={isToday}
@@ -89,7 +100,7 @@
 			>
 				{#if value > 0}
 					<div
-						class="bar {getBarColorClass(value)}"
+						class="bar {getBarColorClass(value, norm)}"
 						style="height: {Math.max((value / maxValue) * 100, 4)}%"
 					></div>
 				{:else}
@@ -174,23 +185,19 @@
 		transition: height 0.3s ease;
 	}
 
-	.bar-light {
+	.bar-1 {
 		background: #0e4429;
 	}
 
-	.bar-medium {
+	.bar-2 {
 		background: #006d32;
 	}
 
-	.bar-intense {
-		background: #1a7f37;
-	}
-
-	.bar-strong {
+	.bar-3 {
 		background: #26a641;
 	}
 
-	.bar-very-intense {
+	.bar-4 {
 		background: #39d353;
 	}
 

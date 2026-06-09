@@ -1,7 +1,7 @@
 """User-related Pydantic schemas."""
 
 from datetime import date, time, datetime
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 
 class UserResponse(BaseModel):
@@ -25,6 +25,7 @@ class UserResponse(BaseModel):
     notifications_enabled: bool
     is_onboarded: bool
     leaderboard_visible: bool
+    daily_activity_norm: int = 1400
     created_at: datetime
     updated_at: datetime
 
@@ -66,6 +67,8 @@ class UpdateUserRequest(BaseModel):
     notification_time: time | None = None
     notifications_enabled: bool | None = None
     leaderboard_visible: bool | None = None
+    # Daily activity goal (XP) for the calendar; bounds mirror activity_norm service.
+    daily_activity_norm: int | None = Field(default=None, ge=100, le=100_000)
 
 
 class CompleteOnboardingRequest(BaseModel):
@@ -98,6 +101,7 @@ class DayActivityResponse(BaseModel):
     date: str  # ISO format: "2025-01-09"
     workouts: int  # Number of workouts completed
     total_xp: int  # Total XP earned from workouts (excluding achievements)
+    norm: int  # Daily activity goal (XP) in force on this day — for calendar colouring
 
 
 class UserActivityResponse(BaseModel):

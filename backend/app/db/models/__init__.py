@@ -4,6 +4,7 @@ from .exercise import ExerciseCategory, Exercise
 from .workout import WorkoutSession, WorkoutExercise
 from .achievement import UserAchievement
 from .goal import UserGoal
+from .activity_norm import UserActivityNorm
 from .friendship import Friendship
 from .shop import ShopItem, UserPurchase, UserAvatarPurchase
 from .user_exercise import UserExerciseProgress, UserFavoriteExercise
@@ -25,6 +26,7 @@ __all__ = [
     "WorkoutExercise",
     "UserAchievement",
     "UserGoal",
+    "UserActivityNorm",
     "Friendship",
     "ShopItem",
     "UserPurchase",

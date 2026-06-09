@@ -15,10 +15,36 @@
 	let selectedDay = $state<{ date: string; activity: DayActivity | null } | null>(null);
 
 	// Streak freeze (must match backend STREAK_FREEZE_PRICE_COINS / MAX_STREAK_FREEZES)
-	const STREAK_FREEZE_PRICE = 100;
+	const STREAK_FREEZE_PRICE = 500;
 	const MAX_STREAK_FREEZES = 2;
 	let freezeBuying = $state(false);
 	let freezeMessage = $state<string | null>(null);
+
+	// Daily activity norm (XP/day target that colours the activity calendar)
+	let normInput = $state(1400);
+	let normSaving = $state(false);
+	let normMessage = $state<string | null>(null);
+
+	async function handleSaveNorm() {
+		if (normSaving) return;
+		const value = Math.round(Number(normInput));
+		if (!Number.isFinite(value) || value < 100 || value > 100000) {
+			normMessage = 'Норма должна быть от 100 до 100000 XP';
+			return;
+		}
+		normSaving = true;
+		normMessage = null;
+		try {
+			await userStore.setActivityNorm(value);
+			telegram.hapticNotification('success');
+			normMessage = '✅ Норма обновлена';
+		} catch (err) {
+			telegram.hapticNotification('error');
+			normMessage = err instanceof Error ? err.message : 'Не удалось сохранить';
+		} finally {
+			normSaving = false;
+		}
+	}
 
 	async function handleBuyFreeze() {
 		if (freezeBuying) return;
@@ -69,6 +95,7 @@
 
 	onMount(async () => {
 		await userStore.loadStats();
+		normInput = userStore.dailyActivityNorm;
 
 		try {
 			achievements = await api.getAllAchievements();
@@ -201,6 +228,31 @@
 			</PixelCard>
 		</section>
 	{/if}
+
+	<!-- Daily activity norm -->
+	<section class="norm-section">
+		<h3 class="section-title">Дневная норма</h3>
+		<div class="norm-card">
+			<p class="norm-hint">Цель XP в день — по ней раскрашивается календарь активности (4 уровня заливки).</p>
+			<div class="norm-controls">
+				<input
+					class="norm-input"
+					type="number"
+					min="100"
+					max="100000"
+					step="50"
+					bind:value={normInput}
+				/>
+				<span class="norm-unit">XP</span>
+				<button class="norm-save" disabled={normSaving} onclick={handleSaveNorm}>
+					{normSaving ? '...' : 'Сохранить'}
+				</button>
+			</div>
+			{#if normMessage}
+				<p class="norm-message">{normMessage}</p>
+			{/if}
+		</div>
+	</section>
 
 	<!-- Stats Row - compact horizontal -->
 	<section class="stats-section">
@@ -542,6 +594,74 @@
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent);
 		color: var(--pixel-bg);
+	}
+
+	/* Daily activity norm */
+	.norm-section {
+		margin-bottom: var(--spacing-md);
+	}
+
+	.norm-card {
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		padding: var(--spacing-sm) var(--spacing-md);
+	}
+
+	.norm-hint {
+		font-size: 10px;
+		color: var(--text-secondary);
+		margin: 0 0 var(--spacing-sm) 0;
+		line-height: 1.5;
+	}
+
+	.norm-controls {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+	}
+
+	.norm-input {
+		flex: 1;
+		min-width: 0;
+		padding: 8px 10px;
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
+		color: var(--text-primary);
+		font-family: inherit;
+		font-size: 14px;
+		outline: none;
+	}
+
+	.norm-input:focus {
+		border-color: var(--pixel-accent);
+	}
+
+	.norm-unit {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+
+	.norm-save {
+		padding: 8px var(--spacing-md);
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--pixel-accent);
+		color: var(--pixel-accent);
+		font-family: inherit;
+		font-size: var(--font-size-xs);
+		cursor: pointer;
+		white-space: nowrap;
+	}
+
+	.norm-save:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.norm-message {
+		font-size: 10px;
+		color: var(--text-secondary);
+		margin: var(--spacing-sm) 0 0 0;
+		text-align: center;
 	}
 
 	/* Stats Row - compact horizontal */

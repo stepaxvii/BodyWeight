@@ -10,22 +10,18 @@
 
 	let { activityData, year, onDayClick }: Props = $props();
 
-	// 6 градаций: пусто (0) + 5 уровней, шаг ≈250 XP, последняя — 1001+ XP
-	const XP_THRESHOLDS = {
-		LIGHT: 1,        // 1–250
-		MEDIUM: 251,     // 251–500
-		INTENSE: 501,    // 501–750
-		STRONG: 751,     // 751–1000
-		VERY_INTENSE: 1000 // 1001+
-	};
+	// 4 градации заливки: пусто (0 XP) + 4 уровня по доле дневной нормы.
+	// Норма делится на 4 равные ступени; день, достигший/превысивший норму,
+	// получает самый яркий цвет. У каждого дня своя норма (историчность).
+	const DEFAULT_NORM = 1400;
 
-	function getColorClass(xp: number): string {
-		if (xp === 0) return 'color-empty';
-		if (xp < XP_THRESHOLDS.MEDIUM) return 'color-light';
-		if (xp < XP_THRESHOLDS.INTENSE) return 'color-medium';
-		if (xp < XP_THRESHOLDS.STRONG) return 'color-intense';
-		if (xp < XP_THRESHOLDS.VERY_INTENSE) return 'color-strong';
-		return 'color-very-intense';
+	function getColorClass(xp: number, norm: number): string {
+		if (xp <= 0) return 'color-empty';
+		const step = Math.max(1, norm || DEFAULT_NORM) / 4;
+		if (xp <= step) return 'color-1';
+		if (xp <= step * 2) return 'color-2';
+		if (xp <= step * 3) return 'color-3';
+		return 'color-4';
 	}
 
 	// Generate all days for the year
@@ -81,7 +77,12 @@
 	const weeks = $derived(groupByWeeks(yearDays));
 
 	function formatDate(date: Date): string {
-		return date.toISOString().split('T')[0];
+		// Local calendar day (NOT toISOString/UTC, which shifts the day back in
+		// UTC+ timezones and would colour the wrong cell).
+		const y = date.getFullYear();
+		const m = String(date.getMonth() + 1).padStart(2, '0');
+		const d = String(date.getDate()).padStart(2, '0');
+		return `${y}-${m}-${d}`;
 	}
 
 	function handleDayClick(date: Date | null) {
@@ -127,11 +128,10 @@
 		<div class="calendar-legend">
 			<span class="legend-label">Меньше</span>
 			<div class="legend-box color-empty"></div>
-			<div class="legend-box color-light"></div>
-			<div class="legend-box color-medium"></div>
-			<div class="legend-box color-intense"></div>
-			<div class="legend-box color-strong"></div>
-			<div class="legend-box color-very-intense"></div>
+			<div class="legend-box color-1"></div>
+			<div class="legend-box color-2"></div>
+			<div class="legend-box color-3"></div>
+			<div class="legend-box color-4"></div>
 			<span class="legend-label">Больше</span>
 		</div>
 	</div>
@@ -155,9 +155,10 @@
 							{@const dateStr = formatDate(day)}
 							{@const activity = activityData[dateStr]}
 							{@const xp = activity?.total_xp || 0}
+							{@const norm = activity?.norm || DEFAULT_NORM}
 							<button
-								class="calendar-day {getColorClass(xp)}"
-								title="{dateStr}: {xp} XP, {activity?.workouts || 0} тренировок"
+								class="calendar-day {getColorClass(xp, norm)}"
+								title="{dateStr}: {xp}/{norm} XP, {activity?.workouts || 0} тренировок"
 								onclick={() => handleDayClick(day)}
 							></button>
 						{/if}
@@ -261,29 +262,25 @@
 		cursor: default;
 	}
 
-	/* 6 градаций: пусто + 5 уровней интенсивности (до 1000 XP) */
+	/* 4 градации: пусто + 4 уровня по доле дневной нормы */
 	.color-empty {
 		background: var(--pixel-bg-dark);
 	}
 
-	.color-light {
-		background: #0e4429; /* 1–250 XP */
+	.color-1 {
+		background: #0e4429; /* до 25% нормы */
 	}
 
-	.color-medium {
-		background: #006d32; /* 251–500 XP */
+	.color-2 {
+		background: #006d32; /* 25–50% нормы */
 	}
 
-	.color-intense {
-		background: #1a7f37; /* 501–750 XP */
+	.color-3 {
+		background: #26a641; /* 50–75% нормы */
 	}
 
-	.color-strong {
-		background: #26a641; /* 751-1000 XP */
-	}
-
-	.color-very-intense {
-		background: #39d353; /* 1001+ XP */
+	.color-4 {
+		background: #39d353; /* 75%+ — норма достигнута */
 	}
 
 	/* Scrollbar styling */

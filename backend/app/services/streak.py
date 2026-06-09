@@ -21,7 +21,7 @@ from app.services.notifications import save_notification, send_announcement_push
 logger = logging.getLogger(__name__)
 
 # Tunables
-STREAK_FREEZE_PRICE_COINS = 100
+STREAK_FREEZE_PRICE_COINS = 500
 MAX_STREAK_FREEZES = 2
 
 

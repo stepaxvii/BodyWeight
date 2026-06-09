@@ -103,6 +103,19 @@ async def check_achievements(
                     target_time = datetime.strptime(after_time, "%H:%M").time()
                     unlocked = workout_time > target_time
 
+        elif condition_type == "perfect_workouts":
+            # "Perfect" = a workout with no skipped exercises. The app only ever
+            # records exercises the user actually performed (skips are never
+            # stored anywhere), so every completed workout qualifies. Counting
+            # completed sessions is the faithful, measurable reading.
+            count_result = await session.execute(
+                select(func.count(WorkoutSession.id))
+                .where(WorkoutSession.user_id == user.id)
+                .where(WorkoutSession.status == "completed")
+            )
+            count = count_result.scalar() or 0
+            unlocked = count >= condition_value
+
         if unlocked:
             # Create achievement record
             user_achievement = UserAchievement(

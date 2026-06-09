@@ -92,6 +92,7 @@ export interface User {
 	notifications_enabled: boolean;
 	is_onboarded: boolean;
 	leaderboard_visible: boolean;
+	daily_activity_norm: number;
 	created_at: string;
 	updated_at: string;
 }
@@ -406,6 +407,7 @@ export interface DayActivity {
 	date: string; // ISO format: "2025-01-09"
 	workouts: number; // Number of workouts completed
 	total_xp: number; // Total XP earned from workouts (excluding achievements)
+	norm: number; // Daily activity goal (XP) in force on this day — for calendar colouring
 }
 
 export interface UserActivity {
