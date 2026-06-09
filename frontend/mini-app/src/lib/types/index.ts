@@ -233,11 +233,12 @@ export interface Achievement {
 	coin_reward: number;
 	unlocked: boolean;
 	unlocked_at?: string;
-	condition: Record<string, unknown>; // dict from backend
+	progress?: number; // current progress toward the condition (backend may omit)
+	condition: AchievementCondition;
 }
 
 export interface AchievementCondition {
-	type: 'total_workouts' | 'streak' | 'level' | 'exercise_reps' | 'time_of_day';
+	type: 'total_workouts' | 'streak' | 'level' | 'exercise_reps' | 'time_of_day' | 'perfect_workouts';
 	value?: number;
 	exercise?: string;
 	before?: string;

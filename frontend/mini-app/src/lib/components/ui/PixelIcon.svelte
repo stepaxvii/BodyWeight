@@ -3,12 +3,14 @@
 		name: string;
 		size?: 'sm' | 'md' | 'lg' | 'xl';
 		color?: string;
+		class?: string;
 	}
 
 	let {
 		name,
 		size = 'md',
-		color = 'currentColor'
+		color = 'currentColor',
+		class: className = ''
 	}: Props = $props();
 
 	const sizeMap = {
@@ -22,7 +24,7 @@
 </script>
 
 <svg
-	class="pixel-icon"
+	class="pixel-icon {className}"
 	width={iconSize}
 	height={iconSize}
 	viewBox="0 0 16 16"

@@ -16,7 +16,7 @@
 		onsave?: (xp: number, coins: number) => void;
 	}
 
-	let { open = false, onclose, onsave }: Props = $props();
+	let { open = $bindable(false), onclose, onsave }: Props = $props();
 
 	type Step = 'mode' | 'exercise' | 'input' | 'filters' | 'cycling-input' | 'walking-input';
 	type ExerciseMode = 'favorites' | 'all';

@@ -231,7 +231,7 @@
 			</div>
 			<div class="stat-divider"></div>
 			<div class="stat-item">
-				<PixelIcon name="streak" size="md" color="var(--pixel-red)" />
+				<PixelIcon name="streak" size="md" color="var(--pixel-red)" class="anim-flicker" />
 				<div class="stat-info">
 					<span class="stat-value"><CountUp value={userStore.streak} /></span>
 					<span class="stat-label">Серия</span>
@@ -239,7 +239,7 @@
 			</div>
 			<div class="stat-divider"></div>
 			<div class="stat-item">
-				<PixelIcon name="coin" size="md" color="var(--stat-text)" />
+				<PixelIcon name="coin" size="md" color="var(--stat-text)" class="anim-coin-spin" />
 				<div class="stat-info">
 					<span class="stat-value"><CountUp value={userStore.coins} /></span>
 					<span class="stat-label">Монеты</span>

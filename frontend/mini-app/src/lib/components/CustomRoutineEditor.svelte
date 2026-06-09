@@ -217,7 +217,8 @@
 		telegram.hapticImpact('light');
 	}
 
-	function updateExerciseSettings(index: number, updates: Partial<RoutineExerciseItem>) {
+	function updateExerciseSettings(index: number | null, updates: Partial<RoutineExerciseItem>) {
+		if (index === null) return;
 		selectedExercises = selectedExercises.map((item, i) =>
 			i === index ? { ...item, ...updates } : item
 		);

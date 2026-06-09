@@ -6,6 +6,8 @@
 		hoverable?: boolean;
 		onclick?: () => void;
 		padding?: 'none' | 'sm' | 'md' | 'lg';
+		class?: string;
+		style?: string;
 	}
 
 	let {
@@ -13,6 +15,8 @@
 		hoverable = false,
 		onclick,
 		padding = 'md',
+		class: className = '',
+		style = '',
 		children
 	}: Props & { children?: any } = $props();
 
@@ -25,7 +29,8 @@
 </script>
 
 <div
-	class="pixel-card {variant} padding-{padding}"
+	class="pixel-card {variant} padding-{padding} {className}"
+	{style}
 	class:hoverable
 	class:clickable={!!onclick}
 	role={onclick ? 'button' : undefined}

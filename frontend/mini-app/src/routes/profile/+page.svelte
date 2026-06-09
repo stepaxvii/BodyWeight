@@ -262,11 +262,11 @@
 				<span class="stat-value"><CountUp value={userStore.xp} /></span>
 			</div>
 			<div class="stat-item">
-				<PixelIcon name="coin" size="md" color="var(--pixel-orange)" />
+				<PixelIcon name="coin" size="md" color="var(--pixel-orange)" class="anim-coin-spin" />
 				<span class="stat-value"><CountUp value={userStore.coins} /></span>
 			</div>
 			<div class="stat-item">
-				<PixelIcon name="streak" size="md" color="var(--pixel-yellow)" />
+				<PixelIcon name="streak" size="md" color="var(--pixel-yellow)" class="anim-flicker" />
 				<span class="stat-value"><CountUp value={userStore.streak} /></span>
 			</div>
 			<div class="stat-item">

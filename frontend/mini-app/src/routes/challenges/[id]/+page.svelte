@@ -13,7 +13,7 @@
 		ChallengeParticipant
 	} from '$lib/types';
 
-	const challengeId = $derived(parseInt($page.params.id));
+	const challengeId = $derived(parseInt($page.params.id ?? '', 10));
 
 	let details = $state<ChallengeDetails | null>(null);
 	let myCalendar = $state<ChallengeCalendar | null>(null);

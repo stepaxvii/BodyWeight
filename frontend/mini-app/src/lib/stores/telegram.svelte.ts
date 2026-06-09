@@ -30,8 +30,8 @@ class TelegramStore {
 			// Configure WebApp
 			webApp.ready();
 			webApp.expand();
-			webApp.setHeaderColor('#1a1a2e');
-			webApp.setBackgroundColor('#1a1a2e');
+			webApp.setHeaderColor('#e7cf9b');
+			webApp.setBackgroundColor('#e7cf9b');
 
 			// Listen for theme changes
 			webApp.onEvent('themeChanged', () => {
