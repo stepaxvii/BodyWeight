@@ -49,6 +49,12 @@ AVATAR_DATA = {
     'kraken': {'price': 750, 'required_level': 15},
     'leviathan': {'price': 1000, 'required_level': 20},
     'titan': {'price': 1500, 'required_level': 25},
+    # New heroes (Stardew redesign)
+    'solar-lion': {'price': 350, 'required_level': 8},
+    'crystal-stag': {'price': 450, 'required_level': 10},
+    'storm-eagle': {'price': 600, 'required_level': 14},
+    'void-serpent': {'price': 900, 'required_level': 18},
+    'magma-golem': {'price': 1200, 'required_level': 22},
 }
 
 

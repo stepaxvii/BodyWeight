@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { DayActivity } from '$lib/types';
+	import { CountUp } from '$lib/components/ui';
 
 	interface Props {
 		activityData: Record<string, DayActivity>;
@@ -72,9 +73,9 @@
 
 <div class="activity-bar-chart">
 	<!-- Summary -->
-	<div class="chart-summary">
+	<div class="chart-summary anim-cascade">
 		<div class="summary-item">
-			<span class="summary-value">{totalValue}</span>
+			<span class="summary-value"><CountUp value={totalValue} /></span>
 			<span class="summary-label">XP</span>
 		</div>
 		<div class="summary-divider"></div>
@@ -100,8 +101,8 @@
 			>
 				{#if value > 0}
 					<div
-						class="bar {getBarColorClass(value, norm)}"
-						style="height: {Math.max((value / maxValue) * 100, 4)}%"
+						class="bar anim-bar-grow {getBarColorClass(value, norm)}"
+						style="height: {Math.max((value / maxValue) * 100, 4)}%; animation-delay: {i * 0.02}s"
 					></div>
 				{:else}
 					<div class="bar-empty-dot"></div>

@@ -81,7 +81,7 @@
 			onButtonClick={() => (window.location.href = `${base}/challenges/new`)}
 		/>
 	{:else}
-		<div class="challenge-list">
+		<div class="challenge-list anim-rows">
 			{#each items as item (item.id)}
 				<a href="{base}/challenges/{item.id}" class="challenge-card-link">
 					<PixelCard padding="md">

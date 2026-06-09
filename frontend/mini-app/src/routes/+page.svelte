@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import { PixelButton, PixelCard, PixelProgress, PixelIcon, PixelModal } from '$lib/components/ui';
+	import { PixelButton, PixelCard, PixelProgress, PixelIcon, PixelModal, CountUp } from '$lib/components/ui';
 	import QuickExerciseModal from '$lib/components/QuickExerciseModal.svelte';
 	import ActivityCalendar from '$lib/components/ActivityCalendar.svelte';
 	import BossBar from '$lib/components/BossBar.svelte';
@@ -107,7 +107,7 @@
 	}
 </script>
 
-<div class="page container">
+<div class="page container anim-cascade">
 	<!-- Compact Header -->
 	<header class="page-header">
 		<div class="header-left">
@@ -181,7 +181,7 @@
 					<span class="workout-title">Начать тренировку</span>
 					<span class="workout-subtitle">Выбери программу или упражнения</span>
 				</div>
-				<div class="workout-arrow">
+				<div class="workout-arrow anim-nudge">
 					<PixelIcon name="play" size="lg" />
 				</div>
 			</div>
@@ -208,7 +208,7 @@
 		<div class="progress-card">
 			<div class="progress-header">
 				<div class="progress-level">
-					<span class="level-number">{userStore.level}</span>
+					<span class="level-number"><CountUp value={userStore.level} /></span>
 					<span class="level-label">Уровень</span>
 				</div>
 				<div class="progress-xp">
@@ -225,7 +225,7 @@
 			<div class="stat-item">
 				<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
 				<div class="stat-info">
-					<span class="stat-value">{userStore.xp}</span>
+					<span class="stat-value"><CountUp value={userStore.xp} /></span>
 					<span class="stat-label">XP</span>
 				</div>
 			</div>
@@ -233,7 +233,7 @@
 			<div class="stat-item">
 				<PixelIcon name="streak" size="md" color="var(--pixel-red)" />
 				<div class="stat-info">
-					<span class="stat-value">{userStore.streak}</span>
+					<span class="stat-value"><CountUp value={userStore.streak} /></span>
 					<span class="stat-label">Серия</span>
 				</div>
 			</div>
@@ -241,7 +241,7 @@
 			<div class="stat-item">
 				<PixelIcon name="coin" size="md" color="var(--stat-text)" />
 				<div class="stat-info">
-					<span class="stat-value">{userStore.coins}</span>
+					<span class="stat-value"><CountUp value={userStore.coins} /></span>
 					<span class="stat-label">Монеты</span>
 				</div>
 			</div>

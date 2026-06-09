@@ -61,7 +61,9 @@ export type AvatarId =
 	| 'shadow-wolf' | 'iron-bear' | 'fire-fox' | 'night-panther'
 	// Paid mythical (increasing price/level)
 	| 'phoenix' | 'griffin' | 'cerberus' | 'thunder-fang' | 'cyber-ape' | 'hydra'
-	| 'minotaur' | 'kraken' | 'leviathan' | 'titan';
+	| 'minotaur' | 'kraken' | 'leviathan' | 'titan'
+	// New heroes (Stardew redesign)
+	| 'solar-lion' | 'crystal-stag' | 'storm-eagle' | 'void-serpent' | 'magma-golem';
 
 export interface Avatar {
 	id: AvatarId;

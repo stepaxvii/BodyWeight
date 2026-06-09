@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
-	import { PixelCard, PixelProgress, PixelIcon, PixelAvatar, PixelModal, AvatarPicker } from '$lib/components/ui';
+	import { PixelCard, PixelProgress, PixelIcon, PixelAvatar, PixelModal, AvatarPicker, CountUp } from '$lib/components/ui';
 	import ActivityBarChart from '$lib/components/ActivityBarChart.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
@@ -149,7 +149,7 @@
 	}
 </script>
 
-<div class="page container">
+<div class="page container anim-cascade">
 	<!-- Profile Header - Avatar left, Level info right -->
 	<header class="profile-header">
 		<button class="avatar-btn" onclick={openAvatarPicker}>
@@ -259,19 +259,19 @@
 		<div class="stats-row">
 			<div class="stat-item">
 				<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
-				<span class="stat-value">{userStore.xp}</span>
+				<span class="stat-value"><CountUp value={userStore.xp} /></span>
 			</div>
 			<div class="stat-item">
 				<PixelIcon name="coin" size="md" color="var(--pixel-orange)" />
-				<span class="stat-value">{userStore.coins}</span>
+				<span class="stat-value"><CountUp value={userStore.coins} /></span>
 			</div>
 			<div class="stat-item">
 				<PixelIcon name="streak" size="md" color="var(--pixel-yellow)" />
-				<span class="stat-value">{userStore.streak}</span>
+				<span class="stat-value"><CountUp value={userStore.streak} /></span>
 			</div>
 			<div class="stat-item">
 				<PixelIcon name="trophy" size="md" color="var(--pixel-accent)" />
-				<span class="stat-value">{unlockedCount}</span>
+				<span class="stat-value"><CountUp value={unlockedCount} /></span>
 			</div>
 		</div>
 	</section>
@@ -285,7 +285,7 @@
 					<span class="badges-title">Значки</span>
 					<span class="badges-count">{unlockedCount}/{achievements.length}</span>
 				</div>
-				<div class="badges-grid">
+				<div class="badges-grid anim-rows">
 					{#each unlockedAchievements.slice(0, 16) as achievement}
 						<div class="badge-item" title={achievement.name_ru}>
 							<img

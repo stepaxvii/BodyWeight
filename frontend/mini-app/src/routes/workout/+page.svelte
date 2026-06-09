@@ -199,13 +199,13 @@
 		selectedEquipment.length + selectedDifficulties.length + selectedTags.length
 	);
 
-	// Category colors (by load type)
+	// Category colors (by load type) — theme tokens so they track the palette
 	const categoryColors: Record<string, string> = {
-		strength: '#d82800',
-		cardio: '#ff6b35',
-		static: '#0058f8',
-		'dynamic-stretch': '#00a800',
-		'static-stretch': '#00a8a8'
+		strength: 'var(--pixel-red)',
+		cardio: 'var(--pixel-orange)',
+		static: 'var(--pixel-accent)',
+		'dynamic-stretch': 'var(--pixel-green)',
+		'static-stretch': 'var(--pixel-cyan)'
 	};
 
 	const routineCategoryTabs: { id: RoutineCategory; name: string }[] = [
@@ -825,7 +825,7 @@
 						activeTab={activeRoutineCategory}
 						onTabChange={(id) => activeRoutineCategory = id}
 					/>
-					<div class="routines-list">
+					<div class="routines-list anim-rows">
 						{#each filteredRoutines as routine}
 							<PixelCard hoverable onclick={() => selectRoutine(routine)} padding="sm">
 								<div class="routine-item">
@@ -872,7 +872,7 @@
 									{group.exercises.length}
 								</span>
 							</div>
-							<div class="exercises-list">
+							<div class="exercises-list anim-rows">
 								{#each group.exercises as exercise (exercise.id)}
 									<ExerciseCard
 										{exercise}
@@ -950,7 +950,7 @@
 				</div>
 
 				<!-- Exercise list -->
-				<div class="exercises-list">
+				<div class="exercises-list anim-rows">
 					{#each filteredExercises as exercise (exercise.id)}
 						<ExerciseCard
 							{exercise}

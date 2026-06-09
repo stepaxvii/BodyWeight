@@ -39,7 +39,7 @@
 		<img
 			src="{base}{boss.image_url}"
 			alt={boss.name_ru}
-			class="boss-img"
+			class="boss-img anim-floaty"
 		/>
 		<div class="boss-content">
 			<div class="boss-header">
@@ -56,7 +56,7 @@
 			</div>
 			<div class="hp-track">
 				<div
-					class="hp-fill hp-fill--{hpLevel}"
+					class="hp-fill hp-fill--{hpLevel} anim-bar-grow"
 					style="width: {hpPercent}%;"
 				></div>
 			</div>

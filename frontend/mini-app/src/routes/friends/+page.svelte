@@ -290,7 +290,7 @@
 			</p>
 
 			{#if searchResults.length > 0}
-				<div class="user-list">
+				<div class="user-list anim-rows">
 					{#each searchResults as user}
 						<PixelCard padding="sm">
 							<div class="user-item">
@@ -346,7 +346,7 @@
 				onButtonClick={() => switchTab('search')}
 			/>
 		{:else}
-			<div class="user-list">
+			<div class="user-list anim-rows">
 				{#each friends as friend}
 					<PixelCard padding="sm">
 						<div class="user-item">
@@ -387,7 +387,7 @@
 				message="Нет входящих заявок"
 			/>
 		{:else}
-			<div class="user-list">
+			<div class="user-list anim-rows">
 				{#each friendRequests as request}
 					<PixelCard padding="sm">
 						<div class="user-item">

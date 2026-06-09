@@ -17,7 +17,14 @@ export const AVATARS: Avatar[] = [
 	{ id: 'minotaur', name: 'Minotaur', name_ru: 'Минотавр', requiredLevel: 12, price: 500 },
 	{ id: 'kraken', name: 'Kraken', name_ru: 'Кракен', requiredLevel: 15, price: 750 },
 	{ id: 'leviathan', name: 'Leviathan', name_ru: 'Левиафан', requiredLevel: 20, price: 1000 },
-	{ id: 'titan', name: 'Titan', name_ru: 'Титан', requiredLevel: 25, price: 1500 }
+	{ id: 'titan', name: 'Titan', name_ru: 'Титан', requiredLevel: 25, price: 1500 },
+
+	// === НОВЫЕ ГЕРОИ (Stardew-редизайн) ===
+	{ id: 'solar-lion', name: 'Solar Lion', name_ru: 'Солнечный Лев', requiredLevel: 8, price: 350 },
+	{ id: 'crystal-stag', name: 'Crystal Stag', name_ru: 'Хрустальный Олень', requiredLevel: 10, price: 450 },
+	{ id: 'storm-eagle', name: 'Storm Eagle', name_ru: 'Штормовой Орёл', requiredLevel: 14, price: 600 },
+	{ id: 'void-serpent', name: 'Void Serpent', name_ru: 'Бездонный Змей', requiredLevel: 18, price: 900 },
+	{ id: 'magma-golem', name: 'Magma Golem', name_ru: 'Магма-Голем', requiredLevel: 22, price: 1200 }
 ];
 
 export function getAvatar(id: AvatarId): Avatar | undefined {

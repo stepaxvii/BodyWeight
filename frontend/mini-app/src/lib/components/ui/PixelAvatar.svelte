@@ -7,13 +7,17 @@
 		size?: 'sm' | 'md' | 'lg' | 'xl';
 		showBorder?: boolean;
 		borderColor?: string;
+		idle?: boolean; // gentle idle motion (off under prefers-reduced-motion)
+		ring?: boolean; // pulsing gold ring for premium avatars
 	}
 
 	let {
 		avatarId,
 		size = 'md',
 		showBorder = true,
-		borderColor = 'var(--border-color)'
+		borderColor = 'var(--border-color)',
+		idle = true,
+		ring = false
 	}: Props = $props();
 
 	const sizeMap = {
@@ -23,13 +27,24 @@
 		xl: 64
 	};
 
+	// Pick an idle variant deterministically from the id so a grid of avatars
+	// "breathes" out of sync rather than in lockstep.
+	const IDLE_VARIANTS = ['idle-bob', 'idle-breathe', 'idle-sway', 'idle-hop'];
 	const pixelSize = $derived(sizeMap[size]);
 	const avatarPath = $derived(`${base}/sprites/avatars/${avatarId}.svg`);
+	const idleClass = $derived(
+		idle
+			? IDLE_VARIANTS[
+					[...avatarId].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % IDLE_VARIANTS.length
+				]
+			: ''
+	);
 </script>
 
 <div
-	class="pixel-avatar"
+	class="pixel-avatar {idleClass}"
 	class:bordered={showBorder}
+	class:anim-ring={ring}
 	style="
 		--size: {pixelSize}px;
 		--border-color: {borderColor};

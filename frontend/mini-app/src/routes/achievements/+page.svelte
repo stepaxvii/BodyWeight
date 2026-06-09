@@ -85,7 +85,7 @@
 	<PixelTabs tabs={achievementTabs} activeTab={filter} onTabChange={setFilter} />
 
 	<!-- Achievement Grid -->
-	<div class="achievements-grid">
+	<div class="achievements-grid anim-rows">
 		{#each filteredAchievements() as achievement}
 			<PixelCard
 				variant={achievement.unlocked ? 'success' : 'default'}

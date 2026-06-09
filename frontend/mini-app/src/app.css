@@ -396,3 +396,65 @@ a:hover {
 .icon-md { width: 16px; height: 16px; }
 .icon-lg { width: 24px; height: 24px; }
 .icon-xl { width: 32px; height: 32px; }
+
+/* ============================================
+   Redesign animation layer ("Stardew juice")
+   Reusable, opt-in via class. All motion is
+   disabled under prefers-reduced-motion.
+   ============================================ */
+@keyframes av-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px) scaleY(0.97); } }
+@keyframes av-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.045); } }
+@keyframes av-sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes av-hop { 0%, 66%, 100% { transform: translateY(0) scaleY(1); } 80% { transform: translateY(-4px) scaleY(1.05); } 90% { transform: translateY(0) scaleY(0.93); } }
+@keyframes ring-pulse { 0%, 100% { box-shadow: 0 0 0 2px var(--pixel-yellow); } 50% { box-shadow: 0 0 0 4px var(--pixel-yellow); } }
+@keyframes card-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes row-in { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes pop-in { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
+@keyframes bar-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes coin-spin { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.15); } }
+@keyframes flicker { 0%, 100% { transform: scale(1); } 45% { transform: scale(1.18) translateY(-1px); } 70% { transform: scale(0.95); } }
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+@keyframes toast-in { from { opacity: 0; transform: translateY(40px) scale(0.85); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+@media (prefers-reduced-motion: no-preference) {
+	/* avatar / sprite idle loops */
+	.idle-bob { animation: av-bob 2.6s ease-in-out infinite; }
+	.idle-breathe { animation: av-breathe 3s ease-in-out infinite; }
+	.idle-sway { animation: av-sway 3.4s ease-in-out infinite; transform-origin: center bottom; }
+	.idle-hop { animation: av-hop 2.4s ease-in-out infinite; transform-origin: center bottom; }
+	.anim-ring { animation: ring-pulse 1.6s ease-in-out infinite; }
+	.anim-floaty { animation: floaty 3s ease-in-out infinite; }
+
+	/* one-shot entrances */
+	.anim-pop { animation: pop-in 0.42s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+	.anim-bar-grow { animation: bar-grow 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) both; transform-origin: bottom; }
+	.anim-toast { animation: toast-in 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
+
+	/* ambient loops */
+	.anim-coin-spin { animation: coin-spin 3.5s linear infinite; }
+	.anim-flicker { animation: flicker 1.6s ease-in-out infinite; transform-origin: center bottom; }
+	.anim-nudge { animation: nudge 1.4s ease-in-out infinite; }
+
+	/* cascade entrance — add .anim-cascade to a container; its direct
+	   children fade/slide up with staggered delays */
+	.anim-cascade > * { animation: card-in 0.42s both; }
+	.anim-cascade > *:nth-child(1) { animation-delay: 0.02s; }
+	.anim-cascade > *:nth-child(2) { animation-delay: 0.06s; }
+	.anim-cascade > *:nth-child(3) { animation-delay: 0.10s; }
+	.anim-cascade > *:nth-child(4) { animation-delay: 0.14s; }
+	.anim-cascade > *:nth-child(5) { animation-delay: 0.18s; }
+	.anim-cascade > *:nth-child(6) { animation-delay: 0.22s; }
+	.anim-cascade > *:nth-child(7) { animation-delay: 0.26s; }
+	.anim-cascade > *:nth-child(n + 8) { animation-delay: 0.30s; }
+
+	/* list rows — add .anim-rows to a container of repeated rows */
+	.anim-rows > * { animation: row-in 0.4s ease both; }
+	.anim-rows > *:nth-child(1) { animation-delay: 0.03s; }
+	.anim-rows > *:nth-child(2) { animation-delay: 0.07s; }
+	.anim-rows > *:nth-child(3) { animation-delay: 0.11s; }
+	.anim-rows > *:nth-child(4) { animation-delay: 0.15s; }
+	.anim-rows > *:nth-child(5) { animation-delay: 0.19s; }
+	.anim-rows > *:nth-child(6) { animation-delay: 0.23s; }
+	.anim-rows > *:nth-child(n + 7) { animation-delay: 0.27s; }
+}

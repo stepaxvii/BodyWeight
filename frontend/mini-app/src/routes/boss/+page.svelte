@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
-	import { PixelButton, PixelCard, PixelIcon, PixelAvatar, PixelTabs, EmptyState } from '$lib/components/ui';
+	import { PixelButton, PixelCard, PixelIcon, PixelAvatar, PixelTabs, EmptyState, CountUp } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -108,7 +108,7 @@
 		{#if boss}
 			<PixelCard padding="md">
 				<div class="boss-hero">
-					<img src="{base}{boss.image_url}" alt={boss.name_ru} class="boss-img-large" />
+					<img src="{base}{boss.image_url}" alt={boss.name_ru} class="boss-img-large anim-floaty" />
 					<div class="boss-info">
 						<h2 class="boss-title">{boss.name_ru}</h2>
 						<p class="boss-period">{formatDate(boss.start_date)} — {formatDate(boss.end_date)}</p>
@@ -118,7 +118,7 @@
 
 				<div class="hp-section">
 					<div class="hp-track-large">
-						<div class="hp-fill-large" style="width: {hpPercent}%; background: {barColor};"></div>
+						<div class="hp-fill-large anim-bar-grow" style="width: {hpPercent}%; background: {barColor};"></div>
 					</div>
 					<div class="hp-numbers">
 						<span>{formatNum(boss.current_hp)} HP</span>
@@ -134,7 +134,7 @@
 				{#if me && me.total_damage > 0}
 					<div class="me-stats">
 						<div class="me-stat">
-							<span class="me-value">{formatNum(me.total_damage)}</span>
+							<span class="me-value"><CountUp value={me.total_damage} /></span>
 							<span class="me-label">урон</span>
 						</div>
 						<div class="me-stat">
@@ -150,7 +150,7 @@
 					{#if me.reward_claimable}
 						<div class="claim-card">
 							<div class="claim-info">
-								<span class="claim-coins">+{me.reward_coins}</span>
+								<span class="claim-coins">+<CountUp value={me.reward_coins} /></span>
 								<span class="claim-text">монет ждут тебя</span>
 								{#if me.is_top10}
 									<span class="claim-top10">🏆 Топ-10</span>
@@ -180,7 +180,7 @@
 			<PixelCard padding="md">
 				<h3 class="section-title">Топ-10 по урону</h3>
 				{#if leaderboard && leaderboard.entries.length > 0}
-					<div class="leaderboard">
+					<div class="leaderboard anim-rows">
 						{#each leaderboard.entries as entry}
 							<div class="lb-row" class:lb-me={me?.rank === entry.rank}>
 								<span class="lb-rank">#{entry.rank}</span>
@@ -209,7 +209,7 @@
 		{/if}
 	{:else if activeTab === 'history'}
 		{#if history && history.bosses.length > 0}
-			<div class="history-list">
+			<div class="history-list anim-rows">
 				{#each history.bosses as h (h.id)}
 					<PixelCard padding="md">
 						<div class="hist-row">

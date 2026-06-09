@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { PixelCard, PixelIcon, PixelAvatar, EmptyState, PixelTabs, PixelButton } from '$lib/components/ui';
+	import { PixelCard, PixelIcon, PixelAvatar, EmptyState, PixelTabs, PixelButton, CountUp } from '$lib/components/ui';
 	import UserProfileModal from '$lib/components/UserProfileModal.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
@@ -138,7 +138,7 @@
 			<div class="podium">
 				<!-- 2nd Place -->
 				<button
-					class="podium-item second"
+					class="podium-item second anim-pop"
 					class:clickable={!entries[1].is_current_user}
 					onclick={() => openUserProfile(entries[1])}
 				>
@@ -148,13 +148,13 @@
 						borderColor="var(--pixel-light)"
 					/>
 					<span class="podium-name">{entries[1].username ? `${entries[1].username}` : entries[1].first_name}</span>
-					<span class="podium-xp">{entries[1].total_xp} XP</span>
+					<span class="podium-xp"><CountUp value={entries[1].total_xp} /> XP</span>
 					<div class="podium-rank">2</div>
 				</button>
 
 				<!-- 1st Place -->
 				<button
-					class="podium-item first"
+					class="podium-item first anim-pop"
 					class:clickable={!entries[0].is_current_user}
 					onclick={() => openUserProfile(entries[0])}
 				>
@@ -167,13 +167,13 @@
 						borderColor="var(--pixel-yellow)"
 					/>
 					<span class="podium-name">{entries[0].username ? `${entries[0].username}` : entries[0].first_name}</span>
-					<span class="podium-xp">{entries[0].total_xp} XP</span>
+					<span class="podium-xp"><CountUp value={entries[0].total_xp} /> XP</span>
 					<div class="podium-rank">1</div>
 				</button>
 
 				<!-- 3rd Place -->
 				<button
-					class="podium-item third"
+					class="podium-item third anim-pop"
 					class:clickable={!entries[2].is_current_user}
 					onclick={() => openUserProfile(entries[2])}
 				>
@@ -183,14 +183,14 @@
 						borderColor="var(--pixel-orange)"
 					/>
 					<span class="podium-name">{entries[2].username ? `${entries[2].username}` : entries[2].first_name}</span>
-					<span class="podium-xp">{entries[2].total_xp} XP</span>
+					<span class="podium-xp"><CountUp value={entries[2].total_xp} /> XP</span>
 					<div class="podium-rank">3</div>
 				</button>
 			</div>
 		{/if}
 
 		<!-- Full List -->
-		<div class="leaderboard-list">
+		<div class="leaderboard-list anim-rows">
 			{#each entries as entry, i}
 				{@const hasPodium = activeTab !== 'friends' && entries.length >= 3}
 				{@const showInList = activeTab === 'friends' || !hasPodium || i >= 3}
@@ -226,7 +226,7 @@
 							</div>
 
 							<div class="entry-stats">
-								<span class="entry-xp">{entry.total_xp}</span>
+								<span class="entry-xp"><CountUp value={entry.total_xp} /></span>
 								<span class="entry-xp-label">XP</span>
 							</div>
 
