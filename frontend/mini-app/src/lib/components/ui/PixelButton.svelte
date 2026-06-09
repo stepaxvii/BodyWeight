@@ -53,9 +53,10 @@
 		justify-content: center;
 		gap: var(--spacing-sm);
 		font-family: var(--font-pixel);
+		border-radius: var(--radius-sm);
 		text-transform: uppercase;
 		cursor: pointer;
-		border: 2px solid;
+		border: var(--border-width) solid;
 		background: var(--pixel-card);
 		color: var(--text-primary);
 		transition: transform var(--transition-fast), box-shadow var(--transition-fast);
@@ -83,7 +84,8 @@
 	.pixel-button.primary {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent-hover);
-		box-shadow: 4px 4px 0px var(--pixel-black);
+		color: var(--pixel-white);
+		box-shadow: var(--shadow-md);
 	}
 
 	.pixel-button.primary:hover:not(:disabled) {
@@ -93,7 +95,7 @@
 	.pixel-button.secondary {
 		background: var(--pixel-card);
 		border-color: var(--border-light);
-		box-shadow: 4px 4px 0px var(--pixel-black);
+		box-shadow: var(--shadow-md);
 	}
 
 	.pixel-button.secondary:hover:not(:disabled) {
@@ -104,7 +106,8 @@
 	.pixel-button.success {
 		background: var(--pixel-green);
 		border-color: var(--pixel-green-light);
-		box-shadow: 4px 4px 0px var(--pixel-black);
+		color: var(--pixel-white);
+		box-shadow: var(--shadow-md);
 	}
 
 	.pixel-button.success:hover:not(:disabled) {
@@ -114,7 +117,8 @@
 	.pixel-button.danger {
 		background: var(--pixel-red);
 		border-color: var(--pixel-orange);
-		box-shadow: 4px 4px 0px var(--pixel-black);
+		color: var(--pixel-white);
+		box-shadow: var(--shadow-md);
 	}
 
 	.pixel-button.danger:hover:not(:disabled) {

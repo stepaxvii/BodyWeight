@@ -72,7 +72,8 @@
 
 	.modal {
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		border-radius: var(--radius-sm);
 		box-shadow: var(--shadow-lg);
 		width: 100%;
 		max-width: 360px;
@@ -88,7 +89,7 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: var(--spacing-md);
-		border-bottom: 2px solid var(--border-color);
+		border-bottom: var(--border-width) solid var(--border-color);
 		background: var(--pixel-bg-dark);
 	}
 

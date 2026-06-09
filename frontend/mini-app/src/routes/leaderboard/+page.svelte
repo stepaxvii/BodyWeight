@@ -288,7 +288,7 @@
 		gap: var(--spacing-xs);
 		padding: var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		position: relative;
 		cursor: pointer;
 		font-family: var(--font-pixel);
@@ -302,17 +302,20 @@
 
 	.podium-item.first {
 		padding: var(--spacing-md);
-		border-color: var(--pixel-yellow);
+		background: var(--pixel-yellow);
+		border-color: var(--border-color);
 		margin-bottom: var(--spacing-md);
 	}
 
 	.podium-item.second {
-		border-color: var(--pixel-light);
+		background: #dfe5cf;
+		border-color: var(--border-color);
 		padding-bottom: var(--spacing-md);
 	}
 
 	.podium-item.third {
-		border-color: var(--pixel-orange);
+		background: #d89a5a;
+		border-color: var(--border-color);
 		padding-bottom: var(--spacing-md);
 	}
 
@@ -332,7 +335,7 @@
 
 	.podium-xp {
 		font-size: var(--font-size-xs);
-		color: var(--pixel-green);
+		color: var(--text-primary);
 		margin-bottom: 4px;
 	}
 
@@ -341,17 +344,14 @@
 		bottom: -12px;
 		width: 24px;
 		height: 24px;
-		background: var(--pixel-bg-dark);
-		border: 2px solid currentColor;
+		background: var(--pixel-card);
+		border: var(--border-width) solid var(--border-color);
+		color: var(--text-primary);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		font-size: var(--font-size-xs);
 	}
-
-	.podium-item.first .podium-rank { color: var(--pixel-yellow); }
-	.podium-item.second .podium-rank { color: var(--pixel-light); }
-	.podium-item.third .podium-rank { color: var(--pixel-orange); }
 
 	/* Leaderboard List */
 	.leaderboard-list {
@@ -364,7 +364,7 @@
 		width: 100%;
 		padding: var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		font-family: var(--font-pixel);
 		color: var(--text-primary);
 		cursor: pointer;
@@ -377,8 +377,9 @@
 	}
 
 	.entry-card.accent {
-		border-color: var(--pixel-accent);
-		background: rgba(233, 69, 96, 0.1);
+		border-color: var(--border-color);
+		background: var(--pixel-accent);
+		color: #fff;
 	}
 
 	.entry {
@@ -420,13 +421,21 @@
 	.you-badge {
 		font-size: 6px;
 		padding: 1px 4px;
-		background: var(--pixel-accent);
+		background: var(--pixel-yellow);
 		color: var(--text-primary);
 	}
 
 	.entry-level {
 		font-size: 8px;
 		color: var(--text-secondary);
+	}
+
+	/* Current-user row sits on accent (blue) block — text reads white */
+	.entry-card.accent .entry-level,
+	.entry-card.accent .entry-xp,
+	.entry-card.accent .entry-xp-label,
+	.entry-card.accent .entry-streak {
+		color: #fff;
 	}
 
 	.entry-stats {

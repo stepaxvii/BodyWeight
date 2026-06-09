@@ -274,7 +274,7 @@
 
 	.back-link {
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		padding: var(--spacing-xs);
 		display: flex;
 		align-items: center;
@@ -309,7 +309,7 @@
 		width: 100%;
 		padding: var(--spacing-sm);
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-primary);
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-sm);
@@ -397,8 +397,8 @@
 	}
 
 	.remove-btn:hover {
-		color: var(--pixel-red, #e02d29);
-		border-color: var(--pixel-red, #e02d29);
+		color: var(--pixel-red);
+		border-color: var(--pixel-red);
 	}
 
 	.add-btn {
@@ -407,7 +407,7 @@
 		gap: var(--spacing-xs);
 		padding: var(--spacing-xs) var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px dashed var(--border-color);
+		border: var(--border-width) dashed var(--border-color);
 		color: var(--text-secondary);
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-xs);
@@ -469,9 +469,9 @@
 
 	.error {
 		padding: var(--spacing-sm);
-		background: rgba(224, 45, 41, 0.15);
-		border: 1px solid var(--pixel-red, #e02d29);
-		color: var(--pixel-red, #e02d29);
+		background: var(--pixel-card);
+		border: var(--border-width) solid var(--pixel-red);
+		color: var(--pixel-red);
 		font-size: var(--font-size-xs);
 	}
 </style>

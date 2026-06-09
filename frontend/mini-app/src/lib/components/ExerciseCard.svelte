@@ -128,7 +128,7 @@
 	.category-icon {
 		width: 32px;
 		height: 32px;
-		border: 2px solid var(--cat-color, var(--border-color));
+		border: var(--border-width) solid var(--cat-color, var(--border-color));
 		background: var(--pixel-bg-dark);
 		display: flex;
 		align-items: center;
@@ -180,7 +180,7 @@
 		align-items: center;
 		justify-content: center;
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		cursor: pointer;
 		flex-shrink: 0;
 		font-family: var(--font-pixel);

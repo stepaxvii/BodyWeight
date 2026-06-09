@@ -164,7 +164,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: var(--pixel-bg, #1a1a2e);
+		background: var(--pixel-bg);
 		padding: 20px;
 	}
 
@@ -179,24 +179,24 @@
 	}
 
 	.auth-title {
-		font-family: 'Press Start 2P', cursive;
+		font-family: var(--font-display);
 		font-size: 24px;
-		color: var(--pixel-accent, #e94560);
+		color: var(--pixel-accent);
 		margin-bottom: 8px;
 	}
 
 	.auth-subtitle {
-		color: var(--pixel-text-secondary, #8b8b9e);
+		color: var(--text-secondary);
 		font-size: 12px;
-		font-family: 'Press Start 2P', cursive;
+		font-family: var(--font-pixel);
 	}
 
 	.auth-tabs {
 		display: flex;
 		gap: 0;
 		margin-bottom: 24px;
-		border: 2px solid var(--border-color, #2a2a4a);
-		border-radius: 8px;
+		border: var(--border-width) solid var(--border-color);
+		border-radius: 0;
 		overflow: hidden;
 	}
 
@@ -205,15 +205,15 @@
 		padding: 10px;
 		background: transparent;
 		border: none;
-		color: var(--pixel-text-secondary, #8b8b9e);
-		font-family: 'Press Start 2P', cursive;
+		color: var(--text-secondary);
+		font-family: var(--font-pixel);
 		font-size: 10px;
 		cursor: pointer;
 		transition: all 0.2s;
 	}
 
 	.auth-tab.active {
-		background: var(--pixel-accent, #e94560);
+		background: var(--pixel-accent);
 		color: white;
 	}
 
@@ -231,47 +231,47 @@
 
 	.field label {
 		font-size: 11px;
-		font-family: 'Press Start 2P', cursive;
-		color: var(--pixel-text, #e0e0e0);
+		font-family: var(--font-pixel);
+		color: var(--text-primary);
 	}
 
 	.field input {
 		padding: 12px;
-		background: var(--pixel-card-bg, #16213e);
-		border: 2px solid var(--border-color, #2a2a4a);
-		border-radius: 8px;
-		color: var(--pixel-text, #e0e0e0);
+		background: var(--pixel-card);
+		border: var(--border-width) solid var(--border-color);
+		border-radius: 0;
+		color: var(--text-primary);
 		font-size: 14px;
 		outline: none;
 		transition: border-color 0.2s;
 	}
 
 	.field input:focus {
-		border-color: var(--pixel-accent, #e94560);
+		border-color: var(--pixel-accent);
 	}
 
 	.field input::placeholder {
-		color: var(--pixel-text-secondary, #8b8b9e);
+		color: var(--text-secondary);
 		opacity: 0.6;
 	}
 
 	.error-message {
-		color: var(--pixel-danger, #ff4757);
+		color: var(--pixel-red);
 		font-size: 11px;
-		font-family: 'Press Start 2P', cursive;
+		font-family: var(--font-pixel);
 		text-align: center;
 		padding: 8px;
-		background: rgba(255, 71, 87, 0.1);
-		border-radius: 6px;
+		background: rgba(200, 70, 63, 0.12);
+		border-radius: 0;
 	}
 
 	.submit-btn {
 		padding: 14px;
-		background: var(--pixel-accent, #e94560);
+		background: var(--pixel-accent);
 		border: none;
-		border-radius: 8px;
+		border-radius: 0;
 		color: white;
-		font-family: 'Press Start 2P', cursive;
+		font-family: var(--font-pixel);
 		font-size: 11px;
 		cursor: pointer;
 		transition: opacity 0.2s;
@@ -311,7 +311,7 @@
 	.switch-btn {
 		background: none;
 		border: none;
-		color: var(--pixel-accent, #e94560);
+		color: var(--pixel-accent);
 		font-size: 11px;
 		cursor: pointer;
 		text-decoration: underline;
@@ -322,18 +322,18 @@
 		text-align: center;
 		margin-top: 32px;
 		padding-top: 24px;
-		border-top: 1px solid var(--border-color, #2a2a4a);
+		border-top: 1px solid var(--border-color);
 	}
 
 	.tg-hint p {
-		color: var(--pixel-text-secondary, #8b8b9e);
+		color: var(--text-secondary);
 		font-size: 11px;
 		margin-bottom: 4px;
 	}
 
 	.bot-name {
-		font-family: 'Press Start 2P', cursive;
-		color: var(--pixel-accent, #e94560) !important;
+		font-family: var(--font-pixel);
+		color: var(--pixel-accent) !important;
 		font-size: 10px !important;
 	}
 </style>

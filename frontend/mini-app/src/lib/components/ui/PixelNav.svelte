@@ -139,7 +139,7 @@
 		left: 0;
 		right: 0;
 		background: var(--pixel-bg-dark);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 		z-index: 100;
 		padding-bottom: env(safe-area-inset-bottom, 0);
 	}
@@ -170,7 +170,9 @@
 	}
 
 	.nav-item.active {
-		color: var(--pixel-accent);
+		background: var(--pixel-accent);
+		color: var(--pixel-white);
+		border-radius: var(--radius-sm);
 	}
 
 	.icon-wrapper {
@@ -194,7 +196,7 @@
 		transform: translateX(-50%);
 		width: 6px;
 		height: 6px;
-		background: var(--pixel-accent);
+		background: var(--pixel-yellow);
 	}
 
 	/* Modal styles */
@@ -214,7 +216,8 @@
 
 	.modal-dialog {
 		background: var(--pixel-card);
-		border: 4px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		border-radius: var(--radius-sm);
 		max-width: 320px;
 		width: 100%;
 		animation: modal-appear 0.2s ease-out;
@@ -235,8 +238,8 @@
 		display: flex;
 		justify-content: center;
 		padding: var(--spacing-md);
-		background: rgba(233, 69, 96, 0.1);
-		border-bottom: 2px solid var(--border-color);
+		background: var(--pixel-bg-dark);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.modal-body {
@@ -262,7 +265,7 @@
 		flex-direction: column;
 		gap: var(--spacing-sm);
 		padding: var(--spacing-md);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 	}
 
 	.modal-actions > :global(*) {

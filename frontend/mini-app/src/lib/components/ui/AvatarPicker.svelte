@@ -177,7 +177,7 @@
 		gap: var(--spacing-xs);
 		padding: var(--spacing-sm);
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		cursor: pointer;
 		transition: all var(--transition-fast);
 	}
@@ -188,7 +188,7 @@
 
 	.avatar-option.selected {
 		border-color: var(--pixel-green);
-		background: rgba(0, 168, 0, 0.1);
+		background: var(--pixel-card-hover);
 	}
 
 	.avatar-option.locked {
@@ -254,7 +254,7 @@
 		justify-content: space-between;
 		align-items: center;
 		padding-top: var(--spacing-sm);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 	}
 
 	.coins-display {

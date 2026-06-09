@@ -124,11 +124,11 @@
 					{#if achievement.unlocked}
 						<div class="achievement-rewards">
 							<span class="reward xp">
-								<PixelIcon name="xp" size="sm" color="var(--pixel-blue)" />
+								<PixelIcon name="xp" size="sm" color="var(--pixel-accent)" />
 								+{achievement.xp_reward}
 							</span>
 							<span class="reward coins">
-								<PixelIcon name="coin" size="sm" color="var(--pixel-orange)" />
+								<PixelIcon name="coin" size="sm" color="var(--pixel-yellow)" />
 								+{achievement.coin_reward}
 							</span>
 						</div>
@@ -205,26 +205,37 @@
 	}
 
 	.achievement {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-sm);
+		display: grid;
+		grid-template-columns: auto 1fr;
+		align-items: center;
+		column-gap: var(--spacing-md);
+		row-gap: var(--spacing-sm);
 	}
 
 	.achievement-icon {
-		width: 48px;
-		height: 48px;
-		background: var(--pixel-bg-dark);
-		border: 2px solid var(--pixel-yellow);
+		grid-column: 1;
+		grid-row: 1 / -1;
+		flex: 0 0 auto;
+		width: 52px;
+		height: 52px;
+		background: var(--pixel-yellow);
+		border: var(--border-width) solid var(--border-color);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		margin: 0 auto;
 		position: relative;
 	}
 
+	.achievement-info,
+	.achievement-progress,
+	.achievement-rewards,
+	.unlock-date {
+		grid-column: 2;
+	}
+
 	.achievement-icon.locked {
-		border-color: var(--border-color);
-		opacity: 0.6;
+		background: var(--pixel-bg-dark);
+		border-color: var(--border-light);
 	}
 
 	.achievement-badge-icon {
@@ -242,7 +253,7 @@
 		position: absolute;
 		bottom: -4px;
 		right: -4px;
-		background: var(--pixel-bg-dark);
+		background: var(--pixel-card);
 		border: 1px solid var(--border-color);
 		display: flex;
 		align-items: center;
@@ -250,12 +261,18 @@
 		padding: 2px;
 	}
 
+	.achievement:not(.unlocked) {
+		opacity: 0.72;
+	}
+
 	.achievement.unlocked .achievement-icon {
 		animation: pixel-glow 2s ease-in-out infinite;
 	}
 
 	.achievement-info {
-		text-align: center;
+		flex: 1;
+		min-width: 0;
+		text-align: left;
 	}
 
 	.achievement-name {
@@ -279,7 +296,7 @@
 
 	.achievement-rewards {
 		display: flex;
-		justify-content: center;
+		justify-content: flex-start;
 		gap: var(--spacing-md);
 		margin-top: var(--spacing-xs);
 	}
@@ -296,17 +313,17 @@
 	}
 
 	.reward.xp {
-		color: var(--pixel-blue);
+		color: var(--pixel-accent);
 	}
 
 	.reward.coins {
-		color: var(--pixel-orange);
+		color: var(--pixel-yellow);
 	}
 
 	.unlock-date {
 		font-size: 8px;
 		color: var(--text-muted);
-		text-align: center;
+		text-align: left;
 		margin-top: var(--spacing-xs);
 	}
 

@@ -179,7 +179,7 @@
 		align-items: center;
 		justify-content: center;
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		cursor: pointer;
 	}
 

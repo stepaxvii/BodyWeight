@@ -465,8 +465,8 @@
 		align-items: center;
 		gap: var(--spacing-sm);
 		padding: var(--spacing-sm);
-		background: rgba(232, 68, 68, 0.1);
-		border: 2px solid var(--pixel-red);
+		background: rgba(200, 70, 63, 0.12);
+		border: var(--border-width) solid var(--pixel-red);
 		margin-bottom: var(--spacing-md);
 		font-size: var(--font-size-xs);
 		color: var(--pixel-red);
@@ -506,7 +506,7 @@
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-primary);
 		outline: none;
 	}
@@ -609,16 +609,17 @@
 		padding: 4px 8px;
 		font-size: 8px;
 		text-transform: uppercase;
+		border: var(--border-width) solid var(--border-color);
 	}
 
 	.status-badge.accepted {
 		background: var(--pixel-green);
-		color: var(--text-primary);
+		color: #fff;
 	}
 
 	.status-badge.pending {
 		background: var(--pixel-yellow);
-		color: var(--pixel-black);
+		color: var(--text-primary);
 	}
 
 	.request-actions {
@@ -628,11 +629,15 @@
 	}
 
 	.remove-btn {
-		background: none;
-		border: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		background: var(--pixel-bg-dark);
+		border: var(--border-width) solid var(--border-color);
 		padding: var(--spacing-xs);
 		cursor: pointer;
-		opacity: 0.6;
+		opacity: 0.85;
 		transition: opacity var(--transition-fast);
 	}
 
@@ -669,7 +674,8 @@
 
 	.modal-dialog {
 		background: var(--pixel-card);
-		border: 4px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-hard);
 		max-width: 320px;
 		width: 100%;
 		animation: modal-appear 0.2s ease-out;
@@ -690,8 +696,8 @@
 		display: flex;
 		justify-content: center;
 		padding: var(--spacing-md);
-		background: rgba(255, 204, 0, 0.1);
-		border-bottom: 2px solid var(--border-color);
+		background: rgba(244, 197, 66, 0.18);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.modal-body {
@@ -716,7 +722,7 @@
 		display: flex;
 		gap: var(--spacing-sm);
 		padding: var(--spacing-md);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 	}
 
 	.modal-actions > :global(*) {

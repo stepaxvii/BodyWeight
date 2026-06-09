@@ -595,7 +595,7 @@
 
 	.close-btn {
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		padding: var(--spacing-xs);
 		cursor: pointer;
 		display: flex;
@@ -661,7 +661,7 @@
 		gap: var(--spacing-md);
 		padding: var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		font-size: var(--font-size-xs);
 	}
 
@@ -691,7 +691,7 @@
 		align-items: center;
 		justify-content: center;
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-sm);
 		font-weight: bold;
@@ -928,10 +928,10 @@
 	/* Loading skeleton */
 	.loading-skeleton {
 		display: inline-block;
-		background: linear-gradient(90deg, #444 25%, #555 50%, #444 75%);
+		background: linear-gradient(90deg, var(--pixel-bg-dark) 25%, var(--pixel-card-hover) 50%, var(--pixel-bg-dark) 75%);
 		background-size: 200% 100%;
 		animation: loading-shimmer 1.5s infinite;
-		border-radius: 2px;
+		border-radius: 0;
 		min-width: 120px;
 		min-height: 1em;
 	}

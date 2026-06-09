@@ -330,7 +330,7 @@
 
 	.back-link {
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		padding: var(--spacing-xs);
 		display: flex;
 		align-items: center;
@@ -372,8 +372,8 @@
 		border-color: var(--pixel-accent);
 	}
 	.status-active {
-		color: var(--pixel-green, #39d353);
-		border-color: var(--pixel-green, #39d353);
+		color: var(--pixel-green);
+		border-color: var(--pixel-green);
 	}
 	.status-finished {
 		color: var(--text-muted);
@@ -484,11 +484,11 @@
 	}
 
 	.today-row.done .today-bar {
-		background: var(--pixel-green, #39d353);
+		background: var(--pixel-green);
 	}
 
 	.today-row.done .today-val {
-		color: var(--pixel-green, #39d353);
+		color: var(--pixel-green);
 	}
 
 	/* Calendar */
@@ -512,15 +512,15 @@
 	}
 
 	.cal-full {
-		background: var(--pixel-green, #39d353);
-		color: var(--pixel-bg, #0f1729);
-		border-color: var(--pixel-green, #39d353);
+		background: var(--pixel-green);
+		color: #fff;
+		border-color: var(--pixel-green);
 	}
 
 	.cal-partial {
-		background: rgba(245, 158, 11, 0.4);
-		color: #fcd34d;
-		border-color: #f59e0b;
+		background: var(--pixel-yellow);
+		color: var(--stat-text);
+		border-color: var(--pixel-yellow);
 	}
 
 	.cal-none {
@@ -536,8 +536,8 @@
 	}
 
 	.cal-today {
-		outline: 2px solid var(--pixel-accent);
-		outline-offset: -2px;
+		outline: var(--border-width) solid var(--pixel-accent);
+		outline-offset: calc(-1 * var(--border-width));
 	}
 
 	.cal-legend {
@@ -563,10 +563,10 @@
 	}
 
 	.lg-full {
-		background: var(--pixel-green, #39d353);
+		background: var(--pixel-green);
 	}
 	.lg-partial {
-		background: rgba(245, 158, 11, 0.6);
+		background: var(--pixel-yellow);
 	}
 	.lg-none {
 		background: var(--pixel-bg-dark);
@@ -585,7 +585,7 @@
 
 	.claim-coins {
 		font-size: var(--font-size-md);
-		color: var(--pixel-orange, #f59e0b);
+		color: var(--pixel-yellow);
 	}
 
 	.claim-stat {
@@ -644,7 +644,7 @@
 
 	.part-pct-fill {
 		height: 100%;
-		background: var(--pixel-green, #39d353);
+		background: var(--pixel-green);
 		transition: width 0.4s ease;
 	}
 
@@ -661,7 +661,7 @@
 		left: 50%;
 		transform: translateX(-50%);
 		background: var(--pixel-card);
-		border: 2px solid var(--pixel-accent);
+		border: var(--border-width) solid var(--pixel-accent);
 		padding: var(--spacing-sm) var(--spacing-md);
 		font-size: var(--font-size-xs);
 		color: var(--text-primary);

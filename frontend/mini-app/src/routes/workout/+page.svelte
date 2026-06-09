@@ -1147,7 +1147,7 @@
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-xs);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-secondary);
 		cursor: pointer;
 	}
@@ -1159,7 +1159,7 @@
 
 	.filter-badge {
 		background: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: #fff;
 		padding: 1px 4px;
 		font-size: 8px;
 		min-width: 12px;
@@ -1191,7 +1191,7 @@
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-primary);
 	}
 
@@ -1378,7 +1378,7 @@
 
 	.set-badge {
 		background: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: #fff;
 		padding: 2px 8px;
 		font-size: var(--font-size-xs);
 	}
@@ -1415,7 +1415,7 @@
 		font-size: var(--font-size-xs);
 		padding: var(--spacing-xs) var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-secondary);
 		cursor: pointer;
 		white-space: nowrap;
@@ -1424,7 +1424,7 @@
 	.routine-tab.active {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: #fff;
 	}
 
 	.routines-list {
@@ -1467,14 +1467,14 @@
 		font-size: var(--font-size-xs);
 		padding: var(--spacing-xs) var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--cat-color);
+		border: var(--border-width) solid var(--cat-color);
 		color: var(--cat-color);
 		cursor: pointer;
 	}
 
 	.category-tab.active {
 		background: var(--cat-color);
-		color: var(--pixel-bg);
+		color: #fff;
 	}
 
 	/* Exercises list */
@@ -1496,7 +1496,7 @@
 		left: 0;
 		right: 0;
 		background: var(--pixel-bg);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 		padding: var(--spacing-md);
 		display: flex;
 		flex-direction: column;
@@ -1581,7 +1581,7 @@
 		align-items: center;
 		justify-content: center;
 		background: var(--pixel-card);
-		border: 2px solid var(--pixel-accent);
+		border: var(--border-width) solid var(--pixel-accent);
 		color: var(--pixel-accent);
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-sm);
@@ -1592,7 +1592,7 @@
 
 	.info-toggle:hover {
 		background: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: #fff;
 	}
 
 	/* Exercise info modal */
@@ -1621,7 +1621,7 @@
 		align-items: center;
 		justify-content: center;
 		background: none;
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-secondary);
 		font-size: var(--font-size-md);
 		cursor: pointer;
@@ -1675,7 +1675,7 @@
 	/* Delete Confirmation Modal */
 	.modal-dialog {
 		background: var(--pixel-card);
-		border: 4px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		max-width: 320px;
 		width: 100%;
 		animation: modal-appear 0.2s ease-out;
@@ -1696,8 +1696,8 @@
 		display: flex;
 		justify-content: center;
 		padding: var(--spacing-md);
-		background: rgba(255, 204, 0, 0.1);
-		border-bottom: 2px solid var(--border-color);
+		background: var(--pixel-bg-dark);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.modal-body {
@@ -1722,7 +1722,7 @@
 		display: flex;
 		gap: var(--spacing-sm);
 		padding: var(--spacing-md);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 	}
 
 	.modal-actions > :global(*) {
@@ -1744,7 +1744,7 @@
 		justify-content: space-between;
 		padding: var(--spacing-sm) var(--spacing-xs);
 		margin-bottom: var(--spacing-sm);
-		border-bottom: 2px solid var(--border-color);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.category-group-title {
@@ -1759,6 +1759,6 @@
 		color: var(--text-secondary);
 		background: var(--pixel-bg-dark);
 		padding: 2px 8px;
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 	}
 </style>

@@ -272,7 +272,7 @@
 
 	.back-link {
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		padding: var(--spacing-xs);
 		display: flex;
 		align-items: center;
@@ -328,12 +328,12 @@
 	}
 
 	.status-active {
-		color: var(--pixel-orange, #f59e0b);
-		border-color: var(--pixel-orange, #f59e0b);
+		color: var(--pixel-orange);
+		border-color: var(--pixel-orange);
 	}
 	.status-defeated {
-		color: var(--pixel-green, #39d353);
-		border-color: var(--pixel-green, #39d353);
+		color: var(--pixel-green);
+		border-color: var(--pixel-green);
 	}
 	.status-expired {
 		color: var(--text-muted);
@@ -350,7 +350,7 @@
 		width: 100%;
 		height: 14px;
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		overflow: hidden;
 	}
 
@@ -386,26 +386,30 @@
 
 	.me-stats {
 		display: flex;
-		justify-content: space-around;
 		gap: var(--spacing-sm);
 		margin-bottom: var(--spacing-md);
 	}
 
 	.me-stat {
+		flex: 1;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: 2px;
+		padding: var(--spacing-sm) var(--spacing-xs);
+		background: var(--pixel-card);
+		border: var(--border-width) solid var(--border-color);
 	}
 
 	.me-value {
 		font-size: var(--font-size-md);
-		color: var(--pixel-accent);
+		color: var(--text-primary);
+		font-family: var(--font-display);
 	}
 
 	.me-label {
 		font-size: 9px;
-		color: var(--text-muted);
+		color: var(--text-secondary);
 		text-transform: uppercase;
 	}
 
@@ -422,8 +426,8 @@
 		justify-content: space-between;
 		gap: var(--spacing-sm);
 		padding: var(--spacing-sm);
-		background: var(--pixel-bg-dark);
-		border: 2px dashed var(--pixel-green, #39d353);
+		background: var(--pixel-yellow);
+		border: var(--border-width) solid var(--pixel-black);
 	}
 
 	.claim-info {
@@ -434,18 +438,19 @@
 
 	.claim-coins {
 		font-size: var(--font-size-md);
-		color: var(--pixel-orange, #f59e0b);
+		color: var(--text-primary);
+		font-family: var(--font-display);
 	}
 
 	.claim-text {
 		font-size: 9px;
-		color: var(--text-muted);
+		color: var(--text-primary);
 		text-transform: uppercase;
 	}
 
 	.claim-top10 {
 		font-size: 10px;
-		color: var(--pixel-green, #39d353);
+		color: var(--text-primary);
 	}
 
 	.claimed-msg {
@@ -458,7 +463,7 @@
 		margin-top: var(--spacing-sm);
 		text-align: center;
 		font-size: var(--font-size-xs);
-		color: var(--pixel-green, #39d353);
+		color: var(--pixel-green);
 	}
 
 	.leaderboard {
@@ -574,11 +579,11 @@
 
 	.hist-reward {
 		font-size: var(--font-size-xs);
-		color: var(--pixel-orange, #f59e0b);
+		color: var(--pixel-yellow);
 	}
 
 	.hist-claimed {
-		color: var(--pixel-green, #39d353);
+		color: var(--pixel-green);
 	}
 
 	.hist-empty {

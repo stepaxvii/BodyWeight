@@ -461,12 +461,17 @@
 		padding-bottom: var(--spacing-lg);
 	}
 
-	/* Profile Header - horizontal layout */
+	/* Profile Header - horizontal layout, sky-blue hero block */
 	.profile-header {
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-md);
 		margin-bottom: var(--spacing-md);
+		background: var(--hero-bg);
+		color: var(--hero-text);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
+		padding: var(--spacing-md);
 	}
 
 	.avatar-btn {
@@ -489,7 +494,7 @@
 		width: 20px;
 		height: 20px;
 		background: var(--pixel-accent);
-		border: 2px solid var(--pixel-bg);
+		border: var(--border-width) solid var(--pixel-white);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -508,11 +513,12 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		color: var(--hero-text);
 	}
 
 	.user-title {
 		font-size: var(--font-size-xs);
-		color: var(--pixel-yellow);
+		color: var(--hero-num);
 		text-transform: uppercase;
 		margin: 0 0 var(--spacing-xs) 0;
 	}
@@ -524,7 +530,9 @@
 	}
 
 	.level-badge {
-		background: var(--pixel-accent);
+		background: rgba(0, 0, 0, 0.22);
+		color: var(--hero-num);
+		font-family: var(--font-display);
 		padding: 2px 8px;
 		font-size: var(--font-size-xs);
 		white-space: nowrap;
@@ -541,7 +549,8 @@
 
 	.xp-text {
 		font-size: 10px;
-		color: var(--text-secondary);
+		color: var(--hero-text);
+		opacity: 0.9;
 	}
 
 	/* Sections */
@@ -578,8 +587,8 @@
 	.range-btn {
 		padding: 6px 10px;
 		font-size: var(--font-size-xs);
-		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		background: var(--pixel-card);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-secondary);
 		cursor: pointer;
 		transition: all 0.15s;
@@ -592,8 +601,8 @@
 
 	.range-btn.active {
 		background: var(--pixel-accent);
-		border-color: var(--pixel-accent);
-		color: var(--pixel-bg);
+		border-color: var(--border-color);
+		color: var(--pixel-white);
 	}
 
 	/* Daily activity norm */
@@ -603,7 +612,8 @@
 
 	.norm-card {
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
@@ -625,7 +635,7 @@
 		min-width: 0;
 		padding: 8px 10px;
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-primary);
 		font-family: inherit;
 		font-size: 14px;
@@ -644,7 +654,7 @@
 	.norm-save {
 		padding: 8px var(--spacing-md);
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--pixel-accent);
+		border: var(--border-width) solid var(--pixel-accent);
 		color: var(--pixel-accent);
 		font-family: inherit;
 		font-size: var(--font-size-xs);
@@ -673,7 +683,8 @@
 		display: flex;
 		justify-content: space-between;
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
@@ -685,6 +696,7 @@
 
 	.stat-value {
 		font-size: var(--font-size-sm);
+		font-family: var(--font-display);
 	}
 
 	/* Badges Section */
@@ -694,7 +706,8 @@
 
 	.badges-card {
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
@@ -726,8 +739,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		background: var(--pixel-yellow);
+		border: var(--border-width) solid var(--border-color);
 		transition: transform var(--transition-fast);
 	}
 
@@ -743,6 +756,7 @@
 	}
 
 	.badge-more {
+		background: var(--pixel-bg-dark);
 		text-decoration: none;
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
@@ -763,7 +777,8 @@
 		align-items: center;
 		justify-content: space-between;
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
@@ -780,6 +795,7 @@
 
 	.streak-current {
 		font-size: var(--font-size-sm);
+		font-family: var(--font-display);
 		color: var(--pixel-yellow);
 	}
 
@@ -797,7 +813,7 @@
 		width: 16px;
 		height: 16px;
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 	}
 
 	.streak-day.active {
@@ -811,7 +827,8 @@
 		align-items: center;
 		justify-content: space-between;
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
 		padding: var(--spacing-sm) var(--spacing-md);
 		margin-top: var(--spacing-sm);
 	}
@@ -843,7 +860,7 @@
 
 	.freeze-buy {
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--pixel-yellow);
+		border: var(--border-width) solid var(--pixel-yellow);
 		color: var(--pixel-yellow);
 		padding: var(--spacing-sm);
 		font-family: inherit;
@@ -905,7 +922,7 @@
 		gap: var(--spacing-md);
 		padding: var(--spacing-sm);
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 	}
 
 	.day-stat-content {
@@ -947,8 +964,8 @@
 
 	.account-success {
 		padding: var(--spacing-sm);
-		background: rgba(0, 200, 83, 0.1);
-		border: 2px solid var(--pixel-green);
+		background: var(--pixel-card);
+		border: var(--border-width) solid var(--pixel-green);
 		font-size: var(--font-size-xs);
 		color: var(--pixel-green);
 		margin-bottom: var(--spacing-sm);
@@ -956,7 +973,8 @@
 
 	.account-info {
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
 		padding: var(--spacing-sm) var(--spacing-md);
 		margin-bottom: var(--spacing-sm);
 	}
@@ -991,9 +1009,9 @@
 	.account-btn {
 		padding: 10px var(--spacing-md);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--pixel-accent);
-		font-family: 'Press Start 2P', cursive;
+		font-family: var(--font-pixel);
 		font-size: var(--font-size-xs);
 		cursor: pointer;
 		text-align: left;
@@ -1005,11 +1023,11 @@
 	}
 
 	.logout-btn {
-		color: var(--pixel-danger);
+		color: var(--pixel-red);
 	}
 
 	.logout-btn:hover {
-		border-color: var(--pixel-danger);
+		border-color: var(--pixel-red);
 	}
 
 	/* Modal form styles */
@@ -1034,7 +1052,7 @@
 	.modal-field input {
 		padding: 10px 12px;
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-primary);
 		font-size: 14px;
 		outline: none;
@@ -1045,7 +1063,7 @@
 	}
 
 	.modal-error {
-		color: var(--pixel-danger);
+		color: var(--pixel-red);
 		font-size: var(--font-size-xs);
 		padding: var(--spacing-xs);
 	}
@@ -1055,7 +1073,7 @@
 		background: var(--pixel-accent);
 		border: none;
 		color: white;
-		font-family: 'Press Start 2P', cursive;
+		font-family: var(--font-pixel);
 		font-size: var(--font-size-xs);
 		cursor: pointer;
 	}

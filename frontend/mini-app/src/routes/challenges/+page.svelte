@@ -138,7 +138,7 @@
 
 	.back-link, .new-btn {
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		padding: var(--spacing-xs) var(--spacing-sm);
 		display: flex;
 		align-items: center;
@@ -152,7 +152,7 @@
 	.new-btn {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: #fff;
 	}
 
 	.loading {
@@ -200,8 +200,8 @@
 		border-color: var(--pixel-accent);
 	}
 	.status-active {
-		color: var(--pixel-green, #39d353);
-		border-color: var(--pixel-green, #39d353);
+		color: var(--pixel-green);
+		border-color: var(--pixel-green);
 	}
 	.status-finished {
 		color: var(--text-muted);
@@ -245,8 +245,9 @@
 	.member-badge {
 		margin-top: var(--spacing-xs);
 		font-size: 10px;
-		color: var(--pixel-green, #39d353);
-		border: 1px solid var(--pixel-green, #39d353);
+		color: #fff;
+		background: var(--pixel-green);
+		border: var(--border-width) solid var(--pixel-green);
 		padding: 2px 6px;
 		display: inline-block;
 		text-transform: uppercase;

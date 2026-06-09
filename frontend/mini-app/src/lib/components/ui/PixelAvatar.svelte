@@ -52,8 +52,8 @@
 	}
 
 	.pixel-avatar.bordered {
-		border: 2px solid var(--border-color);
-		box-shadow: 2px 2px 0px var(--pixel-black);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-sm);
 	}
 
 	.pixel-avatar img {

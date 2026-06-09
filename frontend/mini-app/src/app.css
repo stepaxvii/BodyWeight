@@ -14,6 +14,7 @@
 	/* Accent — sky blue */
 	--pixel-accent: #4d8fcc;
 	--pixel-accent-hover: #2f7ec0;
+	--pixel-accent-rgb: 77, 143, 204; /* for rgba(var(--pixel-accent-rgb), a) tints */
 
 	/* Status / palette */
 	--pixel-green: #57a23f;
@@ -26,9 +27,10 @@
 	--pixel-purple: #8a5fb0;
 	--pixel-pink: #d77fae;
 
-	/* Aliases some redesign components reference */
+	/* Aliases some redesign / legacy components reference */
 	--gold: var(--pixel-yellow);
 	--danger: var(--pixel-red);
+	--pixel-danger: var(--pixel-red);
 
 	/* Neutral colors — warm wood. --pixel-black drives all hard shadows. */
 	--pixel-black: #4a2f18;
@@ -45,6 +47,7 @@
 	/* Borders */
 	--border-color: #5a3a1c;
 	--border-light: #7a5630;
+	--pixel-border: var(--border-color); /* legacy alias */
 	--border-width: 3px;
 
 	/* Spacing */

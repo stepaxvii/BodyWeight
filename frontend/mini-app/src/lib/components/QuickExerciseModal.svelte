@@ -770,7 +770,7 @@
 
 	.back-btn {
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		padding: var(--spacing-xs);
 		cursor: pointer;
 		display: flex;
@@ -794,7 +794,7 @@
 		gap: var(--spacing-md);
 		padding: var(--spacing-md);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		cursor: pointer;
 		transition: all var(--transition-fast);
 		position: relative;
@@ -816,7 +816,7 @@
 		color: var(--pixel-bg);
 		padding: 2px 6px;
 		font-size: var(--font-size-xs);
-		border-radius: 2px;
+		border-radius: 0;
 	}
 
 	/* Search box */
@@ -833,7 +833,7 @@
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-primary);
 	}
 
@@ -884,7 +884,7 @@
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-xs);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-secondary);
 		cursor: pointer;
 	}
@@ -925,7 +925,7 @@
 		font-size: var(--font-size-xs);
 		padding: var(--spacing-xs) var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-secondary);
 		cursor: pointer;
 	}
@@ -950,7 +950,7 @@
 		align-items: center;
 		padding: var(--spacing-sm) var(--spacing-md);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		cursor: pointer;
 		transition: all var(--transition-fast);
 	}
@@ -1010,7 +1010,7 @@
 		font-size: var(--font-size-xs);
 		padding: var(--spacing-xs) var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-secondary);
 		cursor: pointer;
 		transition: all var(--transition-fast);
@@ -1031,7 +1031,7 @@
 		flex-direction: column;
 		gap: var(--spacing-sm);
 		padding-top: var(--spacing-md);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 	}
 
 	.input-section {
@@ -1057,7 +1057,7 @@
 	.adjust-btn {
 		padding: var(--spacing-sm) var(--spacing-md);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		font-size: var(--font-size-sm);
 		color: var(--text-primary);
 		cursor: pointer;
@@ -1082,7 +1082,7 @@
 
 	.save-section {
 		padding-top: var(--spacing-md);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 	}
 
 	.cycling-summary {

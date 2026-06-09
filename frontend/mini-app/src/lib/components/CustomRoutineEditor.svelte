@@ -54,11 +54,11 @@
 
 	// Category colors (by load type)
 	const categoryColors: Record<string, string> = {
-		strength: '#d82800',
-		cardio: '#ff6b35',
-		static: '#0058f8',
-		'dynamic-stretch': '#00a800',
-		'static-stretch': '#00a8a8'
+		strength: 'var(--pixel-red)',
+		cardio: 'var(--pixel-orange)',
+		static: 'var(--pixel-blue)',
+		'dynamic-stretch': 'var(--pixel-green)',
+		'static-stretch': 'var(--pixel-cyan)'
 	};
 
 	// Active filter count for picker
@@ -698,7 +698,7 @@
 		display: flex;
 		align-items: center;
 		padding: var(--spacing-md);
-		border-bottom: 2px solid var(--border-color);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.back-btn, .save-btn {
@@ -708,7 +708,7 @@
 		align-items: center;
 		justify-content: center;
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		cursor: pointer;
 	}
 
@@ -739,7 +739,7 @@
 
 	.editor-tabs {
 		display: flex;
-		border-bottom: 2px solid var(--border-color);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.tab {
@@ -759,8 +759,8 @@
 
 	.tab.active {
 		color: var(--pixel-accent);
-		border-bottom: 2px solid var(--pixel-accent);
-		margin-bottom: -2px;
+		border-bottom: var(--border-width) solid var(--pixel-accent);
+		margin-bottom: calc(-1 * var(--border-width));
 	}
 
 	.tab-badge {
@@ -768,7 +768,7 @@
 		color: var(--pixel-bg);
 		padding: 2px 6px;
 		font-size: 10px;
-		border-radius: 2px;
+		border-radius: 0;
 	}
 
 	.editor-content {
@@ -796,7 +796,7 @@
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-primary);
 	}
 
@@ -820,7 +820,7 @@
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-xs);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-secondary);
 		cursor: pointer;
 	}
@@ -837,7 +837,7 @@
 		gap: var(--spacing-lg);
 		padding: var(--spacing-md);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		margin-top: var(--spacing-lg);
 	}
 
@@ -872,7 +872,7 @@
 		gap: var(--spacing-sm);
 		padding: var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 	}
 
 	.exercise-order {
@@ -968,7 +968,7 @@
 		width: 100%;
 		max-height: 80vh;
 		background: var(--pixel-bg);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 		display: flex;
 		flex-direction: column;
 	}
@@ -978,7 +978,7 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: var(--spacing-md);
-		border-bottom: 2px solid var(--border-color);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.picker-header h3, .settings-header h3 {
@@ -1000,7 +1000,7 @@
 	/* Picker tabs */
 	.picker-tabs {
 		display: flex;
-		border-bottom: 2px solid var(--border-color);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.picker-tab {
@@ -1016,8 +1016,8 @@
 		align-items: center;
 		justify-content: center;
 		gap: var(--spacing-xs);
-		border-bottom: 2px solid transparent;
-		margin-bottom: -2px;
+		border-bottom: var(--border-width) solid transparent;
+		margin-bottom: calc(-1 * var(--border-width));
 	}
 
 	.picker-tab.active {
@@ -1027,7 +1027,7 @@
 
 	.search-box {
 		padding: var(--spacing-sm) var(--spacing-md);
-		border-bottom: 2px solid var(--border-color);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.search-input {
@@ -1036,7 +1036,7 @@
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-primary);
 	}
 
@@ -1046,7 +1046,7 @@
 		justify-content: space-between;
 		align-items: center;
 		padding: var(--spacing-xs) var(--spacing-md);
-		border-bottom: 2px solid var(--border-color);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.picker-filter-label {
@@ -1068,7 +1068,7 @@
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-xs);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-secondary);
 		cursor: pointer;
 	}
@@ -1103,7 +1103,7 @@
 		flex-wrap: wrap;
 		gap: var(--spacing-xs);
 		padding: var(--spacing-sm) var(--spacing-md);
-		border-bottom: 2px solid var(--border-color);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.picker-category-tab {
@@ -1111,7 +1111,7 @@
 		font-size: var(--font-size-xs);
 		padding: var(--spacing-xs) var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--cat-color);
+		border: var(--border-width) solid var(--cat-color);
 		color: var(--cat-color);
 		cursor: pointer;
 	}
@@ -1150,7 +1150,7 @@
 		gap: var(--spacing-sm);
 		padding: var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		margin-bottom: var(--spacing-xs);
 	}
 
@@ -1209,7 +1209,7 @@
 
 	.picker-item-action.info {
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-sm);
 		font-weight: bold;
@@ -1249,7 +1249,7 @@
 		height: 40px;
 		font-size: var(--font-size-lg);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-primary);
 		cursor: pointer;
 	}
@@ -1261,7 +1261,7 @@
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-md);
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		border-left: none;
 		border-right: none;
 		color: var(--text-primary);
@@ -1269,13 +1269,13 @@
 
 	.settings-footer {
 		padding: var(--spacing-md);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 	}
 
 	.spinner {
 		width: 16px;
 		height: 16px;
-		border: 2px solid var(--pixel-bg);
+		border: var(--border-width) solid var(--pixel-bg);
 		border-top-color: transparent;
 		border-radius: 50%;
 		animation: spin 0.8s linear infinite;

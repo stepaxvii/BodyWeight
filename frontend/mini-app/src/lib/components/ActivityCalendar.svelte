@@ -137,34 +137,43 @@
 	</div>
 
 	<div class="calendar-grid-wrapper">
-		<!-- Month labels -->
+		<!-- Month labels (offset right by the weekday-label gutter) -->
 		<div class="month-labels">
 			{#each monthLabels as { month, weekIndex }}
-				<span class="month-label" style="left: {weekIndex * 12}px">{month}</span>
+				<span class="month-label" style="left: {weekIndex * 12 + 22}px">{month}</span>
 			{/each}
 		</div>
 
-		<!-- Calendar grid -->
-		<div class="calendar-grid">
-			{#each weeks as week}
-				<div class="calendar-column">
-					{#each week as day}
-						{#if day === null}
-							<div class="calendar-day empty"></div>
-						{:else}
-							{@const dateStr = formatDate(day)}
-							{@const activity = activityData[dateStr]}
-							{@const xp = activity?.total_xp || 0}
-							{@const norm = activity?.norm || DEFAULT_NORM}
-							<button
-								class="calendar-day {getColorClass(xp, norm)}"
-								title="{dateStr}: {xp}/{norm} XP, {activity?.workouts || 0} тренировок"
-								onclick={() => handleDayClick(day)}
-							></button>
-						{/if}
-					{/each}
-				</div>
-			{/each}
+		<div class="calendar-body">
+			<!-- Weekday labels — week starts on Monday (Пн → Вс, top → bottom) -->
+			<div class="weekday-labels">
+				{#each weekdayLabels as wd}
+					<span class="weekday-label">{wd}</span>
+				{/each}
+			</div>
+
+			<!-- Calendar grid -->
+			<div class="calendar-grid">
+				{#each weeks as week}
+					<div class="calendar-column">
+						{#each week as day}
+							{#if day === null}
+								<div class="calendar-day empty"></div>
+							{:else}
+								{@const dateStr = formatDate(day)}
+								{@const activity = activityData[dateStr]}
+								{@const xp = activity?.total_xp || 0}
+								{@const norm = activity?.norm || DEFAULT_NORM}
+								<button
+									class="calendar-day {getColorClass(xp, norm)}"
+									title="{dateStr}: {xp}/{norm} XP, {activity?.workouts || 0} тренировок"
+									onclick={() => handleDayClick(day)}
+								></button>
+							{/if}
+						{/each}
+					</div>
+				{/each}
+			</div>
 		</div>
 	</div>
 </div>
@@ -174,7 +183,8 @@
 		width: 100%;
 		padding: var(--spacing-md);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
 	}
 
 	.calendar-header {
@@ -225,6 +235,30 @@
 		font-size: 9px;
 		color: var(--text-secondary);
 		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	.calendar-body {
+		display: flex;
+		gap: 2px;
+		min-width: fit-content;
+	}
+
+	.weekday-labels {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		width: 20px;
+		flex-shrink: 0;
+	}
+
+	.weekday-label {
+		height: 10px;
+		line-height: 10px;
+		font-size: 8px;
+		color: var(--text-secondary);
+		text-align: right;
+		padding-right: 3px;
 		white-space: nowrap;
 	}
 

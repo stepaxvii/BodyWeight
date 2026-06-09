@@ -39,7 +39,8 @@
 <style>
 	.pixel-card {
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		border-radius: var(--radius-sm);
 		box-shadow: var(--shadow-sm);
 		position: relative;
 	}
