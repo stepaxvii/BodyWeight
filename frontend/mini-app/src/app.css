@@ -14,7 +14,6 @@
 	/* Accent — sky blue */
 	--pixel-accent: #4d8fcc;
 	--pixel-accent-hover: #2f7ec0;
-	--pixel-accent-rgb: 77, 143, 204; /* for rgba(var(--pixel-accent-rgb), a) tints */
 
 	/* Status / palette */
 	--pixel-green: #57a23f;
@@ -26,11 +25,6 @@
 	--pixel-cyan: #3a9e8c;
 	--pixel-purple: #8a5fb0;
 	--pixel-pink: #d77fae;
-
-	/* Aliases some redesign / legacy components reference */
-	--gold: var(--pixel-yellow);
-	--danger: var(--pixel-red);
-	--pixel-danger: var(--pixel-red);
 
 	/* Neutral colors — warm wood. --pixel-black drives all hard shadows. */
 	--pixel-black: #4a2f18;
@@ -47,7 +41,6 @@
 	/* Borders */
 	--border-color: #5a3a1c;
 	--border-light: #7a5630;
-	--pixel-border: var(--border-color); /* legacy alias */
 	--border-width: 3px;
 
 	/* Spacing */
@@ -65,7 +58,6 @@
 	--shadow-sm: 2px 2px 0px var(--pixel-black);
 	--shadow-md: 4px 4px 0px var(--pixel-black);
 	--shadow-lg: 6px 6px 0px var(--pixel-black);
-	--shadow-hard: 4px 4px 0 var(--pixel-black);
 
 	/* Color-blocking role tokens (Stardew variant) */
 	--hero-bg: #4d8fcc;
@@ -86,11 +78,9 @@
 	--hm3: #5aa033;
 	--hm4: #2f6e25;
 
-	/* Fonts — Silkscreen (display/data), Pixelify Sans (UI/body) */
+	/* Fonts — Pixelify Sans (UI/body), Silkscreen (headings/numbers) */
 	--font-pixel: 'Pixelify Sans', monospace;
-	--font-ui: 'Pixelify Sans', monospace;
 	--font-display: 'Silkscreen', monospace;
-	--font-data: 'Silkscreen', monospace;
 	--font-size-xs: 9px;
 	--font-size-sm: 11px;
 	--font-size-md: 13px;

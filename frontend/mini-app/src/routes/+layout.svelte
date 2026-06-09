@@ -173,11 +173,11 @@
 
 	.error-content {
 		text-align: center;
-		color: var(--pixel-text);
+		color: var(--text-primary);
 	}
 
 	.error-content h2 {
-		color: var(--pixel-danger);
+		color: var(--pixel-red);
 		margin-bottom: 8px;
 	}
 </style>

@@ -120,7 +120,7 @@
 	}
 
 	.exercise-row.selected {
-		background: rgba(var(--pixel-accent-rgb), 0.1);
+		background: var(--pixel-card-hover);
 		margin: calc(-1 * var(--spacing-sm));
 		padding: var(--spacing-sm);
 	}
