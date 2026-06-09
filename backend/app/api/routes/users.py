@@ -169,6 +169,48 @@ async def complete_onboarding(
 
 
 @router.get(
+    "/me/streak-freezes",
+    summary="Инфо о заморозках стрика",
+    description="Текущее число заморозок, лимит и цена покупки.",
+    tags=["Users"],
+)
+async def get_streak_freeze_info(user: CurrentUser):
+    from app.services.streak import STREAK_FREEZE_PRICE_COINS, MAX_STREAK_FREEZES
+
+    return {
+        "owned": user.streak_freezes,
+        "max": MAX_STREAK_FREEZES,
+        "price_coins": STREAK_FREEZE_PRICE_COINS,
+        "coins": user.coins,
+    }
+
+
+@router.post(
+    "/me/streak-freezes/buy",
+    response_model=UserResponse,
+    summary="Купить заморозку стрика",
+    description="Списывает монеты и добавляет одну заморозку (до лимита).",
+    tags=["Users"],
+)
+async def buy_streak_freeze_endpoint(
+    user: CurrentUser,
+    session: AsyncSessionDep,
+):
+    from app.services.streak import buy_streak_freeze
+
+    try:
+        await buy_streak_freeze(session, user)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+    await session.refresh(user)
+    return UserResponse.model_validate(user)
+
+
+@router.get(
     "/me/stats",
     response_model=UserStatsResponse,
     summary="Получить статистику пользователя",
@@ -251,6 +293,7 @@ async def get_current_user_stats(
         xp_progress_percent=min(xp_progress_percent, 100),
         current_streak=user.current_streak,
         max_streak=user.max_streak,
+        streak_freezes=user.streak_freezes,
         achievements_count=achievements_count,
         coins=user.coins,
         this_week_workouts=this_week_workouts,

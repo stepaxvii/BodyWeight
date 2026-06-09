@@ -3,35 +3,50 @@
  * Based on the formulas from DEVELOPMENT_PLAN.md
  */
 
+// XP per rep = base_xp × rate. The rate gives a classic push-up
+// (base_xp = 10) 3 XP/rep. Difficulty is baked into base_xp.
+// MUST mirror backend xp_calculator.py.
+export const XP_PER_REP_RATE = 0.3;
+
+// A timed hold of this many seconds counts as one rep-equivalent.
+export const SECONDS_PER_REP_EQUIVALENT = 10;
+
+/** XP for a single rep (or rep-equivalent) of this exercise. */
+export function xpPerRep(baseXp: number): number {
+	return baseXp * XP_PER_REP_RATE;
+}
+
 /**
- * Calculate XP for completing an exercise set
+ * XP for a reps-based exercise. Mirrors backend calculate_exercise_xp.
+ *
+ * XP = total_reps × (base_xp × XP_PER_REP_RATE) × streak_mult
+ *
+ * Strictly proportional to total reps; independent of how the work was
+ * split into sets (30 reps = 1×30 = 3×10 = 6×5).
  */
-export function calculateXp(
+export function calculateExerciseXp(
 	baseXp: number,
-	difficulty: number,
-	reps: number,
-	streakDays: number,
-	isFirstToday: boolean
+	totalReps: number,
+	streakDays: number = 0
 ): number {
-	// Difficulty multiplier: 1.0, 1.25, 1.5, 1.75, 2.0
-	const difficultyMult = 1 + (difficulty - 1) * 0.25;
+	if (totalReps <= 0) return 0;
+	return Math.floor(totalReps * xpPerRep(baseXp) * getStreakMultiplier(streakDays));
+}
 
-	// Streak bonus (max 50% at 30+ days)
-	const streakMult = 1 + Math.min(streakDays, 30) * 0.0167;
-
-	// Volume bonus (diminishing returns after 20 reps)
-	let volumeMult: number;
-	if (reps <= 20) {
-		volumeMult = 1 + reps * 0.02; // 1.0 to 1.4
-	} else {
-		volumeMult = 1.4 + (reps - 20) * 0.01; // slower growth
-	}
-
-	// First workout bonus
-	const firstBonus = isFirstToday ? 1.2 : 1.0;
-
-	const xp = baseXp * difficultyMult * streakMult * volumeMult * firstBonus;
-	return Math.floor(xp);
+/**
+ * XP for a timed/hold exercise. Mirrors backend calculate_timed_xp.
+ *
+ * rep_equivalent = total_seconds / 10
+ * XP = rep_equivalent × (base_xp × XP_PER_REP_RATE) × streak_mult
+ */
+export function calculateTimedXp(
+	baseXp: number,
+	totalDurationSeconds: number,
+	streakDays: number = 0
+): number {
+	if (totalDurationSeconds <= 0) return 0;
+	const repEquiv = totalDurationSeconds / SECONDS_PER_REP_EQUIVALENT;
+	return Math.floor(repEquiv * xpPerRep(baseXp) * getStreakMultiplier(streakDays));
 }
 
 /**
@@ -118,33 +133,39 @@ export function getLevelProgress(totalXp: number): {
 }
 
 /**
- * Calculate streak multiplier
+ * Calculate streak multiplier.
+ * Ramps linearly from 1.0 (no streak) to 1.5 (+50%) over one week,
+ * then stays capped at 1.5 for 7+ days.
  */
 export function getStreakMultiplier(streakDays: number): number {
-	return 1 + Math.min(streakDays, 30) * 0.0167;
+	return 1 + (Math.min(streakDays, 7) / 7) * 0.5;
 }
 
 /**
- * Calculate cycling XP from distance and average speed.
+ * Calculate cycling XP from distance, average speed and streak.
  * Formula mirrors backend implementation.
  */
-export function calculateCyclingXp(distanceKm: number, durationMinutes: number): number {
+export function calculateCyclingXp(
+	distanceKm: number,
+	durationMinutes: number,
+	streakDays: number = 0
+): number {
 	if (distanceKm <= 0 || durationMinutes <= 0) return 0;
 
 	const baseXp = distanceKm * 15;
 	const avgSpeed = distanceKm / (durationMinutes / 60);
 	const multiplier = Math.max(1, Math.min(1.6, 1 + (avgSpeed - 10) * 0.025));
 
-	return Math.floor(baseXp * multiplier);
+	return Math.floor(baseXp * multiplier * getStreakMultiplier(streakDays));
 }
 
 /**
- * Calculate walking XP from total step count.
- * Formula mirrors backend: 1 XP per 50 steps.
+ * Calculate walking XP from total step count and streak.
+ * Formula mirrors backend: 1 XP per 50 steps, scaled by streak.
  */
-export function calculateWalkingXp(steps: number): number {
+export function calculateWalkingXp(steps: number, streakDays: number = 0): number {
 	if (steps <= 0) return 0;
-	return Math.floor(steps / 50);
+	return Math.floor(Math.floor(steps / 50) * getStreakMultiplier(streakDays));
 }
 
 /**

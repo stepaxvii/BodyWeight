@@ -28,7 +28,8 @@ from app.db.models import (
     Notification,
 )
 from app.services.xp_calculator import (
-    calculate_xp,
+    calculate_exercise_xp,
+    calculate_timed_xp,
     calculate_cycling_xp,
     calculate_walking_xp,
     calculate_coins,
@@ -38,6 +39,7 @@ from app.services.xp_calculator import (
 from app.services.achievement_checker import check_achievements
 from app.services.notifications import save_notification, send_friend_workout_notification
 from app.services.boss import deal_damage as boss_deal_damage
+from app.services.challenges import record_progress as challenges_record_progress
 
 
 @dataclass
@@ -142,6 +144,9 @@ async def process_workout_completion(
     total_coins = 0
     workout_exercises = []
 
+    # Aggregate per-exercise quantities for challenge progress hook (called below)
+    challenge_quantity_by_slug: dict[str, int] = {}
+
     for ex_data in data.exercises:
         # Get exercise from DB
         exercise_result = await session.execute(
@@ -167,6 +172,7 @@ async def process_workout_completion(
             xp_earned = calculate_cycling_xp(
                 distance_km=ex_data.distance_km,
                 duration_minutes=ex_data.duration_minutes,
+                streak_days=user.current_streak,
             )
             # Store distance in 100m units to keep progress-compatible integer metric
             total_reps = int(round(ex_data.distance_km * 10))
@@ -177,34 +183,43 @@ async def process_workout_completion(
             if ex_data.steps <= 0:
                 raise ValueError("Walking steps must be positive")
 
-            xp_earned = calculate_walking_xp(steps=ex_data.steps)
+            xp_earned = calculate_walking_xp(steps=ex_data.steps, streak_days=user.current_streak)
             total_reps = ex_data.steps
             total_duration = 0
             sets_count = 1
         else:
-            # ALGORITHM: Calculate XP for EACH set separately, then sum
-            # Each set contributes fairly to total XP
+            # Accumulate total volume across sets. The number of sets does NOT
+            # affect XP — only the TOTAL reps (or total hold time) matter, so
+            # 30 reps award the same XP whether logged as 1×30, 3×10 or 6×5.
             for set_value in ex_data.sets:
-                # Convert timed exercises: 10 seconds = 1 rep equivalent
                 if ex_data.is_timed:
-                    set_duration = set_value
-                    total_duration += set_duration
-                    reps_for_xp = max(1, set_duration // 10)
+                    total_duration += set_value
                 else:
                     total_reps += set_value
-                    reps_for_xp = set_value
 
-                # Calculate XP for THIS set
-                # Formula: base_xp × difficulty_mult × volume_mult ×
-                #          streak_mult × first_bonus
-                set_xp = calculate_xp(
+            if ex_data.is_timed:
+                xp_earned = calculate_timed_xp(
                     base_xp=exercise.base_xp,
-                    difficulty=exercise.difficulty,
-                    reps=reps_for_xp,  # For this set only
+                    total_duration_seconds=total_duration,
                     streak_days=user.current_streak,
-                    is_first_today=is_first_today,
                 )
-                xp_earned += set_xp
+            else:
+                xp_earned = calculate_exercise_xp(
+                    base_xp=exercise.base_xp,
+                    total_reps=total_reps,
+                    streak_days=user.current_streak,
+                )
+
+        # Capture per-slug quantity for challenge progress.
+        # Timed exercises use total_duration (seconds == target unit).
+        # Reps-based exercises (incl. walking with steps stored in total_reps,
+        # and cycling with 100m units stored in total_reps) use total_reps.
+        challenge_quantity = total_duration if ex_data.is_timed else total_reps
+        if challenge_quantity > 0:
+            challenge_quantity_by_slug[ex_data.exercise_slug] = (
+                challenge_quantity_by_slug.get(ex_data.exercise_slug, 0)
+                + challenge_quantity
+            )
 
         # Create workout exercise entry
         workout_exercise = WorkoutExercise(
@@ -304,6 +319,19 @@ async def process_workout_completion(
     except Exception:
         import logging
         logging.getLogger(__name__).exception("Failed to deal boss damage")
+
+    # 8.6 Record challenge progress for any active challenges this user joined
+    # (best-effort — never block workout completion)
+    try:
+        await challenges_record_progress(
+            session,
+            user,
+            workout_date=data.finished_at.date(),
+            reps_by_slug=challenge_quantity_by_slug,
+        )
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("Failed to record challenge progress")
 
     await session.flush()
 

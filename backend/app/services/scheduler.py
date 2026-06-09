@@ -193,6 +193,27 @@ async def daily_inactivity_job():
             logger.error(f"Error in daily inactivity job: {e}")
 
 
+async def daily_streak_freeze_job():
+    """
+    Run shortly after UTC midnight (before boss/challenge jobs). Spends a
+    streak freeze for users who missed yesterday, or breaks the streak if
+    they have none. Idempotent within a day.
+    """
+    from app.db.database import async_session_maker
+    from app.services.streak import process_streak_freezes
+
+    async with async_session_maker() as session:
+        try:
+            stats = await process_streak_freezes(session)
+            await session.commit()
+            if stats["frozen"] or stats["broken"]:
+                logger.info(
+                    f"Daily job: streaks frozen={stats['frozen']}, broken={stats['broken']}"
+                )
+        except Exception as e:
+            logger.error(f"Error in daily streak freeze job: {e}")
+
+
 async def daily_boss_finalization_job():
     """
     Run shortly after midnight UTC. Finalizes any boss whose end_date passed
@@ -212,6 +233,31 @@ async def daily_boss_finalization_job():
                 logger.info(f"Daily job: finalized {count} boss(es)")
         except Exception as e:
             logger.error(f"Error in daily boss finalization job: {e}")
+
+
+async def daily_challenge_lifecycle_job():
+    """
+    Run shortly after midnight UTC. Transitions challenge statuses
+    (upcoming->active->finished) and finalizes finished challenges.
+    Idempotent.
+    """
+    from app.db.database import async_session_maker
+    from app.services.challenges import (
+        update_all_statuses,
+        finalize_due_challenges,
+    )
+
+    async with async_session_maker() as session:
+        try:
+            changed = await update_all_statuses(session)
+            finalized = await finalize_due_challenges(session)
+            await session.commit()
+            if changed or finalized:
+                logger.info(
+                    f"Daily job: challenges changed={changed}, finalized={finalized}"
+                )
+        except Exception as e:
+            logger.error(f"Error in daily challenge lifecycle job: {e}")
 
 
 def start_scheduler():
@@ -245,12 +291,31 @@ def start_scheduler():
         replace_existing=True,
     )
 
+    # Spend/break streaks for the day that just ended — must run BEFORE the
+    # boss/challenge jobs and before users start training today.
+    scheduler.add_job(
+        daily_streak_freeze_job,
+        trigger=CronTrigger(hour=0, minute=1, timezone="UTC"),
+        id="daily_streak_freeze",
+        name="Streak freeze maintenance (UTC midnight)",
+        replace_existing=True,
+    )
+
     # Finalize bosses + spawn new monthly boss shortly after UTC midnight
     scheduler.add_job(
         daily_boss_finalization_job,
         trigger=CronTrigger(hour=0, minute=5, timezone="UTC"),
         id="daily_boss_finalization",
         name="Finalize bosses + spawn new monthly boss (UTC midnight)",
+        replace_existing=True,
+    )
+
+    # Transition challenge statuses + finalize finished ones
+    scheduler.add_job(
+        daily_challenge_lifecycle_job,
+        trigger=CronTrigger(hour=0, minute=10, timezone="UTC"),
+        id="daily_challenge_lifecycle",
+        name="Challenge lifecycle (UTC midnight)",
         replace_existing=True,
     )
 

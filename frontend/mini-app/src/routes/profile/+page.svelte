@@ -14,6 +14,28 @@
 	let chartRange = $state<'week' | '2weeks' | 'month' | '3months'>('week');
 	let selectedDay = $state<{ date: string; activity: DayActivity | null } | null>(null);
 
+	// Streak freeze (must match backend STREAK_FREEZE_PRICE_COINS / MAX_STREAK_FREEZES)
+	const STREAK_FREEZE_PRICE = 100;
+	const MAX_STREAK_FREEZES = 2;
+	let freezeBuying = $state(false);
+	let freezeMessage = $state<string | null>(null);
+
+	async function handleBuyFreeze() {
+		if (freezeBuying) return;
+		freezeBuying = true;
+		freezeMessage = null;
+		try {
+			await userStore.buyStreakFreeze();
+			telegram.hapticNotification('success');
+			freezeMessage = '🧊 Заморозка куплена!';
+		} catch (err) {
+			telegram.hapticNotification('error');
+			freezeMessage = err instanceof Error ? err.message : 'Не удалось купить';
+		} finally {
+			freezeBuying = false;
+		}
+	}
+
 	// Account settings
 	let showLinkTelegram = $state(false);
 	let telegramIdInput = $state('');
@@ -247,6 +269,30 @@
 				{/each}
 			</div>
 		</div>
+
+		<div class="freeze-card">
+			<div class="freeze-left">
+				<span class="freeze-icon">🧊</span>
+				<div class="freeze-numbers">
+					<span class="freeze-title">Заморозки: {userStore.streakFreezes}/{MAX_STREAK_FREEZES}</span>
+					<span class="freeze-hint">Спасают серию за пропущенный день</span>
+				</div>
+			</div>
+			<button
+				class="freeze-buy"
+				disabled={freezeBuying || userStore.streakFreezes >= MAX_STREAK_FREEZES || userStore.coins < STREAK_FREEZE_PRICE}
+				onclick={handleBuyFreeze}
+			>
+				{#if userStore.streakFreezes >= MAX_STREAK_FREEZES}
+					Максимум
+				{:else}
+					{STREAK_FREEZE_PRICE} 🪙
+				{/if}
+			</button>
+		</div>
+		{#if freezeMessage}
+			<p class="freeze-message">{freezeMessage}</p>
+		{/if}
 	</section>
 
 	<!-- Quick Link - Friends -->
@@ -637,6 +683,67 @@
 	.streak-day.active {
 		border-color: var(--pixel-green);
 		background: var(--pixel-green);
+	}
+
+	/* Streak freeze */
+	.freeze-card {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		background: var(--pixel-card);
+		border: 2px solid var(--border-color);
+		padding: var(--spacing-sm) var(--spacing-md);
+		margin-top: var(--spacing-sm);
+	}
+
+	.freeze-left {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+	}
+
+	.freeze-icon {
+		font-size: 20px;
+	}
+
+	.freeze-numbers {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.freeze-title {
+		font-size: var(--font-size-sm);
+		color: var(--text-primary);
+	}
+
+	.freeze-hint {
+		font-size: 10px;
+		color: var(--text-secondary);
+	}
+
+	.freeze-buy {
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--pixel-yellow);
+		color: var(--pixel-yellow);
+		padding: var(--spacing-sm);
+		font-family: inherit;
+		font-size: var(--font-size-sm);
+		cursor: pointer;
+		white-space: nowrap;
+	}
+
+	.freeze-buy:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+		border-color: var(--border-color);
+		color: var(--text-secondary);
+	}
+
+	.freeze-message {
+		font-size: 10px;
+		color: var(--text-secondary);
+		margin-top: var(--spacing-sm);
+		text-align: center;
 	}
 
 	/* Links Section */

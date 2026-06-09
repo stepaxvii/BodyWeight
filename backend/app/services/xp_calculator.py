@@ -1,47 +1,66 @@
-def calculate_xp(
-    base_xp: int,
-    difficulty: int,
-    reps: int,
-    streak_days: int,
-    is_first_today: bool,
-) -> int:
+# XP per rep = base_xp × rate. The rate is calibrated so a classic push-up
+# (base_xp = 10) is worth 3 XP per rep. Difficulty is already baked into each
+# exercise's base_xp, so there is no separate difficulty multiplier.
+XP_PER_REP_RATE = 0.3
+
+# A timed hold of this many seconds counts as one rep-equivalent.
+SECONDS_PER_REP_EQUIVALENT = 10
+
+
+def xp_per_rep(base_xp: int) -> float:
+    """XP awarded for a single rep (or rep-equivalent) of this exercise."""
+    return base_xp * XP_PER_REP_RATE
+
+
+def calculate_exercise_xp(base_xp: int, total_reps: int, streak_days: int) -> int:
     """
-    Calculate XP earned for ONE set of an exercise.
-    
-    ALGORITHM (v2.0):
-    XP = base_xp × difficulty_mult × volume_mult × streak_mult × first_bonus
-    
-    Each set is calculated separately, then results are summed.
-    This ensures fair XP distribution across all sets.
+    Calculate XP for a reps-based exercise.
+
+    ALGORITHM (v3.0):
+    XP = total_reps × xp_per_rep(base_xp) × streak_mult
+
+    XP is strictly proportional to the TOTAL reps performed and is completely
+    independent of how the work was split into sets — 30 reps award the same
+    XP whether logged as 1×30, 3×10 or 6×5.
+
+    Args:
+        base_xp: Base XP from exercise definition (encodes difficulty)
+        total_reps: Total reps across all sets of this exercise
+        streak_days: Current streak in days
+
+    Returns:
+        Calculated XP amount for the whole exercise (integer)
+    """
+    if total_reps <= 0:
+        return 0
+
+    xp = total_reps * xp_per_rep(base_xp) * get_streak_multiplier(streak_days)
+    return int(xp)
+
+
+def calculate_timed_xp(base_xp: int, total_duration_seconds: int, streak_days: int) -> int:
+    """
+    Calculate XP for a timed/hold exercise, by analogy with reps.
+
+    rep_equivalent = total_duration_seconds / 10   (10s = 1 rep)
+    XP = rep_equivalent × xp_per_rep(base_xp) × streak_mult
+
+    Like the reps formula, it depends only on the TOTAL hold time and is
+    independent of how the hold was split across sets.
 
     Args:
         base_xp: Base XP from exercise definition
-        difficulty: Exercise difficulty (1-5)
-        reps: Number of reps in THIS set (or rep equivalent for timed)
+        total_duration_seconds: Total hold time across all sets, in seconds
         streak_days: Current streak in days
-        is_first_today: Whether this is the first workout of the day
 
     Returns:
-        Calculated XP amount for this set (integer)
+        Calculated XP amount for the whole exercise (integer)
     """
-    # 1. Difficulty multiplier: 1.0, 1.25, 1.5, 1.75, 2.0
-    difficulty_mult = 1 + (difficulty - 1) * 0.25
+    if total_duration_seconds <= 0:
+        return 0
 
-    # 2. Volume multiplier (applied to THIS set's reps)
-    # Diminishing returns after 20 reps
-    if reps <= 20:
-        volume_mult = 1 + reps * 0.02  # 1.0 to 1.4
-    else:
-        volume_mult = 1.4 + (reps - 20) * 0.01  # slower growth
-
-    # 3. Streak multiplier: max 50% at 30+ days
-    streak_mult = 1 + min(streak_days, 30) * 0.0167  # ~1.5 max
-
-    # 4. First workout of the day bonus
-    first_bonus = 1.2 if is_first_today else 1.0
-
-    # Calculate XP for this set
-    xp = base_xp * difficulty_mult * volume_mult * streak_mult * first_bonus
+    rep_equiv = total_duration_seconds / SECONDS_PER_REP_EQUIVALENT
+    xp = rep_equiv * xp_per_rep(base_xp) * get_streak_multiplier(streak_days)
     return int(xp)
 
 
@@ -79,15 +98,15 @@ def calculate_coins(xp_earned: int, streak_days: int = 0, workout_duration_minut
     return coins
 
 
-def calculate_cycling_xp(distance_km: float, duration_minutes: int) -> int:
+def calculate_cycling_xp(distance_km: float, duration_minutes: int, streak_days: int = 0) -> int:
     """
-    Calculate XP for cycling based on distance and average speed.
+    Calculate XP for cycling based on distance, average speed and streak.
 
     Formula:
     - base_xp = distance_km * 15
     - avg_speed = distance_km / (duration_minutes / 60)
     - multiplier = clamp(1 + (avg_speed - 10) * 0.025, 1, 1.6)
-    - xp = floor(base_xp * multiplier)
+    - xp = floor(base_xp * multiplier * streak_mult)
     """
     if distance_km <= 0:
         raise ValueError("distance_km must be positive")
@@ -98,19 +117,19 @@ def calculate_cycling_xp(distance_km: float, duration_minutes: int) -> int:
     avg_speed = distance_km / (duration_minutes / 60)
     multiplier = max(1.0, min(1.6, 1 + (avg_speed - 10) * 0.025))
 
-    return int(base_xp * multiplier)
+    return int(base_xp * multiplier * get_streak_multiplier(streak_days))
 
 
-def calculate_walking_xp(steps: int) -> int:
+def calculate_walking_xp(steps: int, streak_days: int = 0) -> int:
     """
-    Calculate XP for walking based on total step count.
+    Calculate XP for walking based on total step count and streak.
 
-    Formula: xp = steps // 50 (10 000 steps = 200 XP)
+    Formula: xp = floor(steps // 50 * streak_mult) (10 000 steps = 200 XP at no streak)
     """
     if steps <= 0:
         raise ValueError("steps must be positive")
 
-    return steps // 50
+    return int((steps // 50) * get_streak_multiplier(streak_days))
 
 
 def xp_for_level(level: int) -> int:
@@ -153,7 +172,10 @@ def get_level_from_xp(total_xp: int) -> int:
 
 def get_streak_multiplier(streak_days: int) -> float:
     """
-    Calculate streak multiplier for display.
+    Calculate streak multiplier.
+
+    Ramps linearly from 1.0 (no streak) to 1.5 (+50%) over one week,
+    then stays capped at 1.5 for 7+ days.
 
     Args:
         streak_days: Current streak in days
@@ -161,4 +183,4 @@ def get_streak_multiplier(streak_days: int) -> float:
     Returns:
         Multiplier value (1.0 to 1.5)
     """
-    return 1 + min(streak_days, 30) * 0.0167
+    return 1 + min(streak_days, 7) / 7 * 0.5

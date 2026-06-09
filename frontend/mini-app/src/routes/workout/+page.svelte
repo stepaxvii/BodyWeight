@@ -11,6 +11,8 @@
 	import { workoutStore } from '$lib/stores/workout.svelte';
 	import { favoritesStore } from '$lib/stores/favorites.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { userStore } from '$lib/stores/user.svelte';
+	import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
 	import type { ExerciseCategory, Exercise, Routine, RoutineCategory, CustomRoutineListItem, CustomRoutine } from '$lib/types';
 
 	// Data
@@ -56,79 +58,46 @@
 	let searchQuery = $state('');
 
 	/**
-	 * Calculate estimated XP for active workout (preview only).
-	 * 
-	 * ALGORITHM (matches backend):
-	 * 1. For each exercise, iterate through each set
-	 * 2. Convert timed exercises: 10 seconds = 1 rep equivalent
-	 * 3. Calculate XP for THIS set: base_xp × difficulty_mult × volume_mult
-	 * 4. Sum all set XP values
-	 * 
-	 * Note: Frontend doesn't know streak/first_bonus, so shows approximate value
+	 * Estimated XP for the active workout (preview). Mirrors the backend
+	 * exactly: per exercise, XP = total reps (or total seconds for timed)
+	 * × base_xp × XP_PER_REP_RATE × streak_mult, floored per exercise then
+	 * summed. The number of sets never affects XP.
 	 */
 	const estimatedXp = $derived.by(() => {
 		// CRITICAL: For active workouts, NEVER use session.total_xp_earned
 		// Always recalculate from current exerciseData
 		if (!workoutStore.isActive) {
-			// Only for completed workouts, use backend value
+			// Only for completed workouts, use the authoritative backend value
 			if (workoutStore.session?.total_xp_earned) {
 				return workoutStore.session.total_xp_earned;
 			}
 			return 0;
 		}
-		
+
 		// For active workouts: calculate from current exerciseData
-		// No sets = no XP
 		if (workoutStore.totalSets === 0) {
 			return 0;
 		}
-		
-		// Calculate XP for active workout
+
+		const streak = userStore.streak;
 		let total = 0;
-		
+
 		// CRITICAL: Convert Map to Array to ensure reactivity in Svelte 5
-		// Direct forEach on Map may not trigger reactivity properly
 		const exerciseDataArray = Array.from(workoutStore.exerciseData.values());
-		
+
 		for (const data of exerciseDataArray) {
-			// Skip if no exercise data or no sets
 			if (!data.exercise || data.sets.length === 0) {
 				continue;
 			}
-			
-			const baseXp = data.exercise.base_xp;
-			const difficulty = data.exercise.difficulty || 1;
-			const difficultyMult = 1 + (difficulty - 1) * 0.25;
 
-			// ALGORITHM: Calculate XP for EACH set separately
-			// Access sets array to ensure reactivity
-			const sets = data.sets;
-			for (const setValue of sets) {
-				// Step 1: Convert timed exercises (10 sec = 1 rep)
-				let repsValue: number;
-				if (data.isTimed) {
-					repsValue = Math.max(1, Math.floor(setValue / 10));
-				} else {
-					repsValue = setValue;
-				}
-				
-				// Step 2: Calculate volume multiplier for THIS set
-				let volumeMult: number;
-				if (repsValue <= 20) {
-					volumeMult = 1 + repsValue * 0.02;  // 1.0 to 1.4
-				} else {
-					volumeMult = 1.4 + (repsValue - 20) * 0.01;  // slower growth
-				}
-				
-				// Step 3: Calculate XP for this set
-				// Formula: base_xp × difficulty_mult × volume_mult
-				// (without streak/first_bonus - frontend doesn't know these)
-				const setXp = baseXp * difficultyMult * volumeMult;
-				total += setXp;
-			}
+			// Sum the whole exercise's volume; set boundaries are irrelevant.
+			const totalVolume = data.sets.reduce((sum, v) => sum + v, 0);
+			total += data.isTimed
+				? calculateTimedXp(data.exercise.base_xp, totalVolume, streak)
+				: calculateExerciseXp(data.exercise.base_xp, totalVolume, streak);
 		}
-		
-		return Math.floor(total);
+
+		return total;
 	});
 
 	// Load all exercises when any filter is active (search, equipment, difficulty, tags)

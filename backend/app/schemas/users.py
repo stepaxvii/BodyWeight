@@ -19,6 +19,7 @@ class UserResponse(BaseModel):
     coins: int
     current_streak: int
     max_streak: int
+    streak_freezes: int = 0
     last_workout_date: date | None = None
     notification_time: time | None = None
     notifications_enabled: bool
@@ -52,6 +53,7 @@ class UserStatsResponse(BaseModel):
     xp_progress_percent: float
     current_streak: int
     max_streak: int
+    streak_freezes: int = 0
     achievements_count: int
     coins: int
     this_week_workouts: int

@@ -5,7 +5,7 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { favoritesStore } from '$lib/stores/favorites.svelte';
 	import { exercisesStore } from '$lib/stores/exercises.svelte';
-	import { calculateCyclingXp, calculateWalkingXp } from '$lib/utils/xp';
+	import { calculateCyclingXp, calculateWalkingXp, calculateExerciseXp, calculateTimedXp, xpPerRep } from '$lib/utils/xp';
 	import { getTagName } from '$lib/utils';
 	import type { Exercise, EquipmentType, ExerciseCategory } from '$lib/types';
 	import { onMount } from 'svelte';
@@ -288,7 +288,12 @@
 			if (!navigator.onLine) {
 				savePendingWorkout(workoutData);
 				telegram.hapticNotification('success');
-				onsave?.(selectedExercise.base_xp, 0);
+				onsave?.(
+					timeBased
+						? calculateTimedXp(selectedExercise.base_xp, duration, userStore.streak)
+						: calculateExerciseXp(selectedExercise.base_xp, reps, userStore.streak),
+					0
+				);
 				handleClose();
 			} else {
 				console.error('Failed to save exercise:', err);
@@ -331,7 +336,7 @@
 			if (!navigator.onLine) {
 				savePendingWorkout(workoutData);
 				telegram.hapticNotification('success');
-				onsave?.(calculateCyclingXp(cyclingDistanceKm, cyclingDurationMin), 0);
+				onsave?.(calculateCyclingXp(cyclingDistanceKm, cyclingDurationMin, userStore.streak), 0);
 				handleClose();
 			} else {
 				console.error('Failed to save cycling activity:', err);
@@ -348,10 +353,10 @@
 	});
 
 	const cyclingEstimatedXp = $derived.by(() => (
-		calculateCyclingXp(cyclingDistanceKm, cyclingDurationMin)
+		calculateCyclingXp(cyclingDistanceKm, cyclingDurationMin, userStore.streak)
 	));
 
-	const walkingEstimatedXp = $derived.by(() => calculateWalkingXp(walkingSteps));
+	const walkingEstimatedXp = $derived.by(() => calculateWalkingXp(walkingSteps, userStore.streak));
 
 	async function handleSaveWalking() {
 		if (isSubmitting) return;
@@ -384,7 +389,7 @@
 			if (!navigator.onLine) {
 				savePendingWorkout(workoutData);
 				telegram.hapticNotification('success');
-				onsave?.(calculateWalkingXp(walkingSteps), 0);
+				onsave?.(calculateWalkingXp(walkingSteps, userStore.streak), 0);
 				handleClose();
 			} else {
 				console.error('Failed to save walking activity:', err);
@@ -525,7 +530,7 @@
 						onclick={() => selectExercise(ex)}
 					>
 						<span class="exercise-name">{ex.name_ru}</span>
-						<span class="exercise-xp">+{ex.base_xp} XP</span>
+						<span class="exercise-xp">+{Number(xpPerRep(ex.base_xp).toFixed(1))} XP/{isTimeBased(ex) ? '10с' : 'повт'}</span>
 					</button>
 				{/each}
 				{#if displayedExercises.length === 0}

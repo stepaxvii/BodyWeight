@@ -29,6 +29,10 @@ class UserStore {
 		return this.user?.current_streak ?? 0;
 	}
 
+	get streakFreezes() {
+		return this.user?.streak_freezes ?? 0;
+	}
+
 	get xpForCurrentLevel() {
 		const lvl = this.level - 1;
 		return 100 * lvl * lvl;
@@ -242,6 +246,13 @@ class UserStore {
 				this.user.max_streak = streak;
 			}
 		}
+	}
+
+	/** Buy one streak freeze. Throws on error (not enough coins / at cap). */
+	async buyStreakFreeze(): Promise<User> {
+		const updated = await api.buyStreakFreeze();
+		this.user = updated;
+		return updated;
 	}
 
 	async setAvatar(avatarId: AvatarId) {

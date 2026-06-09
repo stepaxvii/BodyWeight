@@ -60,6 +60,17 @@ from .boss import (
     BossHistoryEntry,
     BossHistoryResponse,
 )
+from .challenges import (
+    ChallengeExerciseCreate,
+    ChallengeCreate,
+    ChallengeExerciseResponse,
+    ChallengeListItem,
+    ChallengeParticipantInfo,
+    ChallengeDayProgress,
+    ChallengeDetailsResponse,
+    ChallengeMyCalendarResponse,
+    ChallengeClaimResponse,
+)
 
 __all__ = [
     # Common
@@ -129,4 +140,14 @@ __all__ = [
     "BossClaimResponse",
     "BossHistoryEntry",
     "BossHistoryResponse",
+    # Challenges
+    "ChallengeExerciseCreate",
+    "ChallengeCreate",
+    "ChallengeExerciseResponse",
+    "ChallengeListItem",
+    "ChallengeParticipantInfo",
+    "ChallengeDayProgress",
+    "ChallengeDetailsResponse",
+    "ChallengeMyCalendarResponse",
+    "ChallengeClaimResponse",
 ]
