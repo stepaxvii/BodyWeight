@@ -33,7 +33,7 @@ git pull --ff-only
 echo "==> [2/5] build frontend (static -> $BUILD_DIR, served by host nginx)"
 # Marker to prove the build actually (re)wrote its output during THIS run.
 marker="$(mktemp)"
-( cd frontend/mini-app && npm install && npm run build )
+( cd frontend/mini-app && npm ci && npm run build )
 
 echo "==> [3/5] verify frontend build"
 if [ ! -f "$BUILD_DIR/index.html" ]; then
