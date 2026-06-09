@@ -5,42 +5,42 @@
    CSS Variables - Color Palette
    ============================================ */
 :root {
-	/* Surfaces — "Voltage": deep indigo, high contrast (designer variant B) */
-	--pixel-bg: #15123a;
-	--pixel-bg-dark: #0c0a26;
-	--pixel-card: #211c52;
-	--pixel-card-hover: #2c2668;
+	/* Surfaces — warm graphite (dark), restrained single-accent scheme */
+	--pixel-bg: #14110d;
+	--pixel-bg-dark: #0d0b08;
+	--pixel-card: #1f1a14;
+	--pixel-card-hover: #2a2419;
 
-	/* Accent — neon cyan */
-	--pixel-accent: #19e3ff;
-	--pixel-accent-hover: #5fecff;
+	/* Accent — warm amber (the ONE accent) */
+	--pixel-accent: #f0a93b;
+	--pixel-accent-hover: #ffc163;
 
-	/* Status / palette */
-	--pixel-green: #2fe6a0;
-	--pixel-green-light: #5cf0b8;
-	--pixel-yellow: #ffe14d;
-	--pixel-orange: #ff9f43;
-	--pixel-red: #ff2e7e;
-	--pixel-blue: #19e3ff;
-	--pixel-cyan: #19e3ff;
-	--pixel-purple: #8a5fc0;
-	--pixel-pink: #ff2e7e;
+	/* Status / palette — muted, not neon */
+	--pixel-green: #6fae6a;
+	--pixel-green-light: #8ac483;
+	--pixel-yellow: #f0a93b;
+	--pixel-orange: #e89542;
+	--pixel-red: #d9614a;
+	--pixel-blue: #6f8fae;
+	--pixel-cyan: #4fa39a;
+	--pixel-purple: #9a7bc0;
+	--pixel-pink: #d98aa0;
 
-	/* Neutral colors. --pixel-black drives all hard shadows (deep indigo-black). */
-	--pixel-black: #0c0a26;
-	--pixel-dark: #2c2668;
-	--pixel-gray: #6b64ad;
-	--pixel-light: #a9a3e0;
-	--pixel-white: #f4f2ff;
+	/* Neutral colors — warm grays. --pixel-black drives all hard shadows. */
+	--pixel-black: #0a0806;
+	--pixel-dark: #2a2419;
+	--pixel-gray: #7d7568;
+	--pixel-light: #b8b0a2;
+	--pixel-white: #f0ece4;
 
-	/* Text — light on indigo */
-	--text-primary: #f4f2ff;
-	--text-secondary: #a9a3e0;
-	--text-muted: #6b64ad;
+	/* Text — warm off-white on graphite */
+	--text-primary: #f0ece4;
+	--text-secondary: #b8b0a2;
+	--text-muted: #7d7568;
 
 	/* Borders */
-	--border-color: #4a4290;
-	--border-light: #6b64ad;
+	--border-color: #38322a;
+	--border-light: #4a4238;
 	--border-width: 3px;
 
 	/* Spacing */
@@ -54,31 +54,32 @@
 	--radius-sm: 0;
 	--radius-md: 0;
 
-	/* Shadows — hard pixel offset, deep indigo (no blur) */
+	/* Shadows — hard pixel offset, near-black (no blur) */
 	--shadow-sm: 2px 2px 0px var(--pixel-black);
 	--shadow-md: 4px 4px 0px var(--pixel-black);
 	--shadow-lg: 6px 6px 0px var(--pixel-black);
 
-	/* Color-blocking role tokens (Voltage variant) */
-	--hero-bg: #19e3ff;
-	--hero-text: #06223a;
-	--hero-num: #ff2e7e;
-	--hero-edge: #0c0a26;
-	--cta-bg: #ff2e7e;
-	--cta-text: #ffffff;
-	--cta-edge: #0c0a26;
-	--stat-bg: #211c52;
-	--stat-text: #f4f2ff;
-	--stat-edge: #0c0a26;
+	/* Color-blocking COLLAPSED: neutral cards everywhere; amber only on the
+	   primary CTA and on accent numbers/active states (no competing blocks). */
+	--hero-bg: #1f1a14;
+	--hero-text: #f0ece4;
+	--hero-num: #f0a93b;
+	--hero-edge: #38322a;
+	--cta-bg: #f0a93b;
+	--cta-text: #14110d;
+	--cta-edge: #38322a;
+	--stat-bg: #1f1a14;
+	--stat-text: #f0ece4;
+	--stat-edge: #38322a;
 
-	/* Activity heatmap — 5 levels: empty card → neon cyan */
-	--hm0: #211c52;
-	--hm1: #1d5e7a;
-	--hm2: #1c93b0;
-	--hm3: #17c3e0;
-	--hm4: #19e3ff;
+	/* Activity heatmap — single warm ramp (graphite → amber) */
+	--hm0: #1f1a14;
+	--hm1: #4a3a1e;
+	--hm2: #856029;
+	--hm3: #c08a32;
+	--hm4: #f0a93b;
 
-	/* Fonts — Pixelify Sans everywhere (readable pixel sans; no Silkscreen) */
+	/* Fonts — Pixelify Sans everywhere (readable pixel sans) */
 	--font-pixel: 'Pixelify Sans', monospace;
 	--font-display: 'Pixelify Sans', monospace;
 	--font-size-xs: 9px;
@@ -427,9 +428,9 @@ a:hover {
 	.anim-floaty { animation: floaty 3s ease-in-out infinite; }
 
 	/* one-shot entrances */
-	.anim-pop { animation: pop-in 0.42s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
-	.anim-bar-grow { animation: bar-grow 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) both; transform-origin: bottom; }
-	.anim-toast { animation: toast-in 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
+	.anim-pop { animation: pop-in 0.42s cubic-bezier(0.2, 1.4, 0.4, 1) backwards; }
+	.anim-bar-grow { animation: bar-grow 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) backwards; transform-origin: bottom; }
+	.anim-toast { animation: toast-in 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) backwards; }
 
 	/* ambient loops */
 	.anim-coin-spin { animation: coin-spin 3.5s linear infinite; }
@@ -438,7 +439,7 @@ a:hover {
 
 	/* cascade entrance — add .anim-cascade to a container; its direct
 	   children fade/slide up with staggered delays */
-	.anim-cascade > * { animation: card-in 0.42s both; }
+	.anim-cascade > * { animation: card-in 0.42s backwards; }
 	.anim-cascade > *:nth-child(1) { animation-delay: 0.02s; }
 	.anim-cascade > *:nth-child(2) { animation-delay: 0.06s; }
 	.anim-cascade > *:nth-child(3) { animation-delay: 0.10s; }
@@ -449,7 +450,7 @@ a:hover {
 	.anim-cascade > *:nth-child(n + 8) { animation-delay: 0.30s; }
 
 	/* list rows — add .anim-rows to a container of repeated rows */
-	.anim-rows > * { animation: row-in 0.4s ease both; }
+	.anim-rows > * { animation: row-in 0.4s ease backwards; }
 	.anim-rows > *:nth-child(1) { animation-delay: 0.03s; }
 	.anim-rows > *:nth-child(2) { animation-delay: 0.07s; }
 	.anim-rows > *:nth-child(3) { animation-delay: 0.11s; }

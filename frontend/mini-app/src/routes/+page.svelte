@@ -352,8 +352,17 @@
 		width: fit-content;
 	}
 
+	/* Lift the header (and its notification dropdown) above the cards below.
+	   The entry animations give each section its own stacking context, so the
+	   header needs an explicit z-index or later sections paint over the dropdown. */
+	.page-header {
+		position: relative;
+		z-index: 60;
+	}
+
 	.notification-wrapper {
 		position: relative;
+		z-index: 61;
 	}
 
 	.notification-badge {
