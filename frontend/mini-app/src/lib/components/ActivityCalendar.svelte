@@ -6,331 +6,192 @@
 		activityData: Record<string, DayActivity>;
 		year: number;
 		onDayClick?: (date: string, activity: DayActivity | null) => void;
+		weeks?: number;
 	}
 
-	let { activityData, year, onDayClick }: Props = $props();
+	// Matches the designer's Heatmap: a compact, full-width grid of `weeks`
+	// Monday-started weeks (default 26), responsive square cells, no labels.
+	let { activityData, year, onDayClick, weeks = 26 }: Props = $props();
 
-	// 4 градации заливки: пусто (0 XP) + 4 уровня по доле дневной нормы.
-	// Норма делится на 4 равные ступени; день, достигший/превысивший норму,
-	// получает самый яркий цвет. У каждого дня своя норма (историчность).
 	const DEFAULT_NORM = 1400;
 
-	function getColorClass(xp: number, norm: number): string {
-		if (xp <= 0) return 'color-empty';
+	// Intensity 0..4 by the day's XP relative to its norm (norm / 4 steps).
+	function levelFor(xp: number, norm: number): number {
+		if (xp <= 0) return 0;
 		const step = Math.max(1, norm || DEFAULT_NORM) / 4;
-		if (xp <= step) return 'color-1';
-		if (xp <= step * 2) return 'color-2';
-		if (xp <= step * 3) return 'color-3';
-		return 'color-4';
+		if (xp <= step) return 1;
+		if (xp <= step * 2) return 2;
+		if (xp <= step * 3) return 3;
+		return 4;
 	}
 
-	// Generate all days for the year
-	function generateYearGrid(year: number): Date[] {
-		const days: Date[] = [];
-		const start = new Date(year, 0, 1); // January 1st
-		const end = new Date(year, 11, 31); // December 31st
-
-		for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-			days.push(new Date(d));
-		}
-		return days;
-	}
-
-	// Group days by week (starting Monday)
-	function groupByWeeks(days: Date[]): Date[][] {
-		const weeks: Date[][] = [];
-		let currentWeek: Date[] = [];
-
-		// Fill first week with empty slots if it doesn't start on Monday
-		const firstDay = days[0];
-		let firstDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
-		// Convert Sunday (0) to 7 for easier Monday-based calculation
-		if (firstDayOfWeek === 0) firstDayOfWeek = 7;
-		const daysToFill = firstDayOfWeek - 1; // Monday = 1, so Monday needs 0 empty slots
-
-		for (let i = 0; i < daysToFill; i++) {
-			currentWeek.push(null as any); // Empty slot
-		}
-
-		for (const day of days) {
-			currentWeek.push(day);
-
-			// Check if week is complete (7 days total)
-			if (currentWeek.length === 7) {
-				weeks.push([...currentWeek]);
-				currentWeek = [];
-			}
-		}
-
-		// Fill last week with empty slots if needed
-		if (currentWeek.length > 0) {
-			while (currentWeek.length < 7) {
-				currentWeek.push(null as any);
-			}
-			weeks.push(currentWeek);
-		}
-
-		return weeks;
-	}
-
-	const yearDays = $derived(generateYearGrid(year));
-	const weeks = $derived(groupByWeeks(yearDays));
-
-	function formatDate(date: Date): string {
-		// Local calendar day (NOT toISOString/UTC, which shifts the day back in
-		// UTC+ timezones and would colour the wrong cell).
+	function fmt(date: Date): string {
+		// Local calendar day (not toISOString/UTC, which shifts the day in UTC+ zones).
 		const y = date.getFullYear();
 		const m = String(date.getMonth() + 1).padStart(2, '0');
 		const d = String(date.getDate()).padStart(2, '0');
 		return `${y}-${m}-${d}`;
 	}
 
-	function handleDayClick(date: Date | null) {
-		if (!date || !onDayClick) return;
-
-		telegram.hapticImpact('light');
-		const dateStr = formatDate(date);
-		const activity = activityData[dateStr] || null;
-		onDayClick(dateStr, activity);
+	function startOfDay(d: Date): Date {
+		const x = new Date(d);
+		x.setHours(0, 0, 0, 0);
+		return x;
 	}
 
-	// Month labels
-	const monthNames = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+	const today = startOfDay(new Date());
 
-	// Get month label positions (first week of each month)
-	function getMonthLabels(): Array<{ month: string; weekIndex: number }> {
-		const labels: Array<{ month: string; weekIndex: number }> = [];
-		let lastMonth = -1;
+	// Build `weeks` columns (each Mon→Sun, top→bottom) ending with the current week.
+	const columns = $derived.by(() => {
+		const dow = today.getDay() === 0 ? 7 : today.getDay(); // Mon=1..Sun=7
+		const sundayThisWeek = new Date(today);
+		sundayThisWeek.setDate(today.getDate() + (7 - dow));
+		const firstMonday = new Date(sundayThisWeek);
+		firstMonday.setDate(sundayThisWeek.getDate() - (weeks * 7 - 1));
 
-		weeks.forEach((week, weekIndex) => {
-			const firstDayInWeek = week.find(d => d !== null);
-			if (firstDayInWeek) {
-				const month = firstDayInWeek.getMonth();
-				if (month !== lastMonth) {
-					labels.push({ month: monthNames[month], weekIndex });
-					lastMonth = month;
-				}
+		const cols: Date[][] = [];
+		const cur = new Date(firstMonday);
+		for (let w = 0; w < weeks; w++) {
+			const col: Date[] = [];
+			for (let d = 0; d < 7; d++) {
+				col.push(new Date(cur));
+				cur.setDate(cur.getDate() + 1);
 			}
-		});
+			cols.push(col);
+		}
+		return cols;
+	});
 
-		return labels;
+	function handleClick(date: Date) {
+		if (!onDayClick) return;
+		telegram.hapticImpact('light');
+		const ds = fmt(date);
+		onDayClick(ds, activityData[ds] || null);
 	}
-
-	const monthLabels = $derived(getMonthLabels());
-
-	// Weekday labels (showing only Mon, Wed, Fri)
-	const weekdayLabels = ['Пн', '', 'Ср', '', 'Пт', '', ''];
 </script>
 
-<div class="activity-calendar">
-	<div class="calendar-header">
-		<h3 class="calendar-title">Активность в {year}</h3>
-		<div class="calendar-legend">
-			<span class="legend-label">Меньше</span>
-			<div class="legend-box color-empty"></div>
-			<div class="legend-box color-1"></div>
-			<div class="legend-box color-2"></div>
-			<div class="legend-box color-3"></div>
-			<div class="legend-box color-4"></div>
-			<span class="legend-label">Больше</span>
-		</div>
+<section class="activity">
+	<div class="sec-head">
+		<span class="sec-head__t">Активность</span>
+		<span class="sec-head__m">{year}</span>
 	</div>
 
-	<div class="calendar-grid-wrapper">
-		<!-- Month labels (offset right by the weekday-label gutter) -->
-		<div class="month-labels">
-			{#each monthLabels as { month, weekIndex }}
-				<span class="month-label" style="left: {weekIndex * 12 + 22}px">{month}</span>
-			{/each}
-		</div>
-
-		<div class="calendar-body">
-			<!-- Weekday labels — week starts on Monday (Пн → Вс, top → bottom) -->
-			<div class="weekday-labels">
-				{#each weekdayLabels as wd}
-					<span class="weekday-label">{wd}</span>
+	<div class="heatmap">
+		{#each columns as col}
+			<div class="hm-col">
+				{#each col as day}
+					{@const ds = fmt(day)}
+					{@const act = activityData[ds]}
+					{@const xp = act?.total_xp || 0}
+					{@const norm = act?.norm || DEFAULT_NORM}
+					{#if day.getTime() > today.getTime()}
+						<span class="hm-cell" data-lvl="0"></span>
+					{:else}
+						<button
+							class="hm-cell"
+							data-lvl={levelFor(xp, norm)}
+							title="{ds}: {xp}/{norm} XP, {act?.workouts || 0} тренировок"
+							onclick={() => handleClick(day)}
+						></button>
+					{/if}
 				{/each}
 			</div>
-
-			<!-- Calendar grid -->
-			<div class="calendar-grid">
-				{#each weeks as week}
-					<div class="calendar-column">
-						{#each week as day}
-							{#if day === null}
-								<div class="calendar-day empty"></div>
-							{:else}
-								{@const dateStr = formatDate(day)}
-								{@const activity = activityData[dateStr]}
-								{@const xp = activity?.total_xp || 0}
-								{@const norm = activity?.norm || DEFAULT_NORM}
-								<button
-									class="calendar-day {getColorClass(xp, norm)}"
-									title="{dateStr}: {xp}/{norm} XP, {activity?.workouts || 0} тренировок"
-									onclick={() => handleDayClick(day)}
-								></button>
-							{/if}
-						{/each}
-					</div>
-				{/each}
-			</div>
-		</div>
+		{/each}
 	</div>
-</div>
+
+	<div class="activity__legend">
+		<span>меньше</span>
+		<span class="hm-cell" data-lvl="0"></span>
+		<span class="hm-cell" data-lvl="1"></span>
+		<span class="hm-cell" data-lvl="2"></span>
+		<span class="hm-cell" data-lvl="3"></span>
+		<span class="hm-cell" data-lvl="4"></span>
+		<span>больше</span>
+	</div>
+</section>
 
 <style>
-	.activity-calendar {
-		width: 100%;
-		padding: var(--spacing-md);
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
+	/* Ported 1:1 from the designer's styles.css (.activity / .heatmap / .hm-*). */
+	.activity {
+		background: var(--card-bg);
+		border: var(--bw) solid var(--line);
+		border-radius: var(--radius);
+		box-shadow: var(--shadow);
+		padding: 13px;
 	}
 
-	.calendar-header {
+	.sec-head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+	}
+
+	.sec-head__t {
+		font-family: var(--font-display);
+		font-size: var(--font-size-md);
+		letter-spacing: 0.5px;
+		text-transform: uppercase;
+		color: var(--text);
+	}
+
+	.sec-head__m {
+		font-family: var(--font-data);
+		font-size: var(--data-md);
+		color: var(--accent);
+	}
+
+	.heatmap {
+		display: flex;
+		gap: 3px;
+		margin: 11px 0 9px;
+		justify-content: space-between;
+	}
+
+	.hm-col {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-sm);
-		margin-bottom: var(--spacing-md);
+		gap: 3px;
+		flex: 1;
+		min-width: 0;
 	}
 
-	.calendar-title {
-		font-size: var(--font-size-sm);
-		text-transform: uppercase;
-		margin: 0;
+	.hm-cell {
+		display: block;
+		width: 100%;
+		aspect-ratio: 1;
+		border: none;
+		padding: 0;
+		border-radius: var(--cell-radius, 0);
+		background: var(--hm0);
 	}
 
-	.calendar-legend {
+	button.hm-cell {
+		cursor: pointer;
+	}
+
+	button.hm-cell:hover {
+		outline: 2px solid var(--accent);
+		outline-offset: -1px;
+	}
+
+	.hm-cell[data-lvl='1'] { background: var(--hm1); }
+	.hm-cell[data-lvl='2'] { background: var(--hm2); }
+	.hm-cell[data-lvl='3'] { background: var(--hm3); }
+	.hm-cell[data-lvl='4'] { background: var(--hm4); }
+
+	.activity__legend {
 		display: flex;
 		align-items: center;
-		gap: 3px;
+		gap: 4px;
+		justify-content: flex-end;
 		font-size: var(--font-size-xs);
+		color: var(--muted);
 	}
 
-	.legend-label {
-		color: var(--text-secondary);
-		margin: 0 4px;
-	}
-
-	.legend-box {
+	.activity__legend .hm-cell {
 		width: 10px;
 		height: 10px;
-		border: 1px solid var(--border-color);
-	}
-
-	.calendar-grid-wrapper {
-		position: relative;
-		overflow: hidden;
-	}
-
-	.month-labels {
-		position: relative;
-		height: 14px;
-		margin-bottom: 2px;
-		min-width: fit-content;
-	}
-
-	.month-label {
-		position: absolute;
-		font-size: 9px;
-		color: var(--text-secondary);
-		text-transform: uppercase;
-		white-space: nowrap;
-	}
-
-	.calendar-body {
-		display: flex;
-		gap: 2px;
-		min-width: fit-content;
-	}
-
-	.weekday-labels {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		width: 20px;
-		flex-shrink: 0;
-	}
-
-	.weekday-label {
-		height: 10px;
-		line-height: 10px;
-		font-size: 8px;
-		color: var(--text-secondary);
-		text-align: right;
-		padding-right: 3px;
-		white-space: nowrap;
-	}
-
-	.calendar-grid {
-		display: flex;
-		gap: 2px;
-		min-width: fit-content;
-		padding-bottom: var(--spacing-xs);
-	}
-
-	.calendar-column {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-
-	.calendar-day {
-		width: 10px;
-		height: 10px;
-		border: 1px solid var(--border-color);
-		cursor: pointer;
-		padding: 0;
-		transition: all 0.1s;
-	}
-
-	.calendar-day:not(.empty):hover {
-		transform: scale(1.3);
-		box-shadow: 0 0 0 2px var(--pixel-accent);
-		z-index: 1;
-	}
-
-	.calendar-day.empty {
-		background: transparent;
-		border-color: transparent;
-		cursor: default;
-	}
-
-	/* 4 градации: пусто + 4 уровня по доле дневной нормы (Stardew heatmap) */
-	.color-empty {
-		background: var(--hm0); /* пустой день — пергамент */
-	}
-
-	.color-1 {
-		background: var(--hm1); /* до 25% нормы */
-	}
-
-	.color-2 {
-		background: var(--hm2); /* 25–50% нормы */
-	}
-
-	.color-3 {
-		background: var(--hm3); /* 50–75% нормы */
-	}
-
-	.color-4 {
-		background: var(--hm4); /* 75%+ — норма достигнута */
-	}
-
-	/* Scrollbar styling */
-	.calendar-grid::-webkit-scrollbar {
-		height: 6px;
-	}
-
-	.calendar-grid::-webkit-scrollbar-track {
-		background: var(--pixel-bg-dark);
-	}
-
-	.calendar-grid::-webkit-scrollbar-thumb {
-		background: var(--border-color);
-	}
-
-	.calendar-grid::-webkit-scrollbar-thumb:hover {
-		background: var(--pixel-accent);
+		flex: 0 0 auto;
+		aspect-ratio: auto;
 	}
 </style>

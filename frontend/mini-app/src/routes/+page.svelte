@@ -29,7 +29,14 @@
 		}
 
 		try {
-			activityData = await api.getUserActivity();
+			// The heatmap shows a rolling ~26-week window that crosses into the
+			// previous year, so fetch both years and merge for complete data.
+			const cy = new Date().getFullYear();
+			const [cur, prev] = await Promise.all([
+				api.getUserActivity(cy),
+				api.getUserActivity(cy - 1)
+			]);
+			activityData = { days: { ...prev.days, ...cur.days } };
 		} catch (e) {
 			console.error('Failed to load activity data:', e);
 		}
