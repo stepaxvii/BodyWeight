@@ -109,24 +109,24 @@
 			<PixelCard padding="md">
 				<div class="boss-hero">
 					<img src="{base}{boss.image_url}" alt={boss.name_ru} class="boss-img-large anim-floaty" />
-					<div class="boss-info">
-						<h2 class="boss-title">{boss.name_ru}</h2>
-						<p class="boss-period">{formatDate(boss.start_date)} — {formatDate(boss.end_date)}</p>
-						<div class="status-pill status-{boss.status}">{statusLabel(boss.status)}</div>
+					<div class="boss-hero__top">
+						<span class="boss-title">{boss.name_ru}</span>
+						<span class="status-pill status-{boss.status}">{statusLabel(boss.status)}</span>
 					</div>
-				</div>
+					<p class="boss-period">{formatDate(boss.start_date)} — {formatDate(boss.end_date)}</p>
 
-				<div class="hp-section">
-					<div class="hp-track-large">
-						<div class="hp-fill-large anim-bar-grow" style="width: {hpPercent}%; background: {barColor};"></div>
+					<div class="hp-section">
+						<div class="hp-track-large">
+							<div class="hp-fill-large anim-bar-grow" style="width: {hpPercent}%; background: {barColor};"></div>
+						</div>
+						<div class="hp-numbers">
+							<span>{formatNum(boss.current_hp)} HP</span>
+							<span class="hp-max">/ {formatNum(boss.max_hp)}</span>
+						</div>
 					</div>
-					<div class="hp-numbers">
-						<span>{formatNum(boss.current_hp)} HP</span>
-						<span class="hp-max">/ {formatNum(boss.max_hp)}</span>
-					</div>
-				</div>
 
-				<p class="boss-legend">{boss.legend_ru}</p>
+					<p class="boss-legend">{boss.legend_ru}</p>
+				</div>
 			</PixelCard>
 
 			<PixelCard padding="md">
@@ -289,33 +289,39 @@
 
 	.boss-hero {
 		display: flex;
-		gap: var(--spacing-md);
+		flex-direction: column;
 		align-items: center;
-		margin-bottom: var(--spacing-md);
+		gap: var(--spacing-sm);
+		text-align: center;
 	}
 
 	.boss-img-large {
-		width: 96px;
-		height: 96px;
+		width: 120px;
+		height: 120px;
 		image-rendering: pixelated;
 		flex-shrink: 0;
 	}
 
-	.boss-info {
-		flex: 1;
-		min-width: 0;
+	.boss-hero__top {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-sm);
+		flex-wrap: wrap;
 	}
 
 	.boss-title {
-		font-size: var(--font-size-md);
-		margin: 0 0 4px 0;
+		font-family: var(--font-display);
+		font-size: var(--font-size-lg);
+		margin: 0;
 		color: var(--text-primary);
 	}
 
 	.boss-period {
+		font-family: var(--font-data);
 		font-size: var(--font-size-xs);
 		color: var(--text-muted);
-		margin: 0 0 var(--spacing-xs) 0;
+		margin: 0;
 	}
 
 	.status-pill {
@@ -343,7 +349,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
-		margin-bottom: var(--spacing-md);
+		width: 100%;
 	}
 
 	.hp-track-large {
@@ -363,6 +369,8 @@
 		display: flex;
 		gap: 4px;
 		align-items: baseline;
+		justify-content: center;
+		font-family: var(--font-data);
 		font-size: var(--font-size-xs);
 		color: var(--text-primary);
 	}
