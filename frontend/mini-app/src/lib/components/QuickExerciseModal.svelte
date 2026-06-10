@@ -420,677 +420,322 @@
 	}
 </script>
 
+
 <PixelModal {open} title="Быстрая запись" onclose={handleClose}>
-	<div class="quick-modal">
+	<div class="ql">
 		{#if step === 'mode'}
-			<p class="step-hint">Выбери режим:</p>
-			<div class="mode-list">
-				<button
-					class="mode-option"
-					onclick={selectCycling}
-				>
-					<PixelIcon name="workout" size="lg" color="var(--pixel-green)" />
-					<span>Поездка на велосипеде</span>
+			<div class="ql-modes">
+				<button class="ql-mode" onclick={selectCycling}>
+					<span class="slot slot--md"><PixelIcon name="bike" size="md" color="var(--green)" /></span>
+					<span class="ql-mode__l">Поездка на велосипеде</span>
+					<PixelIcon name="chevron" size="sm" color="var(--muted)" class="ql-chev" />
 				</button>
-				<button
-					class="mode-option"
-					onclick={selectWalking}
-				>
-					<PixelIcon name="workout" size="lg" color="var(--pixel-accent)" />
-					<span>Ходьба</span>
+				<button class="ql-mode" onclick={selectWalking}>
+					<span class="slot slot--md"><PixelIcon name="steps" size="md" color="var(--accent)" /></span>
+					<span class="ql-mode__l">Ходьба · шаги</span>
+					<PixelIcon name="chevron" size="sm" color="var(--muted)" class="ql-chev" />
 				</button>
-				<button
-					class="mode-option"
-					onclick={() => selectMode('favorites')}
-				>
-					<PixelIcon name="heart" size="lg" color="var(--pixel-red)" />
-					<span>Избранные</span>
+				<button class="ql-mode" onclick={() => selectMode('favorites')}>
+					<span class="slot slot--md"><PixelIcon name="heart" size="md" color="var(--danger)" /></span>
+					<span class="ql-mode__l">Избранные упражнения</span>
 					{#if favoritesStore.count > 0}
-						<span class="mode-badge">{favoritesStore.count}</span>
+						<span class="ql-mode__badge">{favoritesStore.count}</span>
+					{:else}
+						<PixelIcon name="chevron" size="sm" color="var(--muted)" class="ql-chev" />
 					{/if}
 				</button>
-				<button
-					class="mode-option"
-					onclick={() => selectMode('all')}
-				>
-					<PixelIcon name="settings" size="lg" color="var(--pixel-accent)" />
-					<span>Все упражнения</span>
+				<button class="ql-mode" onclick={() => selectMode('all')}>
+					<span class="slot slot--md"><PixelIcon name="dumbbell" size="md" color="var(--accent)" /></span>
+					<span class="ql-mode__l">Все упражнения</span>
+					<PixelIcon name="chevron" size="sm" color="var(--muted)" class="ql-chev" />
 				</button>
 			</div>
 		{:else if step === 'exercise'}
-			<div class="step-header">
-				<button class="back-btn" onclick={goBack}>
-					<PixelIcon name="arrow-left" size="sm" />
+			<div class="ql-back">
+				<button class="ql-backbtn" onclick={goBack} aria-label="Назад"><PixelIcon name="arrowleft" size="sm" /></button>
+				<span class="ql-back__t">{exerciseMode === 'favorites' ? 'Избранные' : 'Все упражнения'}</span>
+			</div>
+			<div class="ql-search">
+				<PixelIcon name="search" size="sm" color="var(--muted)" />
+				<input class="ql-search__in" placeholder="Поиск упражнений..." bind:value={searchQuery} />
+				<button class="ql-search__filter" onclick={openFilters} aria-label="Фильтр">
+					<PixelIcon name="gear" size="sm" />
+					{#if activeFilterCount > 0}<span class="ql-fbadge">{activeFilterCount}</span>{/if}
 				</button>
-				<p class="step-hint">
-					{exerciseMode === 'favorites' ? 'Избранные упражнения' : 'Выбери упражнение:'}
-				</p>
 			</div>
-
-			<!-- Search box -->
-			<div class="search-box">
-				<input
-					type="text"
-					class="search-input"
-					placeholder="Поиск упражнений..."
-					bind:value={searchQuery}
-				/>
-				{#if searchQuery}
-					<button class="clear-search-btn" onclick={() => searchQuery = ''}>
-						<PixelIcon name="close" size="sm" />
-					</button>
-				{:else}
-					<PixelIcon name="search" size="sm" color="var(--text-secondary)" class="search-icon" />
-				{/if}
-			</div>
-
-			<!-- Filter bar -->
-			<div class="filter-bar">
-				<button class="filter-btn" onclick={openFilters}>
-					<PixelIcon name="settings" size="sm" />
-					Фильтр
-					{#if activeFilterCount > 0}
-						<span class="filter-badge">{activeFilterCount}</span>
-					{/if}
-				</button>
-				{#if activeFilterCount > 0 || searchQuery}
-					<button class="clear-filters-btn" onclick={clearFilters}>
-						Сбросить
-					</button>
-				{/if}
-			</div>
-
-			<!-- Category tabs (if any selected or in all mode) -->
 			{#if exerciseMode === 'all' && categories.length > 0}
-				<div class="category-tabs">
-					<button
-						class="category-tab"
-						class:active={selectedCategory === null}
-						onclick={() => selectedCategory = null}
-					>
-						Все
-					</button>
+				<div class="ql-cats">
+					<button class="ql-pill" class:is-active={selectedCategory === null} onclick={() => (selectedCategory = null)}>Все</button>
 					{#each categories as cat}
-						<button
-							class="category-tab"
-							class:active={selectedCategory === cat.slug}
-							onclick={() => toggleCategory(cat.slug)}
-						>
-							{cat.name_ru}
-						</button>
+						<button class="ql-pill" class:is-active={selectedCategory === cat.slug} onclick={() => toggleCategory(cat.slug)}>{cat.name_ru}</button>
 					{/each}
 				</div>
 			{/if}
-
-			<!-- Exercise list -->
-			<div class="exercise-list">
+			<div class="ql-list">
 				{#each displayedExercises as ex}
-					<button
-						class="exercise-option"
-						onclick={() => selectExercise(ex)}
-					>
-						<span class="exercise-name">{ex.name_ru}</span>
-						<span class="exercise-xp">+{Number(xpPerRep(ex.base_xp).toFixed(1))} XP/{isTimeBased(ex) ? '10с' : 'повт'}</span>
+					<button class="ql-ex" onclick={() => selectExercise(ex)}>
+						<span class="ql-ex__n">{ex.name_ru}</span>
+						<span class="ql-ex__xp">+{Number(xpPerRep(ex.base_xp).toFixed(1))} XP/{isTimeBased(ex) ? '10с' : 'повт'}</span>
 					</button>
 				{/each}
 				{#if displayedExercises.length === 0}
-					<p class="no-exercises">
-						{#if exerciseMode === 'favorites'}
-							Нет избранных упражнений
-						{:else if searchQuery || activeFilterCount > 0}
-							Ничего не найдено
-						{:else}
-							Нет упражнений
-						{/if}
+					<p class="ql-empty">
+						{#if exerciseMode === 'favorites'}Нет избранных упражнений{:else if searchQuery || activeFilterCount > 0}Ничего не найдено{:else}Нет упражнений{/if}
 					</p>
 				{/if}
 			</div>
 		{:else if step === 'filters'}
-			<div class="step-header">
-				<button class="back-btn" onclick={goBack}>
-					<PixelIcon name="arrow-left" size="sm" />
-				</button>
-				<p class="step-hint">Фильтры</p>
+			<div class="ql-back">
+				<button class="ql-backbtn" onclick={goBack} aria-label="Назад"><PixelIcon name="arrowleft" size="sm" /></button>
+				<span class="ql-back__t">Фильтры</span>
 			</div>
-
 			<div class="filter-sections">
-				<!-- Category filter -->
 				<div class="filter-section">
 					<h4 class="filter-section-title">Категория</h4>
 					<div class="filter-options">
-						<button
-							class="filter-option"
-							class:active={selectedCategory === null}
-							onclick={() => selectedCategory = null}
-						>
-							Все
-						</button>
+						<button class="ql-pill" class:is-active={selectedCategory === null} onclick={() => (selectedCategory = null)}>Все</button>
 						{#each categories as cat}
-							<button
-								class="filter-option"
-								class:active={selectedCategory === cat.slug}
-								onclick={() => toggleCategory(cat.slug)}
-							>
-								{cat.name_ru}
-							</button>
+							<button class="ql-pill" class:is-active={selectedCategory === cat.slug} onclick={() => toggleCategory(cat.slug)}>{cat.name_ru}</button>
 						{/each}
 					</div>
 				</div>
-
-				<!-- Equipment filter -->
 				<div class="filter-section">
 					<h4 class="filter-section-title">Оборудование</h4>
 					<div class="filter-options">
 						{#each EQUIPMENT_OPTIONS as eq}
-							<button
-								class="filter-option"
-								class:active={selectedEquipment.includes(eq.id)}
-								onclick={() => toggleEquipment(eq.id)}
-							>
-								{eq.label}
-							</button>
+							<button class="ql-pill" class:is-active={selectedEquipment.includes(eq.id)} onclick={() => toggleEquipment(eq.id)}>{eq.label}</button>
 						{/each}
 					</div>
 				</div>
-
-				<!-- Difficulty filter -->
 				<div class="filter-section">
 					<h4 class="filter-section-title">Сложность</h4>
 					<div class="filter-options">
 						{#each [1, 2, 3, 4, 5] as level}
-							<button
-								class="filter-option"
-								class:active={selectedDifficulties.includes(level)}
-								onclick={() => toggleDifficulty(level)}
-							>
-								{'★'.repeat(level) + '☆'.repeat(5 - level)}
-							</button>
+							<button class="ql-pill" class:is-active={selectedDifficulties.includes(level)} onclick={() => toggleDifficulty(level)}>{'★'.repeat(level) + '☆'.repeat(5 - level)}</button>
 						{/each}
 					</div>
 				</div>
-
-				<!-- Tags filter -->
 				<div class="filter-section">
 					<h4 class="filter-section-title">Группы мышц</h4>
 					<div class="filter-options">
 						{#each MUSCLE_TAG_IDS as tagId}
-							<button
-								class="filter-option"
-								class:active={selectedTags.includes(tagId)}
-								onclick={() => toggleTag(tagId)}
-							>
-								{getTagName(tagId)}
-							</button>
+							<button class="ql-pill" class:is-active={selectedTags.includes(tagId)} onclick={() => toggleTag(tagId)}>{getTagName(tagId)}</button>
 						{/each}
 					</div>
 				</div>
 			</div>
-
-			<div class="filter-actions">
-				<PixelButton variant="secondary" fullWidth onclick={clearFilters}>
-					Сбросить все
-				</PixelButton>
-				<PixelButton variant="primary" fullWidth onclick={goBack}>
-					Применить
-				</PixelButton>
+			<div class="ql-filteractions">
+				<PixelButton variant="secondary" fullWidth onclick={clearFilters}>Сбросить все</PixelButton>
+				<PixelButton variant="primary" fullWidth onclick={goBack}>Применить</PixelButton>
 			</div>
 		{:else if step === 'input' && selectedExercise}
-			<div class="step-header">
-				<button class="back-btn" onclick={goBack}>
-					<PixelIcon name="arrow-left" size="sm" />
-				</button>
-				<p class="step-hint">{selectedExercise.name_ru}</p>
+			<div class="ql-back">
+				<button class="ql-backbtn" onclick={goBack} aria-label="Назад"><PixelIcon name="arrowleft" size="sm" /></button>
+				<span class="ql-back__t">{selectedExercise.name_ru}</span>
 			</div>
-			<div class="input-section">
-				{#if isTimeBased(selectedExercise)}
-					<p class="input-label">Длительность (секунды):</p>
-					<div class="value-input">
-						<button class="adjust-btn" onclick={() => adjustValue(-10)}>-10</button>
-						<span class="value-display">{duration}</span>
-						<button class="adjust-btn" onclick={() => adjustValue(10)}>+10</button>
-					</div>
-				{:else}
-					<p class="input-label">Количество повторений:</p>
-					<div class="value-input">
-						<button class="adjust-btn" onclick={() => adjustValue(-5)}>-5</button>
-						<span class="value-display">{reps}</span>
-						<button class="adjust-btn" onclick={() => adjustValue(5)}>+5</button>
-					</div>
-				{/if}
+			<span class="ql-label">{isTimeBased(selectedExercise!) ? 'Длительность (секунды)' : 'Количество повторений'}</span>
+			<div class="qty">
+				<button class="qty__btn" onclick={() => adjustValue(isTimeBased(selectedExercise!) ? -10 : -5)} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
+				<div class="qty__mid"><span class="qty__v">{isTimeBased(selectedExercise!) ? duration : reps}</span><span class="qty__u">{isTimeBased(selectedExercise!) ? 'сек' : 'повт.'}</span></div>
+				<button class="qty__btn" onclick={() => adjustValue(isTimeBased(selectedExercise!) ? 10 : 5)} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
 			</div>
-			<div class="save-section">
-				<PixelButton
-					variant="success"
-					size="lg"
-					fullWidth
-					loading={isSubmitting}
-					onclick={handleSave}
-				>
-					Записать
-				</PixelButton>
-			</div>
+			<PixelButton variant="success" size="lg" fullWidth loading={isSubmitting} onclick={handleSave}><PixelIcon name="check" /> Записать</PixelButton>
 		{:else if step === 'cycling-input'}
-			<div class="step-header">
-				<button class="back-btn" onclick={goBack}>
-					<PixelIcon name="arrow-left" size="sm" />
-				</button>
-				<p class="step-hint">Поездка на велосипеде</p>
+			<div class="ql-back">
+				<button class="ql-backbtn" onclick={goBack} aria-label="Назад"><PixelIcon name="arrowleft" size="sm" /></button>
+				<span class="ql-back__t">Велосипед</span>
 			</div>
-			<div class="input-section">
-				<p class="input-label">Дистанция (км):</p>
-				<input
-					type="number"
-					min="0.1"
-					step="0.1"
-					class="search-input"
-					bind:value={cyclingDistanceKm}
-				/>
-
-				<p class="input-label">Время (мин):</p>
-				<input
-					type="number"
-					min="5"
-					step="1"
-					class="search-input"
-					bind:value={cyclingDurationMin}
-				/>
-
-				<div class="cycling-summary">
-					<span>Ср. скорость: {cyclingSpeedKmh.toFixed(1)} км/ч</span>
-					<span>Ожидаемо: +{cyclingEstimatedXp} XP</span>
-				</div>
+			<span class="ql-label">Дистанция</span>
+			<div class="qty">
+				<button class="qty__btn" onclick={() => (cyclingDistanceKm = Math.max(0.5, +(cyclingDistanceKm - 0.5).toFixed(1)))} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
+				<div class="qty__mid"><span class="qty__v">{cyclingDistanceKm.toFixed(1)}</span><span class="qty__u">км</span></div>
+				<button class="qty__btn" onclick={() => (cyclingDistanceKm = +(cyclingDistanceKm + 0.5).toFixed(1))} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
 			</div>
-			<div class="save-section">
-				<PixelButton
-					variant="success"
-					size="lg"
-					fullWidth
-					loading={isSubmitting}
-					onclick={handleSaveCycling}
-				>
-					Записать поездку
-				</PixelButton>
+			<span class="ql-label">Время</span>
+			<div class="qty">
+				<button class="qty__btn" onclick={() => (cyclingDurationMin = Math.max(5, cyclingDurationMin - 1))} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
+				<div class="qty__mid"><span class="qty__v">{cyclingDurationMin}</span><span class="qty__u">мин</span></div>
+				<button class="qty__btn" onclick={() => (cyclingDurationMin = cyclingDurationMin + 1)} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
 			</div>
+			<div class="ql-sum"><span>Ср. скорость: {cyclingSpeedKmh.toFixed(1)} км/ч</span><span class="ql-sum__xp">+{cyclingEstimatedXp} XP</span></div>
+			<PixelButton variant="success" size="lg" fullWidth loading={isSubmitting} onclick={handleSaveCycling}><PixelIcon name="check" /> Записать поездку</PixelButton>
 		{:else if step === 'walking-input'}
-			<div class="step-header">
-				<button class="back-btn" onclick={goBack}>
-					<PixelIcon name="arrow-left" size="sm" />
-				</button>
-				<p class="step-hint">Ходьба</p>
+			<div class="ql-back">
+				<button class="ql-backbtn" onclick={goBack} aria-label="Назад"><PixelIcon name="arrowleft" size="sm" /></button>
+				<span class="ql-back__t">Ходьба</span>
 			</div>
-			<div class="input-section">
-				<p class="input-label">Количество шагов:</p>
-				<input
-					type="number"
-					min="1"
-					step="100"
-					class="search-input"
-					bind:value={walkingSteps}
-				/>
-
-				<div class="cycling-summary">
-					<span>Ожидаемо: +{walkingEstimatedXp} XP</span>
-				</div>
+			<span class="ql-label">Количество шагов</span>
+			<div class="qty">
+				<button class="qty__btn" onclick={() => (walkingSteps = Math.max(100, walkingSteps - 500))} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
+				<div class="qty__mid"><span class="qty__v">{walkingSteps.toLocaleString('ru-RU')}</span><span class="qty__u">шагов</span></div>
+				<button class="qty__btn" onclick={() => (walkingSteps = walkingSteps + 500)} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
 			</div>
-			<div class="save-section">
-				<PixelButton
-					variant="success"
-					size="lg"
-					fullWidth
-					loading={isSubmitting}
-					onclick={handleSaveWalking}
-				>
-					Записать ходьбу
-				</PixelButton>
-			</div>
+			<div class="ql-sum"><span>≈ {(walkingSteps / 1300).toFixed(1)} км</span><span class="ql-sum__xp">+{walkingEstimatedXp} XP</span></div>
+			<PixelButton variant="success" size="lg" fullWidth loading={isSubmitting} onclick={handleSaveWalking}><PixelIcon name="check" /> Записать ходьбу</PixelButton>
 		{/if}
 	</div>
 </PixelModal>
 
 <style>
-	.quick-modal {
+	.ql {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
-		min-height: 200px;
-		max-height: 70vh;
+		min-height: 180px;
 	}
 
-	.step-hint {
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-		margin: 0;
-	}
-
-	.step-header {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-	}
-
-	.back-btn {
-		background: var(--pixel-bg-dark);
-		border: var(--border-width) solid var(--border-color);
-		padding: var(--spacing-xs);
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.back-btn:hover {
-		border-color: var(--pixel-accent);
-	}
-
-	.mode-list {
+	.ql-modes {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
 	}
 
-	.mode-option {
+	.ql-chev {
+		transform: rotate(180deg);
+		flex: 0 0 auto;
+	}
+
+	.ql-back {
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-md);
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
+		gap: var(--spacing-sm);
+	}
+	.ql-backbtn {
+		flex: 0 0 auto;
+		width: 36px;
+		height: 36px;
+		display: grid;
+		place-items: center;
+		background: var(--bg3);
+		border: 2px solid var(--line);
 		cursor: pointer;
-		transition: all var(--transition-fast);
-		position: relative;
 	}
-
-	.mode-option:hover {
-		border-color: var(--pixel-accent);
-		background: var(--pixel-card-hover);
-	}
-
-	.mode-option span {
+	.ql-back__t {
+		font-family: var(--font-display);
 		font-size: var(--font-size-sm);
-		color: var(--text-primary);
+		color: var(--text);
 	}
 
-	.mode-badge {
-		margin-left: auto;
-		background: var(--pixel-accent);
-		color: var(--on-accent);
-		padding: 2px 6px;
+	.ql-label {
 		font-size: var(--font-size-xs);
-		border-radius: 0;
+		color: var(--muted);
 	}
 
-	/* Search box */
-	.search-box {
-		position: relative;
+	.ql-search {
 		display: flex;
 		align-items: center;
+		gap: 9px;
+		padding: 0 11px;
+		background: var(--bg2);
+		border: var(--bw) solid var(--line);
+		box-shadow: var(--shadow);
 	}
-
-	.search-input {
-		width: 100%;
-		padding: var(--spacing-sm) var(--spacing-md);
-		padding-right: 40px;
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-sm);
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		color: var(--text-primary);
-	}
-
-	.search-input:focus {
+	.ql-search__in {
+		flex: 1;
+		min-width: 0;
+		border: none;
 		outline: none;
-		border-color: var(--pixel-accent);
-	}
-
-	.search-input::placeholder {
-		color: var(--text-muted);
-	}
-
-	.search-icon {
-		position: absolute;
-		right: var(--spacing-sm);
-		pointer-events: none;
-	}
-
-	.clear-search-btn {
-		position: absolute;
-		right: var(--spacing-xs);
 		background: none;
-		border: none;
-		padding: var(--spacing-xs);
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: var(--text-secondary);
+		padding: 12px 0;
+		font-family: var(--font-ui);
+		font-size: var(--font-size-sm);
+		color: var(--text);
 	}
-
-	.clear-search-btn:hover {
-		color: var(--text-primary);
+	.ql-search__in::placeholder {
+		color: var(--muted);
 	}
-
-	/* Filter bar */
-	.filter-bar {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-	}
-
-	.filter-btn {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-xs);
-		padding: var(--spacing-xs) var(--spacing-sm);
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-xs);
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		color: var(--text-secondary);
+	.ql-search__filter {
+		position: relative;
+		flex: 0 0 auto;
+		width: 30px;
+		height: 30px;
+		display: grid;
+		place-items: center;
+		background: var(--bg3);
+		border: 2px solid var(--line);
 		cursor: pointer;
 	}
-
-	.filter-btn:hover {
-		border-color: var(--pixel-accent);
-		color: var(--text-primary);
-	}
-
-	.filter-badge {
-		background: var(--pixel-accent);
+	.ql-fbadge {
+		position: absolute;
+		top: -6px;
+		right: -6px;
+		min-width: 16px;
+		height: 16px;
+		padding: 0 3px;
+		display: grid;
+		place-items: center;
+		background: var(--accent);
 		color: var(--on-accent);
-		padding: 1px 4px;
-		font-size: 8px;
-		min-width: 12px;
-		text-align: center;
+		font-family: var(--font-data);
+		font-size: 11px;
+		border: 2px solid var(--line);
 	}
 
-	.clear-filters-btn {
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-xs);
-		background: none;
-		border: none;
-		color: var(--text-secondary);
-		cursor: pointer;
-		text-decoration: underline;
-	}
-
-	/* Category tabs */
-	.category-tabs {
+	.ql-cats {
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--spacing-xs);
 	}
-
-	.category-tab {
-		font-family: var(--font-pixel);
+	.ql-pill {
+		font-family: var(--font-ui);
 		font-size: var(--font-size-xs);
-		padding: var(--spacing-xs) var(--spacing-sm);
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		color: var(--text-secondary);
+		padding: 6px 10px;
+		background: var(--bg2);
+		border: 2px solid var(--line);
+		color: var(--muted);
 		cursor: pointer;
 	}
-
-	.category-tab.active {
-		background: var(--pixel-accent);
-		border-color: var(--pixel-accent);
+	.ql-pill.is-active {
+		background: var(--accent);
 		color: var(--on-accent);
 	}
 
-	.exercise-list {
+	.ql-list {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-xs);
-		max-height: 300px;
+		gap: 7px;
+		max-height: 320px;
 		overflow-y: auto;
 	}
-
-	.exercise-option {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: var(--spacing-sm) var(--spacing-md);
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		cursor: pointer;
-		transition: all var(--transition-fast);
-	}
-
-	.exercise-option:hover {
-		border-color: var(--pixel-accent);
-		background: var(--pixel-card-hover);
-	}
-
-	.exercise-name {
+	.ql-empty {
 		font-size: var(--font-size-sm);
-		color: var(--text-primary);
-	}
-
-	.exercise-xp {
-		font-size: var(--font-size-xs);
-		color: var(--pixel-green);
-	}
-
-	.no-exercises {
-		font-size: var(--font-size-sm);
-		color: var(--text-muted);
+		color: var(--muted);
 		text-align: center;
 		padding: var(--spacing-lg);
+		margin: 0;
 	}
 
-	/* Filter sections */
+	.ql-sum__xp {
+		color: var(--green);
+	}
+
 	.filter-sections {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
-		max-height: 400px;
+		max-height: 360px;
 		overflow-y: auto;
 	}
-
 	.filter-section {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
 	}
-
 	.filter-section-title {
 		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-		text-transform: uppercase;
+		color: var(--muted);
 		margin: 0;
 	}
-
 	.filter-options {
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--spacing-xs);
 	}
-
-	.filter-option {
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-xs);
-		padding: var(--spacing-xs) var(--spacing-sm);
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		color: var(--text-secondary);
-		cursor: pointer;
-		transition: all var(--transition-fast);
-	}
-
-	.filter-option:hover {
-		border-color: var(--pixel-accent);
-	}
-
-	.filter-option.active {
-		background: var(--pixel-accent);
-		border-color: var(--pixel-accent);
-		color: var(--on-accent);
-	}
-
-	.filter-actions {
+	.ql-filteractions {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-sm);
 		padding-top: var(--spacing-md);
-		border-top: var(--border-width) solid var(--border-color);
-	}
-
-	.input-section {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-lg) 0;
-	}
-
-	.input-label {
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-		margin: 0;
-	}
-
-	.value-input {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-	}
-
-	.adjust-btn {
-		padding: var(--spacing-sm) var(--spacing-md);
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		font-size: var(--font-size-sm);
-		color: var(--text-primary);
-		cursor: pointer;
-		transition: all var(--transition-fast);
-	}
-
-	.adjust-btn:hover {
-		border-color: var(--pixel-accent);
-		background: var(--pixel-card-hover);
-	}
-
-	.adjust-btn:active {
-		transform: scale(0.95);
-	}
-
-	.value-display {
-		font-size: var(--font-size-xl);
-		color: var(--pixel-accent);
-		min-width: 80px;
-		text-align: center;
-	}
-
-	.save-section {
-		padding-top: var(--spacing-md);
-		border-top: var(--border-width) solid var(--border-color);
-	}
-
-	.cycling-summary {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-		align-items: center;
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
+		border-top: var(--bw) solid var(--line);
 	}
 </style>
