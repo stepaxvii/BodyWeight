@@ -7,21 +7,6 @@
 		<meta name="theme-color" content="#efe6d4" />
 
 		<script src="https://telegram.org/js/telegram-web-app.js"></script>
-		<script>
-			// Pixel Operator's UPPERCASE Cyrillic renders as broken glyphs on some
-			// Android WebViews (lowercase is fine); text-transform: uppercase triggers
-			// it. Tag Android so CSS can render labels in their authored case there
-			// (iOS is unaffected and keeps the uppercase look).
-			(function () {
-				try {
-					var tg = window.Telegram && window.Telegram.WebApp;
-					var plat = (tg && tg.platform) || '';
-					if (plat === 'android' || /Android/i.test(navigator.userAgent)) {
-						document.documentElement.classList.add('plat-android');
-					}
-				} catch (e) {}
-			})();
-		</script>
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<!-- Silkscreen = numbers/data (Latin digits). Pixel Operator (self-hosted) = all text incl. Cyrillic. -->
