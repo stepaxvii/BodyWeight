@@ -225,12 +225,31 @@
 			searchUsers();
 		}
 	}
+
+	// Rarity edge by level (designer's rarLvl) — colours the friend item's edge
+	function rarLvl(level: number): string {
+		return level >= 35 ? 'r4' : level >= 25 ? 'r3' : level >= 15 ? 'r2' : 'r1';
+	}
 </script>
 
 <div class="page container">
 	<header class="page-header">
 		<h1>Друзья</h1>
 	</header>
+
+	<!-- Stat band -->
+	<div class="band3 friends-band">
+		<div class="band3__i">
+			<PixelIcon name="users" size="sm" color="var(--accent)" />
+			<span class="band3__v">{friends.length}</span>
+			<span class="band3__l">Друзей</span>
+		</div>
+		<div class="band3__i">
+			<PixelIcon name="mail" size="sm" color="var(--gold)" />
+			<span class="band3__v">{friendRequests.length}</span>
+			<span class="band3__l">Заявки</span>
+		</div>
+	</div>
 
 	<!-- Tabs -->
 	<PixelTabs tabs={friendTabs} activeTab={activeTab} onTabChange={switchTab} />
@@ -348,27 +367,20 @@
 		{:else}
 			<div class="user-list anim-rows">
 				{#each friends as friend}
-					<PixelCard padding="sm">
-						<div class="user-item">
-							<PixelAvatar avatarId={friend.avatar_id} size="md" />
-							<div class="user-info">
-								<span class="user-name">{friend.username ? `${friend.username}` : friend.first_name}</span>
-								{#if friend.username && friend.first_name}
-									<span class="user-username">{friend.first_name}</span>
-								{/if}
-								<div class="user-stats">
-									<span>Ур.{friend.level}</span>
-									<span class="streak">
-										<PixelIcon name="streak" size="sm" color="var(--pixel-yellow)" />
-										{friend.current_streak}
-									</span>
-								</div>
-							</div>
-							<button class="remove-btn" onclick={() => showRemoveConfirmation(friend.id, friend.username || friend.first_name || 'друга', false)}>
-								<PixelIcon name="close" size="sm" color="var(--text-muted)" />
-							</button>
+					<div class="item {rarLvl(friend.level)}">
+						<span class="item__edge"></span>
+						<PixelAvatar avatarId={friend.avatar_id} size="md" showBorder={false} />
+						<div class="item__body">
+							<span class="item__name">{friend.username ? `${friend.username}` : friend.first_name}</span>
+							<span class="item__sub">
+								<span class="item__tag">Ур.{friend.level}</span>
+								<span class="item__tag"><PixelIcon name="flame" size="sm" color="var(--gold)" /> {friend.current_streak}</span>
+							</span>
 						</div>
-					</PixelCard>
+						<button class="remove-btn" onclick={() => showRemoveConfirmation(friend.id, friend.username || friend.first_name || 'друга', false)}>
+							<PixelIcon name="close" size="sm" color="var(--text-muted)" />
+						</button>
+					</div>
 				{/each}
 			</div>
 		{/if}
@@ -456,6 +468,10 @@
 
 	.page-header {
 		text-align: center;
+		margin-bottom: var(--spacing-md);
+	}
+
+	.friends-band {
 		margin-bottom: var(--spacing-md);
 	}
 

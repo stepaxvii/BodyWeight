@@ -57,6 +57,8 @@
 	});
 
 	const unlockedCount = $derived(achievements.filter(a => a.unlocked).length);
+	const totalCount = $derived(total || achievements.length);
+	const collectedPct = $derived(totalCount ? Math.round((unlockedCount / totalCount) * 100) : 0);
 
 	function setFilter(newFilter: 'all' | 'unlocked' | 'locked') {
 		filter = newFilter;
@@ -78,8 +80,17 @@
 <div class="page container">
 	<header class="page-header">
 		<h1>Достижения</h1>
-		<p class="achievement-count">{unlockedCount} / {total || achievements.length} Получено</p>
 	</header>
+
+	<!-- Completion hero -->
+	<div class="ach-hero">
+		<span class="slot slot--lg"><PixelIcon name="trophy" size="xl" color="var(--gold)" /></span>
+		<div class="ach-hero__info">
+			<span class="ach-hero__t">Собрано {unlockedCount} из {totalCount}</span>
+			<div class="gauge"><div class="gauge__fill" style="width: {collectedPct}%; background: var(--gold);"></div></div>
+			<span class="ach-hero__s">{collectedPct}% собрано</span>
+		</div>
+	</div>
 
 	<!-- Filter Tabs -->
 	<PixelTabs tabs={achievementTabs} activeTab={filter} onTabChange={setFilter} />
@@ -188,13 +199,12 @@
 
 	.page-header {
 		text-align: center;
-		margin-bottom: var(--spacing-lg);
+		margin-bottom: var(--spacing-md);
 	}
 
-	.achievement-count {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-		margin-top: var(--spacing-xs);
+	/* Completion hero (.ach-hero / .gauge live in hud.css) */
+	.ach-hero {
+		margin-bottom: var(--spacing-md);
 	}
 
 	/* Achievement Grid */
