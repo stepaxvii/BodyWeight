@@ -230,7 +230,7 @@
 				} catch { /* ignore */ }
 
 				isCompleted = true;
-				// Estimate XP (mirrors backend: total volume Г— base_xp Г— rate Г— streak)
+				// Estimate XP (mirrors backend: total volume × base_xp × rate × streak)
 				totalXpEarned = completedExercises.reduce((sum, ex) => {
 					const exercise = allExercises.find(e => e.slug === ex.exercise_slug);
 					if (!exercise) return sum;
@@ -262,7 +262,7 @@
 	async function shareWorkout() {
 		telegram.hapticImpact('medium');
 
-		// Р“СЂСѓРїРїРёСЂСѓРµРј РїРѕ СѓРїСЂР°Р¶РЅРµРЅРёСЋ Рё СЃСѓРјРјРёСЂСѓРµРј РїРѕРІС‚РѕСЂС‹/СЃРµРєСѓРЅРґС‹
+		// Группируем по упражнению и суммируем повторы/секунды
 		const bySlug = new Map<string, { total: number; is_timed: boolean }>();
 		for (const ce of completedExercises) {
 			const sum = ce.sets.reduce((a, b) => a + b, 0);
@@ -276,47 +276,47 @@
 		const exerciseLines = Array.from(bySlug.entries()).map(([slug, { total, is_timed }]) => {
 			const ex = allExercises.find((e) => e.slug === slug);
 			const name = ex?.name_ru || slug;
-			const totalStr = is_timed ? `${total} СЃРµРє` : `${total} РїРѕРІС‚.`;
-			return `  в–ё ${name}: ${totalStr}`;
+			const totalStr = is_timed ? `${total} сек` : `${total} повт.`;
+			return `  ▸ ${name}: ${totalStr}`;
 		});
 
 		const shareText = [
-			`рџЏ† ${routine.name}`,
+			`🏆 ${routine.name}`,
 			'',
-			`вЏ±пёЏ ${formattedTotalTime}`,
-			`рџЊџ +${totalXpEarned} XP`,
-			`рџЄ™ ${totalCoinsEarned} РјРѕРЅРµС‚`,
+			`⏱️ ${formattedTotalTime}`,
+			`🌟 +${totalXpEarned} XP`,
+			`🪙 ${totalCoinsEarned} монет`,
 			'',
-			'в”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓ',
-			'рџ’Є РЈРїСЂР°Р¶РЅРµРЅРёСЏ',
-			'в”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓ',
+			'━━━━━━━━━━',
+			'💪 Упражнения',
+			'━━━━━━━━━━',
 			...exerciseLines
 		].join('\n');
 
-		// Р’РЅСѓС‚СЂРё Telegram WebApp вЂ“ РІСЃС‘ РєР°Рє СЂР°РЅСЊС€Рµ
+		// Внутри Telegram WebApp – всё как раньше
 		if (telegram.webApp) {
 			const botUsername = 'pixelfitbot';
 			const botLink = `https://t.me/${botUsername}`;
 			const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(shareText)}`;
 			telegram.openTelegramLink(shareUrl);
 		}
-		// Р’ Р±СЂР°СѓР·РµСЂРµ вЂ” СЃРёСЃС‚РµРјРЅРѕРµ РјРµРЅСЋ В«РџРѕРґРµР»РёС‚СЊСЃСЏВ» С‚РѕР»СЊРєРѕ СЃ С‚РµРєСЃС‚РѕРј С‚СЂРµРЅРёСЂРѕРІРєРё
+		// В браузере — системное меню «Поделиться» только с текстом тренировки
 		else if (navigator.share) {
 			try {
 				await navigator.share({
 					title: `PixelFit - ${routine.name}`,
 					text: shareText
-					// Р±РµР· url: С‡С‚РѕР±С‹ РЅРµ С„РѕСЂСЃРёС‚СЊ РїРµСЂРµС…РѕРґ РІ Telegram
+					// без url: чтобы не форсить переход в Telegram
 				});
 			} catch {
-				// РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ Р·Р°РєСЂС‹Р» С€РµР№СЂ вЂ“ РїСЂРѕСЃС‚Рѕ РёРіРЅРѕСЂРёСЂСѓРµРј
+				// пользователь закрыл шейр – просто игнорируем
 			}
 		} else {
-			// Fallback: СЃРєРѕРїРёСЂРѕРІР°С‚СЊ РІ Р±СѓС„РµСЂ РѕР±РјРµРЅР° РІРµСЃСЊ С‚РµРєСЃС‚
+			// Fallback: скопировать в буфер обмена весь текст
 			try {
 				await navigator.clipboard.writeText(shareText);
 			} catch {
-				// РЅРµС‚ РґРѕСЃС‚СѓРїР° Рє Р±СѓС„РµСЂСѓ вЂ“ РЅРёС‡РµРіРѕ РЅРµ РґРµР»Р°РµРј
+				// нет доступа к буферу – ничего не делаем
 			}
 		}
 
@@ -334,40 +334,41 @@
 	}
 </script>
 
+
 <div class="player">
 	{#if !isStarted}
 		<!-- PRE-START -->
 		<div class="player__scroll">
 			<div class="player__bar">
-				<button class="player__x" onclick={handleClose} aria-label="Р—Р°РєСЂС‹С‚СЊ"><PixelIcon name="close" size="sm" /></button>
+				<button class="player__x" onclick={handleClose} aria-label="Закрыть"><PixelIcon name="close" size="sm" /></button>
 				<span class="player__title">{routine.name}</span>
 				<span class="player__x-spacer"></span>
 			</div>
 
 			<div class="feat">
-				<div class="feat__band"><span>РџСЂРѕРіСЂР°РјРјР°</span></div>
+				<div class="feat__band"><span>Программа</span></div>
 				<div class="feat__body">
 					<span class="feat__art slot slot--lg"><PixelIcon name="dumbbell" size="xl" color="var(--accent)" /></span>
 					<div class="feat__info">
 						<span class="feat__sub">{routine.description}</span>
 						<div class="feat__stats">
-							<span class="feat__stat"><PixelIcon name="timer" size="sm" color="var(--accent2)" /> ~{routine.duration_minutes} РјРёРЅ</span>
-							<span class="feat__stat"><PixelIcon name="dumbbell" size="sm" color="var(--accent)" /> {routine.exercises.length} СѓРїСЂ.</span>
+							<span class="feat__stat"><PixelIcon name="timer" size="sm" color="var(--accent2)" /> ~{routine.duration_minutes} мин</span>
+							<span class="feat__stat"><PixelIcon name="dumbbell" size="sm" color="var(--accent)" /> {routine.exercises.length} упр.</span>
 						</div>
 					</div>
 				</div>
 			</div>
 
-			<div class="player__listhead">РЈРїСЂР°Р¶РЅРµРЅРёСЏ</div>
+			<div class="player__listhead">Упражнения</div>
 			<div class="player__list">
 				{#each routine.exercises as ex, i}
 					{@const exData = allExercises.find((e) => e.slug === ex.slug)}
 					<div class="prerow">
 						<span class="prerow__n">{i + 1}</span>
 						<span class="prerow__name">{exData?.name_ru || ex.slug}</span>
-						<span class="prerow__t">{ex.duration ? `${ex.duration} СЃРµРє` : ex.reps ? `${ex.reps} РїРѕРІС‚.` : ''}</span>
+						<span class="prerow__t">{ex.duration ? `${ex.duration} сек` : ex.reps ? `${ex.reps} повт.` : ''}</span>
 						{#if exData}
-							<button class="prerow__i" onclick={() => { showInfoExercise = exData; telegram.hapticImpact('light'); }} aria-label="РџРѕРґСЂРѕР±РЅРµРµ"><PixelIcon name="search" size="sm" color="var(--muted)" /></button>
+							<button class="prerow__i" onclick={() => { showInfoExercise = exData; telegram.hapticImpact('light'); }} aria-label="Подробнее"><PixelIcon name="search" size="sm" color="var(--muted)" /></button>
 						{/if}
 					</div>
 				{/each}
@@ -375,7 +376,7 @@
 
 			<div class="player__start">
 				<PixelButton variant="primary" size="lg" fullWidth onclick={startRoutine}>
-					<PixelIcon name="play" /> РќР°С‡Р°С‚СЊ
+					<PixelIcon name="play" /> Начать
 				</PixelButton>
 			</div>
 		</div>
@@ -385,23 +386,23 @@
 			<span class="done__burst" aria-hidden="true"></span>
 			<PixelIcon name="trophy" size="xl" color="var(--gold)" class="done__trophy" />
 			<span class="done__title">{routine.name}</span>
-			<span class="done__sub">Р·Р°РІРµСЂС€С‘РЅ!</span>
+			<span class="done__sub">завершён!</span>
 			<div class="done__grid">
-				<div class="done__stat"><PixelIcon name="timer" size="md" color="var(--accent2)" /><span class="done__v">{formattedTotalTime}</span><span class="done__l">Р’СЂРµРјСЏ</span></div>
-				<div class="done__stat"><PixelIcon name="xp" size="md" color="var(--accent)" /><span class="done__v done__v--green">+{totalXpEarned}</span><span class="done__l">РћРїС‹С‚</span></div>
-				<div class="done__stat"><PixelIcon name="coin" size="md" color="var(--gold)" /><span class="done__v done__v--gold">+{totalCoinsEarned}</span><span class="done__l">РњРѕРЅРµС‚С‹</span></div>
-				<div class="done__stat"><PixelIcon name="dumbbell" size="md" color="var(--accent)" /><span class="done__v">{completedExercisesCount}/{routine.exercises.length}</span><span class="done__l">РЈРїСЂ.</span></div>
+				<div class="done__stat"><PixelIcon name="timer" size="md" color="var(--accent2)" /><span class="done__v">{formattedTotalTime}</span><span class="done__l">Время</span></div>
+				<div class="done__stat"><PixelIcon name="xp" size="md" color="var(--accent)" /><span class="done__v done__v--green">+{totalXpEarned}</span><span class="done__l">Опыт</span></div>
+				<div class="done__stat"><PixelIcon name="coin" size="md" color="var(--gold)" /><span class="done__v done__v--gold">+{totalCoinsEarned}</span><span class="done__l">Монеты</span></div>
+				<div class="done__stat"><PixelIcon name="dumbbell" size="md" color="var(--accent)" /><span class="done__v">{completedExercisesCount}/{routine.exercises.length}</span><span class="done__l">Упр.</span></div>
 			</div>
 			<div class="player__doneactions">
-				<PixelButton variant="secondary" fullWidth onclick={shareWorkout}><PixelIcon name="share" /> РџРѕРґРµР»РёС‚СЊСЃСЏ</PixelButton>
-				<PixelButton variant="success" fullWidth onclick={handleClose}><PixelIcon name="check" /> Р“РѕС‚РѕРІРѕ</PixelButton>
+				<PixelButton variant="secondary" fullWidth onclick={shareWorkout}><PixelIcon name="share" /> Поделиться</PixelButton>
+				<PixelButton variant="success" fullWidth onclick={handleClose}><PixelIcon name="check" /> Готово</PixelButton>
 			</div>
 		</div>
 	{:else}
 		<!-- ACTIVE -->
 		<div class="player__active">
 			<div class="player__bar">
-				<button class="player__x" onclick={handleClose} aria-label="Р—Р°РєСЂС‹С‚СЊ"><PixelIcon name="close" size="sm" /></button>
+				<button class="player__x" onclick={handleClose} aria-label="Закрыть"><PixelIcon name="close" size="sm" /></button>
 				<span class="player__step">{currentStep + 1} / {routine.exercises.length}</span>
 				<span class="player__clock"><PixelIcon name="timer" size="sm" color="var(--accent2)" /> {formattedTotalTime}</span>
 			</div>
@@ -419,10 +420,10 @@
 					<div class="ring__fill">
 						{#if isTimeBased}
 							<span class="ring__v">{formattedExerciseTime}</span>
-							<span class="ring__l">{!isExerciseTimerStarted ? 'РЅР°Р¶РјРё СЃС‚Р°СЂС‚' : exerciseTimerSeconds === 0 ? 'РіРѕС‚РѕРІРѕ!' : 'РѕСЃС‚Р°Р»РѕСЃСЊ'}</span>
+							<span class="ring__l">{!isExerciseTimerStarted ? 'нажми старт' : exerciseTimerSeconds === 0 ? 'готово!' : 'осталось'}</span>
 						{:else}
 							<span class="ring__v">{targetValue}</span>
-							<span class="ring__l">РїРѕРІС‚РѕСЂРµРЅРёР№</span>
+							<span class="ring__l">повторений</span>
 						{/if}
 					</div>
 				</div>
@@ -430,19 +431,19 @@
 				{#if currentStep < routine.exercises.length - 1}
 					{@const nextEx = routine.exercises[currentStep + 1]}
 					{@const nextExData = allExercises.find((e) => e.slug === nextEx.slug)}
-					<div class="player__next"><span class="player__nextl">Р”Р°Р»РµРµ:</span> {nextExData?.name_ru || nextEx.slug}</div>
+					<div class="player__next"><span class="player__nextl">Далее:</span> {nextExData?.name_ru || nextEx.slug}</div>
 				{/if}
 			</div>
 
 			<div class="player__controls">
 				{#if isTimeBased && !isExerciseTimerStarted}
-					<PixelButton variant="primary" size="lg" fullWidth onclick={startExerciseTimer}><PixelIcon name="play" /> РЎС‚Р°СЂС‚ С‚Р°Р№РјРµСЂР°</PixelButton>
+					<PixelButton variant="primary" size="lg" fullWidth onclick={startExerciseTimer}><PixelIcon name="play" /> Старт таймера</PixelButton>
 				{:else if isTimeBased && exerciseTimerSeconds > 0}
-					<PixelButton variant="secondary" size="lg" fullWidth onclick={togglePause}><PixelIcon name={isPaused ? 'play' : 'pause'} /> {isPaused ? 'РџСЂРѕРґРѕР»Р¶РёС‚СЊ' : 'РџР°СѓР·Р°'}</PixelButton>
+					<PixelButton variant="secondary" size="lg" fullWidth onclick={togglePause}><PixelIcon name={isPaused ? 'play' : 'pause'} /> {isPaused ? 'Продолжить' : 'Пауза'}</PixelButton>
 				{:else}
-					<PixelButton variant="success" size="lg" fullWidth disabled={isSubmitting} onclick={completeExercise}><PixelIcon name="check" /> {isSubmitting ? 'РћС‚РїСЂР°РІРєР°вЂ¦' : 'Р“РѕС‚РѕРІРѕ'}</PixelButton>
+					<PixelButton variant="success" size="lg" fullWidth disabled={isSubmitting} onclick={completeExercise}><PixelIcon name="check" /> {isSubmitting ? 'Отправка…' : 'Готово'}</PixelButton>
 				{/if}
-				<PixelButton variant="ghost" fullWidth onclick={skipExercise}>РџСЂРѕРїСѓСЃС‚РёС‚СЊ</PixelButton>
+				<PixelButton variant="ghost" fullWidth onclick={skipExercise}>Пропустить</PixelButton>
 			</div>
 		</div>
 	{/if}
