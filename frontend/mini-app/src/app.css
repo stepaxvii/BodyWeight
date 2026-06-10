@@ -60,10 +60,14 @@
 	--podium3: #e0a85e;
 
 	/* Fonts — Pixel Operator (self-hosted; readable Cyrillic) for ALL text and
-	   headings; Silkscreen ONLY for numeric/data displays (the cool digits). */
-	--font-display: 'Pixel Operator', 'Silkscreen', monospace;
+	   headings; Silkscreen ONLY for digits. Silkscreen has NO Cyrillic, so it must
+	   never be a fallback for text: dropped from --font-display, and in --font-data
+	   Pixel Operator is the Cyrillic fallback (digits stay Silkscreen, but Cyrillic
+	   units the design puts in data elements — сек/повт./мин/упр. — fall to Pixel
+	   Operator per-glyph instead of garbling). */
+	--font-display: 'Pixel Operator', monospace;
 	--font-ui: 'Pixel Operator', monospace;
-	--font-data: 'Silkscreen', monospace;
+	--font-data: 'Silkscreen', 'Pixel Operator', monospace;
 	/* Bumped up vs the prototype's raw px: the designer's preview is shown in a
 	   scaled-up phone frame (~1.5-2x), so 1:1 px look tiny on a real device. */
 	--data-sm: 12px;
