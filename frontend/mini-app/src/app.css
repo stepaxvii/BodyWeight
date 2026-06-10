@@ -59,9 +59,10 @@
 	--podium2: #ddd5c4;
 	--podium3: #e0a85e;
 
-	/* Fonts — Silkscreen (display/data/numbers), Pixelify Sans (UI/body) */
-	--font-display: 'Silkscreen', monospace;
-	--font-ui: 'Pixelify Sans', monospace;
+	/* Fonts — Pixel Operator (self-hosted; readable Cyrillic) for ALL text and
+	   headings; Silkscreen ONLY for numeric/data displays (the cool digits). */
+	--font-display: 'Pixel Operator', 'Silkscreen', monospace;
+	--font-ui: 'Pixel Operator', monospace;
 	--font-data: 'Silkscreen', monospace;
 	/* Bumped up vs the prototype's raw px: the designer's preview is shown in a
 	   scaled-up phone frame (~1.5-2x), so 1:1 px look tiny on a real device. */

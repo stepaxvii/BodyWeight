@@ -660,7 +660,7 @@
 	}
 
 	.level-number {
-		font-family: var(--font-display);
+		font-family: var(--font-data);
 		font-size: var(--font-size-2xl);
 		color: var(--hero-num);
 		line-height: 1;
@@ -724,7 +724,7 @@
 	}
 
 	.stat-value {
-		font-family: var(--font-display);
+		font-family: var(--font-data);
 		font-size: var(--font-size-sm);
 		color: var(--stat-text);
 		line-height: 1.2;
@@ -823,7 +823,7 @@
 	}
 
 	.weekly-value {
-		font-family: var(--font-display);
+		font-family: var(--font-data);
 		font-size: var(--font-size-lg);
 		color: var(--text-primary);
 	}

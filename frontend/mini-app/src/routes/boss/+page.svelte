@@ -404,7 +404,7 @@
 	.me-value {
 		font-size: var(--font-size-md);
 		color: var(--text-primary);
-		font-family: var(--font-display);
+		font-family: var(--font-data);
 	}
 
 	.me-label {
@@ -439,7 +439,7 @@
 	.claim-coins {
 		font-size: var(--font-size-md);
 		color: var(--ink);
-		font-family: var(--font-display);
+		font-family: var(--font-data);
 	}
 
 	.claim-text {

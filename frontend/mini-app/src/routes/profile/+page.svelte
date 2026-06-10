@@ -696,7 +696,7 @@
 
 	.stat-value {
 		font-size: var(--font-size-sm);
-		font-family: var(--font-display);
+		font-family: var(--font-data);
 	}
 
 	/* Badges Section */
