@@ -159,6 +159,14 @@ body {
 	overflow-x: hidden;
 }
 
+/* Android Cyrillic fix: Pixel Operator's UPPERCASE Cyrillic glyphs render broken
+   on some Android WebViews (lowercase is fine); `text-transform: uppercase`
+   triggers it. On Android (tagged in app.html) render every label in its authored
+   case so Cyrillic stays readable. iOS keeps the uppercase look. */
+html.plat-android * {
+	text-transform: none !important;
+}
+
 /* Pixel-perfect rendering for images */
 img, canvas {
 	image-rendering: pixelated;
