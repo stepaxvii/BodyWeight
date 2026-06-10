@@ -13,6 +13,7 @@
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
+	import { buildProgramOfDay } from '$lib/utils/programOfDay';
 	import type { ExerciseCategory, Exercise, Routine, RoutineCategory, CustomRoutineListItem, CustomRoutine } from '$lib/types';
 
 	// Data
@@ -39,6 +40,11 @@
 	let selectedCustomRoutine = $state<CustomRoutine | null>(null);
 	let showRoutinePlayer = $state(false);
 	let activeRoutineCategory = $state<RoutineCategory>('morning');
+
+	// Программа дня — date-seeded random workout (no equipment, medium difficulty,
+	// different directions). Deterministic per calendar day. Built in onMount.
+	let programOfDay = $state<Routine | null>(null);
+	let programXp = $state(0);
 
 	// Custom routine editor state
 	let showCustomRoutineEditor = $state(false);
@@ -369,6 +375,29 @@
 
 		// Listen for page visibility changes
 		document.addEventListener('visibilitychange', handleVisibilityChange);
+
+		// Build the deterministic "Программа дня" from the full catalogue
+		// (non-blocking — the hero pops in once it's ready).
+		try {
+			const all = await api.getAllExercises();
+			const pod = buildProgramOfDay(all);
+			if (pod) {
+				programOfDay = pod;
+				const bySlug = new Map(all.map((e) => [e.slug, e]));
+				programXp = pod.exercises.reduce((sum, re) => {
+					const ex = bySlug.get(re.slug);
+					if (!ex) return sum;
+					return (
+						sum +
+						(re.duration
+							? calculateTimedXp(ex.base_xp, re.duration, 0)
+							: calculateExerciseXp(ex.base_xp, re.reps ?? 0, 0))
+					);
+				}, 0);
+			}
+		} catch (e) {
+			console.error('Failed to build program of the day:', e);
+		}
 	});
 
 	onDestroy(() => {
@@ -439,6 +468,10 @@
 		selectedRoutine = routine;
 		showRoutinePlayer = true;
 		telegram.hapticImpact('medium');
+	}
+
+	function startProgramOfDay() {
+		if (programOfDay) selectRoutine(programOfDay);
 	}
 
 	function handleRoutineClose() {
@@ -812,6 +845,43 @@
 	{:else}
 		<!-- SELECTION VIEW -->
 
+		<!-- Программа дня — featured hero (date-seeded, no equipment, medium difficulty) -->
+		{#if programOfDay}
+			<section class="program-section">
+				<div class="feat">
+					<div class="feat__band">
+						<span>★ Программа дня</span>
+						<span class="feat__rew">
+							<PixelIcon name="xp" size="sm" color="var(--on-accent)" /> +{programXp} XP
+						</span>
+					</div>
+					<div class="feat__body">
+						<span class="feat__art slot slot--lg">
+							<PixelIcon name="workout" size="xl" color="var(--accent)" />
+						</span>
+						<div class="feat__info">
+							<span class="feat__name">{programOfDay.name}</span>
+							<span class="feat__sub">{programOfDay.description}</span>
+							<div class="feat__stats">
+								<span class="feat__stat">
+									<PixelIcon name="timer" size="sm" color="var(--accent2)" /> ~{programOfDay.duration_minutes}м
+								</span>
+								<span class="feat__stat">
+									<PixelIcon name="workout" size="sm" color="var(--accent)" /> {programOfDay.exercises.length} упр.
+								</span>
+							</div>
+						</div>
+					</div>
+					<div class="feat__go">
+						<PixelButton variant="primary" fullWidth onclick={startProgramOfDay}>
+							<PixelIcon name="play" size="sm" />
+							Начать тренировку
+						</PixelButton>
+					</div>
+				</div>
+			</section>
+		{/if}
+
 		<!-- Main navigation tabs -->
 		<PixelTabs tabs={mainTabs} activeTab={activeMainTab} onTabChange={switchMainTab} />
 
@@ -1112,6 +1182,10 @@
 	.page {
 		padding-top: var(--spacing-md);
 		padding-bottom: 180px; /* Space for fixed panel + nav */
+	}
+
+	.program-section {
+		margin-bottom: var(--spacing-md);
 	}
 
 	.tab-section {
