@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { PixelCard, PixelIcon, PixelAvatar, EmptyState, PixelTabs, PixelButton, CountUp } from '$lib/components/ui';
 	import UserProfileModal from '$lib/components/UserProfileModal.svelte';
+	import Banner from '$lib/components/ui/Banner.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -13,6 +14,9 @@
 	let error = $state<string | null>(null);
 	let selectedUserId = $state<number | null>(null);
 	let updatingVisibility = $state(false);
+
+	// Current user's own entry (for the pinned "your rank" card)
+	const me = $derived(entries.find((e) => e.is_current_user));
 
 	const leaderboardConsentText = `Показывать твой username (или имя) в общем рейтинге и у друзей?`;
 
@@ -91,9 +95,9 @@
 </script>
 
 <div class="page container">
-	<header class="page-header">
-		<h1>Рейтинг</h1>
-	</header>
+	<div class="banner-wrap">
+		<Banner icon="trophy" title="Рейтинг" deco="crown" />
+	</div>
 
 	<!-- Tabs -->
 	<PixelTabs tabs={leaderboardTabs} activeTab={activeTab} onTabChange={switchTab} />
@@ -239,6 +243,18 @@
 				{/if}
 			{/each}
 		</div>
+
+		{#if activeTab !== 'friends' && me}
+			<div class="lb-you-card">
+				<span class="lb-you-card__rank">#{me.rank}</span>
+				<PixelAvatar avatarId={me.avatar_id || 'shadow-wolf'} size="md" showBorder={false} />
+				<div class="lb-you-meta">
+					<span class="lb-you-name">{me.username || me.first_name}</span>
+					<span class="lb-you-sub">Ур.{me.level}</span>
+				</div>
+				<span class="lb-you-xp"><CountUp value={me.total_xp} /> XP</span>
+			</div>
+		{/if}
 	{/if}
 </div>
 
@@ -254,9 +270,37 @@
 		padding-bottom: var(--spacing-lg);
 	}
 
-	.page-header {
-		text-align: center;
+	.banner-wrap {
 		margin-bottom: var(--spacing-md);
+	}
+
+	/* Pinned "your rank" card (.lb-you-card / __rank live in hud.css; tangerine bg) */
+	.lb-you-card {
+		margin-top: var(--spacing-sm);
+	}
+	.lb-you-meta {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+	.lb-you-name {
+		font-size: var(--font-size-xs);
+		color: var(--on-accent);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.lb-you-sub {
+		font-size: 10px;
+		color: var(--on-accent);
+		opacity: 0.85;
+	}
+	.lb-you-xp {
+		font-family: var(--font-data);
+		font-size: var(--font-size-sm);
+		color: var(--on-accent);
 	}
 
 	/* Loading */
