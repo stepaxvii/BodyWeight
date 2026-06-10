@@ -7,6 +7,7 @@
 	import CustomRoutineEditor from '$lib/components/CustomRoutineEditor.svelte';
 	import CustomRoutineList from '$lib/components/CustomRoutineList.svelte';
 	import Banner from '$lib/components/ui/Banner.svelte';
+	import Diff from '$lib/components/ui/Diff.svelte';
 	import type { FilterState } from '$lib/components/FilterModal.svelte';
 	import { api } from '$lib/api/client';
 	import { workoutStore } from '$lib/stores/workout.svelte';
@@ -582,6 +583,11 @@
 		return '\u2605'.repeat(difficulty) + '\u2606'.repeat(5 - difficulty);
 	}
 
+	// Rarity edge by routine difficulty (designer's rarity())
+	function rarOf(difficulty: number): string {
+		return difficulty <= 1 ? 'r2' : difficulty === 2 ? 'r3' : 'r4';
+	}
+
 	// Filter modal handlers
 	function openFilterModal() {
 		showFilterModal = true;
@@ -902,15 +908,19 @@
 					/>
 					<div class="routines-list anim-rows">
 						{#each filteredRoutines as routine}
-							<PixelCard hoverable onclick={() => selectRoutine(routine)} padding="sm">
-								<div class="routine-item">
-									<div class="routine-info">
-										<span class="routine-name">{routine.name}</span>
-										<span class="routine-meta">{routine.duration_minutes} мин</span>
+							<button class="item routine-card {rarOf(routine.difficulty)}" onclick={() => selectRoutine(routine)}>
+								<span class="item__edge"></span>
+								<span class="slot slot--md"><PixelIcon name="dumbbell" size="md" color="var(--rar, var(--accent))" /></span>
+								<div class="item__body">
+									<span class="item__name">{routine.name}</span>
+									<div class="item__sub">
+										<span class="item__tag"><PixelIcon name="dumbbell" size="sm" color="var(--muted)" /> {routine.exercises.length}</span>
+										<span class="item__tag"><PixelIcon name="timer" size="sm" color="var(--muted)" /> ~{routine.duration_minutes}м</span>
+										<Diff n={routine.difficulty} max={3} />
 									</div>
-									<PixelIcon name="play" size="sm" color="var(--text-secondary)" />
 								</div>
-							</PixelCard>
+								<span class="slot slot--sm slot--filled routine-card__go"><PixelIcon name="play" size="sm" color="var(--on-accent)" /></span>
+							</button>
 						{/each}
 						{#if filteredRoutines.length === 0}
 							<EmptyState message="Нет сетов в этой категории" />
@@ -1516,25 +1526,10 @@
 		gap: var(--spacing-xs);
 	}
 
-	.routine-item {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.routine-info {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-
-	.routine-name {
-		font-size: var(--font-size-sm);
-	}
-
-	.routine-meta {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
+	.routine-card__go {
+		flex: 0 0 auto;
+		width: 30px;
+		height: 30px;
 	}
 
 	/* Category tabs */
