@@ -63,9 +63,11 @@
 	--font-display: 'Silkscreen', monospace;
 	--font-ui: 'Pixelify Sans', monospace;
 	--font-data: 'Silkscreen', monospace;
-	--data-sm: 9px;
-	--data-md: 13px;
-	--data-lg: 16px;
+	/* Bumped up vs the prototype's raw px: the designer's preview is shown in a
+	   scaled-up phone frame (~1.5-2x), so 1:1 px look tiny on a real device. */
+	--data-sm: 12px;
+	--data-md: 16px;
+	--data-lg: 22px;
 
 	/* ============================================================
 	   App's existing --pixel-* names → aliased to the Neo tokens
@@ -118,12 +120,13 @@
 
 	/* Fonts (app names) — body Pixelify Sans, headings/numbers Silkscreen */
 	--font-pixel: var(--font-ui);
-	--font-size-xs: 9px;
-	--font-size-sm: 12px;
-	--font-size-md: 14px;
-	--font-size-lg: 16px;
-	--font-size-xl: 20px;
-	--font-size-2xl: 26px;
+	/* Bumped up for real-device legibility (body base = 14px like the designer) */
+	--font-size-xs: 11px;
+	--font-size-sm: 14px;
+	--font-size-md: 16px;
+	--font-size-lg: 19px;
+	--font-size-xl: 24px;
+	--font-size-2xl: 32px;
 
 	/* Transitions */
 	--transition-fast: 100ms;
