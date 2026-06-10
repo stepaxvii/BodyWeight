@@ -6,6 +6,7 @@
 	import FilterModal from '$lib/components/FilterModal.svelte';
 	import CustomRoutineEditor from '$lib/components/CustomRoutineEditor.svelte';
 	import CustomRoutineList from '$lib/components/CustomRoutineList.svelte';
+	import Banner from '$lib/components/ui/Banner.svelte';
 	import type { FilterState } from '$lib/components/FilterModal.svelte';
 	import { api } from '$lib/api/client';
 	import { workoutStore } from '$lib/stores/workout.svelte';
@@ -845,6 +846,10 @@
 	{:else}
 		<!-- SELECTION VIEW -->
 
+		<div class="hub-banner">
+			<Banner icon="dumbbell" title="Тренировка" sub={exercisesTotal ? `${exercisesTotal} упражнений` : undefined} deco="dumbbell" />
+		</div>
+
 		<!-- Программа дня — featured hero (date-seeded, no equipment, medium difficulty) -->
 		{#if programOfDay}
 			<section class="program-section">
@@ -1185,6 +1190,10 @@
 	}
 
 	.program-section {
+		margin-bottom: var(--spacing-md);
+	}
+
+	.hub-banner {
 		margin-bottom: var(--spacing-md);
 	}
 
