@@ -57,13 +57,14 @@
 	const activeDays = $derived(chartData.filter((d) => d.value > 0).length);
 
 	// 4 уровня заливки по доле дневной нормы — как в ActivityCalendar.
+	// Максимальный уровень (bar-4) = норма выполнена (≥100%); 1–3 делят путь.
 	function getBarColorClass(xp: number, norm: number): string {
 		if (xp <= 0) return 'bar-empty';
-		const step = Math.max(1, norm || DEFAULT_NORM) / 4;
-		if (xp <= step) return 'bar-1';
-		if (xp <= step * 2) return 'bar-2';
-		if (xp <= step * 3) return 'bar-3';
-		return 'bar-4';
+		const n = Math.max(1, norm || DEFAULT_NORM);
+		if (xp >= n) return 'bar-4'; // goal reached/exceeded
+		if (xp >= (n * 2) / 3) return 'bar-3';
+		if (xp >= n / 3) return 'bar-2';
+		return 'bar-1';
 	}
 
 	function handleBarClick(date: string, activity: DayActivity | null) {

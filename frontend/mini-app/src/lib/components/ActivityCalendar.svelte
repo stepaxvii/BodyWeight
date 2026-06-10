@@ -15,14 +15,16 @@
 
 	const DEFAULT_NORM = 1400;
 
-	// Intensity 0..4 by the day's XP relative to its norm (norm / 4 steps).
+	// Intensity 0..4 by the day's XP relative to its norm. The brightest level (4)
+	// is reserved for actually reaching/exceeding the norm — the daily goal —
+	// while levels 1–3 split the path to it into thirds.
 	function levelFor(xp: number, norm: number): number {
 		if (xp <= 0) return 0;
-		const step = Math.max(1, norm || DEFAULT_NORM) / 4;
-		if (xp <= step) return 1;
-		if (xp <= step * 2) return 2;
-		if (xp <= step * 3) return 3;
-		return 4;
+		const n = Math.max(1, norm || DEFAULT_NORM);
+		if (xp >= n) return 4; // goal reached/exceeded
+		if (xp >= (n * 2) / 3) return 3;
+		if (xp >= n / 3) return 2;
+		return 1;
 	}
 
 	function fmt(date: Date): string {
