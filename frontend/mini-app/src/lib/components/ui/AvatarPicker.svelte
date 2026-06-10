@@ -23,6 +23,15 @@
 	let selectedAvatar = $state<AvatarId>(currentAvatarId);
 	let purchasedAvatars = $state<Set<string>>(new Set());
 
+	// The 5 avatars introduced in the Neo redesign — flagged NEW in the picker.
+	const NEW_AVATARS = new Set<AvatarId>([
+		'solar-lion',
+		'crystal-stag',
+		'storm-eagle',
+		'void-serpent',
+		'magma-golem'
+	]);
+
 	// Load purchased avatars when modal opens
 	$effect(() => {
 		if (open) {
@@ -106,6 +115,9 @@
 					onclick={() => selectAvatar(avatar)}
 					disabled={locked}
 				>
+					{#if NEW_AVATARS.has(avatar.id)}
+						<span class="avatar-new">NEW</span>
+					{/if}
 					<div class="avatar-frame">
 						{#if locked}
 							<div class="lock-overlay">
@@ -116,6 +128,7 @@
 							avatarId={avatar.id}
 							size="lg"
 							showBorder={false}
+							ring={isCurrent}
 						/>
 					</div>
 					<span class="avatar-name">{avatar.name_ru}</span>
@@ -171,6 +184,7 @@
 	}
 
 	.avatar-option {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -180,6 +194,20 @@
 		border: var(--border-width) solid var(--border-color);
 		cursor: pointer;
 		transition: all var(--transition-fast);
+	}
+
+	.avatar-new {
+		position: absolute;
+		top: -3px;
+		right: -3px;
+		z-index: 2;
+		background: var(--accent);
+		color: var(--on-accent);
+		font-family: var(--font-display);
+		font-size: 9px;
+		line-height: 1;
+		padding: 3px 4px;
+		border: 2px solid var(--line);
 	}
 
 	.avatar-option:hover:not(:disabled) {
