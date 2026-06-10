@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
-	import { PixelButton, PixelCard, PixelIcon, PixelTabs, EmptyState } from '$lib/components/ui';
+	import { PixelIcon, PixelTabs, EmptyState } from '$lib/components/ui';
+	import Banner from '$lib/components/ui/Banner.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { ChallengeListItem, ChallengeStatus } from '$lib/types';
@@ -13,6 +14,10 @@
 		{ id: 'finished' as const, label: 'Завершены' },
 		{ id: 'mine' as const, label: 'Мои' }
 	];
+
+	function rarOf(s: ChallengeStatus): string {
+		return s === 'active' ? 'r2' : s === 'upcoming' ? 'r3' : 'r1';
+	}
 
 	let activeTab = $state<Tab>('active');
 	let items = $state<ChallengeListItem[]>([]);
@@ -54,16 +59,13 @@
 </script>
 
 <div class="challenges-page">
-	<header class="page-header">
-		<a href="{base}/" class="back-link">
-			<PixelIcon name="arrow-left" size="sm" />
-		</a>
-		<h1>Челленджи</h1>
-		<a href="{base}/challenges/new" class="new-btn">
-			<PixelIcon name="plus" size="sm" />
-			<span>Создать</span>
-		</a>
-	</header>
+	<Banner icon="calendar" title="Челленджи" sub="Соревнуйся и забирай награды" deco="trophy">
+		{#snippet action()}
+			<a href="{base}/challenges/new" class="banner-new" aria-label="Создать челлендж">
+				<PixelIcon name="plus" size="md" color="currentColor" />
+			</a>
+		{/snippet}
+	</Banner>
 
 	<PixelTabs
 		tabs={tabs}
@@ -83,32 +85,21 @@
 	{:else}
 		<div class="challenge-list anim-rows">
 			{#each items as item (item.id)}
-				<a href="{base}/challenges/{item.id}" class="challenge-card-link">
-					<PixelCard padding="md">
-						<div class="card-header">
-							<div class="card-title">{item.title}</div>
-							<div class="status-pill status-{item.status}">{statusLabel(item.status)}</div>
-						</div>
-						<div class="card-meta">
-							<span>{fmtDate(item.start_date)} — {fmtDate(item.end_date)}</span>
-						</div>
-						<div class="card-stats">
-							<div class="stat">
-								<span class="stat-val">{item.participants_count}</span>
-								<span class="stat-lbl">участников</span>
-							</div>
-							<div class="stat">
-								<span class="stat-val">{item.exercises_count}</span>
-								<span class="stat-lbl">упражнений</span>
-							</div>
-							{#if item.creator_name}
-								<div class="creator">от @{item.creator_name}</div>
-							{/if}
-						</div>
-						{#if item.is_member}
-							<div class="member-badge">Ты участвуешь</div>
-						{/if}
-					</PixelCard>
+				<a href="{base}/challenges/{item.id}" class="item chal-item {rarOf(item.status)}">
+					<span class="item__edge"></span>
+					<div class="chal-top">
+						<span class="item__name">{item.title}</span>
+						<span class="status status--{item.status}">{statusLabel(item.status)}</span>
+					</div>
+					<div class="chal-meta">
+						<span><PixelIcon name="calendar" size="sm" color="var(--muted)" /> {fmtDate(item.start_date)} — {fmtDate(item.end_date)}</span>
+						{#if item.creator_name}<span>от @{item.creator_name}</span>{/if}
+					</div>
+					<div class="chal-meta">
+						<span class="item__tag"><PixelIcon name="users" size="sm" color="var(--muted)" /> {item.participants_count}</span>
+						<span class="item__tag"><PixelIcon name="dumbbell" size="sm" color="var(--muted)" /> {item.exercises_count} упр.</span>
+						{#if item.is_member}<span class="chal-mem"><PixelIcon name="check" size="sm" color="#fff" /> участвуешь</span>{/if}
+					</div>
 				</a>
 			{/each}
 		</div>
@@ -123,36 +114,16 @@
 		padding: var(--spacing-md);
 	}
 
-	.page-header {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-	}
-
-	.page-header h1 {
-		font-size: var(--font-size-md);
-		color: var(--text-primary);
-		margin: 0;
-		flex: 1;
-	}
-
-	.back-link, .new-btn {
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		padding: var(--spacing-xs) var(--spacing-sm);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: var(--spacing-xs);
+	.banner-new {
+		flex: 0 0 auto;
+		display: grid;
+		place-items: center;
+		width: 36px;
+		height: 36px;
+		background: rgba(0, 0, 0, 0.2);
+		border: 2px solid rgba(0, 0, 0, 0.3);
+		color: var(--hero-text);
 		text-decoration: none;
-		color: var(--text-primary);
-		font-size: var(--font-size-xs);
-	}
-
-	.new-btn {
-		background: var(--pixel-accent);
-		border-color: var(--pixel-accent);
-		color: var(--on-accent);
 	}
 
 	.loading {
@@ -167,90 +138,60 @@
 		gap: var(--spacing-sm);
 	}
 
-	.challenge-card-link {
+	/* challenge cards use the global .item kit, overridden to a column layout */
+	.chal-item {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 9px;
+		padding: 12px;
 		text-decoration: none;
-		color: inherit;
 	}
 
-	.card-header {
+	.chal-top {
 		display: flex;
 		align-items: flex-start;
 		justify-content: space-between;
-		gap: var(--spacing-sm);
-		margin-bottom: var(--spacing-xs);
+		gap: 10px;
 	}
 
-	.card-title {
-		font-size: var(--font-size-sm);
-		color: var(--text-primary);
-		flex: 1;
+	.chal-top .item__name {
+		white-space: normal;
+		overflow: visible;
+		line-height: 1.35;
 	}
 
-	.status-pill {
-		font-size: 9px;
-		padding: 2px 6px;
-		border: 1px solid var(--border-color);
-		text-transform: uppercase;
-		letter-spacing: 1px;
-		flex-shrink: 0;
-	}
-
-	.status-upcoming {
-		color: var(--pixel-accent);
-		border-color: var(--pixel-accent);
-	}
-	.status-active {
-		color: var(--pixel-green);
-		border-color: var(--pixel-green);
-	}
-	.status-finished {
-		color: var(--text-muted);
-	}
-
-	.card-meta {
-		font-size: 11px;
-		color: var(--text-muted);
-		margin-bottom: var(--spacing-xs);
-	}
-
-	.card-stats {
+	.chal-meta {
 		display: flex;
-		align-items: baseline;
-		gap: var(--spacing-md);
+		align-items: center;
+		justify-content: space-between;
+		gap: 7px;
+		font-size: var(--font-size-xs);
+		color: var(--muted);
 	}
 
-	.stat {
-		display: flex;
+	.chal-meta span {
+		display: inline-flex;
+		align-items: center;
 		gap: 4px;
-		align-items: baseline;
 	}
 
-	.stat-val {
-		font-size: var(--font-size-sm);
-		color: var(--pixel-accent);
-	}
-
-	.stat-lbl {
-		font-size: 9px;
-		color: var(--text-muted);
+	.status {
+		flex-shrink: 0;
+		font-family: var(--font-display);
+		font-size: var(--font-size-xs);
 		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		padding: 3px 7px;
+		border: 2px solid currentColor;
+		white-space: nowrap;
 	}
-
-	.creator {
-		margin-left: auto;
-		font-size: 10px;
-		color: var(--text-muted);
+	.status--active {
+		color: var(--green);
 	}
-
-	.member-badge {
-		margin-top: var(--spacing-xs);
-		font-size: 10px;
-		color: #fff;
-		background: var(--pixel-green);
-		border: var(--border-width) solid var(--pixel-green);
-		padding: 2px 6px;
-		display: inline-block;
-		text-transform: uppercase;
-		letter-spacing: 1px;
+	.status--upcoming {
+		color: var(--accent);
+	}
+	.status--finished {
+		color: var(--muted);
 	}
 </style>
