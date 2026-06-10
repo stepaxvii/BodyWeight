@@ -230,7 +230,7 @@
 				} catch { /* ignore */ }
 
 				isCompleted = true;
-				// Estimate XP (mirrors backend: total volume × base_xp × rate × streak)
+				// Estimate XP (mirrors backend: total volume Г— base_xp Г— rate Г— streak)
 				totalXpEarned = completedExercises.reduce((sum, ex) => {
 					const exercise = allExercises.find(e => e.slug === ex.exercise_slug);
 					if (!exercise) return sum;
@@ -262,7 +262,7 @@
 	async function shareWorkout() {
 		telegram.hapticImpact('medium');
 
-		// Группируем по упражнению и суммируем повторы/секунды
+		// Р“СЂСѓРїРїРёСЂСѓРµРј РїРѕ СѓРїСЂР°Р¶РЅРµРЅРёСЋ Рё СЃСѓРјРјРёСЂСѓРµРј РїРѕРІС‚РѕСЂС‹/СЃРµРєСѓРЅРґС‹
 		const bySlug = new Map<string, { total: number; is_timed: boolean }>();
 		for (const ce of completedExercises) {
 			const sum = ce.sets.reduce((a, b) => a + b, 0);
@@ -276,47 +276,47 @@
 		const exerciseLines = Array.from(bySlug.entries()).map(([slug, { total, is_timed }]) => {
 			const ex = allExercises.find((e) => e.slug === slug);
 			const name = ex?.name_ru || slug;
-			const totalStr = is_timed ? `${total} сек` : `${total} повт.`;
-			return `  ▸ ${name}: ${totalStr}`;
+			const totalStr = is_timed ? `${total} СЃРµРє` : `${total} РїРѕРІС‚.`;
+			return `  в–ё ${name}: ${totalStr}`;
 		});
 
 		const shareText = [
-			`🏆 ${routine.name}`,
+			`рџЏ† ${routine.name}`,
 			'',
-			`⏱️ ${formattedTotalTime}`,
-			`🌟 +${totalXpEarned} XP`,
-			`🪙 ${totalCoinsEarned} монет`,
+			`вЏ±пёЏ ${formattedTotalTime}`,
+			`рџЊџ +${totalXpEarned} XP`,
+			`рџЄ™ ${totalCoinsEarned} РјРѕРЅРµС‚`,
 			'',
-			'━━━━━━━━━━',
-			'💪 Упражнения',
-			'━━━━━━━━━━',
+			'в”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓ',
+			'рџ’Є РЈРїСЂР°Р¶РЅРµРЅРёСЏ',
+			'в”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓв”Ѓ',
 			...exerciseLines
 		].join('\n');
 
-		// Внутри Telegram WebApp – всё как раньше
+		// Р’РЅСѓС‚СЂРё Telegram WebApp вЂ“ РІСЃС‘ РєР°Рє СЂР°РЅСЊС€Рµ
 		if (telegram.webApp) {
 			const botUsername = 'pixelfitbot';
 			const botLink = `https://t.me/${botUsername}`;
 			const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(shareText)}`;
 			telegram.openTelegramLink(shareUrl);
 		}
-		// В браузере — системное меню «Поделиться» только с текстом тренировки
+		// Р’ Р±СЂР°СѓР·РµСЂРµ вЂ” СЃРёСЃС‚РµРјРЅРѕРµ РјРµРЅСЋ В«РџРѕРґРµР»РёС‚СЊСЃСЏВ» С‚РѕР»СЊРєРѕ СЃ С‚РµРєСЃС‚РѕРј С‚СЂРµРЅРёСЂРѕРІРєРё
 		else if (navigator.share) {
 			try {
 				await navigator.share({
 					title: `PixelFit - ${routine.name}`,
 					text: shareText
-					// без url: чтобы не форсить переход в Telegram
+					// Р±РµР· url: С‡С‚РѕР±С‹ РЅРµ С„РѕСЂСЃРёС‚СЊ РїРµСЂРµС…РѕРґ РІ Telegram
 				});
 			} catch {
-				// пользователь закрыл шейр – просто игнорируем
+				// РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ Р·Р°РєСЂС‹Р» С€РµР№СЂ вЂ“ РїСЂРѕСЃС‚Рѕ РёРіРЅРѕСЂРёСЂСѓРµРј
 			}
 		} else {
-			// Fallback: скопировать в буфер обмена весь текст
+			// Fallback: СЃРєРѕРїРёСЂРѕРІР°С‚СЊ РІ Р±СѓС„РµСЂ РѕР±РјРµРЅР° РІРµСЃСЊ С‚РµРєСЃС‚
 			try {
 				await navigator.clipboard.writeText(shareText);
 			} catch {
-				// нет доступа к буферу – ничего не делаем
+				// РЅРµС‚ РґРѕСЃС‚СѓРїР° Рє Р±СѓС„РµСЂСѓ вЂ“ РЅРёС‡РµРіРѕ РЅРµ РґРµР»Р°РµРј
 			}
 		}
 
@@ -334,227 +334,115 @@
 	}
 </script>
 
-<div class="routine-player">
+<div class="player">
 	{#if !isStarted}
-		<!-- Pre-start screen -->
-		<div class="pre-start">
-			<div class="routine-header">
-				<button class="close-btn" onclick={handleClose}>
-					<PixelIcon name="close" />
-				</button>
-				<h2 class="routine-title">{routine.name}</h2>
+		<!-- PRE-START -->
+		<div class="player__scroll">
+			<div class="player__bar">
+				<button class="player__x" onclick={handleClose} aria-label="Р—Р°РєСЂС‹С‚СЊ"><PixelIcon name="close" size="sm" /></button>
+				<span class="player__title">{routine.name}</span>
+				<span class="player__x-spacer"></span>
 			</div>
 
-			<PixelCard variant="accent" padding="lg">
-				<div class="routine-info">
-					<p class="routine-description">{routine.description}</p>
-					<div class="routine-stats">
-						<div class="stat">
-							<PixelIcon name="timer" color="var(--text-secondary)" />
-							<span>{routine.duration_minutes} мин</span>
-						</div>
-						<div class="stat">
-							<PixelIcon name="play" color="var(--text-secondary)" />
-							<span>{routine.exercises.length} упр.</span>
+			<div class="feat">
+				<div class="feat__band"><span>РџСЂРѕРіСЂР°РјРјР°</span></div>
+				<div class="feat__body">
+					<span class="feat__art slot slot--lg"><PixelIcon name="dumbbell" size="xl" color="var(--accent)" /></span>
+					<div class="feat__info">
+						<span class="feat__sub">{routine.description}</span>
+						<div class="feat__stats">
+							<span class="feat__stat"><PixelIcon name="timer" size="sm" color="var(--accent2)" /> ~{routine.duration_minutes} РјРёРЅ</span>
+							<span class="feat__stat"><PixelIcon name="dumbbell" size="sm" color="var(--accent)" /> {routine.exercises.length} СѓРїСЂ.</span>
 						</div>
 					</div>
 				</div>
-			</PixelCard>
+			</div>
 
-			<section class="exercise-preview">
-				<h3 class="section-title">Упражнения</h3>
-				<div class="exercise-list">
-					{#each routine.exercises as ex, i}
-						{@const exData = allExercises.find(e => e.slug === ex.slug)}
-						<div class="exercise-preview-item">
-							<span class="exercise-number">{i + 1}</span>
-							{#if exercisesLoading}
-								<span class="exercise-name loading-skeleton"></span>
-							{:else}
-								<span class="exercise-name">{exData?.name_ru || ex.slug}</span>
-							{/if}
-							<span class="exercise-target">
-								{#if ex.duration}
-									{ex.duration} сек
-								{:else if ex.reps}
-									{ex.reps} повт.
-								{/if}
-							</span>
-							{#if !exercisesLoading && exData}
-								<button
-									class="exercise-info-btn"
-									onclick={() => { showInfoExercise = exData; telegram.hapticImpact('light'); }}
-									title="Подробнее"
-								>
-									?
-								</button>
-							{/if}
-						</div>
-					{/each}
-				</div>
-			</section>
+			<div class="player__listhead">РЈРїСЂР°Р¶РЅРµРЅРёСЏ</div>
+			<div class="player__list">
+				{#each routine.exercises as ex, i}
+					{@const exData = allExercises.find((e) => e.slug === ex.slug)}
+					<div class="prerow">
+						<span class="prerow__n">{i + 1}</span>
+						<span class="prerow__name">{exData?.name_ru || ex.slug}</span>
+						<span class="prerow__t">{ex.duration ? `${ex.duration} СЃРµРє` : ex.reps ? `${ex.reps} РїРѕРІС‚.` : ''}</span>
+						{#if exData}
+							<button class="prerow__i" onclick={() => { showInfoExercise = exData; telegram.hapticImpact('light'); }} aria-label="РџРѕРґСЂРѕР±РЅРµРµ"><PixelIcon name="search" size="sm" color="var(--muted)" /></button>
+						{/if}
+					</div>
+				{/each}
+			</div>
 
-			<div class="start-section">
+			<div class="player__start">
 				<PixelButton variant="primary" size="lg" fullWidth onclick={startRoutine}>
-					<PixelIcon name="play" />
-					Начать
+					<PixelIcon name="play" /> РќР°С‡Р°С‚СЊ
 				</PixelButton>
 			</div>
 		</div>
-
 	{:else if isCompleted}
-		<!-- Completion screen -->
-		<div class="completion-screen">
-			<div class="completion-header">
-				<PixelIcon name="trophy" size="xl" color="var(--pixel-yellow)" />
-				<h2 class="completion-title">{routine.name}</h2>
-				<p class="completion-subtitle">завершён</p>
+		<!-- COMPLETION -->
+		<div class="player__done">
+			<span class="done__burst" aria-hidden="true"></span>
+			<PixelIcon name="trophy" size="xl" color="var(--gold)" class="done__trophy" />
+			<span class="done__title">{routine.name}</span>
+			<span class="done__sub">Р·Р°РІРµСЂС€С‘РЅ!</span>
+			<div class="done__grid">
+				<div class="done__stat"><PixelIcon name="timer" size="md" color="var(--accent2)" /><span class="done__v">{formattedTotalTime}</span><span class="done__l">Р’СЂРµРјСЏ</span></div>
+				<div class="done__stat"><PixelIcon name="xp" size="md" color="var(--accent)" /><span class="done__v done__v--green">+{totalXpEarned}</span><span class="done__l">РћРїС‹С‚</span></div>
+				<div class="done__stat"><PixelIcon name="coin" size="md" color="var(--gold)" /><span class="done__v done__v--gold">+{totalCoinsEarned}</span><span class="done__l">РњРѕРЅРµС‚С‹</span></div>
+				<div class="done__stat"><PixelIcon name="dumbbell" size="md" color="var(--accent)" /><span class="done__v">{completedExercisesCount}/{routine.exercises.length}</span><span class="done__l">РЈРїСЂ.</span></div>
 			</div>
-
-			<div class="completion-stats-grid">
-				<PixelCard padding="md">
-					<div class="completion-stat">
-						<PixelIcon name="timer" size="lg" color="var(--pixel-accent)" />
-						<span class="stat-value">{formattedTotalTime}</span>
-						<span class="stat-label">Время</span>
-					</div>
-				</PixelCard>
-
-				<PixelCard padding="md">
-					<div class="completion-stat">
-						<PixelIcon name="xp" size="lg" color="var(--pixel-green)" />
-						<span class="stat-value text-green">+{totalXpEarned}</span>
-						<span class="stat-label">Опыт</span>
-					</div>
-				</PixelCard>
-
-				<PixelCard padding="md">
-					<div class="completion-stat">
-						<PixelIcon name="coin" size="lg" color="var(--pixel-yellow)" />
-						<span class="stat-value text-yellow">+{totalCoinsEarned}</span>
-						<span class="stat-label">Монеты</span>
-					</div>
-				</PixelCard>
-
-				<PixelCard padding="md">
-					<div class="completion-stat">
-						<PixelIcon name="play" size="lg" color="var(--pixel-blue)" />
-						<span class="stat-value text-blue">{completedExercisesCount}/{routine.exercises.length}</span>
-						<span class="stat-label">Упражнений</span>
-					</div>
-				</PixelCard>
-			</div>
-
-			<div class="completion-actions">
-				<PixelButton variant="secondary" size="lg" fullWidth onclick={shareWorkout}>
-					<PixelIcon name="share" />
-					Поделиться
-				</PixelButton>
-				<PixelButton variant="success" size="lg" fullWidth onclick={handleClose}>
-					<PixelIcon name="check" />
-					Готово
-				</PixelButton>
+			<div class="player__doneactions">
+				<PixelButton variant="secondary" fullWidth onclick={shareWorkout}><PixelIcon name="share" /> РџРѕРґРµР»РёС‚СЊСЃСЏ</PixelButton>
+				<PixelButton variant="success" fullWidth onclick={handleClose}><PixelIcon name="check" /> Р“РѕС‚РѕРІРѕ</PixelButton>
 			</div>
 		</div>
-
 	{:else}
-		<!-- Active exercise screen -->
-		<div class="active-exercise">
-			<!-- Header with progress -->
-			<div class="player-header">
-				<button class="close-btn" onclick={handleClose}>
-					<PixelIcon name="close" />
-				</button>
-				<div class="progress-info">
-					<span class="step-counter">{currentStep + 1} / {routine.exercises.length}</span>
-					<span class="total-time">{formattedTotalTime}</span>
-				</div>
+		<!-- ACTIVE -->
+		<div class="player__active">
+			<div class="player__bar">
+				<button class="player__x" onclick={handleClose} aria-label="Р—Р°РєСЂС‹С‚СЊ"><PixelIcon name="close" size="sm" /></button>
+				<span class="player__step">{currentStep + 1} / {routine.exercises.length}</span>
+				<span class="player__clock"><PixelIcon name="timer" size="sm" color="var(--accent2)" /> {formattedTotalTime}</span>
 			</div>
 
-			<!-- Progress bar -->
-			<div class="progress-section">
-				<PixelProgress value={currentStep + 1} max={routine.exercises.length} variant="xp" size="sm" />
-			</div>
+			<div class="gauge"><div class="gauge__fill" style="width: {progress}%;"></div></div>
 
-			<!-- Current exercise -->
-			<div class="exercise-display">
-				<PixelCard variant="accent" padding="lg">
-					<div class="exercise-content">
-						{#if exercisesLoading}
-							<h3 class="current-exercise-name loading-skeleton"></h3>
+			<div class="player__stage">
+				<span class="player__exname">{exerciseData?.name_ru || currentExercise?.slug}</span>
+				{#if exerciseData?.description_ru}
+					<span class="player__exdesc">{exerciseData.description_ru}</span>
+				{/if}
+
+				<div class="ring" class:ring--done={isTimeBased && exerciseTimerSeconds === 0 && isExerciseTimerStarted}>
+					<div class="ring__bg"></div>
+					<div class="ring__fill">
+						{#if isTimeBased}
+							<span class="ring__v">{formattedExerciseTime}</span>
+							<span class="ring__l">{!isExerciseTimerStarted ? 'РЅР°Р¶РјРё СЃС‚Р°СЂС‚' : exerciseTimerSeconds === 0 ? 'РіРѕС‚РѕРІРѕ!' : 'РѕСЃС‚Р°Р»РѕСЃСЊ'}</span>
 						{:else}
-							<h3 class="current-exercise-name">{exerciseData?.name_ru || currentExercise?.slug}</h3>
+							<span class="ring__v">{targetValue}</span>
+							<span class="ring__l">РїРѕРІС‚РѕСЂРµРЅРёР№</span>
 						{/if}
-
-						{#if exerciseData?.description_ru}
-							<p class="exercise-description">{exerciseData.description_ru}</p>
-						{/if}
-
-						<div class="target-display">
-							{#if isTimeBased}
-								<div class="timer-circle" class:complete={exerciseTimerSeconds === 0} class:waiting={!isExerciseTimerStarted}>
-									<span class="timer-value">{formattedExerciseTime}</span>
-									<span class="timer-label">
-										{#if !isExerciseTimerStarted}
-											нажмите старт
-										{:else if exerciseTimerSeconds === 0}
-											готово!
-										{:else}
-											осталось
-										{/if}
-									</span>
-								</div>
-							{:else}
-								<div class="reps-display">
-									<span class="reps-value">{targetValue}</span>
-									<span class="reps-label">повторений</span>
-								</div>
-							{/if}
-						</div>
 					</div>
-				</PixelCard>
+				</div>
+
+				{#if currentStep < routine.exercises.length - 1}
+					{@const nextEx = routine.exercises[currentStep + 1]}
+					{@const nextExData = allExercises.find((e) => e.slug === nextEx.slug)}
+					<div class="player__next"><span class="player__nextl">Р”Р°Р»РµРµ:</span> {nextExData?.name_ru || nextEx.slug}</div>
+				{/if}
 			</div>
 
-			<!-- Next exercise preview -->
-			{#if currentStep < routine.exercises.length - 1}
-				{@const nextEx = routine.exercises[currentStep + 1]}
-				{@const nextExData = allExercises.find(e => e.slug === nextEx.slug)}
-				<div class="next-preview">
-					<span class="next-label">Далее:</span>
-					<span class="next-name">{nextExData?.name_ru || nextEx.slug}</span>
-				</div>
-			{/if}
-
-			<!-- Controls -->
-			<div class="player-controls">
-				<div class="control-row">
-					<PixelButton variant="ghost" onclick={skipExercise}>
-						Пропустить
-					</PixelButton>
-					{#if isTimeBased && !isExerciseTimerStarted}
-						<!-- Show Start Timer button for time-based exercises -->
-						<PixelButton variant="primary" size="lg" onclick={startExerciseTimer}>
-							<PixelIcon name="play" />
-							Старт
-						</PixelButton>
-					{:else if isTimeBased && exerciseTimerSeconds > 0}
-						<!-- Show Pause button while timer is running -->
-						<PixelButton variant="secondary" size="lg" onclick={togglePause}>
-							<PixelIcon name={isPaused ? 'play' : 'pause'} />
-						</PixelButton>
-					{:else}
-						<!-- Show Done button for reps or when timer finished -->
-						<PixelButton
-							variant="success"
-							size="lg"
-							disabled={isSubmitting}
-							onclick={completeExercise}
-						>
-							<PixelIcon name="check" />
-							{isSubmitting ? 'Отправка…' : 'Готово'}
-						</PixelButton>
-					{/if}
-				</div>
+			<div class="player__controls">
+				{#if isTimeBased && !isExerciseTimerStarted}
+					<PixelButton variant="primary" size="lg" fullWidth onclick={startExerciseTimer}><PixelIcon name="play" /> РЎС‚Р°СЂС‚ С‚Р°Р№РјРµСЂР°</PixelButton>
+				{:else if isTimeBased && exerciseTimerSeconds > 0}
+					<PixelButton variant="secondary" size="lg" fullWidth onclick={togglePause}><PixelIcon name={isPaused ? 'play' : 'pause'} /> {isPaused ? 'РџСЂРѕРґРѕР»Р¶РёС‚СЊ' : 'РџР°СѓР·Р°'}</PixelButton>
+				{:else}
+					<PixelButton variant="success" size="lg" fullWidth disabled={isSubmitting} onclick={completeExercise}><PixelIcon name="check" /> {isSubmitting ? 'РћС‚РїСЂР°РІРєР°вЂ¦' : 'Р“РѕС‚РѕРІРѕ'}</PixelButton>
+				{/if}
+				<PixelButton variant="ghost" fullWidth onclick={skipExercise}>РџСЂРѕРїСѓСЃС‚РёС‚СЊ</PixelButton>
 			</div>
 		</div>
 	{/if}
@@ -568,376 +456,48 @@
 />
 
 <style>
-	.routine-player {
+	/* The .player kit (hud.css) positions the overlay absolute at a low z-index
+	   for the prototype phone frame; the app needs it fixed to the viewport. */
+	.player {
 		position: fixed;
-		inset: 0;
-		background: var(--pixel-bg);
 		z-index: 1000;
-		display: flex;
-		flex-direction: column;
-		overflow-y: auto;
 	}
 
-	/* Pre-start screen */
-	.pre-start {
-		padding: var(--spacing-md);
-		display: flex;
-		flex-direction: column;
-		min-height: 100%;
-	}
-
-	.routine-header {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.close-btn {
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		padding: var(--spacing-xs);
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.close-btn:hover {
-		border-color: var(--pixel-accent);
-	}
-
-	.routine-title {
-		font-size: var(--font-size-lg);
-		margin: 0;
-	}
-
-	.routine-info {
-		text-align: center;
-	}
-
-	.routine-description {
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-		margin: 0 0 var(--spacing-md) 0;
-		line-height: 1.4;
-	}
-
-	.routine-stats {
-		display: flex;
-		justify-content: center;
-		gap: var(--spacing-lg);
-	}
-
-	.stat {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-xs);
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-	}
-
-	.exercise-preview {
-		flex: 1;
-		margin-top: var(--spacing-lg);
-	}
-
-	.section-title {
-		font-size: var(--font-size-sm);
-		text-transform: uppercase;
-		margin-bottom: var(--spacing-sm);
-		color: var(--text-secondary);
-	}
-
-	.exercise-list {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-xs);
-	}
-
-	.exercise-preview-item {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-sm);
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		font-size: var(--font-size-xs);
-	}
-
-	.exercise-number {
-		width: 24px;
-		height: 24px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: var(--pixel-bg-dark);
-		border: 1px solid var(--border-color);
-		color: var(--text-secondary);
-	}
-
-	.exercise-name {
-		flex: 1;
-	}
-
-	.exercise-target {
-		color: var(--pixel-green);
-	}
-
-	.exercise-info-btn {
-		width: 24px;
-		height: 24px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: var(--pixel-bg-dark);
-		border: var(--border-width) solid var(--border-color);
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-sm);
-		font-weight: bold;
-		color: var(--text-secondary);
-		cursor: pointer;
-		flex-shrink: 0;
-	}
-
-	.exercise-info-btn:hover {
-		border-color: var(--pixel-accent);
-		color: var(--pixel-accent);
-	}
-
-	.start-section {
-		margin-top: var(--spacing-xl);
-		padding-bottom: var(--spacing-lg);
-	}
-
-	/* Active exercise screen */
-	.active-exercise {
-		display: flex;
-		flex-direction: column;
-		min-height: 100%;
-		padding: var(--spacing-md);
-	}
-
-	.player-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: var(--spacing-md);
-	}
-
-	.progress-info {
-		display: flex;
-		gap: var(--spacing-md);
-		font-size: var(--font-size-sm);
-	}
-
-	.step-counter {
-		color: var(--pixel-accent);
-	}
-
-	.total-time {
-		color: var(--text-secondary);
-	}
-
-	.progress-section {
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.exercise-display {
-		flex: 1;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.exercise-content {
-		text-align: center;
-		width: 100%;
-	}
-
-	.current-exercise-name {
-		font-size: var(--font-size-lg);
-		margin: 0 0 var(--spacing-sm) 0;
-		color: var(--pixel-accent);
-	}
-
-	.exercise-description {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-		margin: 0 0 var(--spacing-lg) 0;
-		line-height: 1.4;
-	}
-
-	.target-display {
-		margin-top: var(--spacing-lg);
-	}
-
-	.timer-circle {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		width: 150px;
-		height: 150px;
-		margin: 0 auto;
-		border: 4px solid var(--pixel-accent);
-		border-radius: 50%;
-		background: var(--pixel-bg-dark);
-	}
-
-	.timer-circle.complete {
-		border-color: var(--pixel-green);
-	}
-
-	.timer-circle.waiting {
-		border-color: var(--text-secondary);
-	}
-
-	.timer-circle.waiting .timer-value {
-		color: var(--text-secondary);
-	}
-
-	.timer-value {
-		font-size: var(--font-size-2xl);
-		color: var(--pixel-accent);
-	}
-
-	.timer-circle.complete .timer-value {
-		color: var(--pixel-green);
-	}
-
-	.timer-label {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-		text-transform: uppercase;
-	}
-
-	.reps-display {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.reps-value {
-		font-size: 64px;
-		color: var(--pixel-accent);
-		line-height: 1;
-	}
-
-	.reps-label {
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-		text-transform: uppercase;
-		margin-top: var(--spacing-xs);
-	}
-
-	.next-preview {
-		display: flex;
-		justify-content: center;
-		gap: var(--spacing-sm);
-		padding: var(--spacing-md);
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-	}
-
-	.next-name {
-		color: var(--text-primary);
-	}
-
-	.player-controls {
-		margin-top: auto;
-		padding: var(--spacing-md) 0;
-	}
-
-	.control-row {
-		display: flex;
-		gap: var(--spacing-sm);
-		align-items: center;
-		justify-content: center;
-	}
-
-	.control-row > :global(:last-child) {
-		flex: 1;
-	}
-
-	/* Completion screen */
-	.completion-screen {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		min-height: 100%;
-		padding: var(--spacing-lg);
-		text-align: center;
-	}
-
-	.completion-header {
-		margin-bottom: var(--spacing-xl);
-	}
-
-	.completion-title {
-		font-size: var(--font-size-xl);
-		margin: var(--spacing-md) 0 0 0;
-		color: var(--pixel-yellow);
-	}
-
-	.completion-subtitle {
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-		margin: var(--spacing-xs) 0 0 0;
-	}
-
-	.completion-stats-grid {
+	.player__x {
+		flex: 0 0 auto;
+		width: 36px;
+		height: 36px;
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		gap: var(--spacing-md);
-		width: 100%;
+		place-items: center;
+		background: var(--bg2);
+		border: 2px solid var(--line);
+		color: var(--text);
+		cursor: pointer;
+	}
+	.player__x-spacer {
+		flex: 0 0 auto;
+		width: 36px;
 	}
 
-	.completion-stat {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--spacing-xs);
-		padding: var(--spacing-sm) 0;
-	}
-
-	.stat-value {
-		font-size: var(--font-size-xl);
-		font-weight: bold;
-	}
-
-	.stat-label {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
+	.player__listhead {
+		font-family: var(--font-display);
+		font-size: var(--font-size-md);
 		text-transform: uppercase;
+		color: var(--text);
 	}
 
-	.completion-actions {
+	.player__doneactions {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-md);
-		margin-top: var(--spacing-xl);
+		gap: var(--spacing-sm);
 		width: 100%;
+		margin-top: var(--spacing-md);
 	}
 
-	.text-green { color: var(--pixel-green); }
-	.text-yellow { color: var(--pixel-yellow); }
-	.text-blue { color: var(--pixel-blue); }
-
-	/* Loading skeleton */
-	.loading-skeleton {
-		display: inline-block;
-		background: linear-gradient(90deg, var(--pixel-bg-dark) 25%, var(--pixel-card-hover) 50%, var(--pixel-bg-dark) 75%);
-		background-size: 200% 100%;
-		animation: loading-shimmer 1.5s infinite;
-		border-radius: 0;
-		min-width: 120px;
-		min-height: 1em;
+	.done__v--green {
+		color: var(--green);
 	}
-
-	@keyframes loading-shimmer {
-		0% { background-position: 200% 0; }
-		100% { background-position: -200% 0; }
+	.done__v--gold {
+		color: var(--gold);
 	}
 </style>
