@@ -150,30 +150,36 @@
 </script>
 
 <div class="page container anim-cascade">
-	<!-- Profile Header - Avatar left, Level info right -->
-	<header class="profile-header">
-		<button class="avatar-btn" onclick={openAvatarPicker}>
-			<PixelAvatar
-				avatarId={userStore.user?.avatar_id || 'shadow-wolf'}
-				size="xl"
-				borderColor="var(--pixel-accent)"
-			/>
-			<div class="avatar-edit">
-				<PixelIcon name="settings" size="sm" />
-			</div>
-		</button>
-		<div class="header-info">
-			<h1 class="username">{userStore.displayName}</h1>
-			<p class="user-title">Пиксельный воин</p>
-			<div class="level-info">
-				<span class="level-badge">Ур.{userStore.level}</span>
-				<div class="xp-mini">
-					<PixelProgress value={xpInLevel} max={xpNeeded} variant="xp" size="sm" />
-					<span class="xp-text">{xpInLevel}/{xpNeeded} XP</span>
+	<!-- Character sheet header (mocha hero) -->
+	<section class="hero-section">
+		<header class="char">
+			<div class="char__top">
+				<button class="char__avbtn" aria-label="Сменить аватар" onclick={openAvatarPicker}>
+					<span class="char__avslot slot slot--lg">
+						<PixelAvatar avatarId={userStore.user?.avatar_id || 'shadow-wolf'} size="lg" showBorder={false} />
+					</span>
+					<span class="char__edit"><PixelIcon name="gear" size="sm" color="#fff" /></span>
+				</button>
+				<div class="char__id">
+					<span class="char__name">{userStore.displayName}</span>
+					<span class="char__title"><PixelIcon name="crown" size="sm" color="var(--gold)" /> Пиксельный воин</span>
+					<span class="char__lvl">Уровень {userStore.level}</span>
 				</div>
 			</div>
-		</div>
-	</header>
+			<div class="char__xp">
+				<PixelProgress value={xpInLevel} max={xpNeeded} variant="xp" size="sm" />
+				<div class="char__xprow">
+					<span>{xpInLevel} / {xpNeeded} XP</span>
+					<span>до Ур.{userStore.level + 1}</span>
+				</div>
+			</div>
+			<div class="char__facts">
+				<span class="char__fact"><PixelIcon name="flame" size="sm" color="var(--danger)" /> Серия {userStore.streak}</span>
+				<span class="char__fact"><PixelIcon name="medal" size="sm" color="var(--gold)" /> Рекорд {userStore.user?.max_streak || 0}</span>
+				<span class="char__fact"><PixelIcon name="coin" size="sm" color="var(--gold)" /> {userStore.coins}</span>
+			</div>
+		</header>
+	</section>
 
 	<!-- Avatar Picker Modal -->
 	<AvatarPicker
@@ -254,24 +260,28 @@
 		</div>
 	</section>
 
-	<!-- Stats Row - compact horizontal -->
+	<!-- Stats band -->
 	<section class="stats-section">
-		<div class="stats-row">
-			<div class="stat-item">
-				<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
-				<span class="stat-value"><CountUp value={userStore.xp} /></span>
+		<div class="band3">
+			<div class="band3__i">
+				<PixelIcon name="xp" size="sm" color="var(--accent)" />
+				<span class="band3__v"><CountUp value={userStore.xp} /></span>
+				<span class="band3__l">XP</span>
 			</div>
-			<div class="stat-item">
-				<PixelIcon name="coin" size="md" color="var(--pixel-orange)" class="anim-coin-spin" />
-				<span class="stat-value"><CountUp value={userStore.coins} /></span>
+			<div class="band3__i">
+				<PixelIcon name="coin" size="sm" color="var(--gold)" class="anim-coin-spin" />
+				<span class="band3__v"><CountUp value={userStore.coins} /></span>
+				<span class="band3__l">Монеты</span>
 			</div>
-			<div class="stat-item">
-				<PixelIcon name="streak" size="md" color="var(--pixel-yellow)" class="anim-flicker" />
-				<span class="stat-value"><CountUp value={userStore.streak} /></span>
+			<div class="band3__i">
+				<PixelIcon name="streak" size="sm" color="var(--danger)" class="anim-flicker" />
+				<span class="band3__v"><CountUp value={userStore.streak} /></span>
+				<span class="band3__l">Серия</span>
 			</div>
-			<div class="stat-item">
-				<PixelIcon name="trophy" size="md" color="var(--pixel-accent)" />
-				<span class="stat-value"><CountUp value={unlockedCount} /></span>
+			<div class="band3__i">
+				<PixelIcon name="trophy" size="sm" color="var(--gold)" />
+				<span class="band3__v"><CountUp value={unlockedCount} /></span>
+				<span class="band3__l">Значки</span>
 			</div>
 		</div>
 	</section>
@@ -461,96 +471,18 @@
 		padding-bottom: var(--spacing-lg);
 	}
 
-	/* Profile Header - horizontal layout, sky-blue hero block */
-	.profile-header {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
+	/* Character sheet header — .char / .char__* live in hud.css */
+	.hero-section {
 		margin-bottom: var(--spacing-md);
-		background: var(--hero-bg);
-		color: var(--hero-text);
-		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
-		padding: var(--spacing-md);
 	}
 
-	.avatar-btn {
-		background: none;
-		border: none;
-		cursor: pointer;
-		padding: 0;
-		position: relative;
-		flex-shrink: 0;
+	/* Gold XP fill on the dark mocha track (matches the designer's char segbar) */
+	.char :global(.pixel-progress.xp .track) {
+		background: rgba(0, 0, 0, 0.25);
+		border-color: var(--hero-edge);
 	}
-
-	.avatar-btn:hover .avatar-edit {
-		opacity: 1;
-	}
-
-	.avatar-edit {
-		position: absolute;
-		bottom: 0;
-		right: 0;
-		width: 20px;
-		height: 20px;
-		background: var(--pixel-accent);
-		border: var(--border-width) solid var(--pixel-white);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		opacity: 0.8;
-		transition: opacity var(--transition-fast);
-	}
-
-	.header-info {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.username {
-		font-size: var(--font-size-md);
-		margin: 0 0 2px 0;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		color: var(--hero-text);
-	}
-
-	.user-title {
-		font-size: var(--font-size-xs);
-		color: var(--hero-num);
-		text-transform: uppercase;
-		margin: 0 0 var(--spacing-xs) 0;
-	}
-
-	.level-info {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-	}
-
-	.level-badge {
-		background: rgba(0, 0, 0, 0.22);
-		color: var(--hero-num);
-		font-family: var(--font-display);
-		padding: 2px 8px;
-		font-size: var(--font-size-xs);
-		white-space: nowrap;
-		flex-shrink: 0;
-	}
-
-	.xp-mini {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		min-width: 0;
-	}
-
-	.xp-text {
-		font-size: 10px;
-		color: var(--hero-text);
-		opacity: 0.9;
+	.char :global(.pixel-progress.xp .bar) {
+		background: var(--gold);
 	}
 
 	/* Sections */
@@ -679,25 +611,7 @@
 		margin-bottom: var(--spacing-md);
 	}
 
-	.stats-row {
-		display: flex;
-		justify-content: space-between;
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
-		padding: var(--spacing-sm) var(--spacing-md);
-	}
-
-	.stat-item {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-xs);
-	}
-
-	.stat-value {
-		font-size: var(--font-size-sm);
-		font-family: var(--font-data);
-	}
+	/* stats now use the global .band3 kit */
 
 	/* Badges Section */
 	.badges-section {
