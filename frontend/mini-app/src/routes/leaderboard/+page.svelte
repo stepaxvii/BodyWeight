@@ -305,21 +305,21 @@
 		background: var(--pixel-yellow);
 		border-color: var(--border-color);
 		margin-bottom: var(--spacing-md);
-		color: var(--pixel-bg);
+		color: var(--ink);
 	}
 
 	.podium-item.second {
 		background: #dfe5cf;
 		border-color: var(--border-color);
 		padding-bottom: var(--spacing-md);
-		color: var(--pixel-bg);
+		color: var(--ink);
 	}
 
 	.podium-item.third {
 		background: #d89a5a;
 		border-color: var(--border-color);
 		padding-bottom: var(--spacing-md);
-		color: var(--pixel-bg);
+		color: var(--ink);
 	}
 
 	.podium-crown {
@@ -338,7 +338,7 @@
 
 	.podium-xp {
 		font-size: var(--font-size-xs);
-		color: var(--pixel-bg);
+		color: var(--ink);
 		margin-bottom: 4px;
 	}
 
@@ -382,7 +382,7 @@
 	.entry-card.accent {
 		border-color: var(--border-color);
 		background: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--ink);
 	}
 
 	.entry {
@@ -425,7 +425,7 @@
 		font-size: 6px;
 		padding: 1px 4px;
 		background: var(--pixel-yellow);
-		color: var(--pixel-bg);
+		color: var(--ink);
 	}
 
 	.entry-level {
@@ -438,7 +438,7 @@
 	.entry-card.accent .entry-xp,
 	.entry-card.accent .entry-xp-label,
 	.entry-card.accent .entry-streak {
-		color: var(--pixel-bg);
+		color: var(--ink);
 	}
 
 	.entry-stats {

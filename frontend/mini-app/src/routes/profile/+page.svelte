@@ -602,7 +602,7 @@
 	.range-btn.active {
 		background: var(--pixel-accent);
 		border-color: var(--border-color);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 	}
 
 	/* Daily activity norm */
@@ -1072,7 +1072,7 @@
 		padding: 12px;
 		background: var(--pixel-accent);
 		border: none;
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-xs);
 		cursor: pointer;

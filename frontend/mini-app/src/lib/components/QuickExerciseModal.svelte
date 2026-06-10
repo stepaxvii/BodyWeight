@@ -813,7 +813,7 @@
 	.mode-badge {
 		margin-left: auto;
 		background: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 		padding: 2px 6px;
 		font-size: var(--font-size-xs);
 		border-radius: 0;
@@ -896,7 +896,7 @@
 
 	.filter-badge {
 		background: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 		padding: 1px 4px;
 		font-size: 8px;
 		min-width: 12px;
@@ -933,7 +933,7 @@
 	.category-tab.active {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 	}
 
 	.exercise-list {
@@ -1023,7 +1023,7 @@
 	.filter-option.active {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 	}
 
 	.filter-actions {

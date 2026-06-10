@@ -171,7 +171,7 @@
 
 	.nav-item.active {
 		background: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 		border-radius: var(--radius-sm);
 	}
 

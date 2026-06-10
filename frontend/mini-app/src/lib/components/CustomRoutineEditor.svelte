@@ -766,7 +766,7 @@
 
 	.tab-badge {
 		background: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 		padding: 2px 6px;
 		font-size: 10px;
 		border-radius: 0;
@@ -829,7 +829,7 @@
 	.type-btn.active {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 	}
 
 	.summary-card {
@@ -1081,7 +1081,7 @@
 
 	.picker-filter-badge {
 		background: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 		padding: 1px 4px;
 		font-size: 8px;
 		min-width: 12px;
@@ -1119,7 +1119,7 @@
 
 	.picker-category-tab.active {
 		background: var(--cat-color);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 	}
 
 	.picker-list {

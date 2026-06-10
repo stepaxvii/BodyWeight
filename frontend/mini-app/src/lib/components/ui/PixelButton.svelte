@@ -84,7 +84,7 @@
 	.pixel-button.primary {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent-hover);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 		box-shadow: var(--shadow-md);
 	}
 

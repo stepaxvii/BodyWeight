@@ -205,7 +205,7 @@
 	.filter-chip.active {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 	}
 
 	.difficulty-chips {

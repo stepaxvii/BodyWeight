@@ -5,43 +5,100 @@
    CSS Variables - Color Palette
    ============================================ */
 :root {
-	/* Surfaces — warm graphite (dark), restrained single-accent scheme */
-	--pixel-bg: #14110d;
-	--pixel-bg-dark: #0d0b08;
-	--pixel-card: #1f1a14;
-	--pixel-card-hover: #2a2419;
+	/* ============================================================
+	   NEO 2026 — designer token names (verbatim from themes.css,
+	   [data-theme="neo"]). Used by the ported HUD-kit CSS.
+	   ============================================================ */
+	--bg: #efe6d4;
+	--bg2: #fbf7ee;
+	--bg3: #ece0c8;
+	--card-bg: #fbf7ee;
+	--line: #211d18;
+	--line2: #4a4234;
+	--text: #211d18;
+	--muted: #6f6556;
+	--dim: #a8997f;
+	--accent: #ff5a1f;   /* tangerine — main action / active / links */
+	--accent2: #15936a;  /* grass green */
+	--gold: #f5a700;     /* rewards / XP numbers / coins */
+	--danger: #e23744;
+	--green: #15936a;
+	--ink: #211d18;
+	--on-accent: #ffffff;
+	--mocha: #5a3d2b;    /* hero blocks */
+	--sun: #ffc02e;      /* stat tiles */
+	--bw: 3px;
+	--radius: 0px;
+	--shadow: 3px 3px 0 #211d18;
+	--shadow-accent: 3px 3px 0 #211d18;
+	--hero-bg: #5a3d2b;
+	--hero-text: #f7eede;
+	--hero-edge: #211d18;
+	--hero-num: #ffb000;
+	--hero-seg: #ffb000;
+	--chip-bg: rgba(0, 0, 0, 0.2);
+	--chip-edge: rgba(0, 0, 0, 0.3);
+	--chip-num: #ffb000;
+	--cta-bg: #ff5a1f;
+	--cta-text: #ffffff;
+	--cta-edge: #211d18;
+	--stat-bg: #ffc02e;
+	--stat-text: #211d18;
+	--stat-edge: #211d18;
+	--seg-off: #e0d3ba;
+	--seg-on: #ff5a1f;
+	--hp-on: #e23744;
+	--hm0: #e0d3ba;
+	--hm1: #c2e08a;
+	--hm2: #8cce4e;
+	--hm3: #4faa2e;
+	--hm4: #2c7a1c;
+	--coin-text: #a8730e;
+	--claim-text: #7a5512;
+	--avframe: #211d18;
+	--podium2: #ddd5c4;
+	--podium3: #e0a85e;
 
-	/* Accent — warm amber (the ONE accent) */
-	--pixel-accent: #f0a93b;
-	--pixel-accent-hover: #ffc163;
+	/* Fonts — Silkscreen (display/data/numbers), Pixelify Sans (UI/body) */
+	--font-display: 'Silkscreen', monospace;
+	--font-ui: 'Pixelify Sans', monospace;
+	--font-data: 'Silkscreen', monospace;
+	--data-sm: 9px;
+	--data-md: 13px;
+	--data-lg: 16px;
 
-	/* Status / palette — muted, not neon */
-	--pixel-green: #6fae6a;
-	--pixel-green-light: #8ac483;
-	--pixel-yellow: #f0a93b;
-	--pixel-orange: #e89542;
-	--pixel-red: #d9614a;
-	--pixel-blue: #6f8fae;
-	--pixel-cyan: #4fa39a;
-	--pixel-purple: #9a7bc0;
-	--pixel-pink: #d98aa0;
+	/* ============================================================
+	   App's existing --pixel-* names → aliased to the Neo tokens
+	   so all current components re-skin without per-file edits.
+	   ============================================================ */
+	--pixel-bg: var(--bg);
+	--pixel-bg-dark: var(--bg3);
+	--pixel-card: var(--card-bg);
+	--pixel-card-hover: #f3ecdc;
+	--pixel-accent: var(--accent);
+	--pixel-accent-hover: #ff7a47;
+	--pixel-green: var(--green);
+	--pixel-green-light: #2bb085;
+	--pixel-yellow: var(--gold);
+	--pixel-orange: var(--sun);
+	--pixel-red: var(--danger);
+	--pixel-blue: var(--accent2);
+	--pixel-cyan: var(--accent2);
+	--pixel-purple: var(--mocha);
+	--pixel-pink: var(--danger);
+	--pixel-black: var(--ink);
+	--pixel-dark: var(--line2);
+	--pixel-gray: var(--muted);
+	--pixel-light: var(--dim);
+	--pixel-white: var(--hero-text);
 
-	/* Neutral colors — warm grays. --pixel-black drives all hard shadows. */
-	--pixel-black: #0a0806;
-	--pixel-dark: #2a2419;
-	--pixel-gray: #7d7568;
-	--pixel-light: #b8b0a2;
-	--pixel-white: #f0ece4;
+	--text-primary: var(--text);
+	--text-secondary: var(--muted);
+	--text-muted: var(--dim);
 
-	/* Text — warm off-white on graphite */
-	--text-primary: #f0ece4;
-	--text-secondary: #b8b0a2;
-	--text-muted: #7d7568;
-
-	/* Borders */
-	--border-color: #38322a;
-	--border-light: #4a4238;
-	--border-width: 3px;
+	--border-color: var(--line);
+	--border-light: var(--line2);
+	--border-width: var(--bw);
 
 	/* Spacing */
 	--spacing-xs: 4px;
@@ -51,43 +108,22 @@
 	--spacing-xl: 32px;
 
 	/* Border radius — pixel-sharp, no rounding */
-	--radius-sm: 0;
-	--radius-md: 0;
+	--radius-sm: var(--radius);
+	--radius-md: var(--radius);
 
-	/* Shadows — hard pixel offset, near-black (no blur) */
+	/* Shadows — hard pixel offset, ink colour (no blur) */
 	--shadow-sm: 2px 2px 0px var(--pixel-black);
-	--shadow-md: 4px 4px 0px var(--pixel-black);
-	--shadow-lg: 6px 6px 0px var(--pixel-black);
+	--shadow-md: 3px 3px 0px var(--pixel-black);
+	--shadow-lg: 5px 5px 0px var(--pixel-black);
 
-	/* Color-blocking COLLAPSED: neutral cards everywhere; amber only on the
-	   primary CTA and on accent numbers/active states (no competing blocks). */
-	--hero-bg: #1f1a14;
-	--hero-text: #f0ece4;
-	--hero-num: #f0a93b;
-	--hero-edge: #38322a;
-	--cta-bg: #f0a93b;
-	--cta-text: #14110d;
-	--cta-edge: #38322a;
-	--stat-bg: #1f1a14;
-	--stat-text: #f0ece4;
-	--stat-edge: #38322a;
-
-	/* Activity heatmap — single warm ramp (graphite → amber) */
-	--hm0: #1f1a14;
-	--hm1: #4a3a1e;
-	--hm2: #856029;
-	--hm3: #c08a32;
-	--hm4: #f0a93b;
-
-	/* Fonts — Pixelify Sans everywhere (readable pixel sans) */
-	--font-pixel: 'Pixelify Sans', monospace;
-	--font-display: 'Pixelify Sans', monospace;
+	/* Fonts (app names) — body Pixelify Sans, headings/numbers Silkscreen */
+	--font-pixel: var(--font-ui);
 	--font-size-xs: 9px;
-	--font-size-sm: 11px;
-	--font-size-md: 13px;
-	--font-size-lg: 15px;
-	--font-size-xl: 18px;
-	--font-size-2xl: 22px;
+	--font-size-sm: 12px;
+	--font-size-md: 14px;
+	--font-size-lg: 16px;
+	--font-size-xl: 20px;
+	--font-size-2xl: 26px;
 
 	/* Transitions */
 	--transition-fast: 100ms;

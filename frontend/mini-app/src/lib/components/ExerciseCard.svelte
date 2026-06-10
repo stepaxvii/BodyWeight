@@ -69,7 +69,7 @@
 		<!-- Category icon with selection indicator -->
 		<div class="category-icon" class:selected={isSelected} style="--cat-color: {categoryColor}">
 			{#if isSelected && showCheckbox}
-				<PixelIcon name="check" size="sm" color="var(--pixel-bg)" />
+				<PixelIcon name="check" size="sm" color="var(--on-accent)" />
 			{:else}
 				<img
 					src={getCategoryIconPath(exercise.category_slug)}

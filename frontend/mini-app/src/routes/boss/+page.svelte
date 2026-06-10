@@ -438,19 +438,19 @@
 
 	.claim-coins {
 		font-size: var(--font-size-md);
-		color: var(--pixel-bg);
+		color: var(--ink);
 		font-family: var(--font-display);
 	}
 
 	.claim-text {
 		font-size: 9px;
-		color: var(--pixel-bg);
+		color: var(--ink);
 		text-transform: uppercase;
 	}
 
 	.claim-top10 {
 		font-size: 10px;
-		color: var(--pixel-bg);
+		color: var(--ink);
 	}
 
 	.claimed-msg {

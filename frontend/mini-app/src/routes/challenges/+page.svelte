@@ -152,7 +152,7 @@
 	.new-btn {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 	}
 
 	.loading {
