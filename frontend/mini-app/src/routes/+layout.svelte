@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import '$lib/styles/hud.css';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { PixelNav } from '$lib/components/ui';
