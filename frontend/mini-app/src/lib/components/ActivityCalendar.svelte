@@ -64,6 +64,17 @@
 		return cols;
 	});
 
+	const RU_MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+
+	// Month abbreviation above the column where each new month starts (GitHub-style).
+	const monthLabels = $derived.by(() =>
+		columns.map((col, i) => {
+			const m = col[0].getMonth();
+			if (i === 0) return RU_MONTHS[m];
+			return m !== columns[i - 1][0].getMonth() ? RU_MONTHS[m] : '';
+		})
+	);
+
 	function handleClick(date: Date) {
 		if (!onDayClick) return;
 		telegram.hapticImpact('light');
@@ -76,6 +87,12 @@
 	<div class="sec-head">
 		<span class="sec-head__t">Активность</span>
 		<span class="sec-head__m">{year}</span>
+	</div>
+
+	<div class="hm-months" aria-hidden="true">
+		{#each monthLabels as label}
+			<span class="hm-month">{label}</span>
+		{/each}
 	</div>
 
 	<div class="heatmap">
@@ -142,10 +159,27 @@
 		color: var(--accent);
 	}
 
+	.hm-months {
+		display: flex;
+		gap: 3px;
+		margin: 11px 0 4px;
+	}
+
+	.hm-month {
+		flex: 1;
+		min-width: 0;
+		font-family: var(--font-data);
+		font-size: var(--font-size-xs);
+		line-height: 1;
+		color: var(--muted);
+		white-space: nowrap;
+		overflow: visible;
+	}
+
 	.heatmap {
 		display: flex;
 		gap: 3px;
-		margin: 11px 0 9px;
+		margin: 0 0 9px;
 		justify-content: space-between;
 	}
 
@@ -161,7 +195,7 @@
 		display: block;
 		width: 100%;
 		aspect-ratio: 1;
-		border: none;
+		border: 1px solid var(--line);
 		padding: 0;
 		border-radius: var(--cell-radius, 0);
 		background: var(--hm0);
