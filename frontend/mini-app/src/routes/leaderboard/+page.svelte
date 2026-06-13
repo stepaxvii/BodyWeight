@@ -226,7 +226,7 @@
 										<span class="you-badge">ВЫ</span>
 									{/if}
 								</span>
-								<span class="entry-level">Ур.{entry.level}</span>
+								<span class="entry-level">Ур.{entry.level}{#if entry.equipped_title} · {entry.equipped_title}{/if}</span>
 							</div>
 
 							<div class="entry-stats">

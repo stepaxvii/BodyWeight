@@ -15,7 +15,7 @@ from typing import Any
 from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.db.models import (
     User,
@@ -75,6 +75,33 @@ class WorkoutCompletionResult:
     new_achievements: list[dict[str, Any]]
     streak: int
     workout_summary: dict[str, Any]
+
+
+async def _exercise_day_total(
+    session: AsyncSession,
+    user_id: int,
+    exercise_id: int,
+    day: date,
+    current_workout_id: int | None,
+    current_reps: int,
+) -> int:
+    """Total reps for `exercise_id` across all of `day`'s completed workouts.
+
+    The current workout is excluded from the query (it may not be flushed yet)
+    and added back explicitly, so the result is correct regardless of state.
+    """
+    query = (
+        select(func.coalesce(func.sum(WorkoutExercise.total_reps), 0))
+        .join(WorkoutSession, WorkoutExercise.workout_session_id == WorkoutSession.id)
+        .where(WorkoutSession.user_id == user_id)
+        .where(WorkoutSession.status == "completed")
+        .where(WorkoutExercise.exercise_id == exercise_id)
+        .where(func.date(WorkoutSession.finished_at) == day)
+    )
+    if current_workout_id is not None:
+        query = query.where(WorkoutSession.id != current_workout_id)
+    prev_total = (await session.execute(query)).scalar() or 0
+    return int(prev_total) + current_reps
 
 
 async def process_workout_completion(
@@ -255,8 +282,14 @@ async def process_workout_completion(
             progress.total_reps_ever += total_reps
             progress.times_performed += 1
             if not ex_data.is_timed:
-                current_best = progress.best_single_set
-                progress.best_single_set = max(current_best, best_set)
+                progress.best_single_set = max(progress.best_single_set, best_set)
+                progress.best_workout_reps = max(progress.best_workout_reps, total_reps)
+                progress.best_single_day = max(
+                    progress.best_single_day,
+                    await _exercise_day_total(
+                        session, user.id, exercise.id, today, workout.id, total_reps
+                    ),
+                )
             progress.last_performed_at = data.finished_at
 
             has_upgrade = exercise.harder_exercise_id is not None
@@ -268,6 +301,8 @@ async def process_workout_completion(
                 exercise_id=exercise.id,
                 total_reps_ever=total_reps,
                 best_single_set=best_set if not ex_data.is_timed else 0,
+                best_workout_reps=total_reps if not ex_data.is_timed else 0,
+                best_single_day=total_reps if not ex_data.is_timed else 0,
                 times_performed=1,
                 last_performed_at=data.finished_at,
             )

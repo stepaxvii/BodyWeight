@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { PixelModal, PixelIcon, PixelCard } from '$lib/components/ui';
 	import { getTagName } from '$lib/utils';
-	import type { Exercise } from '$lib/types';
+	import { api } from '$lib/api/client';
+	import type { Exercise, ExerciseProgress } from '$lib/types';
 
 	interface Props {
 		exercise: Exercise | null;
@@ -10,6 +11,34 @@
 	}
 
 	let { exercise, open, onclose }: Props = $props();
+
+	// Personal stats for this exercise (roadmap 2.4), loaded when the modal opens.
+	let progress = $state<ExerciseProgress | null>(null);
+
+	$effect(() => {
+		if (open && exercise) {
+			const slug = exercise.slug;
+			progress = null;
+			api
+				.getExerciseProgress(slug)
+				.then((p) => {
+					// Guard against a stale response if the user switched exercises.
+					if (exercise && exercise.slug === slug) progress = p;
+				})
+				.catch(() => {
+					progress = null;
+				});
+		}
+	});
+
+	function fmtDate(iso?: string | null): string {
+		if (!iso) return '—';
+		return new Date(iso).toLocaleDateString('ru-RU', {
+			day: 'numeric',
+			month: 'short',
+			year: 'numeric'
+		});
+	}
 
 	function getDifficultyStars(difficulty: number): string {
 		return '\u2605'.repeat(difficulty) + '\u2606'.repeat(5 - difficulty);
@@ -43,6 +72,37 @@
 					<span class="stat-value">+{exercise.base_xp} XP</span>
 				</div>
 			</div>
+
+			<!-- Personal stats (roadmap 2.4) -->
+			{#if progress && progress.times_performed > 0}
+				<div class="mystats-section">
+					<h4 class="section-title">Твоя статистика</h4>
+					<div class="info-row">
+						<span class="label">Всего повторений</span>
+						<span class="value">{progress.total_reps_ever}</span>
+					</div>
+					<div class="info-row">
+						<span class="label">Выполнено раз</span>
+						<span class="value">{progress.times_performed}</span>
+					</div>
+					{#if progress.best_single_set > 0}
+						<div class="info-row">
+							<span class="label">Лучший подход</span>
+							<span class="value">{progress.best_single_set}</span>
+						</div>
+					{/if}
+					{#if progress.best_single_day > 0}
+						<div class="info-row">
+							<span class="label">Рекорд за день</span>
+							<span class="value">{progress.best_single_day}</span>
+						</div>
+					{/if}
+					<div class="info-row">
+						<span class="label">Последний раз</span>
+						<span class="value">{fmtDate(progress.last_performed_at)}</span>
+					</div>
+				</div>
+			{/if}
 
 			<!-- Equipment -->
 			<div class="info-row">
@@ -158,6 +218,10 @@
 		color: var(--pixel-accent);
 		text-transform: uppercase;
 		margin: 0 0 var(--spacing-xs) 0;
+	}
+
+	.mystats-section {
+		padding-top: var(--spacing-sm);
 	}
 
 	.description-section {

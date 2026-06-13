@@ -8,6 +8,10 @@ from app.db.models import (
     WorkoutSession,
     UserAchievement,
     UserAvatarPurchase,
+    UserExerciseProgress,
+    Exercise,
+    ShopItem,
+    UserPurchase,
 )
 from app.services.xp_calculator import xp_for_level
 from app.services.activity_norm import (
@@ -21,6 +25,8 @@ from app.schemas import (
     UpdateUserRequest,
     CompleteOnboardingRequest,
     UserProfileResponse,
+    ExerciseRecord,
+    UserRecordsResponse,
     DayActivityResponse,
     UserActivityResponse,
 )
@@ -61,6 +67,26 @@ AVATAR_DATA = {
 router = APIRouter()
 
 
+async def get_equipped_title(session, user_id: int) -> str | None:
+    """Name (RU) of the user's currently-equipped title, if any (roadmap 1.2)."""
+    result = await session.execute(
+        select(ShopItem.name_ru)
+        .join(UserPurchase, UserPurchase.shop_item_id == ShopItem.id)
+        .where(UserPurchase.user_id == user_id)
+        .where(UserPurchase.is_equipped.is_(True))
+        .where(ShopItem.item_type == "title")
+        .limit(1)
+    )
+    return result.scalar_one_or_none()
+
+
+async def build_user_response(session, user: User) -> UserResponse:
+    """UserResponse enriched with the equipped title."""
+    resp = UserResponse.model_validate(user)
+    resp.equipped_title = await get_equipped_title(session, user.id)
+    return resp
+
+
 @router.get(
     "/me",
     response_model=UserResponse,
@@ -68,8 +94,8 @@ router = APIRouter()
     description="Возвращает полную информацию о текущем аутентифицированном пользователе.",
     tags=["Users"]
 )
-async def get_current_user_profile(user: CurrentUser):
-    return UserResponse.model_validate(user)
+async def get_current_user_profile(user: CurrentUser, session: AsyncSessionDep):
+    return await build_user_response(session, user)
 
 
 @router.get(
@@ -165,7 +191,7 @@ async def update_current_user(
 
     await session.flush()
     await session.refresh(user)
-    return UserResponse.model_validate(user)
+    return await build_user_response(session, user)
 
 
 @router.post("/me/complete-onboarding", response_model=UserResponse)
@@ -179,7 +205,7 @@ async def complete_onboarding(
     user.leaderboard_visible = body.leaderboard_consent
     await session.flush()
     await session.refresh(user)
-    return UserResponse.model_validate(user)
+    return await build_user_response(session, user)
 
 
 @router.get(
@@ -221,7 +247,7 @@ async def buy_streak_freeze_endpoint(
         )
 
     await session.refresh(user)
-    return UserResponse.model_validate(user)
+    return await build_user_response(session, user)
 
 
 @router.get(
@@ -381,6 +407,65 @@ async def get_user_activity(
     return UserActivityResponse(days=response_days)
 
 
+@router.get(
+    "/me/records",
+    response_model=UserRecordsResponse,
+    summary="Личные рекорды",
+    description="Лучшие личные показатели пользователя (рекорды).",
+    tags=["Users"],
+)
+async def get_user_records(
+    user: CurrentUser,
+    session: AsyncSessionDep,
+):
+    """Personal records: best set, best workout for an exercise, longest workout, max streak."""
+    best_set_row = (await session.execute(
+        select(Exercise.slug, Exercise.name_ru, UserExerciseProgress.best_single_set)
+        .join(Exercise, UserExerciseProgress.exercise_id == Exercise.id)
+        .where(UserExerciseProgress.user_id == user.id)
+        .where(UserExerciseProgress.best_single_set > 0)
+        .order_by(UserExerciseProgress.best_single_set.desc())
+        .limit(1)
+    )).first()
+
+    best_workout_row = (await session.execute(
+        select(Exercise.slug, Exercise.name_ru, UserExerciseProgress.best_workout_reps)
+        .join(Exercise, UserExerciseProgress.exercise_id == Exercise.id)
+        .where(UserExerciseProgress.user_id == user.id)
+        .where(UserExerciseProgress.best_workout_reps > 0)
+        .order_by(UserExerciseProgress.best_workout_reps.desc())
+        .limit(1)
+    )).first()
+
+    longest_workout = (await session.execute(
+        select(func.max(WorkoutSession.duration_seconds))
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "completed")
+    )).scalar() or 0
+
+    total_reps = (await session.execute(
+        select(func.coalesce(func.sum(WorkoutSession.total_reps), 0))
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "completed")
+    )).scalar() or 0
+
+    return UserRecordsResponse(
+        best_set=ExerciseRecord(
+            exercise_slug=best_set_row[0],
+            exercise_name_ru=best_set_row[1],
+            value=best_set_row[2],
+        ) if best_set_row else None,
+        best_workout=ExerciseRecord(
+            exercise_slug=best_workout_row[0],
+            exercise_name_ru=best_workout_row[1],
+            value=best_workout_row[2],
+        ) if best_workout_row else None,
+        longest_workout_seconds=int(longest_workout),
+        max_streak=user.max_streak,
+        total_reps=int(total_reps),
+    )
+
+
 @router.get("/{user_id}", response_model=UserResponse)
 async def get_user_by_id(
     user_id: int,
@@ -399,7 +484,7 @@ async def get_user_by_id(
             detail="User not found",
         )
 
-    return UserResponse.model_validate(user)
+    return await build_user_response(session, user)
 
 
 @router.get("/{user_id}/profile", response_model=UserProfileResponse)
@@ -474,6 +559,7 @@ async def get_user_profile(
         coins=user.coins,
         current_streak=user.current_streak,
         achievements=achievements,
+        equipped_title=await get_equipped_title(session, user.id),
         is_friend=is_friend,
         friend_request_sent=friend_request_sent,
         friend_request_received=friend_request_received,

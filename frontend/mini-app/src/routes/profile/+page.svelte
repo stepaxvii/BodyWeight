@@ -3,16 +3,19 @@
 	import { onMount } from 'svelte';
 	import { PixelCard, PixelProgress, PixelIcon, PixelAvatar, PixelModal, AvatarPicker, CountUp } from '$lib/components/ui';
 	import ActivityBarChart from '$lib/components/ActivityBarChart.svelte';
+	import TitlePicker from '$lib/components/TitlePicker.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
-	import type { Achievement, AvatarId, UserActivity, DayActivity } from '$lib/types';
+	import type { Achievement, AvatarId, UserActivity, DayActivity, UserRecords } from '$lib/types';
 
 	let achievements = $state<Achievement[]>([]);
 	let showAvatarPicker = $state(false);
 	let activityData = $state<UserActivity | null>(null);
 	let chartRange = $state<'week' | '2weeks' | 'month' | '3months'>('week');
 	let selectedDay = $state<{ date: string; activity: DayActivity | null } | null>(null);
+	let showTitlePicker = $state(false);
+	let records = $state<UserRecords | null>(null);
 
 	// Streak freeze (must match backend STREAK_FREEZE_PRICE_COINS / MAX_STREAK_FREEZES)
 	const STREAK_FREEZE_PRICE = 500;
@@ -108,6 +111,12 @@
 		} catch (err) {
 			console.error('Failed to load activity data:', err);
 		}
+
+		try {
+			records = await api.getUserRecords();
+		} catch (err) {
+			console.error('Failed to load records:', err);
+		}
 	});
 
 	// Sort by unlock date (newest first)
@@ -147,6 +156,25 @@
 			year: 'numeric'
 		});
 	}
+
+	function fmtDuration(seconds: number): string {
+		const m = Math.floor(seconds / 60);
+		const s = seconds % 60;
+		return `${m}:${String(s).padStart(2, '0')}`;
+	}
+
+	const hasRecords = $derived(
+		!!records &&
+			(!!records.best_set ||
+				!!records.best_workout ||
+				records.longest_workout_seconds > 0 ||
+				records.max_streak > 0)
+	);
+
+	function openTitlePicker() {
+		showTitlePicker = true;
+		telegram.hapticImpact('light');
+	}
 </script>
 
 <div class="page container anim-cascade">
@@ -162,7 +190,10 @@
 				</button>
 				<div class="char__id">
 					<span class="char__name">{userStore.displayName}</span>
-					<span class="char__title"><PixelIcon name="crown" size="sm" color="var(--gold)" /> Пиксельный воин</span>
+					<button class="char__title char__title--btn" onclick={openTitlePicker} aria-label="Сменить титул">
+						<PixelIcon name="crown" size="sm" color="var(--gold)" />
+						{userStore.user?.equipped_title || 'Выбрать титул'}
+					</button>
 					<span class="char__lvl">Уровень {userStore.level}</span>
 				</div>
 			</div>
@@ -188,6 +219,9 @@
 		onselect={handleAvatarSelect}
 		onclose={() => showAvatarPicker = false}
 	/>
+
+	<!-- Title Picker (roadmap 1.2) -->
+	<TitlePicker open={showTitlePicker} onclose={() => (showTitlePicker = false)} />
 
 	<!-- Activity bar chart: week / 2 weeks / month -->
 	{#if activityData}
@@ -285,6 +319,39 @@
 			</div>
 		</div>
 	</section>
+
+	<!-- Personal records (roadmap 2.3) -->
+	{#if hasRecords && records}
+		<section class="records-section">
+			<h3 class="section-title">Личные рекорды</h3>
+			<div class="rec-grid">
+				<div class="rec">
+					<PixelIcon name="dumbbell" size="md" color="var(--accent)" />
+					<span class="rec__v">{records.best_set ? records.best_set.value : '—'}</span>
+					<span class="rec__l">Лучший подход</span>
+					<span class="rec__sub">{records.best_set ? records.best_set.exercise_name_ru : 'нет данных'}</span>
+				</div>
+				<div class="rec">
+					<PixelIcon name="flame" size="md" color="var(--danger)" />
+					<span class="rec__v">{records.best_workout ? records.best_workout.value : '—'}</span>
+					<span class="rec__l">Рекорд за трен.</span>
+					<span class="rec__sub">{records.best_workout ? records.best_workout.exercise_name_ru : 'нет данных'}</span>
+				</div>
+				<div class="rec">
+					<PixelIcon name="timer" size="md" color="var(--accent2)" />
+					<span class="rec__v">{fmtDuration(records.longest_workout_seconds)}</span>
+					<span class="rec__l">Дольше всего</span>
+					<span class="rec__sub">одна тренировка</span>
+				</div>
+				<div class="rec">
+					<PixelIcon name="medal" size="md" color="var(--gold)" />
+					<span class="rec__v">{records.max_streak}</span>
+					<span class="rec__l">Макс. серия</span>
+					<span class="rec__sub">дней подряд</span>
+				</div>
+			</div>
+		</section>
+	{/if}
 
 	<!-- Unlocked Badges -->
 	{#if unlockedAchievements.length > 0}
@@ -612,6 +679,54 @@
 	}
 
 	/* stats now use the global .band3 kit */
+
+	/* Personal records (roadmap 2.3) — neo pixel tiles, matching .band3 aesthetic */
+	.records-section {
+		margin-bottom: var(--spacing-md);
+	}
+	.rec-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: var(--spacing-sm);
+	}
+	.rec {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+		padding: 12px 8px;
+		text-align: center;
+		background: var(--bg2);
+		border: var(--bw) solid var(--line);
+		box-shadow: var(--shadow);
+	}
+	.rec__v {
+		font-family: var(--font-data);
+		font-size: 22px;
+		color: var(--text);
+		line-height: 1;
+		margin-top: 2px;
+	}
+	.rec__l {
+		font-family: var(--font-display);
+		font-size: 11px;
+		color: var(--muted);
+	}
+	.rec__sub {
+		font-size: 10px;
+		color: var(--dim);
+		max-width: 100%;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	/* Tappable title chip (roadmap 1.2) — reuses .char__title visuals from hud.css */
+	.char__title--btn {
+		border: none;
+		cursor: pointer;
+		color: inherit;
+	}
 
 	/* Badges Section */
 	.badges-section {

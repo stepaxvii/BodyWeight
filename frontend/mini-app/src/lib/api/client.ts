@@ -5,6 +5,8 @@ import type {
 	UserActivity,
 	Exercise,
 	ExerciseCategory,
+	ExerciseProgress,
+	UserRecords,
 	WorkoutSession,
 	WorkoutSummaryResponse,
 	Achievement,
@@ -160,6 +162,10 @@ class ApiClient {
 		return this.request<UserStats>('/users/me/stats');
 	}
 
+	async getUserRecords(): Promise<UserRecords> {
+		return this.request<UserRecords>('/users/me/records');
+	}
+
 	async updateUser(data: { avatar_id?: string; notifications_enabled?: boolean; leaderboard_visible?: boolean; daily_activity_norm?: number }): Promise<User> {
 		return this.request<User>('/users/me', {
 			method: 'PUT',
@@ -224,6 +230,10 @@ class ApiClient {
 
 	async getExercise(slug: string): Promise<Exercise | undefined> {
 		return this.request<Exercise>(`/exercises/${slug}`);
+	}
+
+	async getExerciseProgress(slug: string): Promise<ExerciseProgress> {
+		return this.request<ExerciseProgress>(`/exercises/${slug}/progress`);
 	}
 
 	// Workouts
@@ -323,8 +333,17 @@ class ApiClient {
 	}
 
 	// Shop
-	async getShopItems(): Promise<ShopItem[]> {
-		return this.request<ShopItem[]>('/shop');
+	async getShopItems(itemType?: string): Promise<ShopItem[]> {
+		const query = itemType ? `?item_type=${encodeURIComponent(itemType)}` : '';
+		return this.request<ShopItem[]>(`/shop${query}`);
+	}
+
+	async purchaseShopItem(itemId: number): Promise<ShopItem> {
+		return this.request<ShopItem>(`/shop/purchase/${itemId}`, { method: 'POST' });
+	}
+
+	async equipShopItem(itemId: number): Promise<ShopItem> {
+		return this.request<ShopItem>(`/shop/equip-item/${itemId}`, { method: 'POST' });
 	}
 
 	// Routines (workout complexes)

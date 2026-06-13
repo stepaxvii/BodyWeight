@@ -256,3 +256,58 @@ async def unequip_item(
     await session.flush()
 
     return {"message": "Item unequipped"}
+
+
+@router.post("/equip-item/{item_id}", response_model=ShopItemResponse)
+async def equip_item_by_id(
+    item_id: int,
+    session: AsyncSessionDep,
+    user: CurrentUser,
+):
+    """Equip an owned item by shop-item id (unequips others of the same type).
+
+    Convenient for catalog-style UIs (titles) that work with item ids rather
+    than purchase ids.
+    """
+    result = await session.execute(
+        select(UserPurchase, ShopItem)
+        .join(ShopItem, UserPurchase.shop_item_id == ShopItem.id)
+        .where(UserPurchase.user_id == user.id)
+        .where(UserPurchase.shop_item_id == item_id)
+    )
+    row = result.one_or_none()
+
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not owned",
+        )
+
+    purchase, item = row
+
+    # Unequip other items of the same type
+    others = await session.execute(
+        select(UserPurchase)
+        .join(ShopItem, UserPurchase.shop_item_id == ShopItem.id)
+        .where(UserPurchase.user_id == user.id)
+        .where(ShopItem.item_type == item.item_type)
+        .where(UserPurchase.is_equipped == True)
+    )
+    for other in others.scalars().all():
+        other.is_equipped = False
+
+    purchase.is_equipped = True
+    await session.flush()
+
+    return ShopItemResponse(
+        id=item.id,
+        slug=item.slug,
+        name=item.name,
+        name_ru=item.name_ru,
+        item_type=item.item_type,
+        price_coins=item.price_coins,
+        required_level=item.required_level,
+        sprite_url=item.sprite_url,
+        owned=True,
+        equipped=True,
+    )

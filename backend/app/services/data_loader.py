@@ -4,7 +4,7 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import ExerciseCategory, Exercise
+from app.db.models import ExerciseCategory, Exercise, ShopItem
 
 
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -167,6 +167,40 @@ async def load_exercises(session: AsyncSession) -> None:
     await session.commit()
 
 
+# Title catalog (roadmap 1.2). Free titles unlock by level (price 0); the rest
+# cost coins. Equipping reuses the generic shop (item_type="title").
+TITLES = [
+    # slug, name, name_ru, price_coins, required_level
+    ("title-novice", "Novice", "Новичок", 0, 1),
+    ("title-sportsman", "Sportsman", "Спортсмен", 0, 5),
+    ("title-athlete", "Athlete", "Атлет", 0, 10),
+    ("title-iron-warrior", "Iron Warrior", "Железный воин", 150, 8),
+    ("title-fitness-legend", "Fitness Legend", "Легенда фитнеса", 500, 15),
+]
+
+
+async def load_titles(session: AsyncSession) -> None:
+    """Seed title shop items (idempotent by slug)."""
+    for slug, name, name_ru, price, level in TITLES:
+        result = await session.execute(
+            select(ShopItem).where(ShopItem.slug == slug)
+        )
+        item = result.scalar_one_or_none()
+        if not item:
+            session.add(ShopItem(
+                slug=slug,
+                name=name,
+                name_ru=name_ru,
+                item_type="title",
+                price_coins=price,
+                required_level=level,
+                sprite_url=None,
+                is_active=True,
+            ))
+    await session.commit()
+
+
 async def init_data(session: AsyncSession) -> None:
     """Initialize all data from JSON files."""
     await load_exercises(session)
+    await load_titles(session)

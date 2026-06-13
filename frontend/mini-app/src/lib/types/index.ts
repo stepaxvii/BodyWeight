@@ -95,8 +95,24 @@ export interface User {
 	is_onboarded: boolean;
 	leaderboard_visible: boolean;
 	daily_activity_norm: number;
+	equipped_title?: string | null;
 	created_at: string;
 	updated_at: string;
+}
+
+// Personal records (matches backend UserRecordsResponse)
+export interface ExerciseRecord {
+	exercise_slug: string;
+	exercise_name_ru: string;
+	value: number;
+}
+
+export interface UserRecords {
+	best_set: ExerciseRecord | null;
+	best_workout: ExerciseRecord | null;
+	longest_workout_seconds: number;
+	max_streak: number;
+	total_reps: number;
 }
 
 // UserStats (matches backend UserStatsResponse)
@@ -128,6 +144,7 @@ export interface UserProfile {
 	coins: number;
 	current_streak: number;
 	achievements: string[];  // List of unlocked achievement slugs
+	equipped_title?: string | null;
 	is_friend: boolean;
 	friend_request_sent: boolean;      // Current user sent request to this user
 	friend_request_received: boolean;  // This user sent request to current user
@@ -174,7 +191,10 @@ export interface Exercise {
 export interface ExerciseProgress {
 	total_reps_ever: number;
 	best_single_set: number;
+	best_workout_reps: number;
+	best_single_day: number;
 	times_performed: number;
+	last_performed_at?: string | null;
 	recommended_upgrade: boolean;
 }
 
@@ -255,6 +275,7 @@ export interface LeaderboardEntry {
 	level: number;
 	total_xp: number;
 	current_streak: number;
+	equipped_title?: string | null;
 	is_current_user: boolean;
 }
 

@@ -122,6 +122,9 @@
 						{profile.username ? `${profile.username}` : (profile.first_name || 'Пользователь')}
 					</h2>
 					<div class="level-badge">Ур.{profile.level}</div>
+					{#if profile.equipped_title}
+						<span class="profile-title"><PixelIcon name="crown" size="sm" color="var(--gold)" /> {profile.equipped_title}</span>
+					{/if}
 				</div>
 
 				<!-- Stats -->
@@ -301,6 +304,15 @@
 		background: var(--pixel-accent);
 		padding: 2px 8px;
 		font-size: var(--font-size-xs);
+	}
+
+	.profile-title {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		margin-top: 6px;
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
 	}
 
 	/* Stats Grid */
