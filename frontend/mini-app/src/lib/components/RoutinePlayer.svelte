@@ -411,11 +411,8 @@
 
 			<div class="player__stage">
 				<span class="player__exname">{exerciseData?.name_ru || currentExercise?.slug}</span>
-				{#if exerciseData?.description_ru}
-					<span class="player__exdesc">{exerciseData.description_ru}</span>
-				{/if}
 
-				<div class="ring" class:ring--done={isTimeBased && exerciseTimerSeconds === 0 && isExerciseTimerStarted}>
+				<div class="ring" class:ring--reps={!isTimeBased} class:ring--done={isTimeBased && exerciseTimerSeconds === 0 && isExerciseTimerStarted}>
 					<div class="ring__bg"></div>
 					<div class="ring__fill">
 						{#if isTimeBased}
@@ -427,6 +424,13 @@
 						{/if}
 					</div>
 				</div>
+
+				{#if exerciseData?.description_ru}
+					<div class="player__hint">
+						<span class="player__hintlabel">Техника</span>
+						<span class="player__hinttext">{exerciseData.description_ru}</span>
+					</div>
+				{/if}
 
 				{#if currentStep < routine.exercises.length - 1}
 					{@const nextEx = routine.exercises[currentStep + 1]}
@@ -502,37 +506,58 @@
 		color: var(--gold);
 	}
 
-	/* ---- ACTIVE stage proportions ----
-	   Unlike the designer prototype, the app does NOT render an exercise sprite
-	   in the stage, so the ring is the sole focal element. The kit's defaults
-	   (150px ring, 30px value, 12px muted description) leave the rep count tiny
-	   in a large square and the description hard to read. Rebalance: keep the
-	   square roughly its size but make the number dominant and the text legible.
-	   Scoped to this component — other screens that reuse .ring are untouched. */
+	/* ---- ACTIVE stage — redrawn composition ----
+	   The app doesn't render the prototype's exercise sprite, so the ring is the
+	   hero. The rep count now fills the square (it was tiny in a big box); the
+	   technique gets its own readable bordered card instead of faint floating
+	   text; the vertical rhythm is tightened. Scoped — global .ring is untouched. */
 	.player__stage {
-		gap: 16px;
+		gap: 14px;
+		justify-content: center;
 	}
 	.player__exname {
-		font-size: 20px;
-		line-height: 1.25;
-	}
-	.player__exdesc {
-		font-size: 14px;
-		line-height: 1.6;
-		color: var(--line2);
-		max-width: 300px;
+		font-size: 22px;
+		line-height: 1.2;
 	}
 	.ring {
-		width: 160px;
-		height: 160px;
-		margin: 8px 0;
+		width: 176px;
+		height: 176px;
+		margin: 2px 0;
 	}
+	/* timers read m:ss (moderate); rep counts get to dominate the square */
 	.ring__v {
-		font-size: 50px;
+		font-size: 56px;
+	}
+	.ring--reps .ring__v {
+		font-size: 82px;
 	}
 	.ring__l {
 		font-size: 12px;
-		margin-top: 8px;
+		margin-top: 6px;
+		letter-spacing: 0.5px;
+	}
+	.player__hint {
+		width: 100%;
+		max-width: 320px;
+		display: flex;
+		flex-direction: column;
+		gap: 5px;
+		padding: 11px 13px;
+		text-align: left;
+		background: var(--bg2);
+		border: var(--bw) solid var(--line);
+		box-shadow: var(--shadow);
+	}
+	.player__hintlabel {
+		font-family: var(--font-display);
+		font-size: 11px;
+		letter-spacing: 0.5px;
+		color: var(--accent);
+	}
+	.player__hinttext {
+		font-size: 14px;
+		line-height: 1.6;
+		color: var(--text);
 	}
 	.player__next {
 		font-size: 13px;
