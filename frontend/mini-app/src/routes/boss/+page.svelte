@@ -153,7 +153,7 @@
 								<span class="claim-coins">+<CountUp value={me.reward_coins} /></span>
 								<span class="claim-text">монет ждут тебя</span>
 								{#if me.is_top10}
-									<span class="claim-top10">🏆 Топ-10</span>
+									<span class="claim-top10"><PixelIcon name="trophy" size="sm" color="var(--gold)" /> Топ-10</span>
 								{/if}
 							</div>
 							<PixelButton

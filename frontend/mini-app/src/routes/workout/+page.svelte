@@ -686,7 +686,7 @@
 										onclick={() => openExerciseInfo(exercise)}
 										title="Описание упражнения"
 									>
-										?
+										<PixelIcon name="search" size="sm" />
 									</button>
 									<span class="exercise-difficulty" style="color: {categoryColors[exercise.category_slug]}">
 										{getDifficultyStars(exercise.difficulty)}
@@ -759,7 +759,7 @@
 											onclick={() => openExerciseInfo(fullExercise)}
 											title="Описание упражнения"
 										>
-											?
+											<PixelIcon name="search" size="sm" />
 										</button>
 									{/if}
 								</div>
@@ -1177,7 +1177,7 @@
 			<PixelCard padding="lg">
 				<div class="info-modal-header">
 					<h3 class="modal-title">{exercise.name_ru}</h3>
-					<button class="close-btn" onclick={closeExerciseInfo}>&#10005;</button>
+					<button class="close-btn" onclick={closeExerciseInfo}><PixelIcon name="close" size="sm" /></button>
 				</div>
 
 				<!-- Description -->

@@ -39,7 +39,7 @@
 					<span class="stat-value">{getDifficultyStars(exercise.difficulty)}</span>
 				</div>
 				<div class="stat">
-					<PixelIcon name="trophy" size="sm" color="var(--pixel-green)" />
+					<PixelIcon name="bolt" size="sm" color="var(--pixel-green)" />
 					<span class="stat-value">+{exercise.base_xp} XP</span>
 				</div>
 			</div>

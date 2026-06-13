@@ -195,7 +195,7 @@
 						</div>
 					{:else if profile.friend_request_sent}
 						<div class="friend-status pending">
-							<PixelIcon name="time" size="sm" color="var(--pixel-yellow)" />
+							<PixelIcon name="clock" size="sm" color="var(--pixel-yellow)" />
 							<span>Заявка отправлена</span>
 						</div>
 					{:else if profile.username}

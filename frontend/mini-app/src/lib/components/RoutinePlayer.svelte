@@ -501,4 +501,40 @@
 	.done__v--gold {
 		color: var(--gold);
 	}
+
+	/* ---- ACTIVE stage proportions ----
+	   Unlike the designer prototype, the app does NOT render an exercise sprite
+	   in the stage, so the ring is the sole focal element. The kit's defaults
+	   (150px ring, 30px value, 12px muted description) leave the rep count tiny
+	   in a large square and the description hard to read. Rebalance: keep the
+	   square roughly its size but make the number dominant and the text legible.
+	   Scoped to this component — other screens that reuse .ring are untouched. */
+	.player__stage {
+		gap: 16px;
+	}
+	.player__exname {
+		font-size: 20px;
+		line-height: 1.25;
+	}
+	.player__exdesc {
+		font-size: 14px;
+		line-height: 1.6;
+		color: var(--line2);
+		max-width: 300px;
+	}
+	.ring {
+		width: 160px;
+		height: 160px;
+		margin: 8px 0;
+	}
+	.ring__v {
+		font-size: 50px;
+	}
+	.ring__l {
+		font-size: 12px;
+		margin-top: 8px;
+	}
+	.player__next {
+		font-size: 13px;
+	}
 </style>

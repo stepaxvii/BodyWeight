@@ -93,7 +93,7 @@
 				onclick={handleInfoClick}
 				title="Подробнее"
 			>
-				?
+				<PixelIcon name="search" size="sm" />
 			</button>
 		{/if}
 		{#if showFavorite}

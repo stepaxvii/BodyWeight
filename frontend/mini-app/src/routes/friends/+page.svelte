@@ -378,7 +378,7 @@
 							</span>
 						</div>
 						<button class="remove-btn" onclick={() => showRemoveConfirmation(friend.id, friend.username || friend.first_name || 'друга', false)}>
-							<PixelIcon name="close" size="sm" color="var(--text-muted)" />
+							<PixelIcon name="trash" size="sm" color="var(--text-muted)" />
 						</button>
 					</div>
 				{/each}

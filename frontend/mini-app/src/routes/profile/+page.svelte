@@ -158,7 +158,7 @@
 					<span class="char__avslot slot slot--lg">
 						<PixelAvatar avatarId={userStore.user?.avatar_id || 'shadow-wolf'} size="lg" showBorder={false} />
 					</span>
-					<span class="char__edit"><PixelIcon name="gear" size="sm" color="#fff" /></span>
+					<span class="char__edit"><PixelIcon name="edit" size="sm" color="#fff" /></span>
 				</button>
 				<div class="char__id">
 					<span class="char__name">{userStore.displayName}</span>
@@ -334,7 +334,7 @@
 
 		<div class="freeze-card">
 			<div class="freeze-left">
-				<span class="freeze-icon">🧊</span>
+				<span class="freeze-icon"><PixelIcon name="snowflake" size="lg" color="var(--accent2)" /></span>
 				<div class="freeze-numbers">
 					<span class="freeze-title">Заморозки: {userStore.streakFreezes}/{MAX_STREAK_FREEZES}</span>
 					<span class="freeze-hint">Спасают серию за пропущенный день</span>
@@ -348,7 +348,7 @@
 				{#if userStore.streakFreezes >= MAX_STREAK_FREEZES}
 					Максимум
 				{:else}
-					{STREAK_FREEZE_PRICE} 🪙
+					{STREAK_FREEZE_PRICE} <PixelIcon name="coin" size="sm" color="var(--gold)" />
 				{/if}
 			</button>
 		</div>
@@ -459,7 +459,7 @@
 		</div>
 	{:else}
 		<div class="no-activity">
-			<PixelIcon name="close" size="lg" color="var(--text-muted)" />
+			<PixelIcon name="calendar" size="lg" color="var(--text-muted)" />
 			<p>Нет тренировок в этот день</p>
 		</div>
 	{/if}

@@ -355,7 +355,7 @@
 						<span>~{estimatedDuration} мин</span>
 					</div>
 					<div class="summary-item">
-						<PixelIcon name="play" color="var(--text-secondary)" />
+						<PixelIcon name="dumbbell" color="var(--text-secondary)" />
 						<span>{selectedExercises.length} упр.</span>
 					</div>
 				</div>
@@ -364,7 +364,7 @@
 				<!-- Exercise list -->
 				{#if selectedExercises.length === 0}
 					<div class="empty-exercises">
-						<PixelIcon name="play" size="xl" color="var(--text-muted)" />
+						<PixelIcon name="dumbbell" size="xl" color="var(--text-muted)" />
 						<p>Нет упражнений</p>
 						<PixelButton variant="primary" onclick={() => { clearPickerFilters(); showExercisePicker = true; }}>
 							Добавить упражнение
@@ -386,13 +386,13 @@
 										class="order-btn"
 										disabled={index === 0}
 										onclick={() => moveExercise(index, 'up')}
-									>▲</button>
+									><PixelIcon name="arrowup" size="sm" /></button>
 									<span class="order-num">{index + 1}</span>
 									<button
 										class="order-btn"
 										disabled={index === selectedExercises.length - 1}
 										onclick={() => moveExercise(index, 'down')}
-									>▼</button>
+									><PixelIcon name="arrowdown" size="sm" /></button>
 								</div>
 
 								<div class="exercise-info">
@@ -412,7 +412,7 @@
 										<PixelIcon name="settings" size="sm" />
 									</button>
 									<button class="action-btn delete" onclick={() => removeExercise(index)}>
-										<PixelIcon name="close" size="sm" />
+										<PixelIcon name="trash" size="sm" />
 									</button>
 								</div>
 							</div>
@@ -508,7 +508,7 @@
 					</div>
 				{:else if filteredExercises.length === 0}
 					<div class="picker-empty">
-						<PixelIcon name="close" size="lg" color="var(--text-muted)" />
+						<PixelIcon name="search" size="lg" color="var(--text-muted)" />
 						<p>Упражнения не найдены</p>
 					</div>
 				{:else}
@@ -538,7 +538,7 @@
 							onclick={() => { showInfoExercise = exercise; }}
 							title="Подробнее"
 						>
-							?
+							<PixelIcon name="search" size="sm" />
 						</button>
 						<button
 							class="picker-item-action add"
