@@ -506,49 +506,69 @@
 		color: var(--gold);
 	}
 
-	/* ---- ACTIVE stage — redrawn composition ----
-	   The app doesn't render the prototype's exercise sprite, so the ring is the
-	   hero. The rep count now fills the square (it was tiny in a big box); the
-	   technique gets its own readable bordered card instead of faint floating
-	   text; the vertical rhythm is tightened. Scoped — global .ring is untouched. */
+	/* ---- ACTIVE screen — robust layout ----
+	   The name + rep/timer block stay pinned and always visible. The technique
+	   card CAPS its height and scrolls internally (flex-shrink + max-height), so
+	   a long description can never grow the stage and push the controls off the
+	   bottom of the screen. Controls remain pinned. Scoped — global kit untouched. */
+	.player__active {
+		min-height: 0;
+	}
 	.player__stage {
-		gap: 14px;
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow: hidden;
 		justify-content: center;
+		gap: 12px;
 	}
 	.player__exname {
-		font-size: 22px;
+		flex: 0 0 auto;
+		font-size: 20px;
 		line-height: 1.2;
 	}
 	.ring {
-		width: 176px;
-		height: 176px;
+		flex: 0 0 auto;
+		width: 150px;
+		height: 150px;
 		margin: 2px 0;
 	}
-	/* timers read m:ss (moderate); rep counts get to dominate the square */
+	/* timers read m:ss (moderate); rep counts are prominent but not oversized */
 	.ring__v {
-		font-size: 56px;
+		font-size: 46px;
 	}
 	.ring--reps .ring__v {
-		font-size: 82px;
+		font-size: 64px;
 	}
 	.ring__l {
-		font-size: 12px;
+		font-size: 11px;
 		margin-top: 6px;
 		letter-spacing: 0.5px;
 	}
 	.player__hint {
+		flex: 0 1 auto;
+		min-height: 0;
+		max-height: 38vh;
+		overflow-y: auto;
 		width: 100%;
 		max-width: 320px;
 		display: flex;
 		flex-direction: column;
 		gap: 5px;
-		padding: 11px 13px;
+		padding: 0 13px 11px;
 		text-align: left;
 		background: var(--bg2);
 		border: var(--bw) solid var(--line);
 		box-shadow: var(--shadow);
 	}
+	.player__hint::-webkit-scrollbar {
+		width: 0;
+	}
 	.player__hintlabel {
+		flex: 0 0 auto;
+		position: sticky;
+		top: 0;
+		padding: 11px 0 4px;
+		background: var(--bg2);
 		font-family: var(--font-display);
 		font-size: 11px;
 		letter-spacing: 0.5px;
@@ -560,6 +580,7 @@
 		color: var(--text);
 	}
 	.player__next {
+		flex: 0 0 auto;
 		font-size: 13px;
 	}
 </style>
