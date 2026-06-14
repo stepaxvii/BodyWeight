@@ -23,6 +23,7 @@ class UserResponse(BaseModel):
     last_workout_date: date | None = None
     notification_time: time | None = None
     notifications_enabled: bool
+    sound_enabled: bool = True
     is_onboarded: bool
     leaderboard_visible: bool
     daily_activity_norm: int = 1400
@@ -67,6 +68,7 @@ class UpdateUserRequest(BaseModel):
     avatar_id: str | None = None
     notification_time: time | None = None
     notifications_enabled: bool | None = None
+    sound_enabled: bool | None = None
     leaderboard_visible: bool | None = None
     # Daily activity goal (XP) for the calendar; bounds mirror activity_norm service.
     daily_activity_norm: int | None = Field(default=None, ge=100, le=100_000)

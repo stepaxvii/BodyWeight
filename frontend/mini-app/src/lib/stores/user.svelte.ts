@@ -266,6 +266,17 @@ class UserStore {
 		return updated;
 	}
 
+	/** Toggle 8-bit sound effects (optimistic, syncs to backend). */
+	async setSoundEnabled(enabled: boolean): Promise<void> {
+		if (!this.user) return;
+		this.user.sound_enabled = enabled;
+		try {
+			await api.updateUser({ sound_enabled: enabled });
+		} catch (err) {
+			console.error('Failed to update sound setting:', err);
+		}
+	}
+
 	async setAvatar(avatarId: AvatarId) {
 		if (this.user) {
 			this.user.avatar_id = avatarId;

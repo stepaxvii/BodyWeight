@@ -4,6 +4,7 @@
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
+	import { sound } from '$lib/stores/sound.svelte';
 	import { exercisesStore } from '$lib/stores/exercises.svelte';
 	import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
 	import type { Routine, RoutineExercise, Exercise } from '$lib/types';
@@ -35,6 +36,12 @@
 	let exerciseTimerSeconds = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 	let isExerciseTimerStarted = $state(false); // User must start timer manually for time-based exercises
+
+	// Rest-between-exercises state (roadmap 4.3)
+	let isResting = $state(false);
+	let restSeconds = $state(0);
+	let restInterval: ReturnType<typeof setInterval> | null = null;
+	const DEFAULT_REST_SECONDS = 30;
 
 	// Workout session - collect exercises to submit at the end
 	let workoutStartTime = $state<Date | null>(null);
@@ -98,6 +105,7 @@
 
 	onDestroy(() => {
 		stopTimer();
+		stopRestInterval();
 	});
 
 	function startTimer() {
@@ -110,6 +118,7 @@
 					exerciseTimerSeconds--;
 					if (exerciseTimerSeconds === 0) {
 						telegram.hapticNotification('success');
+						sound.exerciseDone();
 					}
 				}
 			}
@@ -139,6 +148,10 @@
 			console.warn('[RoutinePlayer] hapticImpact failed (probably offline / no Telegram API):', e);
 		}
 
+		// Unlock audio on this user gesture, then play the start cue.
+		sound.unlock();
+		sound.start();
+
 		// Start the total workout timer immediately
 		startTimer();
 		resetExerciseTimer();
@@ -151,6 +164,58 @@
 		} else {
 			exerciseTimerSeconds = 0;
 		}
+	}
+
+	// ---- Rest between exercises (roadmap 4.3) ----
+	function stopRestInterval() {
+		if (restInterval) {
+			clearInterval(restInterval);
+			restInterval = null;
+		}
+	}
+
+	function advanceToNext() {
+		currentStep++;
+		resetExerciseTimer();
+	}
+
+	function startRest() {
+		// Rest after the just-completed exercise (custom routines carry rest_seconds;
+		// built-in routines fall back to a sensible default).
+		const rs = currentExercise?.rest_seconds ?? DEFAULT_REST_SECONDS;
+		if (rs <= 0) {
+			advanceToNext();
+			return;
+		}
+		isResting = true;
+		restSeconds = rs;
+		telegram.hapticImpact('light');
+		stopRestInterval();
+		restInterval = setInterval(() => {
+			restSeconds--;
+			if (restSeconds <= 0) endRest();
+		}, 1000);
+	}
+
+	function endRest() {
+		stopRestInterval();
+		isResting = false;
+		sound.restEnd();
+		telegram.hapticNotification('success');
+		advanceToNext();
+	}
+
+	function skipRest() {
+		stopRestInterval();
+		isResting = false;
+		sound.click();
+		telegram.hapticImpact('light');
+		advanceToNext();
+	}
+
+	function addRest(sec: number) {
+		restSeconds = Math.max(1, restSeconds + sec);
+		telegram.hapticImpact('light');
 	}
 
 	function togglePause() {
@@ -187,10 +252,12 @@
 
 		completedExercisesCount++;
 
-		// Move to next exercise or complete
+		// Rep-based sets cue on press; timed sets already cued when the timer hit 0.
+		if (!isTimed) sound.exerciseDone();
+
+		// Rest before the next exercise, or finish the routine.
 		if (currentStep < routine.exercises.length - 1) {
-			currentStep++;
-			resetExerciseTimer();
+			startRest();
 		} else {
 			await finishRoutine();
 		}
@@ -220,6 +287,8 @@
 			userStore.addCoins(completed.workout.total_coins_earned);
 
 			telegram.hapticNotification('success');
+			if (completed.level_up) sound.levelUp();
+			else sound.complete();
 		} catch (err) {
 			console.error('Failed to complete routine:', err);
 
@@ -245,8 +314,10 @@
 				}, 0);
 				totalCoinsEarned = 0;
 				telegram.hapticNotification('success');
+				sound.complete();
 			} else {
 				telegram.hapticNotification('error');
+				sound.error();
 			}
 		} finally {
 			isSubmitting = false;
@@ -255,6 +326,7 @@
 
 	function handleClose() {
 		stopTimer();
+		stopRestInterval();
 		if (isCompleted) {
 			oncomplete?.(totalXpEarned, totalCoinsEarned);
 		}
@@ -409,7 +481,7 @@
 					<span class="pa2-hero__step">Упражнение {currentStep + 1}/{routine.exercises.length}</span>
 					<span class="pa2-hero__clock"><PixelIcon name="timer" size="sm" color="var(--hero-num)" /> {formattedTotalTime}</span>
 				</div>
-				<span class="pa2-hero__name">{exerciseData?.name_ru || currentExercise?.slug}</span>
+				<span class="pa2-hero__name">{isResting ? 'Отдых' : (exerciseData?.name_ru || currentExercise?.slug)}</span>
 				<div class="pa2-prog">
 					<div class="pa2-gauge">
 						{#each Array(PROGRESS_SEGMENTS) as _, i}
@@ -421,46 +493,63 @@
 			</div>
 
 			<div class="pa2-stage">
-				<div class="pa2-count" class:pa2-count--time={isTimeBased} class:pa2-count--done={isTimeBased && exerciseTimerSeconds === 0 && isExerciseTimerStarted}>
-					<span class="pa2-count__box">
-						{#if isTimeBased}
-							<span class="pa2-count__v">{formattedExerciseTime}</span>
-						{:else}
-							<span class="pa2-count__v">{targetValue}</span>
-						{/if}
-					</span>
-					<span class="pa2-count__u">
-						{#if isTimeBased}
-							{!isExerciseTimerStarted ? 'нажми старт' : exerciseTimerSeconds === 0 ? 'готово!' : 'осталось'}
-						{:else}
-							повторений
-						{/if}
-					</span>
-				</div>
-
-				{#if exerciseData?.description_ru}
-					<div class="pa2-tech">
-						<div class="pa2-tech__band">Техника</div>
-						<div class="pa2-tech__body">{exerciseData.description_ru}</div>
+				{#if isResting}
+					{@const restNextEx = routine.exercises[currentStep + 1]}
+					{@const restNextData = allExercises.find((e) => e.slug === restNextEx?.slug)}
+					<div class="pa2-count pa2-count--rest">
+						<span class="pa2-count__box"><span class="pa2-count__v">{restSeconds}</span></span>
+						<span class="pa2-count__u">секунд отдыха</span>
 					</div>
-				{/if}
+					{#if restNextEx}
+						<div class="pa2-next"><span class="pa2-next__l">Далее</span> {restNextData?.name_ru || restNextEx.slug}</div>
+					{/if}
+				{:else}
+					<div class="pa2-count" class:pa2-count--time={isTimeBased} class:pa2-count--done={isTimeBased && exerciseTimerSeconds === 0 && isExerciseTimerStarted}>
+						<span class="pa2-count__box">
+							{#if isTimeBased}
+								<span class="pa2-count__v">{formattedExerciseTime}</span>
+							{:else}
+								<span class="pa2-count__v">{targetValue}</span>
+							{/if}
+						</span>
+						<span class="pa2-count__u">
+							{#if isTimeBased}
+								{!isExerciseTimerStarted ? 'нажми старт' : exerciseTimerSeconds === 0 ? 'готово!' : 'осталось'}
+							{:else}
+								повторений
+							{/if}
+						</span>
+					</div>
 
-				{#if currentStep < routine.exercises.length - 1}
-					{@const nextEx = routine.exercises[currentStep + 1]}
-					{@const nextExData = allExercises.find((e) => e.slug === nextEx.slug)}
-					<div class="pa2-next"><span class="pa2-next__l">Далее</span> {nextExData?.name_ru || nextEx.slug}</div>
+					{#if exerciseData?.description_ru}
+						<div class="pa2-tech">
+							<div class="pa2-tech__band">Техника</div>
+							<div class="pa2-tech__body">{exerciseData.description_ru}</div>
+						</div>
+					{/if}
+
+					{#if currentStep < routine.exercises.length - 1}
+						{@const nextEx = routine.exercises[currentStep + 1]}
+						{@const nextExData = allExercises.find((e) => e.slug === nextEx.slug)}
+						<div class="pa2-next"><span class="pa2-next__l">Далее</span> {nextExData?.name_ru || nextEx.slug}</div>
+					{/if}
 				{/if}
 			</div>
 
 			<div class="player__controls">
-				{#if isTimeBased && !isExerciseTimerStarted}
-					<PixelButton variant="primary" size="lg" fullWidth onclick={startExerciseTimer}><PixelIcon name="play" /> Старт таймера</PixelButton>
-				{:else if isTimeBased && exerciseTimerSeconds > 0}
-					<PixelButton variant="secondary" size="lg" fullWidth onclick={togglePause}><PixelIcon name={isPaused ? 'play' : 'pause'} /> {isPaused ? 'Продолжить' : 'Пауза'}</PixelButton>
+				{#if isResting}
+					<PixelButton variant="primary" size="lg" fullWidth onclick={skipRest}><PixelIcon name="play" /> Пропустить отдых</PixelButton>
+					<PixelButton variant="ghost" fullWidth onclick={() => addRest(15)}>+15 секунд</PixelButton>
 				{:else}
-					<PixelButton variant="success" size="lg" fullWidth disabled={isSubmitting} onclick={completeExercise}><PixelIcon name="check" /> {isSubmitting ? 'Отправка…' : 'Готово'}</PixelButton>
+					{#if isTimeBased && !isExerciseTimerStarted}
+						<PixelButton variant="primary" size="lg" fullWidth onclick={startExerciseTimer}><PixelIcon name="play" /> Старт таймера</PixelButton>
+					{:else if isTimeBased && exerciseTimerSeconds > 0}
+						<PixelButton variant="secondary" size="lg" fullWidth onclick={togglePause}><PixelIcon name={isPaused ? 'play' : 'pause'} /> {isPaused ? 'Продолжить' : 'Пауза'}</PixelButton>
+					{:else}
+						<PixelButton variant="success" size="lg" fullWidth disabled={isSubmitting} onclick={completeExercise}><PixelIcon name="check" /> {isSubmitting ? 'Отправка…' : 'Готово'}</PixelButton>
+					{/if}
+					<PixelButton variant="ghost" fullWidth onclick={skipExercise}>Пропустить</PixelButton>
 				{/if}
-				<PixelButton variant="ghost" fullWidth onclick={skipExercise}>Пропустить</PixelButton>
 			</div>
 		</div>
 	{/if}
@@ -657,6 +746,12 @@
 		background: var(--green);
 	}
 	.pa2-count--done .pa2-count__v {
+		color: var(--on-accent);
+	}
+	.pa2-count--rest .pa2-count__box {
+		background: var(--accent2);
+	}
+	.pa2-count--rest .pa2-count__v {
 		color: var(--on-accent);
 	}
 	.pa2-count__u {

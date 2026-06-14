@@ -7,6 +7,7 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { sound } from '$lib/stores/sound.svelte';
 	import type { Achievement, AvatarId, UserActivity, DayActivity, UserRecords } from '$lib/types';
 
 	let achievements = $state<Achievement[]>([]);
@@ -175,6 +176,18 @@
 		showTitlePicker = true;
 		telegram.hapticImpact('light');
 	}
+
+	const soundOn = $derived(userStore.user?.sound_enabled ?? true);
+	function toggleSound() {
+		const next = !soundOn;
+		userStore.setSoundEnabled(next);
+		telegram.hapticImpact('light');
+		if (next) {
+			// Unlock audio on this gesture and play a confirming cue.
+			sound.unlock();
+			sound.start();
+		}
+	}
 </script>
 
 <div class="page container anim-cascade">
@@ -292,6 +305,19 @@
 				<p class="norm-message">{normMessage}</p>
 			{/if}
 		</div>
+	</section>
+
+	<!-- Sound effects toggle (roadmap 5.1) -->
+	<section class="sound-section">
+		<h3 class="section-title">Звук</h3>
+		<button class="sound-row" onclick={toggleSound}>
+			<PixelIcon name="bell" size="md" color="var(--accent)" />
+			<div class="sound-text">
+				<span class="sound-title">Звуковые сигналы</span>
+				<span class="sound-hint">8-битные сигналы на тренировке</span>
+			</div>
+			<span class="sound-state" class:on={soundOn}>{soundOn ? 'Вкл' : 'Выкл'}</span>
+		</button>
 	</section>
 
 	<!-- Stats band -->
@@ -671,6 +697,55 @@
 		color: var(--text-secondary);
 		margin: var(--spacing-sm) 0 0 0;
 		text-align: center;
+	}
+
+	/* Sound effects toggle (roadmap 5.1) */
+	.sound-section {
+		margin-bottom: var(--spacing-md);
+	}
+	.sound-row {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		width: 100%;
+		text-align: left;
+		padding: var(--spacing-sm) var(--spacing-md);
+		background: var(--bg2);
+		border: var(--bw) solid var(--line);
+		box-shadow: var(--shadow);
+		cursor: pointer;
+	}
+	.sound-row:active {
+		transform: translate(2px, 2px);
+		box-shadow: none;
+	}
+	.sound-text {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+	.sound-title {
+		font-size: var(--font-size-sm);
+		color: var(--text);
+	}
+	.sound-hint {
+		font-size: 10px;
+		color: var(--muted);
+	}
+	.sound-state {
+		flex: 0 0 auto;
+		font-family: var(--font-display);
+		font-size: 12px;
+		padding: 4px 10px;
+		background: var(--bg3);
+		border: 2px solid var(--line);
+		color: var(--muted);
+	}
+	.sound-state.on {
+		background: var(--accent);
+		color: var(--on-accent);
 	}
 
 	/* Stats Row - compact horizontal */

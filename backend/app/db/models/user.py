@@ -37,6 +37,8 @@ class User(Base):
     # Settings
     notification_time: Mapped[time | None] = mapped_column(Time)
     notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    # 8-bit sound effects toggle (roadmap 5.1)
+    sound_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
     # Target XP per day for the activity calendar (history in user_activity_norms)
     daily_activity_norm: Mapped[int] = mapped_column(Integer, default=1400, server_default="1400")
 

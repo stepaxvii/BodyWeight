@@ -92,6 +92,7 @@ export interface User {
 	last_workout_date?: string;
 	notification_time?: string;
 	notifications_enabled: boolean;
+	sound_enabled: boolean;
 	is_onboarded: boolean;
 	leaderboard_visible: boolean;
 	daily_activity_norm: number;
@@ -356,6 +357,7 @@ export interface RoutineExercise {
 	slug: string;
 	reps?: number;
 	duration?: number; // duration in seconds
+	rest_seconds?: number; // rest AFTER this exercise (player defaults to 30 if absent)
 }
 
 export interface Routine {

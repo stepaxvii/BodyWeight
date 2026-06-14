@@ -1112,7 +1112,8 @@
 		exercises: selectedCustomRoutine.exercises.map(ex => ({
 			slug: ex.exercise_slug,
 			reps: ex.target_reps,
-			duration: ex.target_duration
+			duration: ex.target_duration,
+			rest_seconds: ex.rest_seconds
 		}))
 	}}
 	<RoutinePlayer

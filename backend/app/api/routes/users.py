@@ -183,6 +183,8 @@ async def update_current_user(
         user.notification_time = request.notification_time
     if request.notifications_enabled is not None:
         user.notifications_enabled = request.notifications_enabled
+    if request.sound_enabled is not None:
+        user.sound_enabled = request.sound_enabled
     if request.leaderboard_visible is not None:
         user.leaderboard_visible = request.leaderboard_visible
     if request.daily_activity_norm is not None:
