@@ -53,6 +53,8 @@
 	const progress = $derived(((currentStep + 1) / routine.exercises.length) * 100);
 	const isTimeBased = $derived(!!currentExercise?.duration);
 	const targetValue = $derived(currentExercise?.duration || currentExercise?.reps || 0);
+	const PROGRESS_SEGMENTS = 16;
+	const segOn = $derived(Math.round((progress / 100) * PROGRESS_SEGMENTS));
 
 	// Format timer display
 	function formatTime(seconds: number): string {
@@ -400,42 +402,53 @@
 		</div>
 	{:else}
 		<!-- ACTIVE -->
-		<div class="player__active">
-			<div class="player__bar">
-				<button class="player__x" onclick={handleClose} aria-label="Закрыть"><PixelIcon name="close" size="sm" /></button>
-				<span class="player__step">{currentStep + 1} / {routine.exercises.length}</span>
-				<span class="player__clock"><PixelIcon name="timer" size="sm" color="var(--accent2)" /> {formattedTotalTime}</span>
+		<div class="player__active pa2">
+			<div class="pa2-hero">
+				<div class="pa2-hero__bar">
+					<button class="pa2-x" onclick={handleClose} aria-label="Закрыть"><PixelIcon name="close" size="sm" /></button>
+					<span class="pa2-hero__step">Упражнение {currentStep + 1}/{routine.exercises.length}</span>
+					<span class="pa2-hero__clock"><PixelIcon name="timer" size="sm" color="var(--hero-num)" /> {formattedTotalTime}</span>
+				</div>
+				<span class="pa2-hero__name">{exerciseData?.name_ru || currentExercise?.slug}</span>
+				<div class="pa2-prog">
+					<div class="pa2-gauge">
+						{#each Array(PROGRESS_SEGMENTS) as _, i}
+							<span class="pa2-seg" class:on={i < segOn}></span>
+						{/each}
+					</div>
+					<span class="pa2-prog__pct">{Math.round(progress)}%</span>
+				</div>
 			</div>
 
-			<div class="gauge"><div class="gauge__fill" style="width: {progress}%;"></div></div>
-
-			<div class="player__stage">
-				<span class="player__exname">{exerciseData?.name_ru || currentExercise?.slug}</span>
-
-				<div class="ring" class:ring--reps={!isTimeBased} class:ring--done={isTimeBased && exerciseTimerSeconds === 0 && isExerciseTimerStarted}>
-					<div class="ring__bg"></div>
-					<div class="ring__fill">
+			<div class="pa2-stage">
+				<div class="pa2-count" class:pa2-count--time={isTimeBased} class:pa2-count--done={isTimeBased && exerciseTimerSeconds === 0 && isExerciseTimerStarted}>
+					<span class="pa2-count__box">
 						{#if isTimeBased}
-							<span class="ring__v">{formattedExerciseTime}</span>
-							<span class="ring__l">{!isExerciseTimerStarted ? 'нажми старт' : exerciseTimerSeconds === 0 ? 'готово!' : 'осталось'}</span>
+							<span class="pa2-count__v">{formattedExerciseTime}</span>
 						{:else}
-							<span class="ring__v">{targetValue}</span>
-							<span class="ring__l">повторений</span>
+							<span class="pa2-count__v">{targetValue}</span>
 						{/if}
-					</div>
+					</span>
+					<span class="pa2-count__u">
+						{#if isTimeBased}
+							{!isExerciseTimerStarted ? 'нажми старт' : exerciseTimerSeconds === 0 ? 'готово!' : 'осталось'}
+						{:else}
+							повторений
+						{/if}
+					</span>
 				</div>
 
 				{#if exerciseData?.description_ru}
-					<div class="player__hint">
-						<span class="player__hintlabel">Техника</span>
-						<span class="player__hinttext">{exerciseData.description_ru}</span>
+					<div class="pa2-tech">
+						<div class="pa2-tech__band">Техника</div>
+						<div class="pa2-tech__body">{exerciseData.description_ru}</div>
 					</div>
 				{/if}
 
 				{#if currentStep < routine.exercises.length - 1}
 					{@const nextEx = routine.exercises[currentStep + 1]}
 					{@const nextExData = allExercises.find((e) => e.slug === nextEx.slug)}
-					<div class="player__next"><span class="player__nextl">Далее:</span> {nextExData?.name_ru || nextEx.slug}</div>
+					<div class="pa2-next"><span class="pa2-next__l">Далее</span> {nextExData?.name_ru || nextEx.slug}</div>
 				{/if}
 			</div>
 
@@ -506,81 +519,205 @@
 		color: var(--gold);
 	}
 
-	/* ---- ACTIVE screen — robust layout ----
-	   The name + rep/timer block stay pinned and always visible. The technique
-	   card CAPS its height and scrolls internally (flex-shrink + max-height), so
-	   a long description can never grow the stage and push the controls off the
-	   bottom of the screen. Controls remain pinned. Scoped — global kit untouched. */
+	/* ============ ACTIVE screen — game-HUD redesign ============
+	   Full-bleed mocha hero (name + segmented progress), the rep/timer as a big
+	   number in a beveled slot, and a banded "Техника" scroll panel that caps
+	   its height and scrolls internally — so a long description can never grow
+	   the stage and push the controls off-screen. Controls stay pinned. Scoped. */
 	.player__active {
+		padding: 0;
+		gap: 10px;
 		min-height: 0;
 	}
-	.player__stage {
+
+	/* hero — full-bleed mocha header */
+	.pa2-hero {
+		flex: 0 0 auto;
+		background: var(--hero-bg);
+		color: var(--hero-text);
+		border-bottom: var(--bw) solid var(--hero-edge);
+		padding: 12px 14px;
+		display: flex;
+		flex-direction: column;
+		gap: 9px;
+	}
+	.pa2-hero__bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+	}
+	.pa2-x {
+		flex: 0 0 auto;
+		width: 32px;
+		height: 32px;
+		display: grid;
+		place-items: center;
+		background: rgba(0, 0, 0, 0.22);
+		border: 2px solid var(--hero-edge);
+		color: var(--hero-text);
+		cursor: pointer;
+	}
+	.pa2-hero__step {
+		flex: 1;
+		text-align: center;
+		font-family: var(--font-display);
+		font-size: 11px;
+		letter-spacing: 0.6px;
+		color: var(--hero-text);
+		opacity: 0.9;
+	}
+	.pa2-hero__clock {
+		flex: 0 0 auto;
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		font-family: var(--font-data);
+		font-size: 14px;
+		color: var(--hero-num);
+	}
+	.pa2-hero__name {
+		font-family: var(--font-display);
+		font-size: 22px;
+		line-height: 1.15;
+	}
+	.pa2-prog {
+		display: flex;
+		align-items: center;
+		gap: 9px;
+	}
+	.pa2-gauge {
+		flex: 1;
+		display: flex;
+		gap: 2px;
+		height: 13px;
+	}
+	.pa2-seg {
+		flex: 1;
+		background: rgba(0, 0, 0, 0.28);
+		border: 1px solid var(--hero-edge);
+	}
+	.pa2-seg.on {
+		background: var(--hero-num);
+	}
+	.pa2-prog__pct {
+		flex: 0 0 auto;
+		min-width: 34px;
+		text-align: right;
+		font-family: var(--font-data);
+		font-size: 12px;
+		color: var(--hero-text);
+		opacity: 0.9;
+	}
+
+	/* stage — number + technique + next; centers when short, technique
+	   shrinks/scrolls when long, so the column never overflows. */
+	.pa2-stage {
 		flex: 1 1 auto;
 		min-height: 0;
 		overflow: hidden;
-		justify-content: center;
-		gap: 12px;
-	}
-	.player__exname {
-		flex: 0 0 auto;
-		font-size: 20px;
-		line-height: 1.2;
-	}
-	.ring {
-		flex: 0 0 auto;
-		width: 150px;
-		height: 150px;
-		margin: 2px 0;
-	}
-	/* timers read m:ss (moderate); rep counts are prominent but not oversized */
-	.ring__v {
-		font-size: 46px;
-	}
-	.ring--reps .ring__v {
-		font-size: 64px;
-	}
-	.ring__l {
-		font-size: 11px;
-		margin-top: 6px;
-		letter-spacing: 0.5px;
-	}
-	.player__hint {
-		flex: 0 1 auto;
-		min-height: 0;
-		max-height: 38vh;
-		overflow-y: auto;
-		width: 100%;
-		max-width: 320px;
+		padding: 0 14px;
 		display: flex;
 		flex-direction: column;
-		gap: 5px;
-		padding: 0 13px 11px;
-		text-align: left;
+		align-items: center;
+		justify-content: center;
+		gap: 13px;
+		text-align: center;
+	}
+
+	/* big number in a beveled inventory-style slot */
+	.pa2-count {
+		flex: 0 0 auto;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 7px;
+	}
+	.pa2-count__box {
+		display: grid;
+		place-items: center;
+		min-width: 134px;
+		height: 108px;
+		padding: 0 18px;
+		background: var(--bg3);
+		border: var(--bw) solid var(--line);
+		box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.14),
+			inset -2px -2px 0 rgba(0, 0, 0, 0.32), var(--shadow);
+	}
+	.pa2-count__v {
+		font-family: var(--font-display);
+		font-size: 64px;
+		line-height: 1;
+		color: var(--accent);
+	}
+	.pa2-count--time .pa2-count__v {
+		font-size: 44px;
+	}
+	.pa2-count--done .pa2-count__box {
+		background: var(--green);
+	}
+	.pa2-count--done .pa2-count__v {
+		color: var(--on-accent);
+	}
+	.pa2-count__u {
+		font-family: var(--font-ui);
+		font-size: 12px;
+		letter-spacing: 0.5px;
+		color: var(--muted);
+	}
+
+	/* technique "scroll" — accent band header + internally-scrolling body */
+	.pa2-tech {
+		flex: 0 1 auto;
+		min-height: 0;
+		max-height: 34vh;
+		overflow: hidden;
+		width: 100%;
+		max-width: 340px;
+		display: flex;
+		flex-direction: column;
 		background: var(--bg2);
 		border: var(--bw) solid var(--line);
 		box-shadow: var(--shadow);
 	}
-	.player__hint::-webkit-scrollbar {
-		width: 0;
-	}
-	.player__hintlabel {
+	.pa2-tech__band {
 		flex: 0 0 auto;
-		position: sticky;
-		top: 0;
-		padding: 11px 0 4px;
-		background: var(--bg2);
+		background: var(--accent);
+		color: var(--on-accent);
 		font-family: var(--font-display);
 		font-size: 11px;
-		letter-spacing: 0.5px;
-		color: var(--accent);
+		letter-spacing: 0.6px;
+		padding: 5px 11px;
+		text-align: left;
 	}
-	.player__hinttext {
+	.pa2-tech__body {
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+		padding: 10px 12px;
 		font-size: 14px;
 		line-height: 1.6;
 		color: var(--text);
+		text-align: left;
 	}
-	.player__next {
+	.pa2-tech__body::-webkit-scrollbar {
+		width: 0;
+	}
+
+	.pa2-next {
 		flex: 0 0 auto;
 		font-size: 13px;
+		color: var(--muted);
+	}
+	.pa2-next__l {
+		font-family: var(--font-display);
+		font-size: 11px;
+		letter-spacing: 0.5px;
+		color: var(--dim);
+		margin-right: 5px;
+	}
+
+	.player__controls {
+		padding: 0 14px 14px;
 	}
 </style>
