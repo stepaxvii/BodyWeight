@@ -266,14 +266,35 @@ async def notify_friends_new_challenge(
 # Progress recording (called from workout_processor)
 # ---------------------------------------------------------------------------
 
+@dataclass
+class ChallengeExerciseDelta:
+    """One exercise's contribution from a single workout to a challenge."""
+    exercise_name_ru: str
+    added: int
+    accumulated: int
+    target: int
+    completed: bool
+    is_timed: bool
+
+
+@dataclass
+class ChallengeProgressDelta:
+    """Per-challenge summary of what a workout just credited (for feedback)."""
+    challenge_id: int
+    challenge_title: str
+    day_completed: bool
+    exercises: list[ChallengeExerciseDelta]
+
+
 async def record_progress(
     session: AsyncSession,
     user: User,
     workout_date: date,
     reps_by_slug: dict[str, int],
-) -> None:
+) -> list[ChallengeProgressDelta]:
     """
-    Update progress in all active challenges this user participates in.
+    Update progress in all active challenges this user participates in and
+    return per-challenge deltas so the workout summary can surface them.
 
     `reps_by_slug` maps exercise slug -> total reps performed in this workout.
     For timed exercises, pass total seconds (semantics: target == seconds).
@@ -281,7 +302,7 @@ async def record_progress(
     Caps each contribution at remaining target (excess does not count).
     """
     if not reps_by_slug:
-        return
+        return []
 
     # Find active challenges where the user is a participant AND that contain
     # at least one of the workout's exercises.
@@ -297,6 +318,9 @@ async def record_progress(
         .where(Exercise.slug.in_(list(reps_by_slug.keys())))
     )
     rows = result.all()
+
+    # challenge_id -> (Challenge, [deltas]) for challenges that gained progress
+    grouped: dict[int, tuple[Challenge, list[ChallengeExerciseDelta]]] = {}
 
     for challenge, ch_ex, exercise in rows:
         reps = reps_by_slug.get(exercise.slug, 0)
@@ -336,6 +360,52 @@ async def record_progress(
         prog.accumulated += to_add
         if prog.accumulated >= prog.target:
             prog.completed = True
+
+        _, deltas = grouped.setdefault(challenge.id, (challenge, []))
+        deltas.append(
+            ChallengeExerciseDelta(
+                exercise_name_ru=exercise.name_ru,
+                added=to_add,
+                accumulated=prog.accumulated,
+                target=prog.target,
+                completed=prog.completed,
+                is_timed=bool(ch_ex.is_timed),
+            )
+        )
+
+    if not grouped:
+        return []
+
+    # Resolve whether each touched challenge's DAY is now fully complete (AND
+    # across all its exercises). Flush first so the counts see fresh rows.
+    await session.flush()
+    out: list[ChallengeProgressDelta] = []
+    for cid, (challenge, deltas) in grouped.items():
+        n_ex = (
+            await session.execute(
+                select(func.count(ChallengeExercise.id)).where(
+                    ChallengeExercise.challenge_id == cid
+                )
+            )
+        ).scalar() or 0
+        completed_today = (
+            await session.execute(
+                select(func.count(ChallengeProgress.id))
+                .where(ChallengeProgress.challenge_id == cid)
+                .where(ChallengeProgress.user_id == user.id)
+                .where(ChallengeProgress.progress_date == workout_date)
+                .where(ChallengeProgress.completed.is_(True))
+            )
+        ).scalar() or 0
+        out.append(
+            ChallengeProgressDelta(
+                challenge_id=cid,
+                challenge_title=challenge.title,
+                day_completed=n_ex > 0 and completed_today >= n_ex,
+                exercises=deltas,
+            )
+        )
+    return out
 
 
 # ---------------------------------------------------------------------------

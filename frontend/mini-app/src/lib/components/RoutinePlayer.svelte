@@ -7,7 +7,7 @@
 	import { sound } from '$lib/stores/sound.svelte';
 	import { exercisesStore } from '$lib/stores/exercises.svelte';
 	import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
-	import type { Routine, RoutineExercise, Exercise } from '$lib/types';
+	import type { Routine, RoutineExercise, Exercise, ChallengeProgressSummary } from '$lib/types';
 	import { onMount, onDestroy } from 'svelte';
 
 	interface Props {
@@ -53,6 +53,8 @@
 	let totalXpEarned = $state(0);
 	let totalCoinsEarned = $state(0);
 	let completedExercisesCount = $state(0);
+	// Challenge progress this workout credited (shown on the done screen)
+	let challengeProgress = $state<ChallengeProgressSummary[]>([]);
 	let showInfoExercise = $state<Exercise | null>(null);
 
 	const currentExercise = $derived(routine.exercises[currentStep]);
@@ -282,6 +284,7 @@
 			isCompleted = true;
 			totalXpEarned = completed.workout.total_xp_earned;
 			totalCoinsEarned = completed.workout.total_coins_earned;
+			challengeProgress = completed.challenge_progress ?? [];
 
 			userStore.addXp(completed.workout.total_xp_earned);
 			userStore.addCoins(completed.workout.total_coins_earned);
@@ -467,6 +470,29 @@
 				<div class="done__stat"><PixelIcon name="coin" size="md" color="var(--gold)" /><span class="done__v done__v--gold">+{totalCoinsEarned}</span><span class="done__l">Монеты</span></div>
 				<div class="done__stat"><PixelIcon name="dumbbell" size="md" color="var(--accent)" /><span class="done__v">{completedExercisesCount}/{routine.exercises.length}</span><span class="done__l">Упр.</span></div>
 			</div>
+			{#if challengeProgress.length > 0}
+				<div class="done__chal">
+					{#each challengeProgress as cp (cp.challenge_id)}
+						<div class="done__chalcard" class:done__chalcard--full={cp.day_completed}>
+							<div class="done__chalhead">
+								<PixelIcon name="trophy" size="sm" color={cp.day_completed ? 'var(--gold)' : 'var(--accent)'} />
+								<span class="done__chaltitle">{cp.challenge_title}</span>
+								{#if cp.day_completed}
+									<span class="done__chalbadge"><PixelIcon name="check" size="sm" color="var(--on-accent)" /> день закрыт</span>
+								{/if}
+							</div>
+							{#each cp.exercises as ex (ex.exercise_name_ru)}
+								<div class="done__chalrow">
+									<span class="done__chalname">{ex.exercise_name_ru}</span>
+									<span class="done__chalval" class:done__chalval--done={ex.completed}>
+										+{ex.added} · {ex.accumulated}/{ex.target}{ex.completed ? ' ✓' : ''}
+									</span>
+								</div>
+							{/each}
+						</div>
+					{/each}
+				</div>
+			{/if}
 			<div class="player__doneactions">
 				<PixelButton variant="secondary" fullWidth onclick={shareWorkout}><PixelIcon name="share" /> Поделиться</PixelButton>
 				<PixelButton variant="success" fullWidth onclick={handleClose}><PixelIcon name="check" /> Готово</PixelButton>
@@ -606,6 +632,75 @@
 	}
 	.done__v--gold {
 		color: var(--gold);
+	}
+
+	/* Challenge progress credited by this workout (feedback loop) */
+	.done__chal {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		width: 100%;
+		margin-top: var(--spacing-md);
+	}
+	.done__chalcard {
+		background: var(--bg2);
+		border: var(--bw) solid var(--line);
+		box-shadow: var(--shadow);
+		padding: var(--spacing-sm) var(--spacing-md);
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+	.done__chalcard--full {
+		border-color: var(--gold);
+	}
+	.done__chalhead {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+	.done__chaltitle {
+		flex: 1;
+		min-width: 0;
+		font-family: var(--font-display);
+		font-size: var(--font-size-sm);
+		color: var(--text);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.done__chalbadge {
+		flex: 0 0 auto;
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		font-family: var(--font-display);
+		font-size: 10px;
+		padding: 2px 6px;
+		background: var(--accent2);
+		color: var(--on-accent);
+	}
+	.done__chalrow {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--spacing-sm);
+	}
+	.done__chalname {
+		font-size: var(--font-size-xs);
+		color: var(--muted);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.done__chalval {
+		flex: 0 0 auto;
+		font-family: var(--font-data);
+		font-size: 12px;
+		color: var(--text);
+	}
+	.done__chalval--done {
+		color: var(--green);
 	}
 
 	/* ============ ACTIVE screen — game-HUD redesign ============

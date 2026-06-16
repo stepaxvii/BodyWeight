@@ -12,7 +12,7 @@ This module contains the core business logic for completing workouts:
 
 from datetime import datetime, date, timedelta
 from typing import Any
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
@@ -75,6 +75,7 @@ class WorkoutCompletionResult:
     new_achievements: list[dict[str, Any]]
     streak: int
     workout_summary: dict[str, Any]
+    challenge_progress: list[Any] = field(default_factory=list)
 
 
 async def _exercise_day_total(
@@ -356,9 +357,11 @@ async def process_workout_completion(
         logging.getLogger(__name__).exception("Failed to deal boss damage")
 
     # 8.6 Record challenge progress for any active challenges this user joined
-    # (best-effort — never block workout completion)
+    # (best-effort — never block workout completion). The returned deltas are
+    # surfaced in the workout summary so the user sees the challenge advance.
+    challenge_progress: list[Any] = []
     try:
-        await challenges_record_progress(
+        challenge_progress = await challenges_record_progress(
             session,
             user,
             workout_date=data.finished_at.date(),
@@ -434,6 +437,7 @@ async def process_workout_completion(
         new_achievements=new_achievements,
         streak=user.current_streak,
         workout_summary=workout_summary,
+        challenge_progress=challenge_progress,
     )
 
 

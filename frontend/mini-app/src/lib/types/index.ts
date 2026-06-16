@@ -234,12 +234,31 @@ export interface WorkoutSet {
 	reps: number;
 }
 
+// Per-exercise challenge credit from a workout (matches backend schema)
+export interface ChallengeExerciseProgressSummary {
+	exercise_name_ru: string;
+	added: number;
+	accumulated: number;
+	target: number;
+	completed: boolean;
+	is_timed: boolean;
+}
+
+// Per-challenge progress a workout produced (matches backend schema)
+export interface ChallengeProgressSummary {
+	challenge_id: number;
+	challenge_title: string;
+	day_completed: boolean;
+	exercises: ChallengeExerciseProgressSummary[];
+}
+
 // WorkoutSummaryResponse (matches backend WorkoutSummaryResponse)
 export interface WorkoutSummaryResponse {
 	workout: WorkoutSession;
 	new_achievements: Array<Record<string, unknown>>; // list[dict] from backend
 	level_up: boolean;
 	new_level: number | null;
+	challenge_progress: ChallengeProgressSummary[];
 }
 
 // Achievement types (matches backend AchievementResponse)
