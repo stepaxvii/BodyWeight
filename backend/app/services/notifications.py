@@ -249,6 +249,46 @@ async def send_friend_workout_notification(
         return False
 
 
+def get_open_challenge_keyboard(challenge_id: int) -> InlineKeyboardMarkup:
+    """Keyboard whose button deep-links straight into a specific challenge.
+
+    Uses the bot ``startapp`` deep link so tapping opens the Mini App with
+    ``start_param = "challenge_<id>"`` (routed to /challenges/<id> on the front).
+    """
+    url = f"https://t.me/{settings.bot_username}?startapp=challenge_{challenge_id}"
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Открыть челлендж", url=url)]
+        ]
+    )
+
+
+async def send_new_challenge_push(
+    telegram_id: int,
+    creator_name: str,
+    challenge_title: str,
+    challenge_id: int,
+) -> bool:
+    """Tell a friend that someone created a new challenge they can still join."""
+    try:
+        bot = get_bot()
+        text = (
+            f"🏆 <b>Новый челлендж!</b>\n\n"
+            f"<b>{creator_name}</b> создал «{challenge_title}».\n"
+            f"Впишись, пока открыт приём — потренируйтесь наперегонки!"
+        )
+        await bot.send_message(
+            chat_id=telegram_id,
+            text=text,
+            reply_markup=get_open_challenge_keyboard(challenge_id),
+        )
+        logger.info(f"New-challenge notification sent to {telegram_id}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send new-challenge notification to {telegram_id}: {e}")
+        return False
+
+
 async def send_announcement_push(telegram_id: int, text: str) -> bool:
     """
     Send a generic announcement push to a user via Telegram bot.

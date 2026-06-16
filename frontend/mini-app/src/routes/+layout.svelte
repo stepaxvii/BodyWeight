@@ -3,6 +3,7 @@
 	import '$lib/styles/hud.css';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { base } from '$app/paths';
 	import { PixelNav } from '$lib/components/ui';
 	import OnboardingScreen from '$lib/components/OnboardingScreen.svelte';
 	import AuthScreen from '$lib/components/AuthScreen.svelte';
@@ -17,6 +18,15 @@
 	// Handle startParam navigation (deep links from notifications)
 	function handleStartParam(param: string | null) {
 		if (!param) return;
+
+		// Deep link straight into a specific challenge: startapp=challenge_<id>
+		if (param.startsWith('challenge_')) {
+			const id = param.slice('challenge_'.length);
+			if (/^\d+$/.test(id)) {
+				goto(`${base}/challenges/${id}`);
+				return;
+			}
+		}
 
 		const routes: Record<string, string> = {
 			friends_requests: '/friends?tab=requests',

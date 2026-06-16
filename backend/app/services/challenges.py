@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from datetime import datetime, date, timedelta
 from typing import Iterable
 
-from sqlalchemy import select, and_, func
+from sqlalchemy import select, and_, or_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -30,6 +30,7 @@ from app.db.models import (
     ChallengeParticipant,
     ChallengeProgress,
     Exercise,
+    Friendship,
     User,
 )
 from app.services.notifications import save_notification
@@ -216,6 +217,49 @@ async def join_challenge(
     session.add(p)
     await session.flush()
     return p
+
+
+async def notify_friends_new_challenge(
+    session: AsyncSession,
+    creator: User,
+    challenge: Challenge,
+) -> list[int]:
+    """Notify the creator's accepted friends about a freshly-created challenge.
+
+    Saves an in-app notification (bell) for EVERY accepted friend so they can
+    discover and join while joining is still open. Returns the telegram_ids of
+    friends who opted into Telegram pushes (notifications_enabled) so the caller
+    can fire best-effort pushes AFTER committing the transaction.
+    """
+    friends_result = await session.execute(
+        select(User)
+        .join(
+            Friendship,
+            or_(
+                and_(Friendship.user_id == creator.id, Friendship.friend_id == User.id),
+                and_(Friendship.friend_id == creator.id, Friendship.user_id == User.id),
+            ),
+        )
+        .where(Friendship.status == "accepted")
+    )
+    friends = friends_result.scalars().unique().all()
+    if not friends:
+        return []
+
+    creator_name = creator.username or creator.first_name or "Друг"
+    push_targets: list[int] = []
+    for friend in friends:
+        await save_notification(
+            session=session,
+            user_id=friend.id,
+            notification_type="challenge_created",
+            title="Новый челлендж от друга",
+            message=f"{creator_name} создал «{challenge.title}» — впишись, пока открыт приём!",
+            related_user_id=creator.id,
+        )
+        if friend.notifications_enabled and friend.telegram_id:
+            push_targets.append(friend.telegram_id)
+    return push_targets
 
 
 # ---------------------------------------------------------------------------

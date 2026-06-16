@@ -1,4 +1,5 @@
 """User-created challenges endpoints."""
+import logging
 from datetime import datetime, timedelta, date
 from fastapi import APIRouter, HTTPException, status, Query
 from sqlalchemy import select, func
@@ -28,6 +29,7 @@ from app.services.challenges import (
     ChallengeExerciseInput,
     create_challenge,
     join_challenge,
+    notify_friends_new_challenge,
     update_challenge_status,
     update_all_statuses,
     finalize_due_challenges,
@@ -35,7 +37,10 @@ from app.services.challenges import (
     claim_reward,
     REWARD_CLAIM_TTL_DAYS,
 )
+from app.services.notifications import send_new_challenge_push
 
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -116,6 +121,12 @@ async def create_challenge_route(
                 ],
             ),
         )
+        # In-app notify friends so they can join while it's still open.
+        push_targets = await notify_friends_new_challenge(session, user, challenge)
+        # Capture before commit — attributes expire on commit (no async lazy-load).
+        challenge_id = challenge.id
+        challenge_title = challenge.title
+        creator_name = _user_display_name(user) or "Друг"
         await session.commit()
     except ValueError as e:
         await session.rollback()
@@ -123,7 +134,14 @@ async def create_challenge_route(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         )
 
-    return await _build_details_response(session, user, challenge.id)
+    # Best-effort Telegram pushes to friends who opted in (after commit).
+    for tid in push_targets:
+        try:
+            await send_new_challenge_push(tid, creator_name, challenge_title, challenge_id)
+        except Exception:
+            logger.exception("Failed to push new-challenge notification")
+
+    return await _build_details_response(session, user, challenge_id)
 
 
 @router.get(
