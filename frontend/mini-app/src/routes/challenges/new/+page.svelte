@@ -33,8 +33,9 @@
 		return new Date().toISOString().split('T')[0];
 	}
 	function addDaysIso(fromIso: string, days: number): string {
-		const d = new Date(fromIso);
-		d.setDate(d.getDate() + days);
+		// UTC-anchored so date math never drifts a day across timezones.
+		const d = new Date(fromIso + 'T00:00:00Z');
+		d.setUTCDate(d.getUTCDate() + days);
 		return d.toISOString().split('T')[0];
 	}
 
@@ -502,7 +503,6 @@
 	.cn-picker__tag {
 		font-size: 9px;
 		color: var(--accent);
-		text-transform: uppercase;
 	}
 	.cn-picker__empty {
 		font-size: 12px;

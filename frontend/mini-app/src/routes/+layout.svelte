@@ -22,7 +22,7 @@
 		// Deep link straight into a specific challenge: startapp=challenge_<id>
 		if (param.startsWith('challenge_')) {
 			const id = param.slice('challenge_'.length);
-			if (/^\d+$/.test(id)) {
+			if (/^\d{1,9}$/.test(id)) {
 				goto(`${base}/challenges/${id}`);
 				return;
 			}

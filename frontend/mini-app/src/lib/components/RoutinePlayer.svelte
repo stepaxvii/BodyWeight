@@ -485,7 +485,7 @@
 								<div class="done__chalrow">
 									<span class="done__chalname">{ex.exercise_name_ru}</span>
 									<span class="done__chalval" class:done__chalval--done={ex.completed}>
-										+{ex.added} · {ex.accumulated}/{ex.target}{ex.completed ? ' ✓' : ''}
+										+{ex.added}{ex.is_timed ? ' сек' : ''} · {ex.accumulated}/{ex.target}{ex.completed ? ' ✓' : ''}
 									</span>
 								</div>
 							{/each}

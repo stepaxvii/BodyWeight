@@ -55,22 +55,27 @@ async def _calc_running_completion(
     session: AsyncSessionDep,
     challenge: Challenge,
     user_id: int,
+    n_ex: int | None = None,
 ) -> tuple[int, int]:
     """
     Returns (completion_percent, completed_days) computed from progress rows.
     Used while challenge is still running (before finalization).
     A day fully complete = ALL exercises completed for that day.
+
+    `n_ex` (exercise count) may be passed in to avoid re-querying it when this
+    is called repeatedly for the same challenge (e.g. per participant).
     """
     duration = (challenge.end_date - challenge.start_date).days + 1
     if duration <= 0:
         return 0, 0
 
-    n_ex_result = await session.execute(
-        select(func.count(ChallengeExercise.id)).where(
-            ChallengeExercise.challenge_id == challenge.id
+    if n_ex is None:
+        n_ex_result = await session.execute(
+            select(func.count(ChallengeExercise.id)).where(
+                ChallengeExercise.challenge_id == challenge.id
+            )
         )
-    )
-    n_ex = n_ex_result.scalar() or 0
+        n_ex = n_ex_result.scalar() or 0
     if n_ex == 0:
         return 0, 0
 
@@ -121,12 +126,17 @@ async def create_challenge_route(
                 ],
             ),
         )
-        # In-app notify friends so they can join while it's still open.
-        push_targets = await notify_friends_new_challenge(session, user, challenge)
         # Capture before commit — attributes expire on commit (no async lazy-load).
         challenge_id = challenge.id
         challenge_title = challenge.title
         creator_name = _user_display_name(user) or "Друг"
+        # In-app notify friends so they can join while it's still open.
+        # Best-effort: a notification hiccup must not fail challenge creation.
+        try:
+            push_targets = await notify_friends_new_challenge(session, user, challenge)
+        except Exception:
+            logger.exception("Failed to notify friends about new challenge")
+            push_targets = []
         await session.commit()
     except ValueError as e:
         await session.rollback()
@@ -419,13 +429,13 @@ async def _build_details_response(
     for p, u in participants_rows:
         if challenge.finalized_at is not None and p.completion_percent is not None:
             pct = p.completion_percent
-            pct_running, completed_days = await _calc_running_completion(
-                session, challenge, u.id
+            _, completed_days = await _calc_running_completion(
+                session, challenge, u.id, n_ex=len(exercises)
             )
             # Final % may differ slightly from running due to clamp; prefer stored.
         else:
             pct, completed_days = await _calc_running_completion(
-                session, challenge, u.id
+                session, challenge, u.id, n_ex=len(exercises)
             )
 
         is_claimable = (

@@ -101,12 +101,12 @@
 	// Build a 2D grid of days × exercises for the calendar visualization
 	const dayCells = $derived.by(() => {
 		if (!details) return [];
-		const start = new Date(details.start_date);
-		const end = new Date(details.end_date);
+		const start = new Date(details.start_date + 'T00:00:00Z');
+		const end = new Date(details.end_date + 'T00:00:00Z');
 		const days: { iso: string; label: number; isToday: boolean }[] = [];
-		for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+		for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
 			const iso = d.toISOString().split('T')[0];
-			days.push({ iso, label: d.getDate(), isToday: iso === todayIso() });
+			days.push({ iso, label: d.getUTCDate(), isToday: iso === todayIso() });
 		}
 		return days;
 	});
@@ -181,8 +181,8 @@
 
 	const daysUntilStart = $derived.by(() => {
 		if (!details) return 0;
-		const start = new Date(details.start_date + 'T00:00:00');
-		const today = new Date(todayIso() + 'T00:00:00');
+		const start = new Date(details.start_date + 'T00:00:00Z');
+		const today = new Date(todayIso() + 'T00:00:00Z');
 		return Math.max(0, Math.round((start.getTime() - today.getTime()) / 86400000));
 	});
 
@@ -190,7 +190,7 @@
 	const claimDeadline = $derived.by(() => {
 		if (!details?.finalized_at) return null;
 		const d = new Date(details.finalized_at);
-		d.setDate(d.getDate() + 7);
+		d.setUTCDate(d.getUTCDate() + 7);
 		return d.toISOString().split('T')[0];
 	});
 </script>
@@ -424,11 +424,10 @@
 	}
 
 	.status-pill {
-		font-size: 9px;
-		padding: 2px 6px;
-		border: 1px solid var(--border-color);
-		text-transform: uppercase;
-		letter-spacing: 1px;
+		font-family: var(--font-display);
+		font-size: 11px;
+		padding: 3px 7px;
+		border: 2px solid var(--line);
 		flex-shrink: 0;
 	}
 
