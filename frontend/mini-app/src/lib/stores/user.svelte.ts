@@ -277,6 +277,39 @@ class UserStore {
 		}
 	}
 
+	/** Toggle visibility in the public leaderboard (privacy). Optimistic; reverts on error. */
+	async setLeaderboardVisible(visible: boolean): Promise<void> {
+		if (!this.user) return;
+		const prev = this.user.leaderboard_visible;
+		this.user.leaderboard_visible = visible;
+		try {
+			this.user = await api.updateUser({ leaderboard_visible: visible });
+		} catch (err) {
+			if (this.user) this.user.leaderboard_visible = prev;
+			throw err;
+		}
+	}
+
+	/** Toggle Telegram push reminders. Optimistic; reverts on error. */
+	async setNotificationsEnabled(enabled: boolean): Promise<void> {
+		if (!this.user) return;
+		const prev = this.user.notifications_enabled;
+		this.user.notifications_enabled = enabled;
+		try {
+			this.user = await api.updateUser({ notifications_enabled: enabled });
+		} catch (err) {
+			if (this.user) this.user.notifications_enabled = prev;
+			throw err;
+		}
+	}
+
+	/** Set the daily reminder time ("HH:MM"). Throws on error. */
+	async setNotificationTime(time: string): Promise<User> {
+		const updated = await api.updateUser({ notification_time: time });
+		this.user = updated;
+		return updated;
+	}
+
 	async setAvatar(avatarId: AvatarId) {
 		if (this.user) {
 			this.user.avatar_id = avatarId;

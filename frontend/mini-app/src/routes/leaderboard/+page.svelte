@@ -24,8 +24,7 @@
 		if (updatingVisibility || userStore.user?.leaderboard_visible) return;
 		updatingVisibility = true;
 		try {
-				const updated = await api.updateUser({ leaderboard_visible: true });
-			if (userStore.user) userStore.user = { ...userStore.user, ...updated };
+			await userStore.setLeaderboardVisible(true);
 			telegram.hapticImpact('light');
 			await loadLeaderboard();
 		} catch (e) {

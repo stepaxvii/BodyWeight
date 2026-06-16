@@ -7,7 +7,6 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
-	import { sound } from '$lib/stores/sound.svelte';
 	import type { Achievement, AvatarId, UserActivity, DayActivity, UserRecords } from '$lib/types';
 
 	let achievements = $state<Achievement[]>([]);
@@ -23,32 +22,6 @@
 	const MAX_STREAK_FREEZES = 2;
 	let freezeBuying = $state(false);
 	let freezeMessage = $state<string | null>(null);
-
-	// Daily activity norm (XP/day target that colours the activity calendar)
-	let normInput = $state(1400);
-	let normSaving = $state(false);
-	let normMessage = $state<string | null>(null);
-
-	async function handleSaveNorm() {
-		if (normSaving) return;
-		const value = Math.round(Number(normInput));
-		if (!Number.isFinite(value) || value < 100 || value > 100000) {
-			normMessage = 'Норма должна быть от 100 до 100000 XP';
-			return;
-		}
-		normSaving = true;
-		normMessage = null;
-		try {
-			await userStore.setActivityNorm(value);
-			telegram.hapticNotification('success');
-			normMessage = '✅ Норма обновлена';
-		} catch (err) {
-			telegram.hapticNotification('error');
-			normMessage = err instanceof Error ? err.message : 'Не удалось сохранить';
-		} finally {
-			normSaving = false;
-		}
-	}
 
 	async function handleBuyFreeze() {
 		if (freezeBuying) return;
@@ -66,40 +39,8 @@
 		}
 	}
 
-	// Account settings
-	let showLinkTelegram = $state(false);
-	let telegramIdInput = $state('');
-	let accountMessage = $state<string | null>(null);
-	let accountError = $state<string | null>(null);
-	let accountLoading = $state(false);
-
-	async function handleLinkTelegram() {
-		const tid = parseInt(telegramIdInput);
-		if (isNaN(tid)) {
-			accountError = 'Введите корректный Telegram ID (число)';
-			return;
-		}
-		accountError = null;
-		accountLoading = true;
-		try {
-			const result = await userStore.linkTelegram(tid);
-			accountMessage = result.message;
-			showLinkTelegram = false;
-			telegramIdInput = '';
-		} catch (err) {
-			accountError = err instanceof Error ? err.message : 'Ошибка';
-		} finally {
-			accountLoading = false;
-		}
-	}
-
-	function handleLogout() {
-		userStore.logout();
-	}
-
 	onMount(async () => {
 		await userStore.loadStats();
-		normInput = userStore.dailyActivityNorm;
 
 		try {
 			achievements = await api.getAllAchievements();
@@ -176,18 +117,6 @@
 		showTitlePicker = true;
 		telegram.hapticImpact('light');
 	}
-
-	const soundOn = $derived(userStore.user?.sound_enabled ?? true);
-	function toggleSound() {
-		const next = !soundOn;
-		userStore.setSoundEnabled(next);
-		telegram.hapticImpact('light');
-		if (next) {
-			// Unlock audio on this gesture and play a confirming cue.
-			sound.unlock();
-			sound.start();
-		}
-	}
 </script>
 
 <div class="page container anim-cascade">
@@ -209,6 +138,9 @@
 					</button>
 					<span class="char__lvl">Уровень {userStore.level}</span>
 				</div>
+				<a class="char__settings" href="{base}/settings" aria-label="Настройки">
+					<PixelIcon name="gear" size="md" color="var(--hero-text)" />
+				</a>
 			</div>
 			<div class="char__xp">
 				<PixelProgress value={xpInLevel} max={xpNeeded} variant="xp" size="sm" />
@@ -281,44 +213,6 @@
 			</PixelCard>
 		</section>
 	{/if}
-
-	<!-- Daily activity norm -->
-	<section class="norm-section">
-		<h3 class="section-title">Дневная норма</h3>
-		<div class="norm-card">
-			<p class="norm-hint">Цель XP в день — по ней раскрашивается календарь активности (4 уровня заливки).</p>
-			<div class="norm-controls">
-				<input
-					class="norm-input"
-					type="number"
-					min="100"
-					max="100000"
-					step="50"
-					bind:value={normInput}
-				/>
-				<span class="norm-unit">XP</span>
-				<button class="norm-save" disabled={normSaving} onclick={handleSaveNorm}>
-					{normSaving ? '...' : 'Сохранить'}
-				</button>
-			</div>
-			{#if normMessage}
-				<p class="norm-message">{normMessage}</p>
-			{/if}
-		</div>
-	</section>
-
-	<!-- Sound effects toggle (roadmap 5.1) -->
-	<section class="sound-section">
-		<h3 class="section-title">Звук</h3>
-		<button class="sound-row" onclick={toggleSound}>
-			<PixelIcon name="bell" size="md" color="var(--accent)" />
-			<div class="sound-text">
-				<span class="sound-title">Звуковые сигналы</span>
-				<span class="sound-hint">8-битные сигналы на тренировке</span>
-			</div>
-			<span class="sound-state" class:on={soundOn}>{soundOn ? 'Вкл' : 'Выкл'}</span>
-		</button>
-	</section>
 
 	<!-- Stats band -->
 	<section class="stats-section">
@@ -462,70 +356,7 @@
 		</a>
 	</section>
 
-	<!-- Account Settings -->
-	<section class="account-section">
-		<h3 class="section-title">Аккаунт</h3>
-
-		{#if accountMessage}
-			<div class="account-success">{accountMessage}</div>
-		{/if}
-
-		<div class="account-info">
-			{#if userStore.user?.email}
-				<div class="account-row">
-					<span class="account-label">Email</span>
-					<span class="account-value">{userStore.user.email}</span>
-				</div>
-			{/if}
-			{#if userStore.user?.telegram_id}
-				<div class="account-row">
-					<span class="account-label">Telegram</span>
-					<span class="account-value">ID: {userStore.user.telegram_id}</span>
-				</div>
-			{/if}
-		</div>
-
-		<div class="account-actions">
-			{#if !userStore.hasTelegram}
-				<button class="account-btn" onclick={() => { showLinkTelegram = true; accountError = null; }}>
-					Привязать Telegram
-				</button>
-			{/if}
-
-			{#if userStore.authMode === 'web'}
-				<button class="account-btn logout-btn" onclick={handleLogout}>
-					Выйти
-				</button>
-			{/if}
-		</div>
-	</section>
-
 </div>
-
-<!-- Link Telegram Modal -->
-<PixelModal
-	open={showLinkTelegram}
-	title="Привязать Telegram"
-	onclose={() => { showLinkTelegram = false; accountError = null; }}
->
-	<div class="modal-instructions">
-		<p>1. Начните диалог с ботом <b>@pixelfitbot</b></p>
-		<p>2. Введите ваш Telegram ID ниже</p>
-		<p>3. Подтвердите привязку в Telegram</p>
-	</div>
-	<form class="modal-form" onsubmit={(e) => { e.preventDefault(); handleLinkTelegram(); }}>
-		<div class="modal-field">
-			<label for="tg-id">Telegram ID</label>
-			<input id="tg-id" type="text" bind:value={telegramIdInput} placeholder="Например: 123456789" required />
-		</div>
-		{#if accountError}
-			<div class="modal-error">{accountError}</div>
-		{/if}
-		<button type="submit" class="modal-submit" disabled={accountLoading}>
-			{accountLoading ? 'Отправка...' : 'Отправить запрос'}
-		</button>
-	</form>
-</PixelModal>
 
 <!-- Day details modal (from bar chart click) -->
 <PixelModal
@@ -630,124 +461,6 @@
 		color: var(--on-accent);
 	}
 
-	/* Daily activity norm */
-	.norm-section {
-		margin-bottom: var(--spacing-md);
-	}
-
-	.norm-card {
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
-		padding: var(--spacing-sm) var(--spacing-md);
-	}
-
-	.norm-hint {
-		font-size: 10px;
-		color: var(--text-secondary);
-		margin: 0 0 var(--spacing-sm) 0;
-		line-height: 1.5;
-	}
-
-	.norm-controls {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-	}
-
-	.norm-input {
-		flex: 1;
-		min-width: 0;
-		padding: 8px 10px;
-		background: var(--pixel-bg-dark);
-		border: var(--border-width) solid var(--border-color);
-		color: var(--text-primary);
-		font-family: inherit;
-		font-size: 14px;
-		outline: none;
-	}
-
-	.norm-input:focus {
-		border-color: var(--pixel-accent);
-	}
-
-	.norm-unit {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-	}
-
-	.norm-save {
-		padding: 8px var(--spacing-md);
-		background: var(--pixel-bg-dark);
-		border: var(--border-width) solid var(--pixel-accent);
-		color: var(--pixel-accent);
-		font-family: inherit;
-		font-size: var(--font-size-xs);
-		cursor: pointer;
-		white-space: nowrap;
-	}
-
-	.norm-save:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	.norm-message {
-		font-size: 10px;
-		color: var(--text-secondary);
-		margin: var(--spacing-sm) 0 0 0;
-		text-align: center;
-	}
-
-	/* Sound effects toggle (roadmap 5.1) */
-	.sound-section {
-		margin-bottom: var(--spacing-md);
-	}
-	.sound-row {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-		width: 100%;
-		text-align: left;
-		padding: var(--spacing-sm) var(--spacing-md);
-		background: var(--bg2);
-		border: var(--bw) solid var(--line);
-		box-shadow: var(--shadow);
-		cursor: pointer;
-	}
-	.sound-row:active {
-		transform: translate(2px, 2px);
-		box-shadow: none;
-	}
-	.sound-text {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		min-width: 0;
-	}
-	.sound-title {
-		font-size: var(--font-size-sm);
-		color: var(--text);
-	}
-	.sound-hint {
-		font-size: 10px;
-		color: var(--muted);
-	}
-	.sound-state {
-		flex: 0 0 auto;
-		font-family: var(--font-display);
-		font-size: 12px;
-		padding: 4px 10px;
-		background: var(--bg3);
-		border: 2px solid var(--line);
-		color: var(--muted);
-	}
-	.sound-state.on {
-		background: var(--accent);
-		color: var(--on-accent);
-	}
-
 	/* Stats Row - compact horizontal */
 	.stats-section {
 		margin-bottom: var(--spacing-md);
@@ -801,6 +514,23 @@
 		border: none;
 		cursor: pointer;
 		color: inherit;
+	}
+
+	/* Settings gear in the hero header (opens /settings) */
+	.char__settings {
+		flex: 0 0 auto;
+		align-self: flex-start;
+		width: 34px;
+		height: 34px;
+		display: grid;
+		place-items: center;
+		background: rgba(0, 0, 0, 0.22);
+		border: 2px solid var(--hero-edge);
+		box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.14), inset -2px -2px 0 rgba(0, 0, 0, 0.3);
+		cursor: pointer;
+	}
+	.char__settings:active {
+		transform: translate(1px, 1px);
 	}
 
 	/* Badges Section */
@@ -1006,12 +736,6 @@
 		text-transform: uppercase;
 	}
 
-	.link-count {
-		margin-left: auto;
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-	}
-
 	/* Day details modal */
 	.day-details {
 		display: flex;
@@ -1059,142 +783,5 @@
 	.no-activity p {
 		margin: 0;
 		font-size: var(--font-size-sm);
-	}
-
-	/* Account Section */
-	.account-section {
-		margin-bottom: var(--spacing-md);
-	}
-
-	.account-success {
-		padding: var(--spacing-sm);
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--pixel-green);
-		font-size: var(--font-size-xs);
-		color: var(--pixel-green);
-		margin-bottom: var(--spacing-sm);
-	}
-
-	.account-info {
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
-		padding: var(--spacing-sm) var(--spacing-md);
-		margin-bottom: var(--spacing-sm);
-	}
-
-	.account-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: var(--spacing-xs) 0;
-	}
-
-	.account-row + .account-row {
-		border-top: 1px solid var(--border-color);
-	}
-
-	.account-label {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-	}
-
-	.account-value {
-		font-size: var(--font-size-xs);
-		color: var(--text-primary);
-	}
-
-	.account-actions {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-xs);
-	}
-
-	.account-btn {
-		padding: 10px var(--spacing-md);
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		color: var(--pixel-accent);
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-xs);
-		cursor: pointer;
-		text-align: left;
-		transition: border-color 0.2s;
-	}
-
-	.account-btn:hover {
-		border-color: var(--pixel-accent);
-	}
-
-	.logout-btn {
-		color: var(--pixel-red);
-	}
-
-	.logout-btn:hover {
-		border-color: var(--pixel-red);
-	}
-
-	/* Modal form styles */
-	.modal-form {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-md);
-		padding: var(--spacing-sm) 0;
-	}
-
-	.modal-field {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-	}
-
-	.modal-field label {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-	}
-
-	.modal-field input {
-		padding: 10px 12px;
-		background: var(--pixel-bg-dark);
-		border: var(--border-width) solid var(--border-color);
-		color: var(--text-primary);
-		font-size: 14px;
-		outline: none;
-	}
-
-	.modal-field input:focus {
-		border-color: var(--pixel-accent);
-	}
-
-	.modal-error {
-		color: var(--pixel-red);
-		font-size: var(--font-size-xs);
-		padding: var(--spacing-xs);
-	}
-
-	.modal-submit {
-		padding: 12px;
-		background: var(--pixel-accent);
-		border: none;
-		color: var(--on-accent);
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-xs);
-		cursor: pointer;
-	}
-
-	.modal-submit:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-
-	.modal-instructions {
-		padding: var(--spacing-sm) 0;
-		font-size: 12px;
-		color: var(--text-secondary);
-		line-height: 1.6;
-	}
-
-	.modal-instructions p {
-		margin: 4px 0;
 	}
 </style>
