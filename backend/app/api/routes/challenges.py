@@ -194,13 +194,21 @@ async def list_challenges_route(
     )
     ex_count = {cid: cnt for cid, cnt in ex_q.all()}
 
-    # My memberships
+    # Sum of daily targets per challenge — the daily commitment shown on cards
+    tgt_q = await session.execute(
+        select(ChallengeExercise.challenge_id, func.sum(ChallengeExercise.daily_target))
+        .where(ChallengeExercise.challenge_id.in_(ids))
+        .group_by(ChallengeExercise.challenge_id)
+    )
+    target_sum = {cid: int(s or 0) for cid, s in tgt_q.all()}
+
+    # My participant rows (membership + reward info in one fetch)
     me_q = await session.execute(
-        select(ChallengeParticipant.challenge_id)
+        select(ChallengeParticipant)
         .where(ChallengeParticipant.user_id == user.id)
         .where(ChallengeParticipant.challenge_id.in_(ids))
     )
-    my_ids = {r[0] for r in me_q.all()}
+    my_parts = {p.challenge_id: p for p in me_q.scalars().all()}
 
     # Creator names
     creator_ids = [c.creator_user_id for c in challenges if c.creator_user_id is not None]
@@ -210,21 +218,51 @@ async def list_challenges_route(
         for u in cr_q.scalars().all():
             creator_map[u.id] = u
 
-    items = [
-        ChallengeListItem(
-            id=c.id,
-            title=c.title,
-            creator_user_id=c.creator_user_id,
-            creator_name=_user_display_name(creator_map.get(c.creator_user_id)) if c.creator_user_id else None,
-            start_date=c.start_date,
-            end_date=c.end_date,
-            status=c.status,
-            participants_count=parts_count.get(c.id, 0),
-            exercises_count=ex_count.get(c.id, 0),
-            is_member=c.id in my_ids,
+    items: list[ChallengeListItem] = []
+    for c in challenges:
+        is_member = c.id in my_parts
+        completion_percent: int | None = None
+        completed_days: int | None = None
+        reward_claimable = False
+        reward_coins = 0
+
+        if is_member:
+            p = my_parts[c.id]
+            if c.finalized_at is not None and p.completion_percent is not None:
+                completion_percent = p.completion_percent
+                reward_coins = p.reward_coins
+                reward_claimable = (
+                    p.reward_claimed_at is None
+                    and p.reward_coins > 0
+                    and datetime.utcnow()
+                    <= c.finalized_at + timedelta(days=REWARD_CLAIM_TTL_DAYS)
+                )
+            elif c.status == "active":
+                completion_percent, completed_days = await _calc_running_completion(
+                    session, c, user.id
+                )
+
+        items.append(
+            ChallengeListItem(
+                id=c.id,
+                title=c.title,
+                creator_user_id=c.creator_user_id,
+                creator_name=_user_display_name(creator_map.get(c.creator_user_id)) if c.creator_user_id else None,
+                start_date=c.start_date,
+                end_date=c.end_date,
+                status=c.status,
+                participants_count=parts_count.get(c.id, 0),
+                exercises_count=ex_count.get(c.id, 0),
+                is_member=is_member,
+                total_days=(c.end_date - c.start_date).days + 1,
+                daily_target_total=target_sum.get(c.id, 0),
+                completion_percent=completion_percent,
+                completed_days=completed_days,
+                reward_claimable=reward_claimable,
+                reward_coins=reward_coins,
+            )
         )
-        for c in challenges
-    ]
+
     await session.commit()
     return items
 

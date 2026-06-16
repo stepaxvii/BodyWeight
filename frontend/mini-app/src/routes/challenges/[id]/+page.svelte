@@ -22,24 +22,34 @@
 	let claiming = $state(false);
 	let toast = $state<string | null>(null);
 
-	async function load() {
-		loading = true;
+	async function load(silent = false) {
+		if (!silent) loading = true;
 		try {
-			details = await api.getChallenge(challengeId);
-			if (details.is_member) {
+			const d = await api.getChallenge(challengeId);
+			details = d;
+			if (d.is_member) {
 				myCalendar = await api.getChallengeCalendar(challengeId);
 			} else {
 				myCalendar = null;
 			}
 		} catch (e) {
 			console.error('Failed to load challenge:', e);
-			details = null;
+			if (!silent) details = null;
 		} finally {
-			loading = false;
+			if (!silent) loading = false;
 		}
 	}
 
-	onMount(load);
+	onMount(() => {
+		load();
+		// Refresh silently when returning to the app (e.g. after a workout) so the
+		// calendar and today's progress reflect freshly-logged reps.
+		const onVisible = () => {
+			if (document.visibilityState === 'visible') load(true);
+		};
+		document.addEventListener('visibilitychange', onVisible);
+		return () => document.removeEventListener('visibilitychange', onVisible);
+	});
 
 	async function handleJoin() {
 		if (!details || joining) return;
@@ -156,6 +166,33 @@
 	function isMe(p: ChallengeParticipant): boolean {
 		return p.user_id === userStore.user?.id;
 	}
+
+	function fmtFull(iso: string): string {
+		return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+	}
+
+	// Reward tiers — must mirror backend REWARD_TIERS in services/challenges.py
+	const REWARD_TIERS = [
+		{ pct: 100, coins: 200, label: 'Идеально' },
+		{ pct: 80, coins: 100, label: 'Отлично' },
+		{ pct: 50, coins: 40, label: 'Неплохо' },
+		{ pct: 1, coins: 10, label: 'Участие' }
+	];
+
+	const daysUntilStart = $derived.by(() => {
+		if (!details) return 0;
+		const start = new Date(details.start_date + 'T00:00:00');
+		const today = new Date(todayIso() + 'T00:00:00');
+		return Math.max(0, Math.round((start.getTime() - today.getTime()) / 86400000));
+	});
+
+	// Reward claim window closes 7 days after finalization (REWARD_CLAIM_TTL_DAYS).
+	const claimDeadline = $derived.by(() => {
+		if (!details?.finalized_at) return null;
+		const d = new Date(details.finalized_at);
+		d.setDate(d.getDate() + 7);
+		return d.toISOString().split('T')[0];
+	});
 </script>
 
 <div class="detail-page">
@@ -191,25 +228,35 @@
 				{/if}
 			</div>
 
+			<div class="targets-head">Каждый день нужно выполнить:</div>
 			<div class="exercise-targets">
 				{#each details.exercises as ex (ex.exercise_id)}
 					<div class="ex-target">
 						<span class="ex-name">{ex.exercise_name_ru}</span>
-						<span class="ex-target-val">
-							{ex.daily_target}
-							{#if ex.is_timed}сек{:else if ex.exercise_slug === 'walking'}шагов{:else}повт.{/if}
-							/ день
-						</span>
+						<span class="ex-target-val">{ex.daily_target} <b>{#if ex.is_timed}сек{:else if ex.exercise_slug === 'walking'}шагов{:else}повт.{/if}</b></span>
 					</div>
 				{/each}
 			</div>
+			{#if details.exercises.length > 1}
+				<div class="and-note">
+					<PixelIcon name="warning" size="sm" color="var(--accent)" />
+					<span>День засчитывается, только если выполнены <b>все</b> упражнения.</span>
+				</div>
+			{/if}
 
 			{#if details.can_join}
 				<PixelButton variant="success" fullWidth loading={joining} onclick={handleJoin}>
 					Присоединиться
 				</PixelButton>
+				<p class="join-hint">Приём закрывается со стартом — потом можно только следить.</p>
 			{:else if details.status === 'upcoming' && details.is_member}
-				<div class="info-msg">Ты в челлендже. Старт {fmtDate(details.start_date)}.</div>
+				<div class="info-msg">
+					{#if daysUntilStart > 0}
+						Ты в челлендже! Старт через <b>{daysUntilStart}</b> дн. — {fmtFull(details.start_date)}
+					{:else}
+						Ты в челлендже! Старт сегодня — вперёд!
+					{/if}
+				</div>
 			{:else if details.status === 'active' && !details.is_member}
 				<div class="info-msg muted">Челлендж уже идёт — присоединиться нельзя, но можно следить.</div>
 			{/if}
@@ -259,6 +306,21 @@
 			</PixelCard>
 		{/if}
 
+		{#if details.status !== 'finished'}
+			<PixelCard padding="md">
+				<h3 class="section-title">Награды <span class="section-sub">по % выполнения</span></h3>
+				<div class="tiers">
+					{#each REWARD_TIERS as t}
+						<div class="tier">
+							<span class="tier-pct">{t.pct}%+</span>
+							<span class="tier-label">{t.label}</span>
+							<span class="tier-coins"><PixelIcon name="coin" size="sm" color="var(--gold)" /> {t.coins}</span>
+						</div>
+					{/each}
+				</div>
+			</PixelCard>
+		{/if}
+
 		{#if details.finalized_at && details.is_member}
 			{@const me = details.participants.find(isMe)}
 			{#if me && me.reward_claimable}
@@ -269,6 +331,9 @@
 							<div class="claim-stat">
 								Выполнено: <b>{me.completion_percent}%</b> ({me.completed_days} дн.)
 							</div>
+							{#if claimDeadline}
+								<div class="claim-deadline">Успей забрать до {fmtFull(claimDeadline)}</div>
+							{/if}
 						</div>
 						<PixelButton variant="success" loading={claiming} onclick={handleClaim}>
 							Забрать
@@ -399,14 +464,20 @@
 		margin: var(--spacing-sm) 0 0 0;
 	}
 
+	.targets-head {
+		margin-top: var(--spacing-md);
+		font-size: 11px;
+		color: var(--muted);
+	}
+
 	.exercise-targets {
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
-		margin: var(--spacing-md) 0;
+		margin: 6px 0 0 0;
 		padding: var(--spacing-sm);
-		background: var(--pixel-bg-dark);
-		border: 1px solid var(--border-color);
+		background: var(--bg3);
+		border: var(--bw) solid var(--line);
 	}
 
 	.ex-target {
@@ -417,11 +488,37 @@
 	}
 
 	.ex-name {
-		color: var(--text-primary);
+		color: var(--text);
 	}
 
 	.ex-target-val {
-		color: var(--pixel-accent);
+		font-family: var(--font-data);
+		color: var(--accent);
+	}
+	.ex-target-val b {
+		color: var(--muted);
+		font-weight: 400;
+		font-size: 10px;
+	}
+
+	.and-note {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin-top: var(--spacing-sm);
+		font-size: 11px;
+		color: var(--muted);
+		line-height: 1.4;
+	}
+	.and-note b {
+		color: var(--text);
+	}
+
+	.join-hint {
+		margin: 6px 0 0 0;
+		font-size: 10px;
+		color: var(--muted);
+		text-align: center;
 	}
 
 	.info-msg {
@@ -441,6 +538,53 @@
 		font-size: var(--font-size-sm);
 		color: var(--text-primary);
 		margin: 0 0 var(--spacing-sm) 0;
+	}
+	.section-sub {
+		font-family: var(--font-ui);
+		font-size: 10px;
+		color: var(--muted);
+	}
+
+	/* Reward tiers */
+	.tiers {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+	.tier {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 7px 10px;
+		background: var(--bg3);
+		border: 2px solid var(--line);
+	}
+	.tier-pct {
+		flex: 0 0 auto;
+		font-family: var(--font-data);
+		font-size: 13px;
+		color: var(--text);
+		min-width: 40px;
+	}
+	.tier-label {
+		flex: 1;
+		font-size: 11px;
+		color: var(--muted);
+	}
+	.tier-coins {
+		flex: 0 0 auto;
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		font-family: var(--font-data);
+		font-size: 13px;
+		color: var(--gold);
+	}
+
+	.claim-deadline {
+		font-size: 10px;
+		color: var(--danger);
+		margin-top: 2px;
 	}
 
 	/* Today list */
@@ -536,8 +680,9 @@
 	}
 
 	.cal-today {
-		outline: var(--border-width) solid var(--pixel-accent);
-		outline-offset: calc(-1 * var(--border-width));
+		outline: 3px solid var(--accent);
+		outline-offset: -3px;
+		font-family: var(--font-display);
 	}
 
 	.cal-legend {

@@ -42,6 +42,14 @@ class ChallengeListItem(BaseModel):
     participants_count: int
     exercises_count: int
     is_member: bool
+    total_days: int = 0
+    daily_target_total: int = 0  # sum of all exercises' daily targets
+    # Personal progress (only for members on active/finished challenges)
+    completion_percent: int | None = None
+    completed_days: int | None = None
+    # Unclaimed reward signal for finished challenges
+    reward_claimable: bool = False
+    reward_coins: int = 0
 
 
 class ChallengeParticipantInfo(BaseModel):

@@ -566,6 +566,12 @@ export interface ChallengeListItem {
 	participants_count: number;
 	exercises_count: number;
 	is_member: boolean;
+	total_days: number;
+	daily_target_total: number;
+	completion_percent: number | null;
+	completed_days: number | null;
+	reward_claimable: boolean;
+	reward_coins: number;
 }
 
 export interface ChallengeParticipant {
