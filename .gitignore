@@ -69,3 +69,6 @@ htmlcov/
 
 # Alembic
 alembic.ini.local
+
+# Docs
+docs/
