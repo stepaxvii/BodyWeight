@@ -40,25 +40,15 @@
 	}
 
 	onMount(async () => {
-		await userStore.loadStats();
-
-		try {
-			achievements = await api.getAllAchievements();
-		} catch (err) {
-			console.error('Failed to load achievements:', err);
-		}
-
-		try {
-			activityData = await api.getUserActivity();
-		} catch (err) {
-			console.error('Failed to load activity data:', err);
-		}
-
-		try {
-			records = await api.getUserRecords();
-		} catch (err) {
-			console.error('Failed to load records:', err);
-		}
+		const [, ach, act, rec] = await Promise.all([
+			userStore.loadStats(),
+			api.getAllAchievements().catch(() => []),
+			api.getUserActivity().catch(() => null),
+			api.getUserRecords().catch(() => null)
+		]);
+		achievements = ach;
+		activityData = act;
+		records = rec;
 	});
 
 	// Sort by unlock date (newest first)
@@ -285,11 +275,12 @@
 				<div class="badges-grid anim-rows">
 					{#each unlockedAchievements.slice(0, 16) as achievement}
 						<div class="badge-item" title={achievement.name_ru}>
-							<img
-								src="{base}/sprites/badges/{achievement.slug}.svg"
-								alt={achievement.name_ru}
-								class="badge-icon"
-							/>
+						<img
+							src="{base}/sprites/badges/{achievement.slug}.svg"
+							alt={achievement.name_ru}
+							class="badge-icon"
+							loading="lazy"
+						/>
 						</div>
 					{/each}
 					{#if achievements.length - unlockedCount > 0 || unlockedAchievements.length > 16}

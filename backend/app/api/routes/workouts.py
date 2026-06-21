@@ -415,6 +415,7 @@ async def get_today_stats(
     # Count today's completed workouts
     workouts_result = await session.execute(
         select(WorkoutSession)
+        .options(selectinload(WorkoutSession.exercises))
         .where(WorkoutSession.user_id == user.id)
         .where(WorkoutSession.status == "completed")
         .where(WorkoutSession.finished_at >= today_start)

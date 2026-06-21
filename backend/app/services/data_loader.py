@@ -17,13 +17,27 @@ def load_json(filename: str) -> dict | list:
         return json.load(f)
 
 
+_categories_cache: list[dict] | None = None
+
+
 def load_categories_data() -> list[dict]:
     """Load categories from categories.json."""
-    return load_json("categories.json")
+    global _categories_cache
+    if _categories_cache is not None:
+        return _categories_cache
+    _categories_cache = load_json("categories.json")
+    return _categories_cache
+
+
+_exercises_cache: list[dict] | None = None
 
 
 def load_all_exercises() -> list[dict]:
     """Load all exercises from exercises/ directory."""
+    global _exercises_cache
+    if _exercises_cache is not None:
+        return _exercises_cache
+
     exercises_dir = DATA_DIR / "exercises"
     all_exercises = []
 
@@ -31,11 +45,19 @@ def load_all_exercises() -> list[dict]:
         exercises = load_json(f"exercises/{json_file.name}")
         all_exercises.extend(exercises)
 
-    return all_exercises
+    _exercises_cache = all_exercises
+    return _exercises_cache
+
+
+_routines_cache: list[dict] | None = None
 
 
 def load_all_routines() -> list[dict]:
     """Load all routines from routines/ directory."""
+    global _routines_cache
+    if _routines_cache is not None:
+        return _routines_cache
+
     routines_dir = DATA_DIR / "routines"
     all_routines = []
 
@@ -43,7 +65,8 @@ def load_all_routines() -> list[dict]:
         routines = load_json(f"routines/{json_file.name}")
         all_routines.extend(routines)
 
-    return all_routines
+    _routines_cache = all_routines
+    return _routines_cache
 
 
 async def load_categories(session: AsyncSession) -> dict[str, int]:

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, or_, String, func
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
@@ -128,48 +128,44 @@ async def get_exercises(
     if max_level:
         query = query.where(Exercise.required_level <= max_level)
 
+    # Filter by tags in SQL (any tag match — OR logic)
+    tag_filter = set(tags.split(",")) if tags else None
+    if tag_filter:
+        tag_conditions = [
+            Exercise.tags.cast(String).like(f'%"{tag}"%')
+            for tag in tag_filter
+        ]
+        query = query.where(or_(*tag_conditions))
+
+    # Filter by favorites in SQL
+    if favorites_only:
+        query = query.join(
+            UserFavoriteExercise,
+            (UserFavoriteExercise.exercise_id == Exercise.id)
+            & (UserFavoriteExercise.user_id == user.id),
+        )
+
     query = query.order_by(Exercise.name_ru)
 
+    # Count total before pagination
+    count_query = select(func.count()).select_from(query.subquery())
+    total = (await session.execute(count_query)).scalar()
+
+    # Apply pagination
+    query = query.offset(skip).limit(limit)
     result = await session.execute(query)
     exercises = result.scalars().all()
 
-    # Get user's favorite exercise IDs
+    # Get user's favorite exercise IDs for response
     favorites_result = await session.execute(
         select(UserFavoriteExercise.exercise_id)
         .where(UserFavoriteExercise.user_id == user.id)
     )
     favorite_ids = set(favorites_result.scalars().all())
 
-    # Parse tags filter
-    tag_filter = set(tags.split(",")) if tags else None
-
-    # Apply Python-level filters (tags, favorites)
-    filtered_exercises = []
-    for ex in exercises:
-        is_favorite = ex.id in favorite_ids
-
-        # Filter by favorites if requested
-        if favorites_only and not is_favorite:
-            continue
-
-        # Filter by tags if provided
-        if tag_filter:
-            ex_tags = set(ex.tags or [])
-            if not tag_filter.intersection(ex_tags):
-                continue
-
-        filtered_exercises.append(ex)
-
-    # Calculate total before pagination
-    total = len(filtered_exercises)
-
-    # Apply pagination
-    paginated_exercises = filtered_exercises[skip:skip + limit]
-
     # Build response
     response_items = []
-    for ex in paginated_exercises:
-        is_favorite = ex.id in favorite_ids
+    for ex in exercises:
         ex_response = ExerciseResponse(
             id=ex.id,
             slug=ex.slug,
@@ -186,7 +182,7 @@ async def get_exercises(
             gif_url=ex.gif_url,
             thumbnail_url=ex.thumbnail_url,
             category_slug=ex.category.slug if ex.category else "",
-            is_favorite=is_favorite,
+            is_favorite=ex.id in favorite_ids,
         )
         response_items.append(ex_response)
 
@@ -461,7 +457,6 @@ async def toggle_favorite(
     if existing:
         # Remove from favorites
         await session.delete(existing)
-        await session.commit()
         return {"exercise_slug": exercise.slug, "is_favorite": False}
     else:
         # Add to favorites
@@ -469,7 +464,6 @@ async def toggle_favorite(
             user_id=user.id, exercise_id=exercise_id
         )
         session.add(favorite)
-        await session.commit()
         return {"exercise_slug": exercise.slug, "is_favorite": True}
 
 

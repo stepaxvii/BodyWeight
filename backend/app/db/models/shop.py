@@ -28,7 +28,7 @@ class UserPurchase(Base):
     __tablename__ = "user_purchases"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     shop_item_id: Mapped[int] = mapped_column(ForeignKey("shop_items.id"))
     purchased_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     is_equipped: Mapped[bool] = mapped_column(Boolean, default=False)

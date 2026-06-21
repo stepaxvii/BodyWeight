@@ -13,8 +13,8 @@ class UserExerciseProgress(Base):
     __tablename__ = "user_exercise_progress"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"), index=True)
 
     total_reps_ever: Mapped[int] = mapped_column(Integer, default=0)
     best_single_set: Mapped[int] = mapped_column(Integer, default=0)

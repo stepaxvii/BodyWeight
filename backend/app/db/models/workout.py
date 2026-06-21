@@ -24,7 +24,7 @@ class WorkoutSession(Base):
     total_reps: Mapped[int] = mapped_column(Integer, default=0)
     total_duration_seconds: Mapped[int] = mapped_column(Integer, default=0)
     streak_multiplier: Mapped[float] = mapped_column(Numeric(3, 2), default=1.00)
-    status: Mapped[str] = mapped_column(String(20), default="active")
+    status: Mapped[str] = mapped_column(String(20), default="active", index=True)
 
     user: Mapped["User"] = relationship(back_populates="workout_sessions")
     exercises: Mapped[list["WorkoutExercise"]] = relationship(
@@ -37,7 +37,7 @@ class WorkoutExercise(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     workout_session_id: Mapped[int] = mapped_column(ForeignKey("workout_sessions.id", ondelete="CASCADE"), index=True)
-    exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"))
+    exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"), index=True)
 
     sets_completed: Mapped[int] = mapped_column(Integer, default=0)
     total_reps: Mapped[int] = mapped_column(Integer, default=0)

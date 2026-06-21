@@ -11,6 +11,7 @@ class ExercisesStore {
 	private _loading = $state(false);
 	private _loaded = $state(false);
 	private _error = $state<string | null>(null);
+	private _pendingLoad: Promise<Exercise[]> | null = null;
 
 	get exercises() {
 		return this._exercises;
@@ -38,19 +39,20 @@ class ExercisesStore {
 			return this._exercises;
 		}
 
-		// Don't start a new request if already loading
-		if (this._loading) {
-			// Wait for the current request to finish
-			return new Promise((resolve) => {
-				const checkLoaded = setInterval(() => {
-					if (!this._loading) {
-						clearInterval(checkLoaded);
-						resolve(this._exercises);
-					}
-				}, 100);
-			});
+		// If already loading, return the same Promise (dedup)
+		if (this._pendingLoad) {
+			return this._pendingLoad;
 		}
 
+		this._pendingLoad = this._doLoad();
+		try {
+			return await this._pendingLoad;
+		} finally {
+			this._pendingLoad = null;
+		}
+	}
+
+	private async _doLoad(): Promise<Exercise[]> {
 		this._loading = true;
 		this._error = null;
 
