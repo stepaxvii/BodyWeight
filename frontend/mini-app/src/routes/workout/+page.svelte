@@ -226,8 +226,8 @@
 	];
 
 	const mainTabs = $derived.by(() => [
-		{ id: 'routines' as const, label: 'Сеты' },
 		{ id: 'my-routines' as const, label: 'Мои', badge: customRoutines.length },
+		{ id: 'routines' as const, label: 'Сеты' },
 		{ id: 'favorites' as const, label: 'Избранное', badge: favoritesStore.count },
 		{ id: 'exercises' as const, label: 'Упражнения' }
 	]);
