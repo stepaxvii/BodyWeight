@@ -698,7 +698,7 @@
 	}
 
 	.xp-label {
-		font-size: var(--font-size-xs);
+		font-size: var(--font-size-xl);
 		color: var(--hero-text);
 		opacity: 0.85;
 	}

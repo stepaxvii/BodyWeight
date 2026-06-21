@@ -516,9 +516,10 @@
 					<span class="pa2-prog__pct">{Math.round(progress)}%</span>
 				</div>
 			</div>
-			<span class="pa2-hero__name">{isResting ? 'Отдых' : (exerciseData?.name_ru || currentExercise?.slug)}</span>
 
 			<div class="pa2-stage">
+				<span class="pa2-hero__name">{isResting ? 'Отдых' : (exerciseData?.name_ru || currentExercise?.slug)}</span>
+
 				{#if isResting}
 					{@const restNextEx = routine.exercises[currentStep + 1]}
 					{@const restNextData = allExercises.find((e) => e.slug === restNextEx?.slug)}
@@ -900,7 +901,7 @@
 
 	.pa2-next {
 		flex: 0 0 auto;
-		font-size: 13px;
+		font-size: 16px;
 		color: var(--muted);
 	}
 	.pa2-next__l {

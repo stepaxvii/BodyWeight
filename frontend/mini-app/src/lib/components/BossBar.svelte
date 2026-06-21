@@ -124,7 +124,7 @@
 	}
 
 	.boss-status {
-		font-size: 12px;
+		font-size: 15px;
 		color: var(--text-secondary);
 		text-transform: uppercase;
 		letter-spacing: 1px;
@@ -161,7 +161,7 @@
 	}
 
 	.boss-hp-text {
-		font-size: 12px;
+		font-size: 15px;
 		color: var(--text-muted);
 	}
 
