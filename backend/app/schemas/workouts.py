@@ -57,12 +57,31 @@ class WorkoutResponse(BaseModel):
         from_attributes = True
 
 
+class ChallengeExerciseProgressSummary(BaseModel):
+    """One exercise's credited contribution to a challenge from this workout."""
+    exercise_name_ru: str
+    added: int
+    accumulated: int
+    target: int
+    completed: bool
+    is_timed: bool
+
+
+class ChallengeProgressSummary(BaseModel):
+    """Per-challenge progress this workout produced (for completion feedback)."""
+    challenge_id: int
+    challenge_title: str
+    day_completed: bool
+    exercises: list[ChallengeExerciseProgressSummary] = []
+
+
 class WorkoutSummaryResponse(BaseModel):
     """Response schema for workout completion summary."""
     workout: WorkoutResponse
     new_achievements: list[dict] = []
     level_up: bool = False
     new_level: int | None = None
+    challenge_progress: list[ChallengeProgressSummary] = []
 
 
 class TodayStatsResponse(BaseModel):

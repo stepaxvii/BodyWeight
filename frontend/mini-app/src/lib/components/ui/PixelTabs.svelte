@@ -61,7 +61,8 @@
 		font-size: var(--font-size-xs);
 		text-transform: uppercase;
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		border-radius: var(--radius-sm);
 		color: var(--text-secondary);
 		cursor: pointer;
 		transition: all var(--transition-fast);
@@ -76,7 +77,7 @@
 	.tab.active {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent-hover);
-		color: var(--text-primary);
+		color: var(--on-accent);
 	}
 
 	.badge {

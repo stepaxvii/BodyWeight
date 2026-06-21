@@ -202,8 +202,8 @@
 
 	.avatar-option.selected {
 		border-color: var(--pixel-green);
-		background: rgba(0, 168, 0, 0.15);
-		box-shadow: 0 0 0 2px var(--pixel-green);
+		background: var(--pixel-card-hover);
+		box-shadow: 0 0 0 var(--border-width) var(--pixel-green);
 	}
 
 	.avatar-frame {
@@ -227,7 +227,7 @@
 		gap: var(--spacing-sm);
 		padding: var(--spacing-md);
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		width: 100%;
 	}
 

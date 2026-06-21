@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
-	import { PixelButton, PixelCard, PixelIcon, PixelAvatar, PixelTabs, EmptyState } from '$lib/components/ui';
+	import { PixelButton, PixelCard, PixelIcon, PixelAvatar, PixelTabs, EmptyState, CountUp } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -108,25 +108,25 @@
 		{#if boss}
 			<PixelCard padding="md">
 				<div class="boss-hero">
-					<img src="{base}{boss.image_url}" alt={boss.name_ru} class="boss-img-large" />
-					<div class="boss-info">
-						<h2 class="boss-title">{boss.name_ru}</h2>
-						<p class="boss-period">{formatDate(boss.start_date)} — {formatDate(boss.end_date)}</p>
-						<div class="status-pill status-{boss.status}">{statusLabel(boss.status)}</div>
+					<img src="{base}{boss.image_url}" alt={boss.name_ru} class="boss-img-large anim-floaty" />
+					<div class="boss-hero__top">
+						<span class="boss-title">{boss.name_ru}</span>
+						<span class="status-pill status-{boss.status}">{statusLabel(boss.status)}</span>
 					</div>
-				</div>
+					<p class="boss-period">{formatDate(boss.start_date)} — {formatDate(boss.end_date)}</p>
 
-				<div class="hp-section">
-					<div class="hp-track-large">
-						<div class="hp-fill-large" style="width: {hpPercent}%; background: {barColor};"></div>
+					<div class="hp-section">
+						<div class="hp-track-large">
+							<div class="hp-fill-large anim-bar-grow" style="width: {hpPercent}%; background: {barColor};"></div>
+						</div>
+						<div class="hp-numbers">
+							<span>{formatNum(boss.current_hp)} HP</span>
+							<span class="hp-max">/ {formatNum(boss.max_hp)}</span>
+						</div>
 					</div>
-					<div class="hp-numbers">
-						<span>{formatNum(boss.current_hp)} HP</span>
-						<span class="hp-max">/ {formatNum(boss.max_hp)}</span>
-					</div>
-				</div>
 
-				<p class="boss-legend">{boss.legend_ru}</p>
+					<p class="boss-legend">{boss.legend_ru}</p>
+				</div>
 			</PixelCard>
 
 			<PixelCard padding="md">
@@ -134,7 +134,7 @@
 				{#if me && me.total_damage > 0}
 					<div class="me-stats">
 						<div class="me-stat">
-							<span class="me-value">{formatNum(me.total_damage)}</span>
+							<span class="me-value"><CountUp value={me.total_damage} /></span>
 							<span class="me-label">урон</span>
 						</div>
 						<div class="me-stat">
@@ -150,10 +150,10 @@
 					{#if me.reward_claimable}
 						<div class="claim-card">
 							<div class="claim-info">
-								<span class="claim-coins">+{me.reward_coins}</span>
+								<span class="claim-coins">+<CountUp value={me.reward_coins} /></span>
 								<span class="claim-text">монет ждут тебя</span>
 								{#if me.is_top10}
-									<span class="claim-top10">🏆 Топ-10</span>
+									<span class="claim-top10"><PixelIcon name="trophy" size="sm" color="var(--gold)" /> Топ-10</span>
 								{/if}
 							</div>
 							<PixelButton
@@ -180,7 +180,7 @@
 			<PixelCard padding="md">
 				<h3 class="section-title">Топ-10 по урону</h3>
 				{#if leaderboard && leaderboard.entries.length > 0}
-					<div class="leaderboard">
+					<div class="leaderboard anim-rows">
 						{#each leaderboard.entries as entry}
 							<div class="lb-row" class:lb-me={me?.rank === entry.rank}>
 								<span class="lb-rank">#{entry.rank}</span>
@@ -209,7 +209,7 @@
 		{/if}
 	{:else if activeTab === 'history'}
 		{#if history && history.bosses.length > 0}
-			<div class="history-list">
+			<div class="history-list anim-rows">
 				{#each history.bosses as h (h.id)}
 					<PixelCard padding="md">
 						<div class="hist-row">
@@ -272,7 +272,7 @@
 
 	.back-link {
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		padding: var(--spacing-xs);
 		display: flex;
 		align-items: center;
@@ -289,33 +289,39 @@
 
 	.boss-hero {
 		display: flex;
-		gap: var(--spacing-md);
+		flex-direction: column;
 		align-items: center;
-		margin-bottom: var(--spacing-md);
+		gap: var(--spacing-sm);
+		text-align: center;
 	}
 
 	.boss-img-large {
-		width: 96px;
-		height: 96px;
+		width: 120px;
+		height: 120px;
 		image-rendering: pixelated;
 		flex-shrink: 0;
 	}
 
-	.boss-info {
-		flex: 1;
-		min-width: 0;
+	.boss-hero__top {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-sm);
+		flex-wrap: wrap;
 	}
 
 	.boss-title {
-		font-size: var(--font-size-md);
-		margin: 0 0 4px 0;
+		font-family: var(--font-display);
+		font-size: var(--font-size-lg);
+		margin: 0;
 		color: var(--text-primary);
 	}
 
 	.boss-period {
+		font-family: var(--font-data);
 		font-size: var(--font-size-xs);
 		color: var(--text-muted);
-		margin: 0 0 var(--spacing-xs) 0;
+		margin: 0;
 	}
 
 	.status-pill {
@@ -328,12 +334,12 @@
 	}
 
 	.status-active {
-		color: var(--pixel-orange, #f59e0b);
-		border-color: var(--pixel-orange, #f59e0b);
+		color: var(--pixel-orange);
+		border-color: var(--pixel-orange);
 	}
 	.status-defeated {
-		color: var(--pixel-green, #39d353);
-		border-color: var(--pixel-green, #39d353);
+		color: var(--pixel-green);
+		border-color: var(--pixel-green);
 	}
 	.status-expired {
 		color: var(--text-muted);
@@ -343,14 +349,14 @@
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
-		margin-bottom: var(--spacing-md);
+		width: 100%;
 	}
 
 	.hp-track-large {
 		width: 100%;
 		height: 14px;
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		overflow: hidden;
 	}
 
@@ -363,6 +369,8 @@
 		display: flex;
 		gap: 4px;
 		align-items: baseline;
+		justify-content: center;
+		font-family: var(--font-data);
 		font-size: var(--font-size-xs);
 		color: var(--text-primary);
 	}
@@ -386,26 +394,30 @@
 
 	.me-stats {
 		display: flex;
-		justify-content: space-around;
 		gap: var(--spacing-sm);
 		margin-bottom: var(--spacing-md);
 	}
 
 	.me-stat {
+		flex: 1;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: 2px;
+		padding: var(--spacing-sm) var(--spacing-xs);
+		background: var(--pixel-card);
+		border: var(--border-width) solid var(--border-color);
 	}
 
 	.me-value {
 		font-size: var(--font-size-md);
-		color: var(--pixel-accent);
+		color: var(--text-primary);
+		font-family: var(--font-data);
 	}
 
 	.me-label {
 		font-size: 9px;
-		color: var(--text-muted);
+		color: var(--text-secondary);
 		text-transform: uppercase;
 	}
 
@@ -422,8 +434,8 @@
 		justify-content: space-between;
 		gap: var(--spacing-sm);
 		padding: var(--spacing-sm);
-		background: var(--pixel-bg-dark);
-		border: 2px dashed var(--pixel-green, #39d353);
+		background: var(--pixel-yellow);
+		border: var(--border-width) solid var(--pixel-black);
 	}
 
 	.claim-info {
@@ -434,18 +446,19 @@
 
 	.claim-coins {
 		font-size: var(--font-size-md);
-		color: var(--pixel-orange, #f59e0b);
+		color: var(--ink);
+		font-family: var(--font-data);
 	}
 
 	.claim-text {
 		font-size: 9px;
-		color: var(--text-muted);
+		color: var(--ink);
 		text-transform: uppercase;
 	}
 
 	.claim-top10 {
 		font-size: 10px;
-		color: var(--pixel-green, #39d353);
+		color: var(--ink);
 	}
 
 	.claimed-msg {
@@ -458,7 +471,7 @@
 		margin-top: var(--spacing-sm);
 		text-align: center;
 		font-size: var(--font-size-xs);
-		color: var(--pixel-green, #39d353);
+		color: var(--pixel-green);
 	}
 
 	.leaderboard {
@@ -574,11 +587,11 @@
 
 	.hist-reward {
 		font-size: var(--font-size-xs);
-		color: var(--pixel-orange, #f59e0b);
+		color: var(--pixel-yellow);
 	}
 
 	.hist-claimed {
-		color: var(--pixel-green, #39d353);
+		color: var(--pixel-green);
 	}
 
 	.hist-empty {

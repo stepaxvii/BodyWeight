@@ -1,46 +1,65 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
-	import { PixelButton, PixelCard, PixelIcon, PixelTabs, EmptyState } from '$lib/components/ui';
+	import { PixelIcon, PixelTabs, EmptyState } from '$lib/components/ui';
+	import Banner from '$lib/components/ui/Banner.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { ChallengeListItem, ChallengeStatus } from '$lib/types';
 
 	type Tab = 'active' | 'upcoming' | 'finished' | 'mine';
-	const tabs = [
-		{ id: 'active' as const, label: 'Идут' },
-		{ id: 'upcoming' as const, label: 'Скоро' },
-		{ id: 'finished' as const, label: 'Завершены' },
-		{ id: 'mine' as const, label: 'Мои' }
+	const TAB_DEFS: { id: Tab; label: string }[] = [
+		{ id: 'active', label: 'Идут' },
+		{ id: 'upcoming', label: 'Скоро' },
+		{ id: 'finished', label: 'Завершены' },
+		{ id: 'mine', label: 'Мои' }
 	];
 
+	function rarOf(s: ChallengeStatus): string {
+		return s === 'active' ? 'r2' : s === 'upcoming' ? 'r3' : 'r1';
+	}
+
 	let activeTab = $state<Tab>('active');
-	let items = $state<ChallengeListItem[]>([]);
+	let lists = $state<Record<Tab, ChallengeListItem[]>>({
+		active: [],
+		upcoming: [],
+		finished: [],
+		mine: []
+	});
 	let loading = $state(true);
 
-	async function load() {
+	const items = $derived(lists[activeTab]);
+	const counts = $derived<Record<Tab, number>>({
+		active: lists.active.length,
+		upcoming: lists.upcoming.length,
+		finished: lists.finished.length,
+		mine: lists.mine.length
+	});
+	// Tab labels carry a count so the user knows where the action is.
+	const tabs = $derived(
+		TAB_DEFS.map((t) => ({ id: t.id, label: counts[t.id] > 0 ? `${t.label} ${counts[t.id]}` : t.label }))
+	);
+	// The active challenge the user is in — pinned at top for quick re-entry.
+	const featured = $derived(lists.active.find((c) => c.is_member) ?? null);
+
+	async function loadAll() {
 		loading = true;
 		try {
-			if (activeTab === 'mine') {
-				items = await api.listChallenges({ mine: true });
-			} else {
-				items = await api.listChallenges({ status: activeTab as ChallengeStatus });
-			}
+			const [active, upcoming, finished, mine] = await Promise.all([
+				api.listChallenges({ status: 'active' }),
+				api.listChallenges({ status: 'upcoming' }),
+				api.listChallenges({ status: 'finished' }),
+				api.listChallenges({ mine: true })
+			]);
+			lists = { active, upcoming, finished, mine };
 		} catch (e) {
 			console.error('Failed to load challenges:', e);
-			items = [];
 		} finally {
 			loading = false;
 		}
 	}
 
-	onMount(load);
-
-	$effect(() => {
-		// reload when tab changes
-		activeTab; // dependency
-		load();
-	});
+	onMount(loadAll);
 
 	function fmtDate(iso: string): string {
 		return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
@@ -54,16 +73,25 @@
 </script>
 
 <div class="challenges-page">
-	<header class="page-header">
-		<a href="{base}/" class="back-link">
-			<PixelIcon name="arrow-left" size="sm" />
+	<Banner icon="calendar" title="Челленджи" sub="Соревнуйся и забирай награды" deco="trophy">
+		{#snippet action()}
+			<a href="{base}/challenges/new" class="banner-new" aria-label="Создать челлендж">
+				<PixelIcon name="plus" size="md" color="currentColor" />
+			</a>
+		{/snippet}
+	</Banner>
+
+	{#if featured}
+		<a href="{base}/challenges/{featured.id}" class="chal-hero">
+			<div class="chal-hero__top">
+				<span class="chal-hero__label"><PixelIcon name="trophy" size="sm" color="var(--gold)" /> Твой активный челлендж</span>
+				<span class="chal-hero__pct">{featured.completion_percent ?? 0}%</span>
+			</div>
+			<span class="chal-hero__title">{featured.title}</span>
+			<div class="chal-hero__bar"><div class="chal-hero__fill" style="width: {featured.completion_percent ?? 0}%"></div></div>
+			<span class="chal-hero__go"><PixelIcon name="play" size="sm" color="var(--on-accent)" /> Продолжить</span>
 		</a>
-		<h1>Челленджи</h1>
-		<a href="{base}/challenges/new" class="new-btn">
-			<PixelIcon name="plus" size="sm" />
-			<span>Создать</span>
-		</a>
-	</header>
+	{/if}
 
 	<PixelTabs
 		tabs={tabs}
@@ -81,34 +109,32 @@
 			onButtonClick={() => (window.location.href = `${base}/challenges/new`)}
 		/>
 	{:else}
-		<div class="challenge-list">
+		<div class="challenge-list anim-rows">
 			{#each items as item (item.id)}
-				<a href="{base}/challenges/{item.id}" class="challenge-card-link">
-					<PixelCard padding="md">
-						<div class="card-header">
-							<div class="card-title">{item.title}</div>
-							<div class="status-pill status-{item.status}">{statusLabel(item.status)}</div>
+				<a href="{base}/challenges/{item.id}" class="item chal-item {rarOf(item.status)}">
+					<span class="item__edge"></span>
+					<div class="chal-top">
+						<span class="item__name">{item.title}</span>
+						<span class="status status--{item.status}">{statusLabel(item.status)}</span>
+					</div>
+					<div class="chal-meta">
+						<span><PixelIcon name="calendar" size="sm" color="var(--muted)" /> {fmtDate(item.start_date)} — {fmtDate(item.end_date)}</span>
+						{#if item.creator_name}<span>от @{item.creator_name}</span>{/if}
+					</div>
+					<div class="chal-meta">
+						<span class="item__tag"><PixelIcon name="users" size="sm" color="var(--muted)" /> {item.participants_count}</span>
+						<span class="item__tag"><PixelIcon name="dumbbell" size="sm" color="var(--muted)" /> {item.exercises_count} упр.</span>
+						{#if item.is_member}<span class="chal-mem"><PixelIcon name="check" size="sm" color="#fff" /> участвуешь</span>{/if}
+					</div>
+					{#if item.is_member && item.status === 'active' && item.completion_percent !== null}
+						<div class="chal-prog">
+							<div class="chal-prog__bar"><div class="chal-prog__fill" style="width: {item.completion_percent}%"></div></div>
+							<span class="chal-prog__pct">{item.completion_percent}%{#if item.completed_days !== null} · {item.completed_days}/{item.total_days} дн.{/if}</span>
 						</div>
-						<div class="card-meta">
-							<span>{fmtDate(item.start_date)} — {fmtDate(item.end_date)}</span>
-						</div>
-						<div class="card-stats">
-							<div class="stat">
-								<span class="stat-val">{item.participants_count}</span>
-								<span class="stat-lbl">участников</span>
-							</div>
-							<div class="stat">
-								<span class="stat-val">{item.exercises_count}</span>
-								<span class="stat-lbl">упражнений</span>
-							</div>
-							{#if item.creator_name}
-								<div class="creator">от @{item.creator_name}</div>
-							{/if}
-						</div>
-						{#if item.is_member}
-							<div class="member-badge">Ты участвуешь</div>
-						{/if}
-					</PixelCard>
+					{/if}
+					{#if item.reward_claimable}
+						<div class="chal-claim"><PixelIcon name="coin" size="sm" color="var(--gold)" /> Забери награду: +{item.reward_coins}</div>
+					{/if}
 				</a>
 			{/each}
 		</div>
@@ -123,36 +149,16 @@
 		padding: var(--spacing-md);
 	}
 
-	.page-header {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-	}
-
-	.page-header h1 {
-		font-size: var(--font-size-md);
-		color: var(--text-primary);
-		margin: 0;
-		flex: 1;
-	}
-
-	.back-link, .new-btn {
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
-		padding: var(--spacing-xs) var(--spacing-sm);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: var(--spacing-xs);
+	.banner-new {
+		flex: 0 0 auto;
+		display: grid;
+		place-items: center;
+		width: 36px;
+		height: 36px;
+		background: rgba(0, 0, 0, 0.2);
+		border: 2px solid rgba(0, 0, 0, 0.3);
+		color: var(--hero-text);
 		text-decoration: none;
-		color: var(--text-primary);
-		font-size: var(--font-size-xs);
-	}
-
-	.new-btn {
-		background: var(--pixel-accent);
-		border-color: var(--pixel-accent);
-		color: var(--pixel-bg);
 	}
 
 	.loading {
@@ -167,89 +173,156 @@
 		gap: var(--spacing-sm);
 	}
 
-	.challenge-card-link {
+	/* challenge cards use the global .item kit, overridden to a column layout */
+	.chal-item {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 9px;
+		padding: 12px;
 		text-decoration: none;
-		color: inherit;
 	}
 
-	.card-header {
+	.chal-top {
 		display: flex;
 		align-items: flex-start;
 		justify-content: space-between;
-		gap: var(--spacing-sm);
-		margin-bottom: var(--spacing-xs);
+		gap: 10px;
 	}
 
-	.card-title {
-		font-size: var(--font-size-sm);
-		color: var(--text-primary);
-		flex: 1;
+	.chal-top .item__name {
+		white-space: normal;
+		overflow: visible;
+		line-height: 1.35;
 	}
 
-	.status-pill {
-		font-size: 9px;
-		padding: 2px 6px;
-		border: 1px solid var(--border-color);
-		text-transform: uppercase;
-		letter-spacing: 1px;
-		flex-shrink: 0;
-	}
-
-	.status-upcoming {
-		color: var(--pixel-accent);
-		border-color: var(--pixel-accent);
-	}
-	.status-active {
-		color: var(--pixel-green, #39d353);
-		border-color: var(--pixel-green, #39d353);
-	}
-	.status-finished {
-		color: var(--text-muted);
-	}
-
-	.card-meta {
-		font-size: 11px;
-		color: var(--text-muted);
-		margin-bottom: var(--spacing-xs);
-	}
-
-	.card-stats {
+	.chal-meta {
 		display: flex;
-		align-items: baseline;
-		gap: var(--spacing-md);
+		align-items: center;
+		justify-content: space-between;
+		gap: 7px;
+		font-size: var(--font-size-xs);
+		color: var(--muted);
 	}
 
-	.stat {
-		display: flex;
+	.chal-meta span {
+		display: inline-flex;
+		align-items: center;
 		gap: 4px;
-		align-items: baseline;
 	}
 
-	.stat-val {
-		font-size: var(--font-size-sm);
-		color: var(--pixel-accent);
-	}
-
-	.stat-lbl {
-		font-size: 9px;
-		color: var(--text-muted);
+	.status {
+		flex-shrink: 0;
+		font-family: var(--font-display);
+		font-size: var(--font-size-xs);
 		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		padding: 3px 7px;
+		border: 2px solid currentColor;
+		white-space: nowrap;
+	}
+	.status--active {
+		color: var(--green);
+	}
+	.status--upcoming {
+		color: var(--accent);
+	}
+	.status--finished {
+		color: var(--muted);
 	}
 
-	.creator {
-		margin-left: auto;
-		font-size: 10px;
-		color: var(--text-muted);
+	/* Pinned hero — the user's active challenge */
+	.chal-hero {
+		display: flex;
+		flex-direction: column;
+		gap: 7px;
+		padding: 12px;
+		background: var(--hero-bg);
+		border: var(--bw) solid var(--hero-edge);
+		box-shadow: var(--shadow);
+		color: var(--hero-text);
+		text-decoration: none;
+	}
+	.chal-hero__top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+	}
+	.chal-hero__label {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		font-size: 11px;
+		opacity: 0.9;
+	}
+	.chal-hero__pct {
+		font-family: var(--font-data);
+		font-size: 16px;
+		color: var(--hero-num);
+	}
+	.chal-hero__title {
+		font-family: var(--font-display);
+		font-size: 15px;
+		line-height: 1.3;
+	}
+	.chal-hero__bar {
+		height: 8px;
+		background: rgba(0, 0, 0, 0.25);
+		border: 2px solid var(--hero-edge);
+	}
+	.chal-hero__fill {
+		height: 100%;
+		background: var(--gold);
+		transition: width 0.4s ease;
+	}
+	.chal-hero__go {
+		align-self: flex-start;
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		margin-top: 2px;
+		padding: 5px 12px;
+		background: var(--accent);
+		color: var(--on-accent);
+		font-family: var(--font-display);
+		font-size: 12px;
 	}
 
-	.member-badge {
-		margin-top: var(--spacing-xs);
-		font-size: 10px;
-		color: var(--pixel-green, #39d353);
-		border: 1px solid var(--pixel-green, #39d353);
-		padding: 2px 6px;
-		display: inline-block;
-		text-transform: uppercase;
-		letter-spacing: 1px;
+	/* Personal progress on a card (active member) */
+	.chal-prog {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+	.chal-prog__bar {
+		flex: 1;
+		height: 7px;
+		background: var(--bg3);
+		border: 2px solid var(--line);
+		overflow: hidden;
+	}
+	.chal-prog__fill {
+		height: 100%;
+		background: var(--green);
+		transition: width 0.4s ease;
+	}
+	.chal-prog__pct {
+		flex: 0 0 auto;
+		font-family: var(--font-data);
+		font-size: 11px;
+		color: var(--muted);
+	}
+
+	/* Claimable reward signal on a finished card */
+	.chal-claim {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		align-self: flex-start;
+		padding: 4px 9px;
+		background: var(--gold);
+		color: var(--ink);
+		font-family: var(--font-display);
+		font-size: 11px;
 	}
 </style>

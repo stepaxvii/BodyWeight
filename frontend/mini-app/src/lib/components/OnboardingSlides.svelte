@@ -283,7 +283,7 @@
 		width: 12px;
 		height: 12px;
 		background: var(--border-color);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		cursor: pointer;
 		transition: all var(--transition-fast);
 		padding: 0;

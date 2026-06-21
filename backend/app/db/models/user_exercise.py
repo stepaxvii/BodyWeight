@@ -18,6 +18,9 @@ class UserExerciseProgress(Base):
 
     total_reps_ever: Mapped[int] = mapped_column(Integer, default=0)
     best_single_set: Mapped[int] = mapped_column(Integer, default=0)
+    # Personal records (roadmap 2.3): best reps in one workout / one calendar day.
+    best_workout_reps: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    best_single_day: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     times_performed: Mapped[int] = mapped_column(Integer, default=0)
     last_performed_at: Mapped[datetime | None] = mapped_column(DateTime)
     recommended_upgrade: Mapped[bool] = mapped_column(Boolean, default=False)

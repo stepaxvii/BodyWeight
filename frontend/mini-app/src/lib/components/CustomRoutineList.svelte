@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PixelButton, PixelCard, PixelIcon, EmptyState } from '$lib/components/ui';
+	import { PixelButton, PixelIcon, EmptyState } from '$lib/components/ui';
 	import type { CustomRoutineListItem } from '$lib/types';
 
 	interface Props {
@@ -12,32 +12,42 @@
 
 	let { routines, onplay, onedit, ondelete, oncreate }: Props = $props();
 
+	const TYPE_ORDER = ['morning', 'workout', 'stretch'] as const;
+
 	function getTypeLabel(type: string): string {
 		switch (type) {
-			case 'morning': return 'Зарядка';
-			case 'workout': return 'Тренировка';
-			case 'stretch': return 'Растяжка';
-			default: return type;
+			case 'morning':
+				return 'Зарядка';
+			case 'workout':
+				return 'Тренировка';
+			case 'stretch':
+				return 'Растяжка';
+			default:
+				return 'Другое';
 		}
 	}
 
-	function getTypeColor(type: string): string {
-		switch (type) {
-			case 'morning': return 'var(--pixel-yellow)';
-			case 'workout': return 'var(--pixel-accent)';
-			case 'stretch': return 'var(--pixel-green)';
-			default: return 'var(--text-secondary)';
+	// Group custom routines by type, in a fixed order (Зарядка / Тренировка / Растяжка),
+	// any unknown types appended after.
+	const grouped = $derived.by(() => {
+		const map = new Map<string, CustomRoutineListItem[]>();
+		for (const r of routines) {
+			const t = r.routine_type || 'workout';
+			if (!map.has(t)) map.set(t, []);
+			map.get(t)!.push(r);
 		}
-	}
-
+		const ordered: { type: string; items: CustomRoutineListItem[] }[] = [];
+		for (const t of TYPE_ORDER) if (map.has(t)) ordered.push({ type: t, items: map.get(t)! });
+		for (const t of map.keys())
+			if (!TYPE_ORDER.includes(t as (typeof TYPE_ORDER)[number]))
+				ordered.push({ type: t, items: map.get(t)! });
+		return ordered;
+	});
 </script>
 
 <div class="routine-list">
 	{#if routines.length === 0}
-		<EmptyState
-			icon="play"
-			message="У вас пока нет своих сетов"
-		>
+		<EmptyState icon="dumbbell" message="У вас пока нет своих сетов">
 			<PixelButton variant="primary" onclick={oncreate}>
 				<PixelIcon name="plus" />
 				Создать сет
@@ -51,56 +61,60 @@
 			</PixelButton>
 		</div>
 
-		<div class="routines">
-			{#each routines as routine (routine.id)}
-				<PixelCard padding="md">
-					<div class="routine-item">
-						<div class="routine-info">
-							<div class="routine-header">
-								<span class="routine-name" title={routine.name}>{routine.name}</span>
-								<span class="routine-type" style="color: {getTypeColor(routine.routine_type)}">
-									{getTypeLabel(routine.routine_type)}
-								</span>
+		{#each grouped as group (group.type)}
+			<section class="cust-group">
+				<div class="cust-group__head">{getTypeLabel(group.type)}</div>
+				<div class="cust-rows">
+					{#each group.items as routine (routine.id)}
+						<div class="item cust-item">
+							<span class="item__edge"></span>
+							<span class="slot slot--md">
+								<PixelIcon name="dumbbell" size="md" color="var(--accent)" />
+							</span>
+							<div class="item__body">
+								<span class="item__name" title={routine.name}>{routine.name}</span>
+								<div class="item__sub">
+									<span class="item__tag">
+										<PixelIcon name="timer" size="sm" color="var(--muted)" />
+										{routine.duration_minutes}м
+									</span>
+									<span class="item__tag">
+										<PixelIcon name="dumbbell" size="sm" color="var(--muted)" />
+										{routine.exercises_count} упр.
+									</span>
+								</div>
 							</div>
-							<div class="routine-stats">
-								<span class="stat">
-									<PixelIcon name="timer" size="sm" color="var(--text-secondary)" />
-									{routine.duration_minutes} мин
-								</span>
-								<span class="stat">
-									<PixelIcon name="play" size="sm" color="var(--text-secondary)" />
-									{routine.exercises_count} упр.
-								</span>
+							<div class="cust-actions">
+								<button
+									class="cust-act cust-act--play"
+									onclick={() => onplay(routine.id)}
+									aria-label="Начать"
+									title="Начать"
+								>
+									<PixelIcon name="play" size="sm" color="var(--on-accent)" />
+								</button>
+								<button
+									class="cust-act"
+									onclick={() => onedit(routine.id)}
+									aria-label="Редактировать"
+									title="Редактировать"
+								>
+									<PixelIcon name="edit" size="sm" color="var(--muted)" />
+								</button>
+								<button
+									class="cust-act cust-act--del"
+									onclick={() => ondelete(routine.id, routine.name)}
+									aria-label="Удалить"
+									title="Удалить"
+								>
+									<PixelIcon name="trash" size="sm" color="var(--danger)" />
+								</button>
 							</div>
 						</div>
-
-						<div class="routine-actions">
-							<button
-								class="action-btn play"
-								onclick={() => onplay(routine.id)}
-								title="Начать"
-							>
-								<PixelIcon name="play" />
-							</button>
-							<button
-								class="action-btn edit"
-								onclick={() => onedit(routine.id)}
-								title="Редактировать"
-							>
-								<PixelIcon name="settings" />
-							</button>
-							<button
-								class="action-btn delete"
-								onclick={() => ondelete(routine.id, routine.name)}
-								title="Удалить"
-							>
-								<PixelIcon name="close" />
-							</button>
-						</div>
-					</div>
-				</PixelCard>
-			{/each}
-		</div>
+					{/each}
+				</div>
+			</section>
+		{/each}
 	{/if}
 </div>
 
@@ -112,88 +126,63 @@
 	}
 
 	.create-btn-wrapper {
-		margin-bottom: var(--spacing-sm);
-	}
-
-	.routines {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-sm);
-	}
-
-	.routine-item {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-	}
-
-	.routine-info {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.routine-header {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
 		margin-bottom: var(--spacing-xs);
 	}
 
-	.routine-name {
-		font-size: var(--font-size-sm);
-		font-weight: bold;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		min-width: 0;
-	}
-
-	.routine-type {
-		font-size: 10px;
-		text-transform: uppercase;
-		align-self: flex-start;
-	}
-
-	.routine-stats {
+	.cust-group {
 		display: flex;
-		gap: var(--spacing-md);
+		flex-direction: column;
+		gap: var(--spacing-xs);
 	}
 
-	.stat {
-		display: flex;
-		align-items: center;
-		gap: 4px;
+	.cust-group__head {
+		font-family: var(--font-display);
 		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
+		color: var(--muted);
+		letter-spacing: 0.5px;
+		padding-left: 2px;
 	}
 
-	.routine-actions {
+	.cust-rows {
 		display: flex;
-		gap: 4px;
+		flex-direction: column;
+		gap: var(--spacing-xs);
 	}
 
-	.action-btn {
-		width: 36px;
-		height: 36px;
+	/* compact, non-clickable-as-a-whole override of the global .item kit */
+	.cust-item {
+		cursor: default;
+		gap: 10px;
+		padding: 9px 11px;
+	}
+	.cust-item:active {
+		transform: none;
+		box-shadow: var(--shadow);
+	}
+
+	.cust-actions {
+		flex: 0 0 auto;
 		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		gap: 5px;
+	}
+
+	.cust-act {
+		width: 32px;
+		height: 32px;
+		display: grid;
+		place-items: center;
+		background: var(--bg3);
+		border: 2px solid var(--line);
 		cursor: pointer;
 	}
-
-	.action-btn.play {
-		background: var(--pixel-green);
-		border-color: var(--pixel-green);
+	.cust-act:active {
+		transform: translate(1px, 1px);
 	}
-
-	.action-btn.edit {
-		background: var(--pixel-bg-dark);
+	.cust-act--play {
+		background: var(--green);
+		border-color: var(--line);
 	}
-
-	.action-btn.delete {
-		background: var(--pixel-bg-dark);
-		border-color: var(--pixel-red);
+	.cust-act--del {
+		border-color: var(--danger);
 	}
 </style>

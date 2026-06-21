@@ -1,7 +1,7 @@
 """User-related Pydantic schemas."""
 
 from datetime import date, time, datetime
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 
 class UserResponse(BaseModel):
@@ -23,8 +23,11 @@ class UserResponse(BaseModel):
     last_workout_date: date | None = None
     notification_time: time | None = None
     notifications_enabled: bool
+    sound_enabled: bool = True
     is_onboarded: bool
     leaderboard_visible: bool
+    daily_activity_norm: int = 1400
+    equipped_title: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -65,7 +68,10 @@ class UpdateUserRequest(BaseModel):
     avatar_id: str | None = None
     notification_time: time | None = None
     notifications_enabled: bool | None = None
+    sound_enabled: bool | None = None
     leaderboard_visible: bool | None = None
+    # Daily activity goal (XP) for the calendar; bounds mirror activity_norm service.
+    daily_activity_norm: int | None = Field(default=None, ge=100, le=100_000)
 
 
 class CompleteOnboardingRequest(BaseModel):
@@ -84,6 +90,7 @@ class UserProfileResponse(BaseModel):
     coins: int
     current_streak: int
     achievements: list[str]  # List of unlocked achievement slugs
+    equipped_title: str | None = None
     is_friend: bool
     # Current user sent request to this user
     friend_request_sent: bool = False
@@ -93,11 +100,28 @@ class UserProfileResponse(BaseModel):
     friendship_id: int | None = None
 
 
+class ExerciseRecord(BaseModel):
+    """A single personal record tied to one exercise."""
+    exercise_slug: str
+    exercise_name_ru: str
+    value: int
+
+
+class UserRecordsResponse(BaseModel):
+    """Personal records for the current user (roadmap 2.3)."""
+    best_set: ExerciseRecord | None = None  # most reps in one set
+    best_workout: ExerciseRecord | None = None  # most reps for one exercise in a workout
+    longest_workout_seconds: int = 0
+    max_streak: int = 0
+    total_reps: int = 0
+
+
 class DayActivityResponse(BaseModel):
     """Activity data for a single day."""
     date: str  # ISO format: "2025-01-09"
     workouts: int  # Number of workouts completed
     total_xp: int  # Total XP earned from workouts (excluding achievements)
+    norm: int  # Daily activity goal (XP) in force on this day — for calendar colouring
 
 
 class UserActivityResponse(BaseModel):

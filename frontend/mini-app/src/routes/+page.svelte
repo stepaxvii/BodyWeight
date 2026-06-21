@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import { PixelButton, PixelCard, PixelProgress, PixelIcon, PixelModal } from '$lib/components/ui';
+	import { PixelButton, PixelCard, PixelProgress, PixelIcon, PixelModal, CountUp } from '$lib/components/ui';
 	import QuickExerciseModal from '$lib/components/QuickExerciseModal.svelte';
 	import ActivityCalendar from '$lib/components/ActivityCalendar.svelte';
 	import BossBar from '$lib/components/BossBar.svelte';
@@ -29,7 +29,14 @@
 		}
 
 		try {
-			activityData = await api.getUserActivity();
+			// The heatmap shows a rolling ~26-week window that crosses into the
+			// previous year, so fetch both years and merge for complete data.
+			const cy = new Date().getFullYear();
+			const [cur, prev] = await Promise.all([
+				api.getUserActivity(cy),
+				api.getUserActivity(cy - 1)
+			]);
+			activityData = { days: { ...prev.days, ...cur.days } };
 		} catch (e) {
 			console.error('Failed to load activity data:', e);
 		}
@@ -107,7 +114,7 @@
 	}
 </script>
 
-<div class="page container">
+<div class="page container anim-cascade">
 	<!-- Compact Header -->
 	<header class="page-header">
 		<div class="header-left">
@@ -175,13 +182,13 @@
 		<a href="{base}/workout" class="workout-card">
 			<div class="workout-card-content">
 				<div class="workout-icon">
-					<PixelIcon name="workout" size="xl" color="var(--pixel-accent)" />
+					<PixelIcon name="workout" size="xl" color="var(--cta-text)" />
 				</div>
 				<div class="workout-text">
 					<span class="workout-title">Начать тренировку</span>
 					<span class="workout-subtitle">Выбери программу или упражнения</span>
 				</div>
-				<div class="workout-arrow">
+				<div class="workout-arrow anim-nudge">
 					<PixelIcon name="play" size="lg" />
 				</div>
 			</div>
@@ -208,7 +215,7 @@
 		<div class="progress-card">
 			<div class="progress-header">
 				<div class="progress-level">
-					<span class="level-number">{userStore.level}</span>
+					<span class="level-number"><CountUp value={userStore.level} /></span>
 					<span class="level-label">Уровень</span>
 				</div>
 				<div class="progress-xp">
@@ -225,23 +232,23 @@
 			<div class="stat-item">
 				<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
 				<div class="stat-info">
-					<span class="stat-value">{userStore.xp}</span>
+					<span class="stat-value"><CountUp value={userStore.xp} /></span>
 					<span class="stat-label">XP</span>
 				</div>
 			</div>
 			<div class="stat-divider"></div>
 			<div class="stat-item">
-				<PixelIcon name="streak" size="md" color="var(--pixel-yellow)" />
+				<PixelIcon name="streak" size="md" color="var(--pixel-red)" class="anim-flicker" />
 				<div class="stat-info">
-					<span class="stat-value">{userStore.streak}</span>
+					<span class="stat-value"><CountUp value={userStore.streak} /></span>
 					<span class="stat-label">Серия</span>
 				</div>
 			</div>
 			<div class="stat-divider"></div>
 			<div class="stat-item">
-				<PixelIcon name="coin" size="md" color="var(--pixel-orange)" />
+				<PixelIcon name="coin" size="md" color="var(--stat-text)" class="anim-coin-spin" />
 				<div class="stat-info">
-					<span class="stat-value">{userStore.coins}</span>
+					<span class="stat-value"><CountUp value={userStore.coins} /></span>
 					<span class="stat-label">Монеты</span>
 				</div>
 			</div>
@@ -352,8 +359,17 @@
 		width: fit-content;
 	}
 
+	/* Lift the header (and its notification dropdown) above the cards below.
+	   The entry animations give each section its own stacking context, so the
+	   header needs an explicit z-index or later sections paint over the dropdown. */
+	.page-header {
+		position: relative;
+		z-index: 60;
+	}
+
 	.notification-wrapper {
 		position: relative;
+		z-index: 61;
 	}
 
 	.notification-badge {
@@ -364,7 +380,7 @@
 		width: 40px;
 		height: 40px;
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--pixel-border);
+		border: var(--border-width) solid var(--border-color);
 		text-decoration: none;
 		color: var(--text-secondary);
 		transition: all 0.2s;
@@ -394,7 +410,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		border: 2px solid var(--pixel-bg);
+		border: var(--border-width) solid var(--pixel-bg);
 	}
 
 	.notification-overlay {
@@ -414,7 +430,8 @@
 		width: 280px;
 		max-height: 400px;
 		background: var(--pixel-bg);
-		border: 2px solid var(--pixel-border);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
 		z-index: 101;
 		display: flex;
 		flex-direction: column;
@@ -425,7 +442,7 @@
 		justify-content: space-between;
 		align-items: center;
 		padding: var(--spacing-sm);
-		border-bottom: 2px solid var(--pixel-border);
+		border-bottom: var(--border-width) solid var(--border-color);
 		font-size: var(--font-size-sm);
 		text-transform: uppercase;
 	}
@@ -459,7 +476,7 @@
 		display: flex;
 		gap: var(--spacing-sm);
 		padding: var(--spacing-sm);
-		border-bottom: 1px solid var(--pixel-border);
+		border-bottom: 1px solid var(--border-color);
 	}
 
 	.notification-item.unread {
@@ -506,7 +523,7 @@
 		font-size: var(--font-size-xs);
 		text-transform: uppercase;
 		text-decoration: none;
-		border-top: 2px solid var(--pixel-border);
+		border-top: var(--border-width) solid var(--border-color);
 	}
 
 	.dropdown-footer:hover {
@@ -521,14 +538,14 @@
 	.workout-card {
 		display: block;
 		text-decoration: none;
-		background: var(--pixel-card);
-		border: 2px solid var(--pixel-accent);
+		background: var(--cta-bg);
+		border: var(--border-width) solid var(--cta-edge);
+		box-shadow: var(--shadow-md);
 		padding: var(--spacing-md);
 		transition: all var(--transition-fast);
 	}
 
 	.workout-card:hover {
-		background: var(--pixel-bg-dark);
 		transform: translateY(-2px);
 	}
 
@@ -554,19 +571,21 @@
 	}
 
 	.workout-title {
+		font-family: var(--font-display);
 		font-size: var(--font-size-md);
-		color: var(--pixel-accent);
+		color: var(--cta-text);
 		text-transform: uppercase;
 	}
 
 	.workout-subtitle {
 		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
+		color: var(--cta-text);
+		opacity: 0.85;
 	}
 
 	.workout-arrow {
-		color: var(--pixel-accent);
-		opacity: 0.7;
+		color: var(--cta-text);
+		opacity: 0.85;
 	}
 
 	.quick-record-btn {
@@ -577,9 +596,10 @@
 		width: 100%;
 		margin-top: var(--spacing-sm);
 		padding: var(--spacing-sm);
-		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
-		font-family: var(--font-pixel);
+		background: var(--pixel-card);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
+		font-family: var(--font-display);
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
 		text-transform: uppercase;
@@ -626,8 +646,9 @@
 	}
 
 	.progress-card {
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		background: var(--hero-bg);
+		border: var(--border-width) solid var(--hero-edge);
+		box-shadow: var(--shadow-md);
 		padding: var(--spacing-md);
 	}
 
@@ -642,18 +663,20 @@
 		flex-direction: column;
 		align-items: center;
 		padding-right: var(--spacing-md);
-		border-right: 2px solid var(--border-color);
+		border-right: var(--border-width) solid var(--hero-edge);
 	}
 
 	.level-number {
-		font-size: var(--font-size-xl);
-		color: var(--pixel-accent);
+		font-family: var(--font-data);
+		font-size: var(--font-size-2xl);
+		color: var(--hero-num);
 		line-height: 1;
 	}
 
 	.level-label {
 		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
+		color: var(--hero-text);
+		opacity: 0.75;
 		text-transform: uppercase;
 	}
 
@@ -664,9 +687,20 @@
 		gap: var(--spacing-xs);
 	}
 
+	/* XP bar inside the hero card: gold fill on a darkened track */
+	.progress-xp :global(.pixel-progress.xp .track) {
+		background: rgba(0, 0, 0, 0.22);
+		border-color: var(--hero-edge);
+	}
+
+	.progress-xp :global(.pixel-progress.xp .bar) {
+		background: var(--hero-num);
+	}
+
 	.xp-label {
 		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
+		color: var(--hero-text);
+		opacity: 0.85;
 	}
 
 	/* Stats Section */
@@ -678,8 +712,9 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-around;
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		background: var(--stat-bg);
+		border: var(--border-width) solid var(--stat-edge);
+		box-shadow: var(--shadow-md);
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
@@ -696,21 +731,23 @@
 	}
 
 	.stat-value {
+		font-family: var(--font-data);
 		font-size: var(--font-size-sm);
-		color: var(--text-primary);
+		color: var(--stat-text);
 		line-height: 1.2;
 	}
 
 	.stat-label {
 		font-size: 10px;
-		color: var(--text-secondary);
+		color: var(--stat-text);
+		opacity: 0.7;
 		text-transform: uppercase;
 	}
 
 	.stat-divider {
-		width: 2px;
+		width: var(--border-width);
 		height: 24px;
-		background: var(--border-color);
+		background: var(--stat-edge);
 	}
 
 	/* Weekly Section */
@@ -735,7 +772,7 @@
 		gap: var(--spacing-md);
 		padding: var(--spacing-sm);
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 	}
 
 	.day-stat-content {
@@ -787,11 +824,13 @@
 		align-items: center;
 		gap: var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
 	.weekly-value {
+		font-family: var(--font-data);
 		font-size: var(--font-size-lg);
 		color: var(--text-primary);
 	}

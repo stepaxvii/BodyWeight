@@ -33,6 +33,10 @@ class UserStore {
 		return this.user?.streak_freezes ?? 0;
 	}
 
+	get dailyActivityNorm() {
+		return this.user?.daily_activity_norm ?? 1400;
+	}
+
 	get xpForCurrentLevel() {
 		const lvl = this.level - 1;
 		return 100 * lvl * lvl;
@@ -251,6 +255,57 @@ class UserStore {
 	/** Buy one streak freeze. Throws on error (not enough coins / at cap). */
 	async buyStreakFreeze(): Promise<User> {
 		const updated = await api.buyStreakFreeze();
+		this.user = updated;
+		return updated;
+	}
+
+	/** Set the daily activity norm (XP/day). Throws on error. */
+	async setActivityNorm(norm: number): Promise<User> {
+		const updated = await api.updateUser({ daily_activity_norm: norm });
+		this.user = updated;
+		return updated;
+	}
+
+	/** Toggle 8-bit sound effects (optimistic, syncs to backend). */
+	async setSoundEnabled(enabled: boolean): Promise<void> {
+		if (!this.user) return;
+		this.user.sound_enabled = enabled;
+		try {
+			await api.updateUser({ sound_enabled: enabled });
+		} catch (err) {
+			console.error('Failed to update sound setting:', err);
+		}
+	}
+
+	/** Toggle visibility in the public leaderboard (privacy). Optimistic; reverts on error. */
+	async setLeaderboardVisible(visible: boolean): Promise<void> {
+		if (!this.user) return;
+		const prev = this.user.leaderboard_visible;
+		this.user.leaderboard_visible = visible;
+		try {
+			this.user = await api.updateUser({ leaderboard_visible: visible });
+		} catch (err) {
+			if (this.user) this.user.leaderboard_visible = prev;
+			throw err;
+		}
+	}
+
+	/** Toggle Telegram push reminders. Optimistic; reverts on error. */
+	async setNotificationsEnabled(enabled: boolean): Promise<void> {
+		if (!this.user) return;
+		const prev = this.user.notifications_enabled;
+		this.user.notifications_enabled = enabled;
+		try {
+			this.user = await api.updateUser({ notifications_enabled: enabled });
+		} catch (err) {
+			if (this.user) this.user.notifications_enabled = prev;
+			throw err;
+		}
+	}
+
+	/** Set the daily reminder time ("HH:MM"). Throws on error. */
+	async setNotificationTime(time: string): Promise<User> {
+		const updated = await api.updateUser({ notification_time: time });
 		this.user = updated;
 		return updated;
 	}

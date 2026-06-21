@@ -21,5 +21,8 @@ RUN mkdir -p /app/data /app/static
 # Expose port
 EXPOSE 8000
 
-# Run init script and start server
-CMD ["sh", "-c", "python scripts/init_db.py && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+# Apply DB migrations, load seed data, then start the server.
+# `alembic upgrade head` is idempotent (only unapplied revisions run), so it is
+# safe on every container start. The bot waits for backend health, so only this
+# container ever migrates.
+CMD ["sh", "-c", "alembic upgrade head && python scripts/init_db.py && uvicorn app.main:app --host 0.0.0.0 --port 8000"]

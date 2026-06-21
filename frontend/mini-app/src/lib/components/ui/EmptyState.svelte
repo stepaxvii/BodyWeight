@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { PixelIcon, PixelButton } from '$lib/components/ui';
-	import type { IconName } from './PixelIcon.svelte';
 	import type { Snippet } from 'svelte';
 
 	interface Props {
-		icon?: IconName;
+		icon?: string;
 		title?: string;
 		message: string;
 		hint?: string;

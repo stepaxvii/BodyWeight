@@ -245,7 +245,14 @@ async def get_exercise(
         user_progress = ExerciseProgressResponse(
             total_reps_ever=progress.total_reps_ever,
             best_single_set=progress.best_single_set,
+            best_workout_reps=progress.best_workout_reps,
+            best_single_day=progress.best_single_day,
             times_performed=progress.times_performed,
+            last_performed_at=(
+                progress.last_performed_at.isoformat()
+                if progress.last_performed_at
+                else None
+            ),
             recommended_upgrade=progress.recommended_upgrade,
         )
 
@@ -316,14 +323,24 @@ async def get_exercise_progress(
         return ExerciseProgressResponse(
             total_reps_ever=0,
             best_single_set=0,
+            best_workout_reps=0,
+            best_single_day=0,
             times_performed=0,
+            last_performed_at=None,
             recommended_upgrade=False,
         )
 
     return ExerciseProgressResponse(
         total_reps_ever=progress.total_reps_ever,
         best_single_set=progress.best_single_set,
+        best_workout_reps=progress.best_workout_reps,
+        best_single_day=progress.best_single_day,
         times_performed=progress.times_performed,
+        last_performed_at=(
+            progress.last_performed_at.isoformat()
+            if progress.last_performed_at
+            else None
+        ),
         recommended_upgrade=progress.recommended_upgrade,
     )
 

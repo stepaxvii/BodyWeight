@@ -5,42 +5,107 @@
    CSS Variables - Color Palette
    ============================================ */
 :root {
-	/* Background colors */
-	--pixel-bg: #1a1a2e;
-	--pixel-bg-dark: #0f0f1a;
-	--pixel-card: #16213e;
-	--pixel-card-hover: #1a2848;
+	/* ============================================================
+	   NEO 2026 — designer token names (verbatim from themes.css,
+	   [data-theme="neo"]). Used by the ported HUD-kit CSS.
+	   ============================================================ */
+	--bg: #efe6d4;
+	--bg2: #fbf7ee;
+	--bg3: #ece0c8;
+	--card-bg: #fbf7ee;
+	--line: #211d18;
+	--line2: #4a4234;
+	--text: #211d18;
+	--muted: #6f6556;
+	--dim: #a8997f;
+	--accent: #ff5a1f;   /* tangerine — main action / active / links */
+	--accent2: #15936a;  /* grass green */
+	--gold: #f5a700;     /* rewards / XP numbers / coins */
+	--danger: #e23744;
+	--green: #15936a;
+	--ink: #211d18;
+	--on-accent: #ffffff;
+	--mocha: #5a3d2b;    /* hero blocks */
+	--sun: #ffc02e;      /* stat tiles */
+	--bw: 3px;
+	--radius: 0px;
+	--shadow: 3px 3px 0 #211d18;
+	--shadow-accent: 3px 3px 0 #211d18;
+	--hero-bg: #5a3d2b;
+	--hero-text: #f7eede;
+	--hero-edge: #211d18;
+	--hero-num: #ffb000;
+	--hero-seg: #ffb000;
+	--chip-bg: rgba(0, 0, 0, 0.2);
+	--chip-edge: rgba(0, 0, 0, 0.3);
+	--chip-num: #ffb000;
+	--cta-bg: #ff5a1f;
+	--cta-text: #ffffff;
+	--cta-edge: #211d18;
+	--stat-bg: #ffc02e;
+	--stat-text: #211d18;
+	--stat-edge: #211d18;
+	--seg-off: #e0d3ba;
+	--seg-on: #ff5a1f;
+	--hp-on: #e23744;
+	--hm0: #e0d3ba;
+	--hm1: #c2e08a;
+	--hm2: #8cce4e;
+	--hm3: #4faa2e;
+	--hm4: #2c7a1c;
+	--coin-text: #a8730e;
+	--claim-text: #7a5512;
+	--avframe: #211d18;
+	--podium2: #ddd5c4;
+	--podium3: #e0a85e;
 
-	/* Accent colors */
-	--pixel-accent: #e94560;
-	--pixel-accent-hover: #ff5a75;
+	/* Fonts — Pixel Operator (self-hosted; readable Cyrillic) for ALL text and
+	   headings; Silkscreen ONLY for digits. Silkscreen has NO Cyrillic, so it must
+	   never be a fallback for text: dropped from --font-display, and in --font-data
+	   Pixel Operator is the Cyrillic fallback (digits stay Silkscreen, but Cyrillic
+	   units the design puts in data elements — сек/повт./мин/упр. — fall to Pixel
+	   Operator per-glyph instead of garbling). */
+	--font-display: 'Pixel Operator', monospace;
+	--font-ui: 'Pixel Operator', monospace;
+	--font-data: 'Silkscreen', 'Pixel Operator', monospace;
+	/* Bumped up vs the prototype's raw px: the designer's preview is shown in a
+	   scaled-up phone frame (~1.5-2x), so 1:1 px look tiny on a real device. */
+	--data-sm: 12px;
+	--data-md: 16px;
+	--data-lg: 22px;
 
-	/* Status colors */
-	--pixel-green: #00a800;
-	--pixel-green-light: #00d800;
-	--pixel-yellow: #fcc800;
-	--pixel-orange: #fc7400;
-	--pixel-red: #d82800;
-	--pixel-blue: #0058f8;
-	--pixel-cyan: #00a8a8;
-	--pixel-purple: #6800a8;
-	--pixel-pink: #f878f8;
+	/* ============================================================
+	   App's existing --pixel-* names → aliased to the Neo tokens
+	   so all current components re-skin without per-file edits.
+	   ============================================================ */
+	--pixel-bg: var(--bg);
+	--pixel-bg-dark: var(--bg3);
+	--pixel-card: var(--card-bg);
+	--pixel-card-hover: #f3ecdc;
+	--pixel-accent: var(--accent);
+	--pixel-accent-hover: #ff7a47;
+	--pixel-green: var(--green);
+	--pixel-green-light: #2bb085;
+	--pixel-yellow: var(--gold);
+	--pixel-orange: var(--sun);
+	--pixel-red: var(--danger);
+	--pixel-blue: var(--accent2);
+	--pixel-cyan: var(--accent2);
+	--pixel-purple: var(--mocha);
+	--pixel-pink: var(--danger);
+	--pixel-black: var(--ink);
+	--pixel-dark: var(--line2);
+	--pixel-gray: var(--muted);
+	--pixel-light: var(--dim);
+	--pixel-white: var(--hero-text);
 
-	/* Neutral colors */
-	--pixel-black: #0f0f0f;
-	--pixel-dark: #2d2d2d;
-	--pixel-gray: #5a5a5a;
-	--pixel-light: #9a9a9a;
-	--pixel-white: #fcfcfc;
+	--text-primary: var(--text);
+	--text-secondary: var(--muted);
+	--text-muted: var(--dim);
 
-	/* Text colors */
-	--text-primary: #fcfcfc;
-	--text-secondary: #9a9a9a;
-	--text-muted: #5a5a5a;
-
-	/* Borders */
-	--border-color: #3a3a5e;
-	--border-light: #4a4a7e;
+	--border-color: var(--line);
+	--border-light: var(--line2);
+	--border-width: var(--bw);
 
 	/* Spacing */
 	--spacing-xs: 4px;
@@ -49,23 +114,24 @@
 	--spacing-lg: 24px;
 	--spacing-xl: 32px;
 
-	/* Border radius (pixelated = 0, but we use small values for subtle rounding) */
-	--radius-sm: 2px;
-	--radius-md: 4px;
+	/* Border radius — pixel-sharp, no rounding */
+	--radius-sm: var(--radius);
+	--radius-md: var(--radius);
 
-	/* Shadows (pixel-style, no blur) */
+	/* Shadows — hard pixel offset, ink colour (no blur) */
 	--shadow-sm: 2px 2px 0px var(--pixel-black);
-	--shadow-md: 4px 4px 0px var(--pixel-black);
-	--shadow-lg: 6px 6px 0px var(--pixel-black);
+	--shadow-md: 3px 3px 0px var(--pixel-black);
+	--shadow-lg: 5px 5px 0px var(--pixel-black);
 
-	/* Font */
-	--font-pixel: 'Press Start 2P', monospace;
-	--font-size-xs: 8px;
-	--font-size-sm: 10px;
-	--font-size-md: 12px;
-	--font-size-lg: 14px;
-	--font-size-xl: 16px;
-	--font-size-2xl: 20px;
+	/* Fonts (app names) — body Pixelify Sans, headings/numbers Silkscreen */
+	--font-pixel: var(--font-ui);
+	/* Bumped up for real-device legibility (body base = 14px like the designer) */
+	--font-size-xs: 11px;
+	--font-size-sm: 14px;
+	--font-size-md: 16px;
+	--font-size-lg: 19px;
+	--font-size-xl: 24px;
+	--font-size-2xl: 32px;
 
 	/* Transitions */
 	--transition-fast: 100ms;
@@ -97,6 +163,13 @@ body {
 	overflow-x: hidden;
 }
 
+/* Uppercase labels are disabled app-wide for consistent casing on every platform
+   (the design's uppercase styling is intentionally dropped, per request). Every
+   label renders in its authored case. */
+* {
+	text-transform: none !important;
+}
+
 /* Pixel-perfect rendering for images */
 img, canvas {
 	image-rendering: pixelated;
@@ -107,7 +180,7 @@ img, canvas {
    Typography
    ============================================ */
 h1, h2, h3, h4, h5, h6 {
-	font-family: var(--font-pixel);
+	font-family: var(--font-display);
 	font-weight: normal;
 	line-height: 1.4;
 	color: var(--text-primary);
@@ -216,12 +289,12 @@ a:hover {
    Pixel Border Helper
    ============================================ */
 .pixel-border {
-	border: 2px solid var(--border-color);
+	border: var(--border-width) solid var(--border-color);
 	box-shadow: var(--shadow-sm);
 }
 
 .pixel-border-light {
-	border: 2px solid var(--border-light);
+	border: var(--border-width) solid var(--border-light);
 }
 
 /* Pixel corners (NES-style cut corners) */
@@ -331,7 +404,7 @@ a:hover {
 	padding: var(--spacing-xs) var(--spacing-sm);
 	font-size: var(--font-size-xs);
 	background: var(--pixel-card);
-	border: 2px solid var(--border-color);
+	border: var(--border-width) solid var(--border-color);
 	text-transform: uppercase;
 }
 
@@ -375,3 +448,65 @@ a:hover {
 .icon-md { width: 16px; height: 16px; }
 .icon-lg { width: 24px; height: 24px; }
 .icon-xl { width: 32px; height: 32px; }
+
+/* ============================================
+   Redesign animation layer ("Stardew juice")
+   Reusable, opt-in via class. All motion is
+   disabled under prefers-reduced-motion.
+   ============================================ */
+@keyframes av-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px) scaleY(0.97); } }
+@keyframes av-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.045); } }
+@keyframes av-sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes av-hop { 0%, 66%, 100% { transform: translateY(0) scaleY(1); } 80% { transform: translateY(-4px) scaleY(1.05); } 90% { transform: translateY(0) scaleY(0.93); } }
+@keyframes ring-pulse { 0%, 100% { box-shadow: 0 0 0 2px var(--pixel-yellow); } 50% { box-shadow: 0 0 0 4px var(--pixel-yellow); } }
+@keyframes card-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes row-in { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes pop-in { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
+@keyframes bar-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes coin-spin { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.15); } }
+@keyframes flicker { 0%, 100% { transform: scale(1); } 45% { transform: scale(1.18) translateY(-1px); } 70% { transform: scale(0.95); } }
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+@keyframes toast-in { from { opacity: 0; transform: translateY(40px) scale(0.85); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+@media (prefers-reduced-motion: no-preference) {
+	/* avatar / sprite idle loops */
+	.idle-bob { animation: av-bob 2.6s ease-in-out infinite; }
+	.idle-breathe { animation: av-breathe 3s ease-in-out infinite; }
+	.idle-sway { animation: av-sway 3.4s ease-in-out infinite; transform-origin: center bottom; }
+	.idle-hop { animation: av-hop 2.4s ease-in-out infinite; transform-origin: center bottom; }
+	.anim-ring { animation: ring-pulse 1.6s ease-in-out infinite; }
+	.anim-floaty { animation: floaty 3s ease-in-out infinite; }
+
+	/* one-shot entrances */
+	.anim-pop { animation: pop-in 0.42s cubic-bezier(0.2, 1.4, 0.4, 1) backwards; }
+	.anim-bar-grow { animation: bar-grow 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) backwards; transform-origin: bottom; }
+	.anim-toast { animation: toast-in 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) backwards; }
+
+	/* ambient loops */
+	.anim-coin-spin { animation: coin-spin 3.5s linear infinite; }
+	.anim-flicker { animation: flicker 1.6s ease-in-out infinite; transform-origin: center bottom; }
+	.anim-nudge { animation: nudge 1.4s ease-in-out infinite; }
+
+	/* cascade entrance — add .anim-cascade to a container; its direct
+	   children fade/slide up with staggered delays */
+	.anim-cascade > * { animation: card-in 0.42s backwards; }
+	.anim-cascade > *:nth-child(1) { animation-delay: 0.02s; }
+	.anim-cascade > *:nth-child(2) { animation-delay: 0.06s; }
+	.anim-cascade > *:nth-child(3) { animation-delay: 0.10s; }
+	.anim-cascade > *:nth-child(4) { animation-delay: 0.14s; }
+	.anim-cascade > *:nth-child(5) { animation-delay: 0.18s; }
+	.anim-cascade > *:nth-child(6) { animation-delay: 0.22s; }
+	.anim-cascade > *:nth-child(7) { animation-delay: 0.26s; }
+	.anim-cascade > *:nth-child(n + 8) { animation-delay: 0.30s; }
+
+	/* list rows — add .anim-rows to a container of repeated rows */
+	.anim-rows > * { animation: row-in 0.4s ease backwards; }
+	.anim-rows > *:nth-child(1) { animation-delay: 0.03s; }
+	.anim-rows > *:nth-child(2) { animation-delay: 0.07s; }
+	.anim-rows > *:nth-child(3) { animation-delay: 0.11s; }
+	.anim-rows > *:nth-child(4) { animation-delay: 0.15s; }
+	.anim-rows > *:nth-child(5) { animation-delay: 0.19s; }
+	.anim-rows > *:nth-child(6) { animation-delay: 0.23s; }
+	.anim-rows > *:nth-child(n + 7) { animation-delay: 0.27s; }
+}

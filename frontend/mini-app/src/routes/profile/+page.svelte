@@ -1,21 +1,24 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
-	import { PixelCard, PixelProgress, PixelIcon, PixelAvatar, PixelModal, AvatarPicker } from '$lib/components/ui';
+	import { PixelCard, PixelProgress, PixelIcon, PixelAvatar, PixelModal, AvatarPicker, CountUp } from '$lib/components/ui';
 	import ActivityBarChart from '$lib/components/ActivityBarChart.svelte';
+	import TitlePicker from '$lib/components/TitlePicker.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
-	import type { Achievement, AvatarId, UserActivity, DayActivity } from '$lib/types';
+	import type { Achievement, AvatarId, UserActivity, DayActivity, UserRecords } from '$lib/types';
 
 	let achievements = $state<Achievement[]>([]);
 	let showAvatarPicker = $state(false);
 	let activityData = $state<UserActivity | null>(null);
 	let chartRange = $state<'week' | '2weeks' | 'month' | '3months'>('week');
 	let selectedDay = $state<{ date: string; activity: DayActivity | null } | null>(null);
+	let showTitlePicker = $state(false);
+	let records = $state<UserRecords | null>(null);
 
 	// Streak freeze (must match backend STREAK_FREEZE_PRICE_COINS / MAX_STREAK_FREEZES)
-	const STREAK_FREEZE_PRICE = 100;
+	const STREAK_FREEZE_PRICE = 500;
 	const MAX_STREAK_FREEZES = 2;
 	let freezeBuying = $state(false);
 	let freezeMessage = $state<string | null>(null);
@@ -36,37 +39,6 @@
 		}
 	}
 
-	// Account settings
-	let showLinkTelegram = $state(false);
-	let telegramIdInput = $state('');
-	let accountMessage = $state<string | null>(null);
-	let accountError = $state<string | null>(null);
-	let accountLoading = $state(false);
-
-	async function handleLinkTelegram() {
-		const tid = parseInt(telegramIdInput);
-		if (isNaN(tid)) {
-			accountError = 'Введите корректный Telegram ID (число)';
-			return;
-		}
-		accountError = null;
-		accountLoading = true;
-		try {
-			const result = await userStore.linkTelegram(tid);
-			accountMessage = result.message;
-			showLinkTelegram = false;
-			telegramIdInput = '';
-		} catch (err) {
-			accountError = err instanceof Error ? err.message : 'Ошибка';
-		} finally {
-			accountLoading = false;
-		}
-	}
-
-	function handleLogout() {
-		userStore.logout();
-	}
-
 	onMount(async () => {
 		await userStore.loadStats();
 
@@ -80,6 +52,12 @@
 			activityData = await api.getUserActivity();
 		} catch (err) {
 			console.error('Failed to load activity data:', err);
+		}
+
+		try {
+			records = await api.getUserRecords();
+		} catch (err) {
+			console.error('Failed to load records:', err);
 		}
 	});
 
@@ -120,33 +98,64 @@
 			year: 'numeric'
 		});
 	}
+
+	function fmtDuration(seconds: number): string {
+		const m = Math.floor(seconds / 60);
+		const s = seconds % 60;
+		return `${m}:${String(s).padStart(2, '0')}`;
+	}
+
+	const hasRecords = $derived(
+		!!records &&
+			(!!records.best_set ||
+				!!records.best_workout ||
+				records.longest_workout_seconds > 0 ||
+				records.max_streak > 0)
+	);
+
+	function openTitlePicker() {
+		showTitlePicker = true;
+		telegram.hapticImpact('light');
+	}
 </script>
 
-<div class="page container">
-	<!-- Profile Header - Avatar left, Level info right -->
-	<header class="profile-header">
-		<button class="avatar-btn" onclick={openAvatarPicker}>
-			<PixelAvatar
-				avatarId={userStore.user?.avatar_id || 'shadow-wolf'}
-				size="xl"
-				borderColor="var(--pixel-accent)"
-			/>
-			<div class="avatar-edit">
-				<PixelIcon name="settings" size="sm" />
+<div class="page container anim-cascade">
+	<!-- Character sheet header (mocha hero) -->
+	<section class="hero-section">
+		<header class="char">
+			<div class="char__top">
+				<button class="char__avbtn" aria-label="Сменить аватар" onclick={openAvatarPicker}>
+					<span class="char__avslot slot slot--lg">
+						<PixelAvatar avatarId={userStore.user?.avatar_id || 'shadow-wolf'} size="lg" showBorder={false} />
+					</span>
+					<span class="char__edit"><PixelIcon name="edit" size="sm" color="#fff" /></span>
+				</button>
+				<div class="char__id">
+					<span class="char__name">{userStore.displayName}</span>
+					<button class="char__title char__title--btn" onclick={openTitlePicker} aria-label="Сменить титул">
+						<PixelIcon name="crown" size="sm" color="var(--gold)" />
+						{userStore.user?.equipped_title || 'Выбрать титул'}
+					</button>
+					<span class="char__lvl">Уровень {userStore.level}</span>
+				</div>
+				<a class="char__settings" href="{base}/settings" aria-label="Настройки">
+					<PixelIcon name="gear" size="md" color="var(--hero-text)" />
+				</a>
 			</div>
-		</button>
-		<div class="header-info">
-			<h1 class="username">{userStore.displayName}</h1>
-			<p class="user-title">Пиксельный воин</p>
-			<div class="level-info">
-				<span class="level-badge">Ур.{userStore.level}</span>
-				<div class="xp-mini">
-					<PixelProgress value={xpInLevel} max={xpNeeded} variant="xp" size="sm" />
-					<span class="xp-text">{xpInLevel}/{xpNeeded} XP</span>
+			<div class="char__xp">
+				<PixelProgress value={xpInLevel} max={xpNeeded} variant="xp" size="sm" />
+				<div class="char__xprow">
+					<span>{xpInLevel} / {xpNeeded} XP</span>
+					<span>до Ур.{userStore.level + 1}</span>
 				</div>
 			</div>
-		</div>
-	</header>
+			<div class="char__facts">
+				<span class="char__fact"><PixelIcon name="flame" size="sm" color="var(--danger)" /> Серия {userStore.streak}</span>
+				<span class="char__fact"><PixelIcon name="medal" size="sm" color="var(--gold)" /> Рекорд {userStore.user?.max_streak || 0}</span>
+				<span class="char__fact"><PixelIcon name="coin" size="sm" color="var(--gold)" /> {userStore.coins}</span>
+			</div>
+		</header>
+	</section>
 
 	<!-- Avatar Picker Modal -->
 	<AvatarPicker
@@ -155,6 +164,9 @@
 		onselect={handleAvatarSelect}
 		onclose={() => showAvatarPicker = false}
 	/>
+
+	<!-- Title Picker (roadmap 1.2) -->
+	<TitlePicker open={showTitlePicker} onclose={() => (showTitlePicker = false)} />
 
 	<!-- Activity bar chart: week / 2 weeks / month -->
 	{#if activityData}
@@ -202,27 +214,64 @@
 		</section>
 	{/if}
 
-	<!-- Stats Row - compact horizontal -->
+	<!-- Stats band -->
 	<section class="stats-section">
-		<div class="stats-row">
-			<div class="stat-item">
-				<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
-				<span class="stat-value">{userStore.xp}</span>
+		<div class="band3">
+			<div class="band3__i">
+				<PixelIcon name="xp" size="sm" color="var(--accent)" />
+				<span class="band3__v"><CountUp value={userStore.xp} /></span>
+				<span class="band3__l">XP</span>
 			</div>
-			<div class="stat-item">
-				<PixelIcon name="coin" size="md" color="var(--pixel-orange)" />
-				<span class="stat-value">{userStore.coins}</span>
+			<div class="band3__i">
+				<PixelIcon name="coin" size="sm" color="var(--gold)" class="anim-coin-spin" />
+				<span class="band3__v"><CountUp value={userStore.coins} /></span>
+				<span class="band3__l">Монеты</span>
 			</div>
-			<div class="stat-item">
-				<PixelIcon name="streak" size="md" color="var(--pixel-yellow)" />
-				<span class="stat-value">{userStore.streak}</span>
+			<div class="band3__i">
+				<PixelIcon name="streak" size="sm" color="var(--danger)" class="anim-flicker" />
+				<span class="band3__v"><CountUp value={userStore.streak} /></span>
+				<span class="band3__l">Серия</span>
 			</div>
-			<div class="stat-item">
-				<PixelIcon name="trophy" size="md" color="var(--pixel-accent)" />
-				<span class="stat-value">{unlockedCount}</span>
+			<div class="band3__i">
+				<PixelIcon name="trophy" size="sm" color="var(--gold)" />
+				<span class="band3__v"><CountUp value={unlockedCount} /></span>
+				<span class="band3__l">Значки</span>
 			</div>
 		</div>
 	</section>
+
+	<!-- Personal records (roadmap 2.3) -->
+	{#if hasRecords && records}
+		<section class="records-section">
+			<h3 class="section-title">Личные рекорды</h3>
+			<div class="rec-grid">
+				<div class="rec">
+					<PixelIcon name="dumbbell" size="md" color="var(--accent)" />
+					<span class="rec__v">{records.best_set ? records.best_set.value : '—'}</span>
+					<span class="rec__l">Лучший подход</span>
+					<span class="rec__sub">{records.best_set ? records.best_set.exercise_name_ru : 'нет данных'}</span>
+				</div>
+				<div class="rec">
+					<PixelIcon name="flame" size="md" color="var(--danger)" />
+					<span class="rec__v">{records.best_workout ? records.best_workout.value : '—'}</span>
+					<span class="rec__l">Рекорд за трен.</span>
+					<span class="rec__sub">{records.best_workout ? records.best_workout.exercise_name_ru : 'нет данных'}</span>
+				</div>
+				<div class="rec">
+					<PixelIcon name="timer" size="md" color="var(--accent2)" />
+					<span class="rec__v">{fmtDuration(records.longest_workout_seconds)}</span>
+					<span class="rec__l">Дольше всего</span>
+					<span class="rec__sub">одна тренировка</span>
+				</div>
+				<div class="rec">
+					<PixelIcon name="medal" size="md" color="var(--gold)" />
+					<span class="rec__v">{records.max_streak}</span>
+					<span class="rec__l">Макс. серия</span>
+					<span class="rec__sub">дней подряд</span>
+				</div>
+			</div>
+		</section>
+	{/if}
 
 	<!-- Unlocked Badges -->
 	{#if unlockedAchievements.length > 0}
@@ -233,7 +282,7 @@
 					<span class="badges-title">Значки</span>
 					<span class="badges-count">{unlockedCount}/{achievements.length}</span>
 				</div>
-				<div class="badges-grid">
+				<div class="badges-grid anim-rows">
 					{#each unlockedAchievements.slice(0, 16) as achievement}
 						<div class="badge-item" title={achievement.name_ru}>
 							<img
@@ -272,7 +321,7 @@
 
 		<div class="freeze-card">
 			<div class="freeze-left">
-				<span class="freeze-icon">🧊</span>
+				<span class="freeze-icon"><PixelIcon name="snowflake" size="lg" color="var(--accent2)" /></span>
 				<div class="freeze-numbers">
 					<span class="freeze-title">Заморозки: {userStore.streakFreezes}/{MAX_STREAK_FREEZES}</span>
 					<span class="freeze-hint">Спасают серию за пропущенный день</span>
@@ -286,7 +335,7 @@
 				{#if userStore.streakFreezes >= MAX_STREAK_FREEZES}
 					Максимум
 				{:else}
-					{STREAK_FREEZE_PRICE} 🪙
+					{STREAK_FREEZE_PRICE} <PixelIcon name="coin" size="sm" color="var(--gold)" />
 				{/if}
 			</button>
 		</div>
@@ -307,70 +356,7 @@
 		</a>
 	</section>
 
-	<!-- Account Settings -->
-	<section class="account-section">
-		<h3 class="section-title">Аккаунт</h3>
-
-		{#if accountMessage}
-			<div class="account-success">{accountMessage}</div>
-		{/if}
-
-		<div class="account-info">
-			{#if userStore.user?.email}
-				<div class="account-row">
-					<span class="account-label">Email</span>
-					<span class="account-value">{userStore.user.email}</span>
-				</div>
-			{/if}
-			{#if userStore.user?.telegram_id}
-				<div class="account-row">
-					<span class="account-label">Telegram</span>
-					<span class="account-value">ID: {userStore.user.telegram_id}</span>
-				</div>
-			{/if}
-		</div>
-
-		<div class="account-actions">
-			{#if !userStore.hasTelegram}
-				<button class="account-btn" onclick={() => { showLinkTelegram = true; accountError = null; }}>
-					Привязать Telegram
-				</button>
-			{/if}
-
-			{#if userStore.authMode === 'web'}
-				<button class="account-btn logout-btn" onclick={handleLogout}>
-					Выйти
-				</button>
-			{/if}
-		</div>
-	</section>
-
 </div>
-
-<!-- Link Telegram Modal -->
-<PixelModal
-	open={showLinkTelegram}
-	title="Привязать Telegram"
-	onclose={() => { showLinkTelegram = false; accountError = null; }}
->
-	<div class="modal-instructions">
-		<p>1. Начните диалог с ботом <b>@pixelfitbot</b></p>
-		<p>2. Введите ваш Telegram ID ниже</p>
-		<p>3. Подтвердите привязку в Telegram</p>
-	</div>
-	<form class="modal-form" onsubmit={(e) => { e.preventDefault(); handleLinkTelegram(); }}>
-		<div class="modal-field">
-			<label for="tg-id">Telegram ID</label>
-			<input id="tg-id" type="text" bind:value={telegramIdInput} placeholder="Например: 123456789" required />
-		</div>
-		{#if accountError}
-			<div class="modal-error">{accountError}</div>
-		{/if}
-		<button type="submit" class="modal-submit" disabled={accountLoading}>
-			{accountLoading ? 'Отправка...' : 'Отправить запрос'}
-		</button>
-	</form>
-</PixelModal>
 
 <!-- Day details modal (from bar chart click) -->
 <PixelModal
@@ -397,7 +383,7 @@
 		</div>
 	{:else}
 		<div class="no-activity">
-			<PixelIcon name="close" size="lg" color="var(--text-muted)" />
+			<PixelIcon name="calendar" size="lg" color="var(--text-muted)" />
 			<p>Нет тренировок в этот день</p>
 		</div>
 	{/if}
@@ -409,87 +395,18 @@
 		padding-bottom: var(--spacing-lg);
 	}
 
-	/* Profile Header - horizontal layout */
-	.profile-header {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
+	/* Character sheet header — .char / .char__* live in hud.css */
+	.hero-section {
 		margin-bottom: var(--spacing-md);
 	}
 
-	.avatar-btn {
-		background: none;
-		border: none;
-		cursor: pointer;
-		padding: 0;
-		position: relative;
-		flex-shrink: 0;
+	/* Gold XP fill on the dark mocha track (matches the designer's char segbar) */
+	.char :global(.pixel-progress.xp .track) {
+		background: rgba(0, 0, 0, 0.25);
+		border-color: var(--hero-edge);
 	}
-
-	.avatar-btn:hover .avatar-edit {
-		opacity: 1;
-	}
-
-	.avatar-edit {
-		position: absolute;
-		bottom: 0;
-		right: 0;
-		width: 20px;
-		height: 20px;
-		background: var(--pixel-accent);
-		border: 2px solid var(--pixel-bg);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		opacity: 0.8;
-		transition: opacity var(--transition-fast);
-	}
-
-	.header-info {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.username {
-		font-size: var(--font-size-md);
-		margin: 0 0 2px 0;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.user-title {
-		font-size: var(--font-size-xs);
-		color: var(--pixel-yellow);
-		text-transform: uppercase;
-		margin: 0 0 var(--spacing-xs) 0;
-	}
-
-	.level-info {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-	}
-
-	.level-badge {
-		background: var(--pixel-accent);
-		padding: 2px 8px;
-		font-size: var(--font-size-xs);
-		white-space: nowrap;
-		flex-shrink: 0;
-	}
-
-	.xp-mini {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		min-width: 0;
-	}
-
-	.xp-text {
-		font-size: 10px;
-		color: var(--text-secondary);
+	.char :global(.pixel-progress.xp .bar) {
+		background: var(--gold);
 	}
 
 	/* Sections */
@@ -526,8 +443,8 @@
 	.range-btn {
 		padding: 6px 10px;
 		font-size: var(--font-size-xs);
-		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		background: var(--pixel-card);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-secondary);
 		cursor: pointer;
 		transition: all 0.15s;
@@ -540,8 +457,8 @@
 
 	.range-btn.active {
 		background: var(--pixel-accent);
-		border-color: var(--pixel-accent);
-		color: var(--pixel-bg);
+		border-color: var(--border-color);
+		color: var(--on-accent);
 	}
 
 	/* Stats Row - compact horizontal */
@@ -549,22 +466,71 @@
 		margin-bottom: var(--spacing-md);
 	}
 
-	.stats-row {
-		display: flex;
-		justify-content: space-between;
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
-		padding: var(--spacing-sm) var(--spacing-md);
-	}
+	/* stats now use the global .band3 kit */
 
-	.stat-item {
+	/* Personal records (roadmap 2.3) — neo pixel tiles, matching .band3 aesthetic */
+	.records-section {
+		margin-bottom: var(--spacing-md);
+	}
+	.rec-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: var(--spacing-sm);
+	}
+	.rec {
 		display: flex;
+		flex-direction: column;
 		align-items: center;
-		gap: var(--spacing-xs);
+		gap: 4px;
+		padding: 12px 8px;
+		text-align: center;
+		background: var(--bg2);
+		border: var(--bw) solid var(--line);
+		box-shadow: var(--shadow);
+	}
+	.rec__v {
+		font-family: var(--font-data);
+		font-size: 22px;
+		color: var(--text);
+		line-height: 1;
+		margin-top: 2px;
+	}
+	.rec__l {
+		font-family: var(--font-display);
+		font-size: 11px;
+		color: var(--muted);
+	}
+	.rec__sub {
+		font-size: 10px;
+		color: var(--dim);
+		max-width: 100%;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
-	.stat-value {
-		font-size: var(--font-size-sm);
+	/* Tappable title chip (roadmap 1.2) — reuses .char__title visuals from hud.css */
+	.char__title--btn {
+		border: none;
+		cursor: pointer;
+		color: inherit;
+	}
+
+	/* Settings gear in the hero header (opens /settings) */
+	.char__settings {
+		flex: 0 0 auto;
+		align-self: flex-start;
+		width: 34px;
+		height: 34px;
+		display: grid;
+		place-items: center;
+		background: rgba(0, 0, 0, 0.22);
+		border: 2px solid var(--hero-edge);
+		box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.14), inset -2px -2px 0 rgba(0, 0, 0, 0.3);
+		cursor: pointer;
+	}
+	.char__settings:active {
+		transform: translate(1px, 1px);
 	}
 
 	/* Badges Section */
@@ -574,7 +540,8 @@
 
 	.badges-card {
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
@@ -606,8 +573,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		background: var(--pixel-yellow);
+		border: var(--border-width) solid var(--border-color);
 		transition: transform var(--transition-fast);
 	}
 
@@ -623,6 +590,7 @@
 	}
 
 	.badge-more {
+		background: var(--pixel-bg-dark);
 		text-decoration: none;
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
@@ -643,7 +611,8 @@
 		align-items: center;
 		justify-content: space-between;
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
@@ -660,6 +629,7 @@
 
 	.streak-current {
 		font-size: var(--font-size-sm);
+		font-family: var(--font-display);
 		color: var(--pixel-yellow);
 	}
 
@@ -677,7 +647,7 @@
 		width: 16px;
 		height: 16px;
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 	}
 
 	.streak-day.active {
@@ -691,7 +661,8 @@
 		align-items: center;
 		justify-content: space-between;
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
 		padding: var(--spacing-sm) var(--spacing-md);
 		margin-top: var(--spacing-sm);
 	}
@@ -723,7 +694,7 @@
 
 	.freeze-buy {
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--pixel-yellow);
+		border: var(--border-width) solid var(--pixel-yellow);
 		color: var(--pixel-yellow);
 		padding: var(--spacing-sm);
 		font-family: inherit;
@@ -765,12 +736,6 @@
 		text-transform: uppercase;
 	}
 
-	.link-count {
-		margin-left: auto;
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-	}
-
 	/* Day details modal */
 	.day-details {
 		display: flex;
@@ -785,7 +750,7 @@
 		gap: var(--spacing-md);
 		padding: var(--spacing-sm);
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 	}
 
 	.day-stat-content {
@@ -818,141 +783,5 @@
 	.no-activity p {
 		margin: 0;
 		font-size: var(--font-size-sm);
-	}
-
-	/* Account Section */
-	.account-section {
-		margin-bottom: var(--spacing-md);
-	}
-
-	.account-success {
-		padding: var(--spacing-sm);
-		background: rgba(0, 200, 83, 0.1);
-		border: 2px solid var(--pixel-green);
-		font-size: var(--font-size-xs);
-		color: var(--pixel-green);
-		margin-bottom: var(--spacing-sm);
-	}
-
-	.account-info {
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
-		padding: var(--spacing-sm) var(--spacing-md);
-		margin-bottom: var(--spacing-sm);
-	}
-
-	.account-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: var(--spacing-xs) 0;
-	}
-
-	.account-row + .account-row {
-		border-top: 1px solid var(--border-color);
-	}
-
-	.account-label {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-	}
-
-	.account-value {
-		font-size: var(--font-size-xs);
-		color: var(--text-primary);
-	}
-
-	.account-actions {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-xs);
-	}
-
-	.account-btn {
-		padding: 10px var(--spacing-md);
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
-		color: var(--pixel-accent);
-		font-family: 'Press Start 2P', cursive;
-		font-size: var(--font-size-xs);
-		cursor: pointer;
-		text-align: left;
-		transition: border-color 0.2s;
-	}
-
-	.account-btn:hover {
-		border-color: var(--pixel-accent);
-	}
-
-	.logout-btn {
-		color: var(--pixel-danger);
-	}
-
-	.logout-btn:hover {
-		border-color: var(--pixel-danger);
-	}
-
-	/* Modal form styles */
-	.modal-form {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-md);
-		padding: var(--spacing-sm) 0;
-	}
-
-	.modal-field {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-	}
-
-	.modal-field label {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-	}
-
-	.modal-field input {
-		padding: 10px 12px;
-		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
-		color: var(--text-primary);
-		font-size: 14px;
-		outline: none;
-	}
-
-	.modal-field input:focus {
-		border-color: var(--pixel-accent);
-	}
-
-	.modal-error {
-		color: var(--pixel-danger);
-		font-size: var(--font-size-xs);
-		padding: var(--spacing-xs);
-	}
-
-	.modal-submit {
-		padding: 12px;
-		background: var(--pixel-accent);
-		border: none;
-		color: white;
-		font-family: 'Press Start 2P', cursive;
-		font-size: var(--font-size-xs);
-		cursor: pointer;
-	}
-
-	.modal-submit:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-
-	.modal-instructions {
-		padding: var(--spacing-sm) 0;
-		font-size: 12px;
-		color: var(--text-secondary);
-		line-height: 1.6;
-	}
-
-	.modal-instructions p {
-		margin: 4px 0;
 	}
 </style>

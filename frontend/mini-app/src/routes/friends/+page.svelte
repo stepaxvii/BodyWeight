@@ -225,12 +225,31 @@
 			searchUsers();
 		}
 	}
+
+	// Rarity edge by level (designer's rarLvl) — colours the friend item's edge
+	function rarLvl(level: number): string {
+		return level >= 35 ? 'r4' : level >= 25 ? 'r3' : level >= 15 ? 'r2' : 'r1';
+	}
 </script>
 
 <div class="page container">
 	<header class="page-header">
 		<h1>Друзья</h1>
 	</header>
+
+	<!-- Stat band -->
+	<div class="band3 friends-band">
+		<div class="band3__i">
+			<PixelIcon name="users" size="sm" color="var(--accent)" />
+			<span class="band3__v">{friends.length}</span>
+			<span class="band3__l">Друзей</span>
+		</div>
+		<div class="band3__i">
+			<PixelIcon name="mail" size="sm" color="var(--gold)" />
+			<span class="band3__v">{friendRequests.length}</span>
+			<span class="band3__l">Заявки</span>
+		</div>
+	</div>
 
 	<!-- Tabs -->
 	<PixelTabs tabs={friendTabs} activeTab={activeTab} onTabChange={switchTab} />
@@ -290,7 +309,7 @@
 			</p>
 
 			{#if searchResults.length > 0}
-				<div class="user-list">
+				<div class="user-list anim-rows">
 					{#each searchResults as user}
 						<PixelCard padding="sm">
 							<div class="user-item">
@@ -346,29 +365,22 @@
 				onButtonClick={() => switchTab('search')}
 			/>
 		{:else}
-			<div class="user-list">
+			<div class="user-list anim-rows">
 				{#each friends as friend}
-					<PixelCard padding="sm">
-						<div class="user-item">
-							<PixelAvatar avatarId={friend.avatar_id} size="md" />
-							<div class="user-info">
-								<span class="user-name">{friend.username ? `${friend.username}` : friend.first_name}</span>
-								{#if friend.username && friend.first_name}
-									<span class="user-username">{friend.first_name}</span>
-								{/if}
-								<div class="user-stats">
-									<span>Ур.{friend.level}</span>
-									<span class="streak">
-										<PixelIcon name="streak" size="sm" color="var(--pixel-yellow)" />
-										{friend.current_streak}
-									</span>
-								</div>
-							</div>
-							<button class="remove-btn" onclick={() => showRemoveConfirmation(friend.id, friend.username || friend.first_name || 'друга', false)}>
-								<PixelIcon name="close" size="sm" color="var(--text-muted)" />
-							</button>
+					<div class="item {rarLvl(friend.level)}">
+						<span class="item__edge"></span>
+						<PixelAvatar avatarId={friend.avatar_id} size="md" showBorder={false} />
+						<div class="item__body">
+							<span class="item__name">{friend.username ? `${friend.username}` : friend.first_name}</span>
+							<span class="item__sub">
+								<span class="item__tag">Ур.{friend.level}</span>
+								<span class="item__tag"><PixelIcon name="flame" size="sm" color="var(--gold)" /> {friend.current_streak}</span>
+							</span>
 						</div>
-					</PixelCard>
+						<button class="remove-btn" onclick={() => showRemoveConfirmation(friend.id, friend.username || friend.first_name || 'друга', false)}>
+							<PixelIcon name="trash" size="sm" color="var(--text-muted)" />
+						</button>
+					</div>
 				{/each}
 			</div>
 		{/if}
@@ -387,7 +399,7 @@
 				message="Нет входящих заявок"
 			/>
 		{:else}
-			<div class="user-list">
+			<div class="user-list anim-rows">
 				{#each friendRequests as request}
 					<PixelCard padding="sm">
 						<div class="user-item">
@@ -459,14 +471,18 @@
 		margin-bottom: var(--spacing-md);
 	}
 
+	.friends-band {
+		margin-bottom: var(--spacing-md);
+	}
+
 	/* Error */
 	.error-message {
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-sm);
 		padding: var(--spacing-sm);
-		background: rgba(232, 68, 68, 0.1);
-		border: 2px solid var(--pixel-red);
+		background: rgba(200, 70, 63, 0.12);
+		border: var(--border-width) solid var(--pixel-red);
 		margin-bottom: var(--spacing-md);
 		font-size: var(--font-size-xs);
 		color: var(--pixel-red);
@@ -506,7 +522,7 @@
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-primary);
 		outline: none;
 	}
@@ -609,16 +625,17 @@
 		padding: 4px 8px;
 		font-size: 8px;
 		text-transform: uppercase;
+		border: var(--border-width) solid var(--border-color);
 	}
 
 	.status-badge.accepted {
 		background: var(--pixel-green);
-		color: var(--text-primary);
+		color: #fff;
 	}
 
 	.status-badge.pending {
 		background: var(--pixel-yellow);
-		color: var(--pixel-black);
+		color: var(--ink);
 	}
 
 	.request-actions {
@@ -628,11 +645,15 @@
 	}
 
 	.remove-btn {
-		background: none;
-		border: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		background: var(--pixel-bg-dark);
+		border: var(--border-width) solid var(--border-color);
 		padding: var(--spacing-xs);
 		cursor: pointer;
-		opacity: 0.6;
+		opacity: 0.85;
 		transition: opacity var(--transition-fast);
 	}
 
@@ -669,7 +690,8 @@
 
 	.modal-dialog {
 		background: var(--pixel-card);
-		border: 4px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--shadow-md);
 		max-width: 320px;
 		width: 100%;
 		animation: modal-appear 0.2s ease-out;
@@ -690,8 +712,8 @@
 		display: flex;
 		justify-content: center;
 		padding: var(--spacing-md);
-		background: rgba(255, 204, 0, 0.1);
-		border-bottom: 2px solid var(--border-color);
+		background: rgba(244, 197, 66, 0.18);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.modal-body {
@@ -716,7 +738,7 @@
 		display: flex;
 		gap: var(--spacing-sm);
 		padding: var(--spacing-md);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 	}
 
 	.modal-actions > :global(*) {

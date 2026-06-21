@@ -191,7 +191,7 @@
 		font-size: var(--font-size-xs);
 		padding: var(--spacing-xs) var(--spacing-sm);
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-secondary);
 		cursor: pointer;
 		transition: all var(--transition-fast);
@@ -205,7 +205,7 @@
 	.filter-chip.active {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 	}
 
 	.difficulty-chips {
@@ -224,6 +224,6 @@
 		gap: var(--spacing-sm);
 		margin-top: var(--spacing-lg);
 		padding-top: var(--spacing-md);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 	}
 </style>

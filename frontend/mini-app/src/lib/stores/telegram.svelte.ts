@@ -30,8 +30,8 @@ class TelegramStore {
 			// Configure WebApp
 			webApp.ready();
 			webApp.expand();
-			webApp.setHeaderColor('#1a1a2e');
-			webApp.setBackgroundColor('#1a1a2e');
+			webApp.setHeaderColor('#efe6d4');
+			webApp.setBackgroundColor('#efe6d4');
 
 			// Listen for theme changes
 			webApp.onEvent('themeChanged', () => {
@@ -91,15 +91,27 @@ class TelegramStore {
 	}
 
 	// Back button helpers
+	// Track the active handler so we can unregister it — Telegram's onClick is
+	// additive, so re-registering without offClick stacks duplicate handlers.
+	private backHandler: (() => void) | null = null;
+
 	showBackButton(onClick: () => void) {
 		if (this.webApp?.BackButton) {
+			if (this.backHandler) this.webApp.BackButton.offClick(this.backHandler);
+			this.backHandler = onClick;
 			this.webApp.BackButton.onClick(onClick);
 			this.webApp.BackButton.show();
 		}
 	}
 
 	hideBackButton() {
-		this.webApp?.BackButton?.hide();
+		if (this.webApp?.BackButton) {
+			if (this.backHandler) {
+				this.webApp.BackButton.offClick(this.backHandler);
+				this.backHandler = null;
+			}
+			this.webApp.BackButton.hide();
+		}
 	}
 
 	// Close app

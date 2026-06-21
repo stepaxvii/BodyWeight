@@ -47,7 +47,10 @@ class ExerciseProgressResponse(BaseModel):
     """User progress for a specific exercise."""
     total_reps_ever: int
     best_single_set: int
+    best_workout_reps: int = 0
+    best_single_day: int = 0
     times_performed: int
+    last_performed_at: str | None = None
     recommended_upgrade: bool
 
 

@@ -20,7 +20,7 @@
 		{ id: 'workout', label: 'Тренировка', href: `${base}/workout`, icon: 'workout' },
 		{ id: 'challenges', label: 'Челленджи', href: `${base}/challenges`, icon: 'calendar' },
 		{ id: 'leaderboard', label: 'Рейтинг', href: `${base}/leaderboard`, icon: 'trophy' },
-		{ id: 'profile', label: 'Профиль', href: `${base}/profile`, icon: 'profile' }
+		{ id: 'profile', label: 'Профиль', href: `${base}/profile`, icon: 'user' }
 	];
 
 	// Confirmation dialog state
@@ -84,19 +84,7 @@
 				aria-current={active ? 'page' : undefined}
 			>
 				<div class="icon-wrapper">
-					<svg class="icon" viewBox="0 0 16 16" fill="currentColor" aria-label={item.label}>
-						{#if item.icon === 'home'}
-							<path d="M8 1L1 7h2v7h4v-4h2v4h4V7h2L8 1zm0 2.5L12 7v6h-2v-4H6v4H4V7l4-3.5z"/>
-						{:else if item.icon === 'workout'}
-							<path d="M2 7h2v2H2V7zm10 0h2v2h-2V7zM5 6h6v4H5V6zm0 5h6v1H5v-1zm0-7h6v1H5V4z"/>
-						{:else if item.icon === 'profile'}
-							<path d="M8 2a3 3 0 100 6 3 3 0 000-6zM4 10c0-1 1-2 4-2s4 1 4 2v3H4v-3z"/>
-						{:else if item.icon === 'trophy'}
-							<path d="M4 2h8v2h2v3c0 1-1 2-2 2h-1c0 2-1 3-3 3s-3-1-3-3H4c-1 0-2-1-2-2V4h2V2zm1 2v2h1c0 1 1 2 2 2s2-1 2-2h1V4H5zm1 8h4v2H6v-2z"/>
-						{:else if item.icon === 'calendar'}
-							<path d="M3 2h2v1h6V2h2v1h2v11H1V3h2v-1zm0 2v2h10V4H3zm0 3v6h10V7H3zm1 1h2v2H4V8zm3 0h2v2H7V8zm3 0h2v2h-2V8zM4 11h2v1H4v-1zm3 0h2v1H7v-1z"/>
-						{/if}
-					</svg>
+					<PixelIcon name={item.icon} size="lg" />
 				</div>
 				{#if active}
 					<div class="active-indicator"></div>
@@ -139,7 +127,7 @@
 		left: 0;
 		right: 0;
 		background: var(--pixel-bg-dark);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 		z-index: 100;
 		padding-bottom: env(safe-area-inset-bottom, 0);
 	}
@@ -170,7 +158,9 @@
 	}
 
 	.nav-item.active {
-		color: var(--pixel-accent);
+		background: var(--pixel-accent);
+		color: var(--on-accent);
+		border-radius: var(--radius-sm);
 	}
 
 	.icon-wrapper {
@@ -181,12 +171,6 @@
 		justify-content: center;
 	}
 
-	.icon {
-		width: 22px;
-		height: 22px;
-		image-rendering: pixelated;
-	}
-
 	.active-indicator {
 		position: absolute;
 		top: 2px;
@@ -194,7 +178,7 @@
 		transform: translateX(-50%);
 		width: 6px;
 		height: 6px;
-		background: var(--pixel-accent);
+		background: var(--pixel-bg);
 	}
 
 	/* Modal styles */
@@ -214,7 +198,8 @@
 
 	.modal-dialog {
 		background: var(--pixel-card);
-		border: 4px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		border-radius: var(--radius-sm);
 		max-width: 320px;
 		width: 100%;
 		animation: modal-appear 0.2s ease-out;
@@ -235,8 +220,8 @@
 		display: flex;
 		justify-content: center;
 		padding: var(--spacing-md);
-		background: rgba(233, 69, 96, 0.1);
-		border-bottom: 2px solid var(--border-color);
+		background: var(--pixel-bg-dark);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.modal-body {
@@ -262,7 +247,7 @@
 		flex-direction: column;
 		gap: var(--spacing-sm);
 		padding: var(--spacing-md);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 	}
 
 	.modal-actions > :global(*) {

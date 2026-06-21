@@ -122,6 +122,9 @@
 						{profile.username ? `${profile.username}` : (profile.first_name || 'Пользователь')}
 					</h2>
 					<div class="level-badge">Ур.{profile.level}</div>
+					{#if profile.equipped_title}
+						<span class="profile-title"><PixelIcon name="crown" size="sm" color="var(--gold)" /> {profile.equipped_title}</span>
+					{/if}
 				</div>
 
 				<!-- Stats -->
@@ -195,7 +198,7 @@
 						</div>
 					{:else if profile.friend_request_sent}
 						<div class="friend-status pending">
-							<PixelIcon name="time" size="sm" color="var(--pixel-yellow)" />
+							<PixelIcon name="clock" size="sm" color="var(--pixel-yellow)" />
 							<span>Заявка отправлена</span>
 						</div>
 					{:else if profile.username}
@@ -237,7 +240,7 @@
 		width: 100%;
 		max-width: 320px;
 		background: var(--pixel-bg);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		padding: var(--spacing-lg);
 		position: relative;
 	}
@@ -303,13 +306,22 @@
 		font-size: var(--font-size-xs);
 	}
 
+	.profile-title {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		margin-top: 6px;
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+
 	/* Stats Grid */
 	.stats-grid {
 		display: flex;
 		justify-content: space-around;
 		padding: var(--spacing-md);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		margin-bottom: var(--spacing-md);
 	}
 
@@ -356,7 +368,7 @@
 		align-items: center;
 		justify-content: center;
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 	}
 
 	.badge-icon {
@@ -386,15 +398,15 @@
 		justify-content: center;
 		gap: var(--spacing-xs);
 		padding: var(--spacing-sm);
-		background: rgba(0, 168, 0, 0.2);
-		border: 2px solid var(--pixel-green);
+		background: color-mix(in srgb, var(--pixel-green) 20%, transparent);
+		border: var(--border-width) solid var(--pixel-green);
 		color: var(--pixel-green);
 		font-size: var(--font-size-sm);
 		text-transform: uppercase;
 	}
 
 	.friend-status.pending {
-		background: rgba(255, 204, 0, 0.2);
+		background: color-mix(in srgb, var(--pixel-yellow) 20%, transparent);
 		border-color: var(--pixel-yellow);
 		color: var(--pixel-yellow);
 	}
@@ -413,7 +425,7 @@
 	.spinner {
 		width: 14px;
 		height: 14px;
-		border: 2px solid currentColor;
+		border: var(--border-width) solid currentColor;
 		border-top-color: transparent;
 		border-radius: 50%;
 		animation: spin 0.8s linear infinite;

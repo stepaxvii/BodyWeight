@@ -13,6 +13,7 @@ class LeaderboardEntry(BaseModel):
     level: int
     total_xp: int
     current_streak: int
+    equipped_title: str | None = None
     is_current_user: bool = False
 
 

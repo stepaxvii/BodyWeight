@@ -24,6 +24,10 @@ from app.schemas import (
     TodayStatsResponse,
     PaginatedResponse,
 )
+from app.schemas.workouts import (
+    ChallengeProgressSummary,
+    ChallengeExerciseProgressSummary,
+)
 
 router = APIRouter()
 
@@ -326,6 +330,25 @@ async def submit_workout(
         new_achievements=result.new_achievements,
         level_up=result.level_up,
         new_level=result.new_level if result.level_up else None,
+        challenge_progress=[
+            ChallengeProgressSummary(
+                challenge_id=d.challenge_id,
+                challenge_title=d.challenge_title,
+                day_completed=d.day_completed,
+                exercises=[
+                    ChallengeExerciseProgressSummary(
+                        exercise_name_ru=e.exercise_name_ru,
+                        added=e.added,
+                        accumulated=e.accumulated,
+                        target=e.target,
+                        completed=e.completed,
+                        is_timed=e.is_timed,
+                    )
+                    for e in d.exercises
+                ],
+            )
+            for d in result.challenge_progress
+        ],
     )
 
 

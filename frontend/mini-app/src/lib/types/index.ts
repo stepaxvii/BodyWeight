@@ -61,7 +61,9 @@ export type AvatarId =
 	| 'shadow-wolf' | 'iron-bear' | 'fire-fox' | 'night-panther'
 	// Paid mythical (increasing price/level)
 	| 'phoenix' | 'griffin' | 'cerberus' | 'thunder-fang' | 'cyber-ape' | 'hydra'
-	| 'minotaur' | 'kraken' | 'leviathan' | 'titan';
+	| 'minotaur' | 'kraken' | 'leviathan' | 'titan'
+	// New heroes (Stardew redesign)
+	| 'solar-lion' | 'crystal-stag' | 'storm-eagle' | 'void-serpent' | 'magma-golem';
 
 export interface Avatar {
 	id: AvatarId;
@@ -90,10 +92,28 @@ export interface User {
 	last_workout_date?: string;
 	notification_time?: string;
 	notifications_enabled: boolean;
+	sound_enabled: boolean;
 	is_onboarded: boolean;
 	leaderboard_visible: boolean;
+	daily_activity_norm: number;
+	equipped_title?: string | null;
 	created_at: string;
 	updated_at: string;
+}
+
+// Personal records (matches backend UserRecordsResponse)
+export interface ExerciseRecord {
+	exercise_slug: string;
+	exercise_name_ru: string;
+	value: number;
+}
+
+export interface UserRecords {
+	best_set: ExerciseRecord | null;
+	best_workout: ExerciseRecord | null;
+	longest_workout_seconds: number;
+	max_streak: number;
+	total_reps: number;
 }
 
 // UserStats (matches backend UserStatsResponse)
@@ -125,6 +145,7 @@ export interface UserProfile {
 	coins: number;
 	current_streak: number;
 	achievements: string[];  // List of unlocked achievement slugs
+	equipped_title?: string | null;
 	is_friend: boolean;
 	friend_request_sent: boolean;      // Current user sent request to this user
 	friend_request_received: boolean;  // This user sent request to current user
@@ -171,7 +192,10 @@ export interface Exercise {
 export interface ExerciseProgress {
 	total_reps_ever: number;
 	best_single_set: number;
+	best_workout_reps: number;
+	best_single_day: number;
 	times_performed: number;
+	last_performed_at?: string | null;
 	recommended_upgrade: boolean;
 }
 
@@ -210,12 +234,31 @@ export interface WorkoutSet {
 	reps: number;
 }
 
+// Per-exercise challenge credit from a workout (matches backend schema)
+export interface ChallengeExerciseProgressSummary {
+	exercise_name_ru: string;
+	added: number;
+	accumulated: number;
+	target: number;
+	completed: boolean;
+	is_timed: boolean;
+}
+
+// Per-challenge progress a workout produced (matches backend schema)
+export interface ChallengeProgressSummary {
+	challenge_id: number;
+	challenge_title: string;
+	day_completed: boolean;
+	exercises: ChallengeExerciseProgressSummary[];
+}
+
 // WorkoutSummaryResponse (matches backend WorkoutSummaryResponse)
 export interface WorkoutSummaryResponse {
 	workout: WorkoutSession;
 	new_achievements: Array<Record<string, unknown>>; // list[dict] from backend
 	level_up: boolean;
 	new_level: number | null;
+	challenge_progress: ChallengeProgressSummary[];
 }
 
 // Achievement types (matches backend AchievementResponse)
@@ -230,11 +273,12 @@ export interface Achievement {
 	coin_reward: number;
 	unlocked: boolean;
 	unlocked_at?: string;
-	condition: Record<string, unknown>; // dict from backend
+	progress?: number; // current progress toward the condition (backend may omit)
+	condition: AchievementCondition;
 }
 
 export interface AchievementCondition {
-	type: 'total_workouts' | 'streak' | 'level' | 'exercise_reps' | 'time_of_day';
+	type: 'total_workouts' | 'streak' | 'level' | 'exercise_reps' | 'time_of_day' | 'perfect_workouts';
 	value?: number;
 	exercise?: string;
 	before?: string;
@@ -251,6 +295,7 @@ export interface LeaderboardEntry {
 	level: number;
 	total_xp: number;
 	current_streak: number;
+	equipped_title?: string | null;
 	is_current_user: boolean;
 }
 
@@ -331,6 +376,7 @@ export interface RoutineExercise {
 	slug: string;
 	reps?: number;
 	duration?: number; // duration in seconds
+	rest_seconds?: number; // rest AFTER this exercise (player defaults to 30 if absent)
 }
 
 export interface Routine {
@@ -406,6 +452,7 @@ export interface DayActivity {
 	date: string; // ISO format: "2025-01-09"
 	workouts: number; // Number of workouts completed
 	total_xp: number; // Total XP earned from workouts (excluding achievements)
+	norm: number; // Daily activity goal (XP) in force on this day — for calendar colouring
 }
 
 export interface UserActivity {
@@ -519,6 +566,12 @@ export interface ChallengeListItem {
 	participants_count: number;
 	exercises_count: number;
 	is_member: boolean;
+	total_days: number;
+	daily_target_total: number;
+	completion_percent: number | null;
+	completed_days: number | null;
+	reward_claimable: boolean;
+	reward_coins: number;
 }
 
 export interface ChallengeParticipant {

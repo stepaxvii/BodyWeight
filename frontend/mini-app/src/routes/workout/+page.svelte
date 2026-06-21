@@ -6,6 +6,8 @@
 	import FilterModal from '$lib/components/FilterModal.svelte';
 	import CustomRoutineEditor from '$lib/components/CustomRoutineEditor.svelte';
 	import CustomRoutineList from '$lib/components/CustomRoutineList.svelte';
+	import Banner from '$lib/components/ui/Banner.svelte';
+	import Diff from '$lib/components/ui/Diff.svelte';
 	import type { FilterState } from '$lib/components/FilterModal.svelte';
 	import { api } from '$lib/api/client';
 	import { workoutStore } from '$lib/stores/workout.svelte';
@@ -13,6 +15,7 @@
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
+	import { buildProgramOfDay } from '$lib/utils/programOfDay';
 	import type { ExerciseCategory, Exercise, Routine, RoutineCategory, CustomRoutineListItem, CustomRoutine } from '$lib/types';
 
 	// Data
@@ -39,6 +42,11 @@
 	let selectedCustomRoutine = $state<CustomRoutine | null>(null);
 	let showRoutinePlayer = $state(false);
 	let activeRoutineCategory = $state<RoutineCategory>('morning');
+
+	// Программа дня — date-seeded random workout (no equipment, medium difficulty,
+	// different directions). Deterministic per calendar day. Built in onMount.
+	let programOfDay = $state<Routine | null>(null);
+	let programXp = $state(0);
 
 	// Custom routine editor state
 	let showCustomRoutineEditor = $state(false);
@@ -199,13 +207,13 @@
 		selectedEquipment.length + selectedDifficulties.length + selectedTags.length
 	);
 
-	// Category colors (by load type)
+	// Category colors (by load type) — theme tokens so they track the palette
 	const categoryColors: Record<string, string> = {
-		strength: '#d82800',
-		cardio: '#ff6b35',
-		static: '#0058f8',
-		'dynamic-stretch': '#00a800',
-		'static-stretch': '#00a8a8'
+		strength: 'var(--pixel-red)',
+		cardio: 'var(--pixel-orange)',
+		static: 'var(--pixel-accent)',
+		'dynamic-stretch': 'var(--pixel-green)',
+		'static-stretch': 'var(--pixel-cyan)'
 	};
 
 	const routineCategoryTabs: { id: RoutineCategory; name: string }[] = [
@@ -369,6 +377,29 @@
 
 		// Listen for page visibility changes
 		document.addEventListener('visibilitychange', handleVisibilityChange);
+
+		// Build the deterministic "Программа дня" from the full catalogue
+		// (non-blocking — the hero pops in once it's ready).
+		try {
+			const all = await api.getAllExercises();
+			const pod = buildProgramOfDay(all);
+			if (pod) {
+				programOfDay = pod;
+				const bySlug = new Map(all.map((e) => [e.slug, e]));
+				programXp = pod.exercises.reduce((sum, re) => {
+					const ex = bySlug.get(re.slug);
+					if (!ex) return sum;
+					return (
+						sum +
+						(re.duration
+							? calculateTimedXp(ex.base_xp, re.duration, 0)
+							: calculateExerciseXp(ex.base_xp, re.reps ?? 0, 0))
+					);
+				}, 0);
+			}
+		} catch (e) {
+			console.error('Failed to build program of the day:', e);
+		}
 	});
 
 	onDestroy(() => {
@@ -439,6 +470,10 @@
 		selectedRoutine = routine;
 		showRoutinePlayer = true;
 		telegram.hapticImpact('medium');
+	}
+
+	function startProgramOfDay() {
+		if (programOfDay) selectRoutine(programOfDay);
 	}
 
 	function handleRoutineClose() {
@@ -548,6 +583,11 @@
 		return '\u2605'.repeat(difficulty) + '\u2606'.repeat(5 - difficulty);
 	}
 
+	// Rarity edge by routine difficulty (designer's rarity())
+	function rarOf(difficulty: number): string {
+		return difficulty <= 1 ? 'r2' : difficulty === 2 ? 'r3' : 'r4';
+	}
+
 	// Filter modal handlers
 	function openFilterModal() {
 		showFilterModal = true;
@@ -646,7 +686,7 @@
 										onclick={() => openExerciseInfo(exercise)}
 										title="Описание упражнения"
 									>
-										?
+										<PixelIcon name="search" size="sm" />
 									</button>
 									<span class="exercise-difficulty" style="color: {categoryColors[exercise.category_slug]}">
 										{getDifficultyStars(exercise.difficulty)}
@@ -719,7 +759,7 @@
 											onclick={() => openExerciseInfo(fullExercise)}
 											title="Описание упражнения"
 										>
-											?
+											<PixelIcon name="search" size="sm" />
 										</button>
 									{/if}
 								</div>
@@ -812,6 +852,47 @@
 	{:else}
 		<!-- SELECTION VIEW -->
 
+		<div class="hub-banner">
+			<Banner icon="dumbbell" title="Тренировка" sub={exercisesTotal ? `${exercisesTotal} упражнений` : undefined} deco="dumbbell" />
+		</div>
+
+		<!-- Программа дня — featured hero (date-seeded, no equipment, medium difficulty) -->
+		{#if programOfDay}
+			<section class="program-section">
+				<div class="feat">
+					<div class="feat__band">
+						<span>★ Программа дня</span>
+						<span class="feat__rew">
+							<PixelIcon name="xp" size="sm" color="var(--on-accent)" /> +{programXp} XP
+						</span>
+					</div>
+					<div class="feat__body">
+						<span class="feat__art slot slot--lg">
+							<PixelIcon name="workout" size="xl" color="var(--accent)" />
+						</span>
+						<div class="feat__info">
+							<span class="feat__name">{programOfDay.name}</span>
+							<span class="feat__sub">{programOfDay.description}</span>
+							<div class="feat__stats">
+								<span class="feat__stat">
+									<PixelIcon name="timer" size="sm" color="var(--accent2)" /> ~{programOfDay.duration_minutes}м
+								</span>
+								<span class="feat__stat">
+									<PixelIcon name="workout" size="sm" color="var(--accent)" /> {programOfDay.exercises.length} упр.
+								</span>
+							</div>
+						</div>
+					</div>
+					<div class="feat__go">
+						<PixelButton variant="primary" fullWidth onclick={startProgramOfDay}>
+							<PixelIcon name="play" size="sm" />
+							Начать тренировку
+						</PixelButton>
+					</div>
+				</div>
+			</section>
+		{/if}
+
 		<!-- Main navigation tabs -->
 		<PixelTabs tabs={mainTabs} activeTab={activeMainTab} onTabChange={switchMainTab} />
 
@@ -825,17 +906,21 @@
 						activeTab={activeRoutineCategory}
 						onTabChange={(id) => activeRoutineCategory = id}
 					/>
-					<div class="routines-list">
+					<div class="routines-list anim-rows">
 						{#each filteredRoutines as routine}
-							<PixelCard hoverable onclick={() => selectRoutine(routine)} padding="sm">
-								<div class="routine-item">
-									<div class="routine-info">
-										<span class="routine-name">{routine.name}</span>
-										<span class="routine-meta">{routine.duration_minutes} мин</span>
+							<button class="item routine-card {rarOf(routine.difficulty)}" onclick={() => selectRoutine(routine)}>
+								<span class="item__edge"></span>
+								<span class="slot slot--md"><PixelIcon name="dumbbell" size="md" color="var(--rar, var(--accent))" /></span>
+								<div class="item__body">
+									<span class="item__name">{routine.name}</span>
+									<div class="item__sub">
+										<span class="item__tag"><PixelIcon name="dumbbell" size="sm" color="var(--muted)" /> {routine.exercises.length}</span>
+										<span class="item__tag"><PixelIcon name="timer" size="sm" color="var(--muted)" /> ~{routine.duration_minutes}м</span>
+										<Diff n={routine.difficulty} max={3} />
 									</div>
-									<PixelIcon name="play" size="sm" color="var(--text-secondary)" />
 								</div>
-							</PixelCard>
+								<span class="slot slot--sm slot--filled routine-card__go"><PixelIcon name="play" size="sm" color="var(--on-accent)" /></span>
+							</button>
 						{/each}
 						{#if filteredRoutines.length === 0}
 							<EmptyState message="Нет сетов в этой категории" />
@@ -872,7 +957,7 @@
 									{group.exercises.length}
 								</span>
 							</div>
-							<div class="exercises-list">
+							<div class="exercises-list anim-rows">
 								{#each group.exercises as exercise (exercise.id)}
 									<ExerciseCard
 										{exercise}
@@ -950,7 +1035,7 @@
 				</div>
 
 				<!-- Exercise list -->
-				<div class="exercises-list">
+				<div class="exercises-list anim-rows">
 					{#each filteredExercises as exercise (exercise.id)}
 						<ExerciseCard
 							{exercise}
@@ -1027,7 +1112,8 @@
 		exercises: selectedCustomRoutine.exercises.map(ex => ({
 			slug: ex.exercise_slug,
 			reps: ex.target_reps,
-			duration: ex.target_duration
+			duration: ex.target_duration,
+			rest_seconds: ex.rest_seconds
 		}))
 	}}
 	<RoutinePlayer
@@ -1092,7 +1178,7 @@
 			<PixelCard padding="lg">
 				<div class="info-modal-header">
 					<h3 class="modal-title">{exercise.name_ru}</h3>
-					<button class="close-btn" onclick={closeExerciseInfo}>&#10005;</button>
+					<button class="close-btn" onclick={closeExerciseInfo}><PixelIcon name="close" size="sm" /></button>
 				</div>
 
 				<!-- Description -->
@@ -1112,6 +1198,14 @@
 	.page {
 		padding-top: var(--spacing-md);
 		padding-bottom: 180px; /* Space for fixed panel + nav */
+	}
+
+	.program-section {
+		margin-bottom: var(--spacing-md);
+	}
+
+	.hub-banner {
+		margin-bottom: var(--spacing-md);
 	}
 
 	.tab-section {
@@ -1147,7 +1241,7 @@
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-xs);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-secondary);
 		cursor: pointer;
 	}
@@ -1159,7 +1253,7 @@
 
 	.filter-badge {
 		background: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 		padding: 1px 4px;
 		font-size: 8px;
 		min-width: 12px;
@@ -1191,7 +1285,7 @@
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-primary);
 	}
 
@@ -1378,7 +1472,7 @@
 
 	.set-badge {
 		background: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 		padding: 2px 8px;
 		font-size: var(--font-size-xs);
 	}
@@ -1415,7 +1509,7 @@
 		font-size: var(--font-size-xs);
 		padding: var(--spacing-xs) var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-secondary);
 		cursor: pointer;
 		white-space: nowrap;
@@ -1424,7 +1518,7 @@
 	.routine-tab.active {
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 	}
 
 	.routines-list {
@@ -1433,25 +1527,10 @@
 		gap: var(--spacing-xs);
 	}
 
-	.routine-item {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.routine-info {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-
-	.routine-name {
-		font-size: var(--font-size-sm);
-	}
-
-	.routine-meta {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
+	.routine-card__go {
+		flex: 0 0 auto;
+		width: 30px;
+		height: 30px;
 	}
 
 	/* Category tabs */
@@ -1467,14 +1546,14 @@
 		font-size: var(--font-size-xs);
 		padding: var(--spacing-xs) var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--cat-color);
+		border: var(--border-width) solid var(--cat-color);
 		color: var(--cat-color);
 		cursor: pointer;
 	}
 
 	.category-tab.active {
 		background: var(--cat-color);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 	}
 
 	/* Exercises list */
@@ -1496,7 +1575,7 @@
 		left: 0;
 		right: 0;
 		background: var(--pixel-bg);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 		padding: var(--spacing-md);
 		display: flex;
 		flex-direction: column;
@@ -1581,7 +1660,7 @@
 		align-items: center;
 		justify-content: center;
 		background: var(--pixel-card);
-		border: 2px solid var(--pixel-accent);
+		border: var(--border-width) solid var(--pixel-accent);
 		color: var(--pixel-accent);
 		font-family: var(--font-pixel);
 		font-size: var(--font-size-sm);
@@ -1592,7 +1671,7 @@
 
 	.info-toggle:hover {
 		background: var(--pixel-accent);
-		color: var(--pixel-bg);
+		color: var(--on-accent);
 	}
 
 	/* Exercise info modal */
@@ -1621,7 +1700,7 @@
 		align-items: center;
 		justify-content: center;
 		background: none;
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		color: var(--text-secondary);
 		font-size: var(--font-size-md);
 		cursor: pointer;
@@ -1675,7 +1754,7 @@
 	/* Delete Confirmation Modal */
 	.modal-dialog {
 		background: var(--pixel-card);
-		border: 4px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		max-width: 320px;
 		width: 100%;
 		animation: modal-appear 0.2s ease-out;
@@ -1696,8 +1775,8 @@
 		display: flex;
 		justify-content: center;
 		padding: var(--spacing-md);
-		background: rgba(255, 204, 0, 0.1);
-		border-bottom: 2px solid var(--border-color);
+		background: var(--pixel-bg-dark);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.modal-body {
@@ -1722,7 +1801,7 @@
 		display: flex;
 		gap: var(--spacing-sm);
 		padding: var(--spacing-md);
-		border-top: 2px solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-color);
 	}
 
 	.modal-actions > :global(*) {
@@ -1744,7 +1823,7 @@
 		justify-content: space-between;
 		padding: var(--spacing-sm) var(--spacing-xs);
 		margin-bottom: var(--spacing-sm);
-		border-bottom: 2px solid var(--border-color);
+		border-bottom: var(--border-width) solid var(--border-color);
 	}
 
 	.category-group-title {
@@ -1759,6 +1838,6 @@
 		color: var(--text-secondary);
 		background: var(--pixel-bg-dark);
 		padding: 2px 8px;
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 	}
 </style>

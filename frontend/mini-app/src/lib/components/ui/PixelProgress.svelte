@@ -65,7 +65,8 @@
 	.track {
 		width: 100%;
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		border-radius: var(--radius-sm);
 		overflow: hidden;
 	}
 

@@ -14,6 +14,7 @@ declare global {
 			user?: TelegramUser;
 			auth_date: number;
 			hash: string;
+			start_param?: string;
 		};
 		version: string;
 		platform: string;
@@ -38,6 +39,18 @@ declare global {
 		offEvent(eventType: string, callback: () => void): void;
 		setHeaderColor(color: string): void;
 		setBackgroundColor(color: string): void;
+		openTelegramLink(url: string): void;
+		openLink(url: string, options?: { try_instant_view?: boolean }): void;
+		showAlert(message: string, callback?: () => void): void;
+		showConfirm(message: string, callback?: (confirmed: boolean) => void): void;
+		showPopup(
+			params: {
+				title?: string;
+				message: string;
+				buttons?: Array<{ id?: string; type?: string; text?: string }>;
+			},
+			callback?: (buttonId: string) => void
+		): void;
 	}
 
 	interface TelegramUser {

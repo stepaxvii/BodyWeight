@@ -22,10 +22,10 @@
 		return Math.max(0, Math.min(100, (boss.current_hp / boss.max_hp) * 100));
 	});
 
-	const barColor = $derived.by(() => {
-		if (hpPercent > 50) return 'var(--pixel-green, #39d353)';
-		if (hpPercent > 25) return 'var(--pixel-orange, #f59e0b)';
-		return 'var(--pixel-red, #e02d29)';
+	const hpLevel = $derived.by(() => {
+		if (hpPercent > 50) return 'high';
+		if (hpPercent > 25) return 'mid';
+		return 'low';
 	});
 
 	const isDefeated = $derived(boss?.status === 'defeated');
@@ -39,7 +39,7 @@
 		<img
 			src="{base}{boss.image_url}"
 			alt={boss.name_ru}
-			class="boss-img"
+			class="boss-img anim-floaty"
 		/>
 		<div class="boss-content">
 			<div class="boss-header">
@@ -56,8 +56,8 @@
 			</div>
 			<div class="hp-track">
 				<div
-					class="hp-fill"
-					style="width: {hpPercent}%; background: {barColor};"
+					class="hp-fill hp-fill--{hpLevel} anim-bar-grow"
+					style="width: {hpPercent}%;"
 				></div>
 			</div>
 			<div class="boss-hp-text">
@@ -74,7 +74,7 @@
 		gap: var(--spacing-sm);
 		padding: var(--spacing-sm) var(--spacing-md);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		text-decoration: none;
 		color: var(--text-primary);
 		transition: border-color var(--transition-fast);
@@ -86,7 +86,7 @@
 	}
 
 	.boss-bar.defeated {
-		border-color: var(--pixel-green, #39d353);
+		border-color: var(--pixel-green);
 	}
 
 	.boss-bar.expired {
@@ -132,7 +132,7 @@
 	}
 
 	.boss-bar.defeated .boss-status {
-		color: var(--pixel-green, #39d353);
+		color: var(--pixel-green);
 	}
 
 	.hp-track {
@@ -148,6 +148,18 @@
 		transition: width 0.4s ease;
 	}
 
+	.hp-fill--high {
+		background: var(--pixel-green);
+	}
+
+	.hp-fill--mid {
+		background: var(--pixel-orange);
+	}
+
+	.hp-fill--low {
+		background: var(--pixel-red);
+	}
+
 	.boss-hp-text {
 		font-size: 9px;
 		color: var(--text-muted);
@@ -156,7 +168,7 @@
 	.boss-skeleton {
 		height: 56px;
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		opacity: 0.4;
 	}
 </style>

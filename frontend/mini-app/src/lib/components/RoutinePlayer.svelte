@@ -4,9 +4,10 @@
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
+	import { sound } from '$lib/stores/sound.svelte';
 	import { exercisesStore } from '$lib/stores/exercises.svelte';
 	import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
-	import type { Routine, RoutineExercise, Exercise } from '$lib/types';
+	import type { Routine, RoutineExercise, Exercise, ChallengeProgressSummary } from '$lib/types';
 	import { onMount, onDestroy } from 'svelte';
 
 	interface Props {
@@ -36,6 +37,12 @@
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 	let isExerciseTimerStarted = $state(false); // User must start timer manually for time-based exercises
 
+	// Rest-between-exercises state (roadmap 4.3)
+	let isResting = $state(false);
+	let restSeconds = $state(0);
+	let restInterval: ReturnType<typeof setInterval> | null = null;
+	const DEFAULT_REST_SECONDS = 30;
+
 	// Workout session - collect exercises to submit at the end
 	let workoutStartTime = $state<Date | null>(null);
 	let completedExercises = $state<Array<{
@@ -46,6 +53,8 @@
 	let totalXpEarned = $state(0);
 	let totalCoinsEarned = $state(0);
 	let completedExercisesCount = $state(0);
+	// Challenge progress this workout credited (shown on the done screen)
+	let challengeProgress = $state<ChallengeProgressSummary[]>([]);
 	let showInfoExercise = $state<Exercise | null>(null);
 
 	const currentExercise = $derived(routine.exercises[currentStep]);
@@ -53,6 +62,8 @@
 	const progress = $derived(((currentStep + 1) / routine.exercises.length) * 100);
 	const isTimeBased = $derived(!!currentExercise?.duration);
 	const targetValue = $derived(currentExercise?.duration || currentExercise?.reps || 0);
+	const PROGRESS_SEGMENTS = 16;
+	const segOn = $derived(Math.round((progress / 100) * PROGRESS_SEGMENTS));
 
 	// Format timer display
 	function formatTime(seconds: number): string {
@@ -96,6 +107,7 @@
 
 	onDestroy(() => {
 		stopTimer();
+		stopRestInterval();
 	});
 
 	function startTimer() {
@@ -108,6 +120,7 @@
 					exerciseTimerSeconds--;
 					if (exerciseTimerSeconds === 0) {
 						telegram.hapticNotification('success');
+						sound.exerciseDone();
 					}
 				}
 			}
@@ -137,6 +150,10 @@
 			console.warn('[RoutinePlayer] hapticImpact failed (probably offline / no Telegram API):', e);
 		}
 
+		// Unlock audio on this user gesture, then play the start cue.
+		sound.unlock();
+		sound.start();
+
 		// Start the total workout timer immediately
 		startTimer();
 		resetExerciseTimer();
@@ -149,6 +166,58 @@
 		} else {
 			exerciseTimerSeconds = 0;
 		}
+	}
+
+	// ---- Rest between exercises (roadmap 4.3) ----
+	function stopRestInterval() {
+		if (restInterval) {
+			clearInterval(restInterval);
+			restInterval = null;
+		}
+	}
+
+	function advanceToNext() {
+		currentStep++;
+		resetExerciseTimer();
+	}
+
+	function startRest() {
+		// Rest after the just-completed exercise (custom routines carry rest_seconds;
+		// built-in routines fall back to a sensible default).
+		const rs = currentExercise?.rest_seconds ?? DEFAULT_REST_SECONDS;
+		if (rs <= 0) {
+			advanceToNext();
+			return;
+		}
+		isResting = true;
+		restSeconds = rs;
+		telegram.hapticImpact('light');
+		stopRestInterval();
+		restInterval = setInterval(() => {
+			restSeconds--;
+			if (restSeconds <= 0) endRest();
+		}, 1000);
+	}
+
+	function endRest() {
+		stopRestInterval();
+		isResting = false;
+		sound.restEnd();
+		telegram.hapticNotification('success');
+		advanceToNext();
+	}
+
+	function skipRest() {
+		stopRestInterval();
+		isResting = false;
+		sound.click();
+		telegram.hapticImpact('light');
+		advanceToNext();
+	}
+
+	function addRest(sec: number) {
+		restSeconds = Math.max(1, restSeconds + sec);
+		telegram.hapticImpact('light');
 	}
 
 	function togglePause() {
@@ -185,10 +254,12 @@
 
 		completedExercisesCount++;
 
-		// Move to next exercise or complete
+		// Rep-based sets cue on press; timed sets already cued when the timer hit 0.
+		if (!isTimed) sound.exerciseDone();
+
+		// Rest before the next exercise, or finish the routine.
 		if (currentStep < routine.exercises.length - 1) {
-			currentStep++;
-			resetExerciseTimer();
+			startRest();
 		} else {
 			await finishRoutine();
 		}
@@ -213,11 +284,14 @@
 			isCompleted = true;
 			totalXpEarned = completed.workout.total_xp_earned;
 			totalCoinsEarned = completed.workout.total_coins_earned;
+			challengeProgress = completed.challenge_progress ?? [];
 
 			userStore.addXp(completed.workout.total_xp_earned);
 			userStore.addCoins(completed.workout.total_coins_earned);
 
 			telegram.hapticNotification('success');
+			if (completed.level_up) sound.levelUp();
+			else sound.complete();
 		} catch (err) {
 			console.error('Failed to complete routine:', err);
 
@@ -243,8 +317,10 @@
 				}, 0);
 				totalCoinsEarned = 0;
 				telegram.hapticNotification('success');
+				sound.complete();
 			} else {
 				telegram.hapticNotification('error');
+				sound.error();
 			}
 		} finally {
 			isSubmitting = false;
@@ -253,6 +329,7 @@
 
 	function handleClose() {
 		stopTimer();
+		stopRestInterval();
 		if (isCompleted) {
 			oncomplete?.(totalXpEarned, totalCoinsEarned);
 		}
@@ -334,227 +411,171 @@
 	}
 </script>
 
-<div class="routine-player">
+
+<div class="player">
 	{#if !isStarted}
-		<!-- Pre-start screen -->
-		<div class="pre-start">
-			<div class="routine-header">
-				<button class="close-btn" onclick={handleClose}>
-					<PixelIcon name="close" />
-				</button>
-				<h2 class="routine-title">{routine.name}</h2>
+		<!-- PRE-START -->
+		<div class="player__scroll">
+			<div class="player__bar">
+				<button class="player__x" onclick={handleClose} aria-label="Закрыть"><PixelIcon name="close" size="sm" /></button>
+				<span class="player__title">{routine.name}</span>
+				<span class="player__x-spacer"></span>
 			</div>
 
-			<PixelCard variant="accent" padding="lg">
-				<div class="routine-info">
-					<p class="routine-description">{routine.description}</p>
-					<div class="routine-stats">
-						<div class="stat">
-							<PixelIcon name="timer" color="var(--text-secondary)" />
-							<span>{routine.duration_minutes} мин</span>
-						</div>
-						<div class="stat">
-							<PixelIcon name="play" color="var(--text-secondary)" />
-							<span>{routine.exercises.length} упр.</span>
+			<div class="feat">
+				<div class="feat__band"><span>Программа</span></div>
+				<div class="feat__body">
+					<span class="feat__art slot slot--lg"><PixelIcon name="dumbbell" size="xl" color="var(--accent)" /></span>
+					<div class="feat__info">
+						<span class="feat__sub">{routine.description}</span>
+						<div class="feat__stats">
+							<span class="feat__stat"><PixelIcon name="timer" size="sm" color="var(--accent2)" /> ~{routine.duration_minutes} мин</span>
+							<span class="feat__stat"><PixelIcon name="dumbbell" size="sm" color="var(--accent)" /> {routine.exercises.length} упр.</span>
 						</div>
 					</div>
 				</div>
-			</PixelCard>
+			</div>
 
-			<section class="exercise-preview">
-				<h3 class="section-title">Упражнения</h3>
-				<div class="exercise-list">
-					{#each routine.exercises as ex, i}
-						{@const exData = allExercises.find(e => e.slug === ex.slug)}
-						<div class="exercise-preview-item">
-							<span class="exercise-number">{i + 1}</span>
-							{#if exercisesLoading}
-								<span class="exercise-name loading-skeleton"></span>
-							{:else}
-								<span class="exercise-name">{exData?.name_ru || ex.slug}</span>
-							{/if}
-							<span class="exercise-target">
-								{#if ex.duration}
-									{ex.duration} сек
-								{:else if ex.reps}
-									{ex.reps} повт.
+			<div class="player__listhead">Упражнения</div>
+			<div class="player__list">
+				{#each routine.exercises as ex, i}
+					{@const exData = allExercises.find((e) => e.slug === ex.slug)}
+					<div class="prerow">
+						<span class="prerow__n">{i + 1}</span>
+						<span class="prerow__name">{exData?.name_ru || ex.slug}</span>
+						<span class="prerow__t">{ex.duration ? `${ex.duration} сек` : ex.reps ? `${ex.reps} повт.` : ''}</span>
+						{#if exData}
+							<button class="prerow__i" onclick={() => { showInfoExercise = exData; telegram.hapticImpact('light'); }} aria-label="Подробнее"><PixelIcon name="search" size="sm" color="var(--muted)" /></button>
+						{/if}
+					</div>
+				{/each}
+			</div>
+
+			<div class="player__start">
+				<PixelButton variant="primary" size="lg" fullWidth onclick={startRoutine}>
+					<PixelIcon name="play" /> Начать
+				</PixelButton>
+			</div>
+		</div>
+	{:else if isCompleted}
+		<!-- COMPLETION -->
+		<div class="player__done">
+			<span class="done__burst" aria-hidden="true"></span>
+			<PixelIcon name="trophy" size="xl" color="var(--gold)" class="done__trophy" />
+			<span class="done__title">{routine.name}</span>
+			<span class="done__sub">завершён!</span>
+			<div class="done__grid">
+				<div class="done__stat"><PixelIcon name="timer" size="md" color="var(--accent2)" /><span class="done__v">{formattedTotalTime}</span><span class="done__l">Время</span></div>
+				<div class="done__stat"><PixelIcon name="xp" size="md" color="var(--accent)" /><span class="done__v done__v--green">+{totalXpEarned}</span><span class="done__l">Опыт</span></div>
+				<div class="done__stat"><PixelIcon name="coin" size="md" color="var(--gold)" /><span class="done__v done__v--gold">+{totalCoinsEarned}</span><span class="done__l">Монеты</span></div>
+				<div class="done__stat"><PixelIcon name="dumbbell" size="md" color="var(--accent)" /><span class="done__v">{completedExercisesCount}/{routine.exercises.length}</span><span class="done__l">Упр.</span></div>
+			</div>
+			{#if challengeProgress.length > 0}
+				<div class="done__chal">
+					{#each challengeProgress as cp (cp.challenge_id)}
+						<div class="done__chalcard" class:done__chalcard--full={cp.day_completed}>
+							<div class="done__chalhead">
+								<PixelIcon name="trophy" size="sm" color={cp.day_completed ? 'var(--gold)' : 'var(--accent)'} />
+								<span class="done__chaltitle">{cp.challenge_title}</span>
+								{#if cp.day_completed}
+									<span class="done__chalbadge"><PixelIcon name="check" size="sm" color="var(--on-accent)" /> день закрыт</span>
 								{/if}
-							</span>
-							{#if !exercisesLoading && exData}
-								<button
-									class="exercise-info-btn"
-									onclick={() => { showInfoExercise = exData; telegram.hapticImpact('light'); }}
-									title="Подробнее"
-								>
-									?
-								</button>
-							{/if}
+							</div>
+							{#each cp.exercises as ex (ex.exercise_name_ru)}
+								<div class="done__chalrow">
+									<span class="done__chalname">{ex.exercise_name_ru}</span>
+									<span class="done__chalval" class:done__chalval--done={ex.completed}>
+										+{ex.added}{ex.is_timed ? ' сек' : ''} · {ex.accumulated}/{ex.target}{ex.completed ? ' ✓' : ''}
+									</span>
+								</div>
+							{/each}
 						</div>
 					{/each}
 				</div>
-			</section>
-
-			<div class="start-section">
-				<PixelButton variant="primary" size="lg" fullWidth onclick={startRoutine}>
-					<PixelIcon name="play" />
-					Начать
-				</PixelButton>
-			</div>
-		</div>
-
-	{:else if isCompleted}
-		<!-- Completion screen -->
-		<div class="completion-screen">
-			<div class="completion-header">
-				<PixelIcon name="trophy" size="xl" color="var(--pixel-yellow)" />
-				<h2 class="completion-title">{routine.name}</h2>
-				<p class="completion-subtitle">завершён</p>
-			</div>
-
-			<div class="completion-stats-grid">
-				<PixelCard padding="md">
-					<div class="completion-stat">
-						<PixelIcon name="timer" size="lg" color="var(--pixel-accent)" />
-						<span class="stat-value">{formattedTotalTime}</span>
-						<span class="stat-label">Время</span>
-					</div>
-				</PixelCard>
-
-				<PixelCard padding="md">
-					<div class="completion-stat">
-						<PixelIcon name="xp" size="lg" color="var(--pixel-green)" />
-						<span class="stat-value text-green">+{totalXpEarned}</span>
-						<span class="stat-label">Опыт</span>
-					</div>
-				</PixelCard>
-
-				<PixelCard padding="md">
-					<div class="completion-stat">
-						<PixelIcon name="coin" size="lg" color="var(--pixel-yellow)" />
-						<span class="stat-value text-yellow">+{totalCoinsEarned}</span>
-						<span class="stat-label">Монеты</span>
-					</div>
-				</PixelCard>
-
-				<PixelCard padding="md">
-					<div class="completion-stat">
-						<PixelIcon name="play" size="lg" color="var(--pixel-blue)" />
-						<span class="stat-value text-blue">{completedExercisesCount}/{routine.exercises.length}</span>
-						<span class="stat-label">Упражнений</span>
-					</div>
-				</PixelCard>
-			</div>
-
-			<div class="completion-actions">
-				<PixelButton variant="secondary" size="lg" fullWidth onclick={shareWorkout}>
-					<PixelIcon name="share" />
-					Поделиться
-				</PixelButton>
-				<PixelButton variant="success" size="lg" fullWidth onclick={handleClose}>
-					<PixelIcon name="check" />
-					Готово
-				</PixelButton>
-			</div>
-		</div>
-
-	{:else}
-		<!-- Active exercise screen -->
-		<div class="active-exercise">
-			<!-- Header with progress -->
-			<div class="player-header">
-				<button class="close-btn" onclick={handleClose}>
-					<PixelIcon name="close" />
-				</button>
-				<div class="progress-info">
-					<span class="step-counter">{currentStep + 1} / {routine.exercises.length}</span>
-					<span class="total-time">{formattedTotalTime}</span>
-				</div>
-			</div>
-
-			<!-- Progress bar -->
-			<div class="progress-section">
-				<PixelProgress value={currentStep + 1} max={routine.exercises.length} variant="xp" size="sm" />
-			</div>
-
-			<!-- Current exercise -->
-			<div class="exercise-display">
-				<PixelCard variant="accent" padding="lg">
-					<div class="exercise-content">
-						{#if exercisesLoading}
-							<h3 class="current-exercise-name loading-skeleton"></h3>
-						{:else}
-							<h3 class="current-exercise-name">{exerciseData?.name_ru || currentExercise?.slug}</h3>
-						{/if}
-
-						{#if exerciseData?.description_ru}
-							<p class="exercise-description">{exerciseData.description_ru}</p>
-						{/if}
-
-						<div class="target-display">
-							{#if isTimeBased}
-								<div class="timer-circle" class:complete={exerciseTimerSeconds === 0} class:waiting={!isExerciseTimerStarted}>
-									<span class="timer-value">{formattedExerciseTime}</span>
-									<span class="timer-label">
-										{#if !isExerciseTimerStarted}
-											нажмите старт
-										{:else if exerciseTimerSeconds === 0}
-											готово!
-										{:else}
-											осталось
-										{/if}
-									</span>
-								</div>
-							{:else}
-								<div class="reps-display">
-									<span class="reps-value">{targetValue}</span>
-									<span class="reps-label">повторений</span>
-								</div>
-							{/if}
-						</div>
-					</div>
-				</PixelCard>
-			</div>
-
-			<!-- Next exercise preview -->
-			{#if currentStep < routine.exercises.length - 1}
-				{@const nextEx = routine.exercises[currentStep + 1]}
-				{@const nextExData = allExercises.find(e => e.slug === nextEx.slug)}
-				<div class="next-preview">
-					<span class="next-label">Далее:</span>
-					<span class="next-name">{nextExData?.name_ru || nextEx.slug}</span>
-				</div>
 			{/if}
-
-			<!-- Controls -->
-			<div class="player-controls">
-				<div class="control-row">
-					<PixelButton variant="ghost" onclick={skipExercise}>
-						Пропустить
-					</PixelButton>
-					{#if isTimeBased && !isExerciseTimerStarted}
-						<!-- Show Start Timer button for time-based exercises -->
-						<PixelButton variant="primary" size="lg" onclick={startExerciseTimer}>
-							<PixelIcon name="play" />
-							Старт
-						</PixelButton>
-					{:else if isTimeBased && exerciseTimerSeconds > 0}
-						<!-- Show Pause button while timer is running -->
-						<PixelButton variant="secondary" size="lg" onclick={togglePause}>
-							<PixelIcon name={isPaused ? 'play' : 'pause'} />
-						</PixelButton>
-					{:else}
-						<!-- Show Done button for reps or when timer finished -->
-						<PixelButton
-							variant="success"
-							size="lg"
-							disabled={isSubmitting}
-							onclick={completeExercise}
-						>
-							<PixelIcon name="check" />
-							{isSubmitting ? 'Отправка…' : 'Готово'}
-						</PixelButton>
-					{/if}
+			<div class="player__doneactions">
+				<PixelButton variant="secondary" fullWidth onclick={shareWorkout}><PixelIcon name="share" /> Поделиться</PixelButton>
+				<PixelButton variant="success" fullWidth onclick={handleClose}><PixelIcon name="check" /> Готово</PixelButton>
+			</div>
+		</div>
+	{:else}
+		<!-- ACTIVE -->
+		<div class="player__active pa2">
+			<div class="pa2-hero">
+				<div class="pa2-hero__bar">
+					<button class="pa2-x" onclick={handleClose} aria-label="Закрыть"><PixelIcon name="close" size="sm" /></button>
+					<span class="pa2-hero__step">Упражнение {currentStep + 1}/{routine.exercises.length}</span>
+					<span class="pa2-hero__clock"><PixelIcon name="timer" size="sm" color="var(--hero-num)" /> {formattedTotalTime}</span>
 				</div>
+				<span class="pa2-hero__name">{isResting ? 'Отдых' : (exerciseData?.name_ru || currentExercise?.slug)}</span>
+				<div class="pa2-prog">
+					<div class="pa2-gauge">
+						{#each Array(PROGRESS_SEGMENTS) as _, i}
+							<span class="pa2-seg" class:on={i < segOn}></span>
+						{/each}
+					</div>
+					<span class="pa2-prog__pct">{Math.round(progress)}%</span>
+				</div>
+			</div>
+
+			<div class="pa2-stage">
+				{#if isResting}
+					{@const restNextEx = routine.exercises[currentStep + 1]}
+					{@const restNextData = allExercises.find((e) => e.slug === restNextEx?.slug)}
+					<div class="pa2-count pa2-count--rest">
+						<span class="pa2-count__box"><span class="pa2-count__v">{restSeconds}</span></span>
+						<span class="pa2-count__u">секунд отдыха</span>
+					</div>
+					{#if restNextEx}
+						<div class="pa2-next"><span class="pa2-next__l">Далее</span> {restNextData?.name_ru || restNextEx.slug}</div>
+					{/if}
+				{:else}
+					<div class="pa2-count" class:pa2-count--time={isTimeBased} class:pa2-count--done={isTimeBased && exerciseTimerSeconds === 0 && isExerciseTimerStarted}>
+						<span class="pa2-count__box">
+							{#if isTimeBased}
+								<span class="pa2-count__v">{formattedExerciseTime}</span>
+							{:else}
+								<span class="pa2-count__v">{targetValue}</span>
+							{/if}
+						</span>
+						<span class="pa2-count__u">
+							{#if isTimeBased}
+								{!isExerciseTimerStarted ? 'нажми старт' : exerciseTimerSeconds === 0 ? 'готово!' : 'осталось'}
+							{:else}
+								повторений
+							{/if}
+						</span>
+					</div>
+
+					{#if exerciseData?.description_ru}
+						<div class="pa2-tech">
+							<div class="pa2-tech__band">Техника</div>
+							<div class="pa2-tech__body">{exerciseData.description_ru}</div>
+						</div>
+					{/if}
+
+					{#if currentStep < routine.exercises.length - 1}
+						{@const nextEx = routine.exercises[currentStep + 1]}
+						{@const nextExData = allExercises.find((e) => e.slug === nextEx.slug)}
+						<div class="pa2-next"><span class="pa2-next__l">Далее</span> {nextExData?.name_ru || nextEx.slug}</div>
+					{/if}
+				{/if}
+			</div>
+
+			<div class="player__controls">
+				{#if isResting}
+					<PixelButton variant="primary" size="lg" fullWidth onclick={skipRest}><PixelIcon name="play" /> Пропустить отдых</PixelButton>
+					<PixelButton variant="ghost" fullWidth onclick={() => addRest(15)}>+15 секунд</PixelButton>
+				{:else}
+					{#if isTimeBased && !isExerciseTimerStarted}
+						<PixelButton variant="primary" size="lg" fullWidth onclick={startExerciseTimer}><PixelIcon name="play" /> Старт таймера</PixelButton>
+					{:else if isTimeBased && exerciseTimerSeconds > 0}
+						<PixelButton variant="secondary" size="lg" fullWidth onclick={togglePause}><PixelIcon name={isPaused ? 'play' : 'pause'} /> {isPaused ? 'Продолжить' : 'Пауза'}</PixelButton>
+					{:else}
+						<PixelButton variant="success" size="lg" fullWidth disabled={isSubmitting} onclick={completeExercise}><PixelIcon name="check" /> {isSubmitting ? 'Отправка…' : 'Готово'}</PixelButton>
+					{/if}
+					<PixelButton variant="ghost" fullWidth onclick={skipExercise}>Пропустить</PixelButton>
+				{/if}
 			</div>
 		</div>
 	{/if}
@@ -568,376 +589,325 @@
 />
 
 <style>
-	.routine-player {
+	/* The .player kit (hud.css) positions the overlay absolute at a low z-index
+	   for the prototype phone frame; the app needs it fixed to the viewport. */
+	.player {
 		position: fixed;
-		inset: 0;
-		background: var(--pixel-bg);
 		z-index: 1000;
-		display: flex;
-		flex-direction: column;
-		overflow-y: auto;
 	}
 
-	/* Pre-start screen */
-	.pre-start {
-		padding: var(--spacing-md);
-		display: flex;
-		flex-direction: column;
-		min-height: 100%;
-	}
-
-	.routine-header {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.close-btn {
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
-		padding: var(--spacing-xs);
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.close-btn:hover {
-		border-color: var(--pixel-accent);
-	}
-
-	.routine-title {
-		font-size: var(--font-size-lg);
-		margin: 0;
-	}
-
-	.routine-info {
-		text-align: center;
-	}
-
-	.routine-description {
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-		margin: 0 0 var(--spacing-md) 0;
-		line-height: 1.4;
-	}
-
-	.routine-stats {
-		display: flex;
-		justify-content: center;
-		gap: var(--spacing-lg);
-	}
-
-	.stat {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-xs);
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-	}
-
-	.exercise-preview {
-		flex: 1;
-		margin-top: var(--spacing-lg);
-	}
-
-	.section-title {
-		font-size: var(--font-size-sm);
-		text-transform: uppercase;
-		margin-bottom: var(--spacing-sm);
-		color: var(--text-secondary);
-	}
-
-	.exercise-list {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-xs);
-	}
-
-	.exercise-preview-item {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-md);
-		padding: var(--spacing-sm);
-		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
-		font-size: var(--font-size-xs);
-	}
-
-	.exercise-number {
-		width: 24px;
-		height: 24px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: var(--pixel-bg-dark);
-		border: 1px solid var(--border-color);
-		color: var(--text-secondary);
-	}
-
-	.exercise-name {
-		flex: 1;
-	}
-
-	.exercise-target {
-		color: var(--pixel-green);
-	}
-
-	.exercise-info-btn {
-		width: 24px;
-		height: 24px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
-		font-family: var(--font-pixel);
-		font-size: var(--font-size-sm);
-		font-weight: bold;
-		color: var(--text-secondary);
-		cursor: pointer;
-		flex-shrink: 0;
-	}
-
-	.exercise-info-btn:hover {
-		border-color: var(--pixel-accent);
-		color: var(--pixel-accent);
-	}
-
-	.start-section {
-		margin-top: var(--spacing-xl);
-		padding-bottom: var(--spacing-lg);
-	}
-
-	/* Active exercise screen */
-	.active-exercise {
-		display: flex;
-		flex-direction: column;
-		min-height: 100%;
-		padding: var(--spacing-md);
-	}
-
-	.player-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: var(--spacing-md);
-	}
-
-	.progress-info {
-		display: flex;
-		gap: var(--spacing-md);
-		font-size: var(--font-size-sm);
-	}
-
-	.step-counter {
-		color: var(--pixel-accent);
-	}
-
-	.total-time {
-		color: var(--text-secondary);
-	}
-
-	.progress-section {
-		margin-bottom: var(--spacing-lg);
-	}
-
-	.exercise-display {
-		flex: 1;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.exercise-content {
-		text-align: center;
-		width: 100%;
-	}
-
-	.current-exercise-name {
-		font-size: var(--font-size-lg);
-		margin: 0 0 var(--spacing-sm) 0;
-		color: var(--pixel-accent);
-	}
-
-	.exercise-description {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-		margin: 0 0 var(--spacing-lg) 0;
-		line-height: 1.4;
-	}
-
-	.target-display {
-		margin-top: var(--spacing-lg);
-	}
-
-	.timer-circle {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		width: 150px;
-		height: 150px;
-		margin: 0 auto;
-		border: 4px solid var(--pixel-accent);
-		border-radius: 50%;
-		background: var(--pixel-bg-dark);
-	}
-
-	.timer-circle.complete {
-		border-color: var(--pixel-green);
-	}
-
-	.timer-circle.waiting {
-		border-color: var(--text-secondary);
-	}
-
-	.timer-circle.waiting .timer-value {
-		color: var(--text-secondary);
-	}
-
-	.timer-value {
-		font-size: var(--font-size-2xl);
-		color: var(--pixel-accent);
-	}
-
-	.timer-circle.complete .timer-value {
-		color: var(--pixel-green);
-	}
-
-	.timer-label {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-		text-transform: uppercase;
-	}
-
-	.reps-display {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.reps-value {
-		font-size: 64px;
-		color: var(--pixel-accent);
-		line-height: 1;
-	}
-
-	.reps-label {
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-		text-transform: uppercase;
-		margin-top: var(--spacing-xs);
-	}
-
-	.next-preview {
-		display: flex;
-		justify-content: center;
-		gap: var(--spacing-sm);
-		padding: var(--spacing-md);
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-	}
-
-	.next-name {
-		color: var(--text-primary);
-	}
-
-	.player-controls {
-		margin-top: auto;
-		padding: var(--spacing-md) 0;
-	}
-
-	.control-row {
-		display: flex;
-		gap: var(--spacing-sm);
-		align-items: center;
-		justify-content: center;
-	}
-
-	.control-row > :global(:last-child) {
-		flex: 1;
-	}
-
-	/* Completion screen */
-	.completion-screen {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		min-height: 100%;
-		padding: var(--spacing-lg);
-		text-align: center;
-	}
-
-	.completion-header {
-		margin-bottom: var(--spacing-xl);
-	}
-
-	.completion-title {
-		font-size: var(--font-size-xl);
-		margin: var(--spacing-md) 0 0 0;
-		color: var(--pixel-yellow);
-	}
-
-	.completion-subtitle {
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-		margin: var(--spacing-xs) 0 0 0;
-	}
-
-	.completion-stats-grid {
+	.player__x {
+		flex: 0 0 auto;
+		width: 36px;
+		height: 36px;
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		gap: var(--spacing-md);
-		width: 100%;
+		place-items: center;
+		background: var(--bg2);
+		border: 2px solid var(--line);
+		color: var(--text);
+		cursor: pointer;
+	}
+	.player__x-spacer {
+		flex: 0 0 auto;
+		width: 36px;
 	}
 
-	.completion-stat {
+	.player__listhead {
+		font-family: var(--font-display);
+		font-size: var(--font-size-md);
+		text-transform: uppercase;
+		color: var(--text);
+	}
+
+	.player__doneactions {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		width: 100%;
+		margin-top: var(--spacing-md);
+	}
+
+	.done__v--green {
+		color: var(--green);
+	}
+	.done__v--gold {
+		color: var(--gold);
+	}
+
+	/* Challenge progress credited by this workout (feedback loop) */
+	.done__chal {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		width: 100%;
+		margin-top: var(--spacing-md);
+	}
+	.done__chalcard {
+		background: var(--bg2);
+		border: var(--bw) solid var(--line);
+		box-shadow: var(--shadow);
+		padding: var(--spacing-sm) var(--spacing-md);
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+	.done__chalcard--full {
+		border-color: var(--gold);
+	}
+	.done__chalhead {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+	.done__chaltitle {
+		flex: 1;
+		min-width: 0;
+		font-family: var(--font-display);
+		font-size: var(--font-size-sm);
+		color: var(--text);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.done__chalbadge {
+		flex: 0 0 auto;
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		font-family: var(--font-display);
+		font-size: 10px;
+		padding: 2px 6px;
+		background: var(--accent2);
+		color: var(--on-accent);
+	}
+	.done__chalrow {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--spacing-sm);
+	}
+	.done__chalname {
+		font-size: var(--font-size-xs);
+		color: var(--muted);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.done__chalval {
+		flex: 0 0 auto;
+		font-family: var(--font-data);
+		font-size: 12px;
+		color: var(--text);
+	}
+	.done__chalval--done {
+		color: var(--green);
+	}
+
+	/* ============ ACTIVE screen — game-HUD redesign ============
+	   Full-bleed mocha hero (name + segmented progress), the rep/timer as a big
+	   number in a beveled slot, and a banded "Техника" scroll panel that caps
+	   its height and scrolls internally — so a long description can never grow
+	   the stage and push the controls off-screen. Controls stay pinned. Scoped. */
+	.player__active {
+		padding: 0;
+		gap: 10px;
+		min-height: 0;
+	}
+
+	/* hero — full-bleed mocha header */
+	.pa2-hero {
+		flex: 0 0 auto;
+		background: var(--hero-bg);
+		color: var(--hero-text);
+		border-bottom: var(--bw) solid var(--hero-edge);
+		padding: 12px 14px;
+		display: flex;
+		flex-direction: column;
+		gap: 9px;
+	}
+	.pa2-hero__bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+	}
+	.pa2-x {
+		flex: 0 0 auto;
+		width: 32px;
+		height: 32px;
+		display: grid;
+		place-items: center;
+		background: rgba(0, 0, 0, 0.22);
+		border: 2px solid var(--hero-edge);
+		color: var(--hero-text);
+		cursor: pointer;
+	}
+	.pa2-hero__step {
+		flex: 1;
+		text-align: center;
+		font-family: var(--font-display);
+		font-size: 11px;
+		letter-spacing: 0.6px;
+		color: var(--hero-text);
+		opacity: 0.9;
+	}
+	.pa2-hero__clock {
+		flex: 0 0 auto;
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		font-family: var(--font-data);
+		font-size: 14px;
+		color: var(--hero-num);
+	}
+	.pa2-hero__name {
+		font-family: var(--font-display);
+		font-size: 22px;
+		line-height: 1.15;
+	}
+	.pa2-prog {
+		display: flex;
+		align-items: center;
+		gap: 9px;
+	}
+	.pa2-gauge {
+		flex: 1;
+		display: flex;
+		gap: 2px;
+		height: 13px;
+	}
+	.pa2-seg {
+		flex: 1;
+		background: rgba(0, 0, 0, 0.28);
+		border: 1px solid var(--hero-edge);
+	}
+	.pa2-seg.on {
+		background: var(--hero-num);
+	}
+	.pa2-prog__pct {
+		flex: 0 0 auto;
+		min-width: 34px;
+		text-align: right;
+		font-family: var(--font-data);
+		font-size: 12px;
+		color: var(--hero-text);
+		opacity: 0.9;
+	}
+
+	/* stage — number + technique + next; centers when short, technique
+	   shrinks/scrolls when long, so the column never overflows. */
+	.pa2-stage {
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow: hidden;
+		padding: 0 14px;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: var(--spacing-xs);
-		padding: var(--spacing-sm) 0;
+		justify-content: center;
+		gap: 13px;
+		text-align: center;
 	}
 
-	.stat-value {
-		font-size: var(--font-size-xl);
-		font-weight: bold;
-	}
-
-	.stat-label {
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
-		text-transform: uppercase;
-	}
-
-	.completion-actions {
+	/* big number in a beveled inventory-style slot */
+	.pa2-count {
+		flex: 0 0 auto;
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-md);
-		margin-top: var(--spacing-xl);
+		align-items: center;
+		gap: 7px;
+	}
+	.pa2-count__box {
+		display: grid;
+		place-items: center;
+		min-width: 134px;
+		height: 108px;
+		padding: 0 18px;
+		background: var(--bg3);
+		border: var(--bw) solid var(--line);
+		box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.14),
+			inset -2px -2px 0 rgba(0, 0, 0, 0.32), var(--shadow);
+	}
+	.pa2-count__v {
+		font-family: var(--font-display);
+		font-size: 64px;
+		line-height: 1;
+		color: var(--accent);
+	}
+	.pa2-count--time .pa2-count__v {
+		font-size: 44px;
+	}
+	.pa2-count--done .pa2-count__box {
+		background: var(--green);
+	}
+	.pa2-count--done .pa2-count__v {
+		color: var(--on-accent);
+	}
+	.pa2-count--rest .pa2-count__box {
+		background: var(--accent2);
+	}
+	.pa2-count--rest .pa2-count__v {
+		color: var(--on-accent);
+	}
+	.pa2-count__u {
+		font-family: var(--font-ui);
+		font-size: 12px;
+		letter-spacing: 0.5px;
+		color: var(--muted);
+	}
+
+	/* technique "scroll" — accent band header + internally-scrolling body */
+	.pa2-tech {
+		flex: 0 1 auto;
+		min-height: 0;
+		max-height: 34vh;
+		overflow: hidden;
 		width: 100%;
+		max-width: 340px;
+		display: flex;
+		flex-direction: column;
+		background: var(--bg2);
+		border: var(--bw) solid var(--line);
+		box-shadow: var(--shadow);
+	}
+	.pa2-tech__band {
+		flex: 0 0 auto;
+		background: var(--accent);
+		color: var(--on-accent);
+		font-family: var(--font-display);
+		font-size: 11px;
+		letter-spacing: 0.6px;
+		padding: 5px 11px;
+		text-align: left;
+	}
+	.pa2-tech__body {
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+		padding: 10px 12px;
+		font-size: 14px;
+		line-height: 1.6;
+		color: var(--text);
+		text-align: left;
+	}
+	.pa2-tech__body::-webkit-scrollbar {
+		width: 0;
 	}
 
-	.text-green { color: var(--pixel-green); }
-	.text-yellow { color: var(--pixel-yellow); }
-	.text-blue { color: var(--pixel-blue); }
-
-	/* Loading skeleton */
-	.loading-skeleton {
-		display: inline-block;
-		background: linear-gradient(90deg, #444 25%, #555 50%, #444 75%);
-		background-size: 200% 100%;
-		animation: loading-shimmer 1.5s infinite;
-		border-radius: 2px;
-		min-width: 120px;
-		min-height: 1em;
+	.pa2-next {
+		flex: 0 0 auto;
+		font-size: 13px;
+		color: var(--muted);
+	}
+	.pa2-next__l {
+		font-family: var(--font-display);
+		font-size: 11px;
+		letter-spacing: 0.5px;
+		color: var(--dim);
+		margin-right: 5px;
 	}
 
-	@keyframes loading-shimmer {
-		0% { background-position: 200% 0; }
-		100% { background-position: -200% 0; }
+	.player__controls {
+		padding: 0 14px 14px;
 	}
 </style>

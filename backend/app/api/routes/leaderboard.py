@@ -3,10 +3,24 @@ from fastapi import APIRouter, Query
 from sqlalchemy import select, func, and_
 
 from app.api.deps import AsyncSessionDep, CurrentUser
-from app.db.models import User, WorkoutSession, Friendship
+from app.db.models import User, WorkoutSession, Friendship, ShopItem, UserPurchase
 from app.schemas import LeaderboardEntry, LeaderboardResponse
 
 router = APIRouter()
+
+
+async def _equipped_titles(session, user_ids: list[int]) -> dict[int, str]:
+    """Map user_id -> equipped title name (RU) for the given users (roadmap 1.2)."""
+    if not user_ids:
+        return {}
+    result = await session.execute(
+        select(UserPurchase.user_id, ShopItem.name_ru)
+        .join(ShopItem, UserPurchase.shop_item_id == ShopItem.id)
+        .where(UserPurchase.user_id.in_(user_ids))
+        .where(UserPurchase.is_equipped.is_(True))
+        .where(ShopItem.item_type == "title")
+    )
+    return {row[0]: row[1] for row in result.all()}
 
 
 @router.get(
@@ -29,6 +43,7 @@ async def get_global_leaderboard(
         .limit(limit)
     )
     users = list(result.scalars().all())
+    titles = await _equipped_titles(session, [u.id for u in users])
     entries = []
     current_user_rank = None
 
@@ -46,6 +61,7 @@ async def get_global_leaderboard(
             level=u.level,
             total_xp=u.total_xp,
             current_streak=u.current_streak,
+            equipped_title=titles.get(u.id),
             is_current_user=is_current,
         ))
 
@@ -102,6 +118,7 @@ async def get_weekly_leaderboard(
         .limit(limit)
     )
     rows = result.all()
+    titles = await _equipped_titles(session, [u.id for u, _ in rows])
 
     entries = []
     current_user_rank = None
@@ -120,6 +137,7 @@ async def get_weekly_leaderboard(
             level=u.level,
             total_xp=weekly_xp or 0,  # This is weekly XP
             current_streak=u.current_streak,
+            equipped_title=titles.get(u.id),
             is_current_user=is_current,
         ))
 
@@ -162,6 +180,7 @@ async def get_friends_leaderboard(
     # Add current user only if they consented to leaderboard
     friends_with_me = ([user] if user.leaderboard_visible else []) + friends
     friends_with_me.sort(key=lambda u: u.total_xp, reverse=True)
+    titles = await _equipped_titles(session, [u.id for u in friends_with_me])
 
     entries = []
     current_user_rank = None
@@ -180,6 +199,7 @@ async def get_friends_leaderboard(
             level=u.level,
             total_xp=u.total_xp,
             current_streak=u.current_streak,
+            equipped_title=titles.get(u.id),
             is_current_user=is_current,
         ))
 

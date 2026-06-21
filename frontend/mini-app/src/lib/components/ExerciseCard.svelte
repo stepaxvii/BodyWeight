@@ -69,7 +69,7 @@
 		<!-- Category icon with selection indicator -->
 		<div class="category-icon" class:selected={isSelected} style="--cat-color: {categoryColor}">
 			{#if isSelected && showCheckbox}
-				<PixelIcon name="check" size="sm" color="var(--pixel-bg)" />
+				<PixelIcon name="check" size="sm" color="var(--on-accent)" />
 			{:else}
 				<img
 					src={getCategoryIconPath(exercise.category_slug)}
@@ -93,7 +93,7 @@
 				onclick={handleInfoClick}
 				title="Подробнее"
 			>
-				?
+				<PixelIcon name="search" size="sm" />
 			</button>
 		{/if}
 		{#if showFavorite}
@@ -120,7 +120,7 @@
 	}
 
 	.exercise-row.selected {
-		background: rgba(var(--pixel-accent-rgb), 0.1);
+		background: var(--pixel-card-hover);
 		margin: calc(-1 * var(--spacing-sm));
 		padding: var(--spacing-sm);
 	}
@@ -128,7 +128,7 @@
 	.category-icon {
 		width: 32px;
 		height: 32px;
-		border: 2px solid var(--cat-color, var(--border-color));
+		border: var(--border-width) solid var(--cat-color, var(--border-color));
 		background: var(--pixel-bg-dark);
 		display: flex;
 		align-items: center;
@@ -180,7 +180,7 @@
 		align-items: center;
 		justify-content: center;
 		background: var(--pixel-bg-dark);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		cursor: pointer;
 		flex-shrink: 0;
 		font-family: var(--font-pixel);

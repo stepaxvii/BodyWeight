@@ -1,4 +1,5 @@
 """User-created challenges endpoints."""
+import logging
 from datetime import datetime, timedelta, date
 from fastapi import APIRouter, HTTPException, status, Query
 from sqlalchemy import select, func
@@ -28,6 +29,7 @@ from app.services.challenges import (
     ChallengeExerciseInput,
     create_challenge,
     join_challenge,
+    notify_friends_new_challenge,
     update_challenge_status,
     update_all_statuses,
     finalize_due_challenges,
@@ -35,7 +37,10 @@ from app.services.challenges import (
     claim_reward,
     REWARD_CLAIM_TTL_DAYS,
 )
+from app.services.notifications import send_new_challenge_push
 
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -50,22 +55,27 @@ async def _calc_running_completion(
     session: AsyncSessionDep,
     challenge: Challenge,
     user_id: int,
+    n_ex: int | None = None,
 ) -> tuple[int, int]:
     """
     Returns (completion_percent, completed_days) computed from progress rows.
     Used while challenge is still running (before finalization).
     A day fully complete = ALL exercises completed for that day.
+
+    `n_ex` (exercise count) may be passed in to avoid re-querying it when this
+    is called repeatedly for the same challenge (e.g. per participant).
     """
     duration = (challenge.end_date - challenge.start_date).days + 1
     if duration <= 0:
         return 0, 0
 
-    n_ex_result = await session.execute(
-        select(func.count(ChallengeExercise.id)).where(
-            ChallengeExercise.challenge_id == challenge.id
+    if n_ex is None:
+        n_ex_result = await session.execute(
+            select(func.count(ChallengeExercise.id)).where(
+                ChallengeExercise.challenge_id == challenge.id
+            )
         )
-    )
-    n_ex = n_ex_result.scalar() or 0
+        n_ex = n_ex_result.scalar() or 0
     if n_ex == 0:
         return 0, 0
 
@@ -116,6 +126,17 @@ async def create_challenge_route(
                 ],
             ),
         )
+        # Capture before commit — attributes expire on commit (no async lazy-load).
+        challenge_id = challenge.id
+        challenge_title = challenge.title
+        creator_name = _user_display_name(user) or "Друг"
+        # In-app notify friends so they can join while it's still open.
+        # Best-effort: a notification hiccup must not fail challenge creation.
+        try:
+            push_targets = await notify_friends_new_challenge(session, user, challenge)
+        except Exception:
+            logger.exception("Failed to notify friends about new challenge")
+            push_targets = []
         await session.commit()
     except ValueError as e:
         await session.rollback()
@@ -123,7 +144,14 @@ async def create_challenge_route(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         )
 
-    return await _build_details_response(session, user, challenge.id)
+    # Best-effort Telegram pushes to friends who opted in (after commit).
+    for tid in push_targets:
+        try:
+            await send_new_challenge_push(tid, creator_name, challenge_title, challenge_id)
+        except Exception:
+            logger.exception("Failed to push new-challenge notification")
+
+    return await _build_details_response(session, user, challenge_id)
 
 
 @router.get(
@@ -176,13 +204,21 @@ async def list_challenges_route(
     )
     ex_count = {cid: cnt for cid, cnt in ex_q.all()}
 
-    # My memberships
+    # Sum of daily targets per challenge — the daily commitment shown on cards
+    tgt_q = await session.execute(
+        select(ChallengeExercise.challenge_id, func.sum(ChallengeExercise.daily_target))
+        .where(ChallengeExercise.challenge_id.in_(ids))
+        .group_by(ChallengeExercise.challenge_id)
+    )
+    target_sum = {cid: int(s or 0) for cid, s in tgt_q.all()}
+
+    # My participant rows (membership + reward info in one fetch)
     me_q = await session.execute(
-        select(ChallengeParticipant.challenge_id)
+        select(ChallengeParticipant)
         .where(ChallengeParticipant.user_id == user.id)
         .where(ChallengeParticipant.challenge_id.in_(ids))
     )
-    my_ids = {r[0] for r in me_q.all()}
+    my_parts = {p.challenge_id: p for p in me_q.scalars().all()}
 
     # Creator names
     creator_ids = [c.creator_user_id for c in challenges if c.creator_user_id is not None]
@@ -192,21 +228,51 @@ async def list_challenges_route(
         for u in cr_q.scalars().all():
             creator_map[u.id] = u
 
-    items = [
-        ChallengeListItem(
-            id=c.id,
-            title=c.title,
-            creator_user_id=c.creator_user_id,
-            creator_name=_user_display_name(creator_map.get(c.creator_user_id)) if c.creator_user_id else None,
-            start_date=c.start_date,
-            end_date=c.end_date,
-            status=c.status,
-            participants_count=parts_count.get(c.id, 0),
-            exercises_count=ex_count.get(c.id, 0),
-            is_member=c.id in my_ids,
+    items: list[ChallengeListItem] = []
+    for c in challenges:
+        is_member = c.id in my_parts
+        completion_percent: int | None = None
+        completed_days: int | None = None
+        reward_claimable = False
+        reward_coins = 0
+
+        if is_member:
+            p = my_parts[c.id]
+            if c.finalized_at is not None and p.completion_percent is not None:
+                completion_percent = p.completion_percent
+                reward_coins = p.reward_coins
+                reward_claimable = (
+                    p.reward_claimed_at is None
+                    and p.reward_coins > 0
+                    and datetime.utcnow()
+                    <= c.finalized_at + timedelta(days=REWARD_CLAIM_TTL_DAYS)
+                )
+            elif c.status == "active":
+                completion_percent, completed_days = await _calc_running_completion(
+                    session, c, user.id
+                )
+
+        items.append(
+            ChallengeListItem(
+                id=c.id,
+                title=c.title,
+                creator_user_id=c.creator_user_id,
+                creator_name=_user_display_name(creator_map.get(c.creator_user_id)) if c.creator_user_id else None,
+                start_date=c.start_date,
+                end_date=c.end_date,
+                status=c.status,
+                participants_count=parts_count.get(c.id, 0),
+                exercises_count=ex_count.get(c.id, 0),
+                is_member=is_member,
+                total_days=(c.end_date - c.start_date).days + 1,
+                daily_target_total=target_sum.get(c.id, 0),
+                completion_percent=completion_percent,
+                completed_days=completed_days,
+                reward_claimable=reward_claimable,
+                reward_coins=reward_coins,
+            )
         )
-        for c in challenges
-    ]
+
     await session.commit()
     return items
 
@@ -363,13 +429,13 @@ async def _build_details_response(
     for p, u in participants_rows:
         if challenge.finalized_at is not None and p.completion_percent is not None:
             pct = p.completion_percent
-            pct_running, completed_days = await _calc_running_completion(
-                session, challenge, u.id
+            _, completed_days = await _calc_running_completion(
+                session, challenge, u.id, n_ex=len(exercises)
             )
             # Final % may differ slightly from running due to clamp; prefer stored.
         else:
             pct, completed_days = await _calc_running_completion(
-                session, challenge, u.id
+                session, challenge, u.id, n_ex=len(exercises)
             )
 
         is_claimable = (

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { PixelCard, PixelIcon, PixelAvatar, EmptyState, PixelTabs, PixelButton } from '$lib/components/ui';
+	import { PixelCard, PixelIcon, PixelAvatar, EmptyState, PixelTabs, PixelButton, CountUp } from '$lib/components/ui';
 	import UserProfileModal from '$lib/components/UserProfileModal.svelte';
+	import Banner from '$lib/components/ui/Banner.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -14,14 +15,16 @@
 	let selectedUserId = $state<number | null>(null);
 	let updatingVisibility = $state(false);
 
+	// Current user's own entry (for the pinned "your rank" card)
+	const me = $derived(entries.find((e) => e.is_current_user));
+
 	const leaderboardConsentText = `Показывать твой username (или имя) в общем рейтинге и у друзей?`;
 
 	async function showMeInLeaderboard() {
 		if (updatingVisibility || userStore.user?.leaderboard_visible) return;
 		updatingVisibility = true;
 		try {
-				const updated = await api.updateUser({ leaderboard_visible: true });
-			if (userStore.user) userStore.user = { ...userStore.user, ...updated };
+			await userStore.setLeaderboardVisible(true);
 			telegram.hapticImpact('light');
 			await loadLeaderboard();
 		} catch (e) {
@@ -91,9 +94,9 @@
 </script>
 
 <div class="page container">
-	<header class="page-header">
-		<h1>Рейтинг</h1>
-	</header>
+	<div class="banner-wrap">
+		<Banner icon="trophy" title="Рейтинг" deco="crown" />
+	</div>
 
 	<!-- Tabs -->
 	<PixelTabs tabs={leaderboardTabs} activeTab={activeTab} onTabChange={switchTab} />
@@ -138,7 +141,7 @@
 			<div class="podium">
 				<!-- 2nd Place -->
 				<button
-					class="podium-item second"
+					class="podium-item second anim-pop"
 					class:clickable={!entries[1].is_current_user}
 					onclick={() => openUserProfile(entries[1])}
 				>
@@ -148,13 +151,13 @@
 						borderColor="var(--pixel-light)"
 					/>
 					<span class="podium-name">{entries[1].username ? `${entries[1].username}` : entries[1].first_name}</span>
-					<span class="podium-xp">{entries[1].total_xp} XP</span>
+					<span class="podium-xp"><CountUp value={entries[1].total_xp} /> XP</span>
 					<div class="podium-rank">2</div>
 				</button>
 
 				<!-- 1st Place -->
 				<button
-					class="podium-item first"
+					class="podium-item first anim-pop"
 					class:clickable={!entries[0].is_current_user}
 					onclick={() => openUserProfile(entries[0])}
 				>
@@ -167,13 +170,13 @@
 						borderColor="var(--pixel-yellow)"
 					/>
 					<span class="podium-name">{entries[0].username ? `${entries[0].username}` : entries[0].first_name}</span>
-					<span class="podium-xp">{entries[0].total_xp} XP</span>
+					<span class="podium-xp"><CountUp value={entries[0].total_xp} /> XP</span>
 					<div class="podium-rank">1</div>
 				</button>
 
 				<!-- 3rd Place -->
 				<button
-					class="podium-item third"
+					class="podium-item third anim-pop"
 					class:clickable={!entries[2].is_current_user}
 					onclick={() => openUserProfile(entries[2])}
 				>
@@ -183,14 +186,14 @@
 						borderColor="var(--pixel-orange)"
 					/>
 					<span class="podium-name">{entries[2].username ? `${entries[2].username}` : entries[2].first_name}</span>
-					<span class="podium-xp">{entries[2].total_xp} XP</span>
+					<span class="podium-xp"><CountUp value={entries[2].total_xp} /> XP</span>
 					<div class="podium-rank">3</div>
 				</button>
 			</div>
 		{/if}
 
 		<!-- Full List -->
-		<div class="leaderboard-list">
+		<div class="leaderboard-list anim-rows">
 			{#each entries as entry, i}
 				{@const hasPodium = activeTab !== 'friends' && entries.length >= 3}
 				{@const showInList = activeTab === 'friends' || !hasPodium || i >= 3}
@@ -222,11 +225,11 @@
 										<span class="you-badge">ВЫ</span>
 									{/if}
 								</span>
-								<span class="entry-level">Ур.{entry.level}</span>
+								<span class="entry-level">Ур.{entry.level}{#if entry.equipped_title} · {entry.equipped_title}{/if}</span>
 							</div>
 
 							<div class="entry-stats">
-								<span class="entry-xp">{entry.total_xp}</span>
+								<span class="entry-xp"><CountUp value={entry.total_xp} /></span>
 								<span class="entry-xp-label">XP</span>
 							</div>
 
@@ -239,6 +242,18 @@
 				{/if}
 			{/each}
 		</div>
+
+		{#if activeTab !== 'friends' && me}
+			<div class="lb-you-card">
+				<span class="lb-you-card__rank">#{me.rank}</span>
+				<PixelAvatar avatarId={me.avatar_id || 'shadow-wolf'} size="md" showBorder={false} />
+				<div class="lb-you-meta">
+					<span class="lb-you-name">{me.username || me.first_name}</span>
+					<span class="lb-you-sub">Ур.{me.level}</span>
+				</div>
+				<span class="lb-you-xp"><CountUp value={me.total_xp} /> XP</span>
+			</div>
+		{/if}
 	{/if}
 </div>
 
@@ -254,9 +269,37 @@
 		padding-bottom: var(--spacing-lg);
 	}
 
-	.page-header {
-		text-align: center;
+	.banner-wrap {
 		margin-bottom: var(--spacing-md);
+	}
+
+	/* Pinned "your rank" card (.lb-you-card / __rank live in hud.css; tangerine bg) */
+	.lb-you-card {
+		margin-top: var(--spacing-sm);
+	}
+	.lb-you-meta {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+	.lb-you-name {
+		font-size: var(--font-size-xs);
+		color: var(--on-accent);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.lb-you-sub {
+		font-size: 10px;
+		color: var(--on-accent);
+		opacity: 0.85;
+	}
+	.lb-you-xp {
+		font-family: var(--font-data);
+		font-size: var(--font-size-sm);
+		color: var(--on-accent);
 	}
 
 	/* Loading */
@@ -288,7 +331,7 @@
 		gap: var(--spacing-xs);
 		padding: var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		position: relative;
 		cursor: pointer;
 		font-family: var(--font-pixel);
@@ -302,18 +345,24 @@
 
 	.podium-item.first {
 		padding: var(--spacing-md);
-		border-color: var(--pixel-yellow);
+		background: var(--pixel-yellow);
+		border-color: var(--border-color);
 		margin-bottom: var(--spacing-md);
+		color: var(--ink);
 	}
 
 	.podium-item.second {
-		border-color: var(--pixel-light);
+		background: #dfe5cf;
+		border-color: var(--border-color);
 		padding-bottom: var(--spacing-md);
+		color: var(--ink);
 	}
 
 	.podium-item.third {
-		border-color: var(--pixel-orange);
+		background: #d89a5a;
+		border-color: var(--border-color);
 		padding-bottom: var(--spacing-md);
+		color: var(--ink);
 	}
 
 	.podium-crown {
@@ -332,7 +381,7 @@
 
 	.podium-xp {
 		font-size: var(--font-size-xs);
-		color: var(--pixel-green);
+		color: var(--ink);
 		margin-bottom: 4px;
 	}
 
@@ -341,17 +390,14 @@
 		bottom: -12px;
 		width: 24px;
 		height: 24px;
-		background: var(--pixel-bg-dark);
-		border: 2px solid currentColor;
+		background: var(--pixel-card);
+		border: var(--border-width) solid var(--border-color);
+		color: var(--text-primary);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		font-size: var(--font-size-xs);
 	}
-
-	.podium-item.first .podium-rank { color: var(--pixel-yellow); }
-	.podium-item.second .podium-rank { color: var(--pixel-light); }
-	.podium-item.third .podium-rank { color: var(--pixel-orange); }
 
 	/* Leaderboard List */
 	.leaderboard-list {
@@ -364,7 +410,7 @@
 		width: 100%;
 		padding: var(--spacing-sm);
 		background: var(--pixel-card);
-		border: 2px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		font-family: var(--font-pixel);
 		color: var(--text-primary);
 		cursor: pointer;
@@ -377,8 +423,9 @@
 	}
 
 	.entry-card.accent {
-		border-color: var(--pixel-accent);
-		background: rgba(233, 69, 96, 0.1);
+		border-color: var(--border-color);
+		background: var(--pixel-accent);
+		color: var(--ink);
 	}
 
 	.entry {
@@ -420,13 +467,21 @@
 	.you-badge {
 		font-size: 6px;
 		padding: 1px 4px;
-		background: var(--pixel-accent);
-		color: var(--text-primary);
+		background: var(--pixel-yellow);
+		color: var(--ink);
 	}
 
 	.entry-level {
 		font-size: 8px;
 		color: var(--text-secondary);
+	}
+
+	/* Current-user row sits on amber accent block — text reads dark */
+	.entry-card.accent .entry-level,
+	.entry-card.accent .entry-xp,
+	.entry-card.accent .entry-xp-label,
+	.entry-card.accent .entry-streak {
+		color: var(--ink);
 	}
 
 	.entry-stats {

@@ -7,6 +7,8 @@ from .users import (
     UpdateUserRequest,
     CompleteOnboardingRequest,
     UserProfileResponse,
+    ExerciseRecord,
+    UserRecordsResponse,
     DayActivityResponse,
     UserActivityResponse,
 )
@@ -81,6 +83,8 @@ __all__ = [
     "UpdateUserRequest",
     "CompleteOnboardingRequest",
     "UserProfileResponse",
+    "ExerciseRecord",
+    "UserRecordsResponse",
     "DayActivityResponse",
     "UserActivityResponse",
     # Auth
