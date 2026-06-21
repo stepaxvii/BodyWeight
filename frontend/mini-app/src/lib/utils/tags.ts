@@ -63,6 +63,33 @@ export const TAG_TRANSLATIONS: Record<string, string> = {
 	'cardio': 'кардио',
 	'hiit': 'ВИИТ',
 	'endurance': 'выносливость',
+	'fat-burn': 'жиросжигание',
+	'energy': 'энергия',
+
+	// Оборудование
+	'dumbbell': 'гантели',
+	'resistance-band': 'эспандер',
+	'home-friendly': 'дома',
+
+	// Тип нагрузки
+	'strength': 'сила',
+	'power': 'мощь',
+	'functional': 'функциональная',
+	'isolation': 'изоляция',
+	'gymnastics': 'гимнастика',
+	'push-pull': 'тяни-толкай',
+	'grip-strength': 'хват',
+	'coordination': 'координация',
+	'mindful': 'осознанная',
+	'intense': 'интенсивная',
+	'quick': 'быстрая',
+	'time-saver': 'экономит время',
+
+	// Части тела
+	'arms': 'руки',
+	'delts': 'дельты',
+	'upper-body': 'верх тела',
+	'lower-body': 'низ тела',
 
 	// Части тела для растяжки
 	'spine': 'позвоночник',

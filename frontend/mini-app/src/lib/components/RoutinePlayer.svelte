@@ -507,7 +507,6 @@
 					<span class="pa2-hero__step">Упражнение {currentStep + 1}/{routine.exercises.length}</span>
 					<span class="pa2-hero__clock"><PixelIcon name="timer" size="sm" color="var(--hero-num)" /> {formattedTotalTime}</span>
 				</div>
-				<span class="pa2-hero__name">{isResting ? 'Отдых' : (exerciseData?.name_ru || currentExercise?.slug)}</span>
 				<div class="pa2-prog">
 					<div class="pa2-gauge">
 						{#each Array(PROGRESS_SEGMENTS) as _, i}
@@ -517,6 +516,7 @@
 					<span class="pa2-prog__pct">{Math.round(progress)}%</span>
 				</div>
 			</div>
+			<span class="pa2-hero__name">{isResting ? 'Отдых' : (exerciseData?.name_ru || currentExercise?.slug)}</span>
 
 			<div class="pa2-stage">
 				{#if isResting}
@@ -527,7 +527,7 @@
 						<span class="pa2-count__u">секунд отдыха</span>
 					</div>
 					{#if restNextEx}
-						<div class="pa2-next"><span class="pa2-next__l">Далее</span> {restNextData?.name_ru || restNextEx.slug}</div>
+						<div class="pa2-next"><PixelIcon name="arrow-right" size="sm" color="var(--muted)" /> {restNextData?.name_ru || restNextEx.slug} — {restNextEx.duration ? restNextEx.duration + 'с.' : restNextEx.reps + 'п.'}</div>
 					{/if}
 				{:else}
 					<div class="pa2-count" class:pa2-count--time={isTimeBased} class:pa2-count--done={isTimeBased && exerciseTimerSeconds === 0 && isExerciseTimerStarted}>
@@ -537,13 +537,13 @@
 							{:else}
 								<span class="pa2-count__v">{targetValue}</span>
 							{/if}
-						</span>
-						<span class="pa2-count__u">
-							{#if isTimeBased}
-								{!isExerciseTimerStarted ? 'нажми старт' : exerciseTimerSeconds === 0 ? 'готово!' : 'осталось'}
-							{:else}
-								повторений
-							{/if}
+							<span class="pa2-count__u">
+								{#if isTimeBased}
+									{!isExerciseTimerStarted ? 'нажми старт' : exerciseTimerSeconds === 0 ? 'готово!' : 'осталось'}
+								{:else}
+									повторений
+								{/if}
+							</span>
 						</span>
 					</div>
 
@@ -557,7 +557,7 @@
 					{#if currentStep < routine.exercises.length - 1}
 						{@const nextEx = routine.exercises[currentStep + 1]}
 						{@const nextExData = allExercises.find((e) => e.slug === nextEx.slug)}
-						<div class="pa2-next"><span class="pa2-next__l">Далее</span> {nextExData?.name_ru || nextEx.slug}</div>
+						<div class="pa2-next"><PixelIcon name="arrow-right" size="sm" color="var(--muted)" /> {nextExData?.name_ru || nextEx.slug} — {nextEx.duration ? nextEx.duration + 'с.' : nextEx.reps + 'п.'}</div>
 					{/if}
 				{/if}
 			</div>
@@ -746,7 +746,7 @@
 		flex: 1;
 		text-align: center;
 		font-family: var(--font-display);
-		font-size: 11px;
+		font-size: 17px;
 		letter-spacing: 0.6px;
 		color: var(--hero-text);
 		opacity: 0.9;
@@ -764,6 +764,8 @@
 		font-family: var(--font-display);
 		font-size: 22px;
 		line-height: 1.15;
+		text-align: center;
+		padding: var(--spacing-sm) 0;
 	}
 	.pa2-prog {
 		display: flex;
@@ -818,8 +820,10 @@
 		gap: 7px;
 	}
 	.pa2-count__box {
-		display: grid;
-		place-items: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
 		min-width: 134px;
 		height: 108px;
 		padding: 0 18px;

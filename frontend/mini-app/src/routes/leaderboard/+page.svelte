@@ -497,7 +497,7 @@
 	}
 
 	.entry-xp-label {
-		font-size: 6px;
+		font-size: 10px;
 		color: var(--text-muted);
 	}
 

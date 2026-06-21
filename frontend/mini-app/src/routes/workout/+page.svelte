@@ -34,7 +34,7 @@
 
 	// Main tab state
 	type MainTab = 'routines' | 'my-routines' | 'favorites' | 'exercises';
-	let activeMainTab = $state<MainTab>('routines');
+	let activeMainTab = $state<MainTab>('my-routines');
 
 	// UI state
 	let activeCategory = $state<string | null>(null);
@@ -857,7 +857,7 @@
 		</div>
 
 		<!-- Программа дня — featured hero (date-seeded, no equipment, medium difficulty) -->
-		{#if programOfDay}
+		{#if programOfDay && activeMainTab === 'routines'}
 			<section class="program-section">
 				<div class="feat">
 					<div class="feat__band">
