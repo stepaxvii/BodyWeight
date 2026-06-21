@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PixelButton, PixelIcon, PixelTabs, EmptyState } from '$lib/components/ui';
+	import { PixelIcon, PixelTabs, EmptyState } from '$lib/components/ui';
 	import type { CustomRoutineListItem } from '$lib/types';
 
 	interface Props {
@@ -7,10 +7,9 @@
 		onplay: (routineId: number) => void;
 		onedit: (routineId: number) => void;
 		ondelete: (routineId: number, routineName: string) => void;
-		oncreate: () => void;
 	}
 
-	let { routines, onplay, onedit, ondelete, oncreate }: Props = $props();
+	let { routines, onplay, onedit, ondelete }: Props = $props();
 
 	type RoutineCategory = 'workout' | 'morning' | 'stretch' | 'other';
 	let activeCategory = $state<RoutineCategory>('workout');
@@ -35,20 +34,8 @@
 
 <div class="routine-list">
 	{#if routines.length === 0}
-		<EmptyState icon="dumbbell" message="У вас пока нет своих сетов">
-			<PixelButton variant="primary" onclick={oncreate}>
-				<PixelIcon name="plus" />
-				Создать сет
-			</PixelButton>
-		</EmptyState>
+		<EmptyState icon="dumbbell" message="У вас пока нет своих сетов" />
 	{:else}
-		<div class="create-btn-wrapper">
-			<PixelButton variant="secondary" fullWidth onclick={oncreate}>
-				<PixelIcon name="plus" />
-				Создать сет
-			</PixelButton>
-		</div>
-
 		<PixelTabs tabs={categoryTabs} activeTab={activeCategory} onTabChange={(id) => activeCategory = id} />
 
 		<div class="cust-rows">
@@ -110,10 +97,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
-	}
-
-	.create-btn-wrapper {
-		margin-bottom: var(--spacing-xs);
 	}
 
 	.cust-rows {

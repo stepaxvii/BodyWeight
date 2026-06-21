@@ -949,7 +949,6 @@
 					onplay={playCustomRoutine}
 					onedit={editCustomRoutine}
 					ondelete={handleCustomRoutineDelete}
-					oncreate={createCustomRoutine}
 				/>
 			</section>
 
