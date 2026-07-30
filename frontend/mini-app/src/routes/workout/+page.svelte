@@ -163,15 +163,17 @@
 
 	// Favorite exercises - must load all exercises for favorites to work properly
 	let favoriteExercises = $state<Exercise[]>([]);
+	let allExercisesCache = $state<Exercise[]>([]);
 
 	// Load all favorite exercises when favorites tab is active
 	$effect(() => {
 		async function loadFavorites() {
 			if (activeMainTab === 'favorites' && favoritesStore.count > 0) {
 				try {
-					// Get all exercises without pagination
-					const allExercises = await api.getAllExercises();
-					favoriteExercises = allExercises.filter(e => favoritesStore.isFavorite(e.id));
+					if (allExercisesCache.length === 0) {
+						allExercisesCache = await api.getAllExercises();
+					}
+					favoriteExercises = allExercisesCache.filter(e => favoritesStore.isFavorite(e.id));
 				} catch (err) {
 					console.error('Failed to load favorite exercises:', err);
 				}
@@ -381,11 +383,13 @@
 		// Build the deterministic "Программа дня" from the full catalogue
 		// (non-blocking — the hero pops in once it's ready).
 		try {
-			const all = await api.getAllExercises();
-			const pod = buildProgramOfDay(all);
+			if (allExercisesCache.length === 0) {
+				allExercisesCache = await api.getAllExercises();
+			}
+			const pod = buildProgramOfDay(allExercisesCache);
 			if (pod) {
 				programOfDay = pod;
-				const bySlug = new Map(all.map((e) => [e.slug, e]));
+				const bySlug = new Map(allExercisesCache.map((e) => [e.slug, e]));
 				programXp = pod.exercises.reduce((sum, re) => {
 					const ex = bySlug.get(re.slug);
 					if (!ex) return sum;
@@ -853,7 +857,13 @@
 		<!-- SELECTION VIEW -->
 
 		<div class="hub-banner">
-			<Banner icon="dumbbell" title="Тренировка" sub={exercisesTotal ? `${exercisesTotal} упражнений` : undefined} deco="dumbbell" />
+			<Banner icon="dumbbell" title="Тренировка" sub={exercisesTotal ? `${exercisesTotal} упражнений` : undefined} deco="dumbbell">
+				{#snippet action()}
+					<button class="banner-action" onclick={createCustomRoutine} aria-label="Создать сет">
+						<PixelIcon name="plus" size="md" color="currentColor" />
+					</button>
+				{/snippet}
+			</Banner>
 		</div>
 
 		<!-- Программа дня — featured hero (date-seeded, no equipment, medium difficulty) -->
@@ -939,7 +949,6 @@
 					onplay={playCustomRoutine}
 					onedit={editCustomRoutine}
 					ondelete={handleCustomRoutineDelete}
-					oncreate={createCustomRoutine}
 				/>
 			</section>
 
@@ -1206,6 +1215,18 @@
 
 	.hub-banner {
 		margin-bottom: var(--spacing-md);
+	}
+
+	.banner-action {
+		flex: 0 0 auto;
+		display: grid;
+		place-items: center;
+		width: 36px;
+		height: 36px;
+		background: rgba(0, 0, 0, 0.2);
+		border: 2px solid rgba(0, 0, 0, 0.3);
+		color: var(--hero-text);
+		cursor: pointer;
 	}
 
 	.tab-section {

@@ -62,7 +62,6 @@ async def mark_all_read(
         .where(Notification.is_read == False)
         .values(is_read=True)
     )
-    await session.commit()
     return {"status": "ok"}
 
 
@@ -79,5 +78,4 @@ async def mark_notification_read(
         .where(Notification.user_id == user.id)
         .values(is_read=True)
     )
-    await session.commit()
     return {"status": "ok"}

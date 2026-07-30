@@ -20,26 +20,15 @@
 	let selectedDay = $state<{ date: string; activity: DayActivity | null } | null>(null);
 
 	onMount(async () => {
-		await userStore.loadStats();
-
-		try {
-			unreadNotifications = await api.getUnreadNotificationCount();
-		} catch (e) {
-			console.error('Failed to load notifications count:', e);
-		}
-
-		try {
-			// The heatmap shows a rolling ~26-week window that crosses into the
-			// previous year, so fetch both years and merge for complete data.
-			const cy = new Date().getFullYear();
-			const [cur, prev] = await Promise.all([
-				api.getUserActivity(cy),
-				api.getUserActivity(cy - 1)
-			]);
-			activityData = { days: { ...prev.days, ...cur.days } };
-		} catch (e) {
-			console.error('Failed to load activity data:', e);
-		}
+		const cy = new Date().getFullYear();
+		const [, notifCount, cur, prev] = await Promise.all([
+			userStore.loadStats(),
+			api.getUnreadNotificationCount().catch(() => 0),
+			api.getUserActivity(cy).catch(() => ({ days: {} })),
+			api.getUserActivity(cy - 1).catch(() => ({ days: {} }))
+		]);
+		unreadNotifications = notifCount;
+		activityData = { days: { ...prev.days, ...cur.days } };
 	});
 
 	function handleDayClick(date: string, activity: DayActivity | null) {

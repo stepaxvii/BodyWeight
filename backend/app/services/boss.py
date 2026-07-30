@@ -105,18 +105,29 @@ async def get_or_create_current_boss(session: AsyncSession) -> MonthlyBoss:
 
 async def _broadcast_new_boss_notification(session: AsyncSession, boss: MonthlyBoss) -> None:
     """Save in-app notification for every user that a new boss arrived."""
+    from app.db.models import Notification
+
     result = await session.execute(select(User.id).where(User.notifications_enabled.is_(True)))
     user_ids = [row[0] for row in result.all()]
+    if not user_ids:
+        return
+
     title = "Новый босс месяца!"
     msg = f"{boss.image_emoji} {boss.name_ru} появился. Вступай в битву!"
-    for uid in user_ids:
-        await save_notification(
-            session=session,
+    now = datetime.utcnow()
+
+    notifications = [
+        Notification(
             user_id=uid,
             notification_type="boss_appeared",
             title=title,
             message=msg,
+            created_at=now,
         )
+        for uid in user_ids
+    ]
+    session.add_all(notifications)
+    await session.flush()
 
 
 async def deal_damage(
@@ -210,36 +221,42 @@ async def _check_milestones(
 async def _broadcast_milestone_notification(
     session: AsyncSession, boss: MonthlyBoss, ratio: float
 ) -> None:
+    from app.db.models import Notification
+
     pct = int(ratio * 100)
     title = f"Босс на {pct}% HP!"
     msg = f"{boss.image_emoji} {boss.name_ru} ослабевает. Добей его!"
     result = await session.execute(select(User.id).where(User.notifications_enabled.is_(True)))
-    for (uid,) in result.all():
-        await save_notification(
-            session=session,
-            user_id=uid,
-            notification_type="boss_milestone",
-            title=title,
-            message=msg,
-        )
+    user_ids = [uid for (uid,) in result.all()]
+    if not user_ids:
+        return
+    now = datetime.utcnow()
+    session.add_all([
+        Notification(user_id=uid, notification_type="boss_milestone", title=title, message=msg, created_at=now)
+        for uid in user_ids
+    ])
+    await session.flush()
 
 
 async def _broadcast_defeat_notification(
     session: AsyncSession, boss: MonthlyBoss
 ) -> None:
+    from app.db.models import Notification
+
     title = "Босс повержен!"
     msg = f"{boss.image_emoji} {boss.name_ru} побеждён. Забери награду на странице босса."
     result = await session.execute(
         select(BossContribution.user_id).where(BossContribution.boss_id == boss.id)
     )
-    for (uid,) in result.all():
-        await save_notification(
-            session=session,
-            user_id=uid,
-            notification_type="boss_defeated",
-            title=title,
-            message=msg,
-        )
+    user_ids = [uid for (uid,) in result.all()]
+    if not user_ids:
+        return
+    now = datetime.utcnow()
+    session.add_all([
+        Notification(user_id=uid, notification_type="boss_defeated", title=title, message=msg, created_at=now)
+        for uid in user_ids
+    ])
+    await session.flush()
 
 
 async def finalize_boss(session: AsyncSession, boss: MonthlyBoss) -> None:
@@ -319,16 +336,25 @@ async def get_user_rank(
     session: AsyncSession, boss_id: int, user_id: int
 ) -> tuple[int | None, int]:
     """Return (rank, total_damage) for the user against a boss. Rank=None if no contribution."""
-    result = await session.execute(
-        select(BossContribution.user_id, BossContribution.total_damage)
+    from sqlalchemy import func
+
+    own = await session.execute(
+        select(BossContribution.total_damage)
         .where(BossContribution.boss_id == boss_id)
-        .order_by(BossContribution.total_damage.desc())
+        .where(BossContribution.user_id == user_id)
     )
-    rows = result.all()
-    for idx, (uid, dmg) in enumerate(rows, start=1):
-        if uid == user_id:
-            return idx, dmg
-    return None, 0
+    row = own.scalar_one_or_none()
+    if row is None:
+        return None, 0
+
+    rank_result = await session.execute(
+        select(func.count())
+        .select_from(BossContribution)
+        .where(BossContribution.boss_id == boss_id)
+        .where(BossContribution.total_damage > row)
+    )
+    rank = (rank_result.scalar() or 0) + 1
+    return rank, row
 
 
 async def finalize_due_bosses(session: AsyncSession) -> int:

@@ -12,7 +12,7 @@ class UserGoal(Base):
     __tablename__ = "user_goals"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
 
     goal_type: Mapped[str] = mapped_column(String(50), nullable=False)
     target_value: Mapped[int] = mapped_column(Integer, nullable=False)

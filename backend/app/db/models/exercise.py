@@ -26,7 +26,7 @@ class Exercise(Base):
     __tablename__ = "exercises"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    category_id: Mapped[int] = mapped_column(ForeignKey("exercise_categories.id"))
+    category_id: Mapped[int] = mapped_column(ForeignKey("exercise_categories.id"), index=True)
     slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     name_ru: Mapped[str] = mapped_column(String(255), nullable=False)

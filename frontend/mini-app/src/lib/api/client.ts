@@ -73,7 +73,7 @@ class ApiClient {
 		return !!this.jwtToken;
 	}
 
-	private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+	private async request<T>(endpoint: string, options: RequestInit = {}, _retry = true): Promise<T> {
 		const headers: Record<string, string> = {
 			'Content-Type': 'application/json',
 			...(options.headers as Record<string, string>)
@@ -86,30 +86,43 @@ class ApiClient {
 		}
 
 		const url = `${API_BASE}${endpoint}`;
-		const response = await fetch(url, {
-			...options,
-			headers
-		});
+		const controller = new AbortController();
+		const timeout = setTimeout(() => controller.abort(), 10000);
 
-		if (!response.ok) {
-			const errorText = await response.text();
-			console.error(`[API] Error ${response.status}:`, errorText);
-			let errorMessage = `API Error: ${response.status}`;
-			try {
-				const errorJson = JSON.parse(errorText);
-				errorMessage = errorJson.detail || errorMessage;
-			} catch {
-				// Ignore JSON parse errors
+		try {
+			const response = await fetch(url, {
+				...options,
+				headers,
+				signal: controller.signal
+			});
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				console.error(`[API] Error ${response.status}:`, errorText);
+				let errorMessage = `API Error: ${response.status}`;
+				try {
+					const errorJson = JSON.parse(errorText);
+					errorMessage = errorJson.detail || errorMessage;
+				} catch {
+					// Ignore JSON parse errors
+				}
+				throw new Error(errorMessage);
 			}
-			throw new Error(errorMessage);
-		}
 
-		if (response.status === 204) {
-			return undefined as T;
-		}
+			if (response.status === 204) {
+				return undefined as T;
+			}
 
-		const data = await response.json();
-		return data;
+			return await response.json();
+		} catch (error) {
+			if (_retry && error instanceof Error && (error.name === 'AbortError' || !navigator.onLine)) {
+			 clearTimeout(timeout);
+				return this.request<T>(endpoint, options, false);
+			}
+			throw error;
+		} finally {
+			clearTimeout(timeout);
+		}
 	}
 
 	// Auth - Telegram

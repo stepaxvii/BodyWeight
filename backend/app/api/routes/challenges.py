@@ -137,7 +137,6 @@ async def create_challenge_route(
         except Exception:
             logger.exception("Failed to notify friends about new challenge")
             push_targets = []
-        await session.commit()
     except ValueError as e:
         await session.rollback()
         raise HTTPException(
@@ -184,7 +183,6 @@ async def list_challenges_route(
     challenges = list((await session.execute(query)).scalars().unique())
 
     if not challenges:
-        await session.commit()
         return []
 
     ids = [c.id for c in challenges]
@@ -273,7 +271,6 @@ async def list_challenges_route(
             )
         )
 
-    await session.commit()
     return items
 
 
@@ -304,7 +301,6 @@ async def join_challenge_route(
 ):
     try:
         await join_challenge(session, user, challenge_id)
-        await session.commit()
     except ValueError as e:
         await session.rollback()
         raise HTTPException(
@@ -352,7 +348,6 @@ async def get_calendar_route(
         for p, ex in rows_result.all()
     ]
 
-    await session.commit()
     return ChallengeMyCalendarResponse(challenge_id=challenge_id, rows=rows)
 
 
@@ -369,7 +364,6 @@ async def claim_route(
 ):
     try:
         coins = await claim_reward(session, user, challenge_id)
-        await session.commit()
     except ValueError as e:
         await session.rollback()
         raise HTTPException(
@@ -425,18 +419,33 @@ async def _build_details_response(
     )
     participants_rows = list(parts_q.all())
 
+    duration = (challenge.end_date - challenge.start_date).days + 1
+    n_ex = len(exercises)
+
+    all_progress_q = await session.execute(
+        select(ChallengeProgress.user_id, ChallengeProgress.progress_date)
+        .where(ChallengeProgress.challenge_id == challenge.id)
+        .where(ChallengeProgress.completed.is_(True))
+    )
+    progress_by_user: dict[int, dict] = {}
+    for uid, pdate in all_progress_q.all():
+        if uid not in progress_by_user:
+            progress_by_user[uid] = {}
+        progress_by_user[uid][pdate] = progress_by_user[uid].get(pdate, 0) + 1
+
+    def _quick_completion(user_id: int) -> tuple[int, int]:
+        counts = progress_by_user.get(user_id, {})
+        full_days = sum(1 for v in counts.values() if v >= n_ex)
+        pct = min(100, int(round(100 * full_days / duration))) if duration > 0 else 0
+        return pct, full_days
+
     participants: list[ChallengeParticipantInfo] = []
     for p, u in participants_rows:
         if challenge.finalized_at is not None and p.completion_percent is not None:
             pct = p.completion_percent
-            _, completed_days = await _calc_running_completion(
-                session, challenge, u.id, n_ex=len(exercises)
-            )
-            # Final % may differ slightly from running due to clamp; prefer stored.
+            _, completed_days = _quick_completion(u.id)
         else:
-            pct, completed_days = await _calc_running_completion(
-                session, challenge, u.id, n_ex=len(exercises)
-            )
+            pct, completed_days = _quick_completion(u.id)
 
         is_claimable = (
             challenge.finalized_at is not None
@@ -473,7 +482,6 @@ async def _build_details_response(
 
     duration_days = (challenge.end_date - challenge.start_date).days + 1
 
-    await session.commit()
     return ChallengeDetailsResponse(
         id=challenge.id,
         title=challenge.title,

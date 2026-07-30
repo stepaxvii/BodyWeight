@@ -524,8 +524,9 @@
 					{@const restNextEx = routine.exercises[currentStep + 1]}
 					{@const restNextData = allExercises.find((e) => e.slug === restNextEx?.slug)}
 					<div class="pa2-count pa2-count--rest">
-						<span class="pa2-count__box"><span class="pa2-count__v">{restSeconds}</span></span>
-						<span class="pa2-count__u">секунд отдыха</span>
+						<span class="pa2-count__box"><span class="pa2-count__v">{restSeconds}</span>
+							<span class="pa2-count__u">секунд отдыха</span>
+						</span>
 					</div>
 					{#if restNextEx}
 						<div class="pa2-next"><PixelIcon name="arrow-right" size="sm" color="var(--muted)" /> {restNextData?.name_ru || restNextEx.slug} — {restNextEx.duration ? restNextEx.duration + 'с.' : restNextEx.reps + 'п.'}</div>

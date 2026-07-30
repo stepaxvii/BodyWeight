@@ -13,7 +13,7 @@ Includes built-in APScheduler integration for automatic scheduling.
 
 import logging
 from datetime import datetime, date, timedelta
-from sqlalchemy import select
+from sqlalchemy import select, func, extract
 from sqlalchemy.ext.asyncio import AsyncSession
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -47,25 +47,17 @@ async def check_daily_reminders(session: AsyncSession) -> int:
     current_hour = now.hour
     today = now.date()
 
-    # Find users whose notification_time hour matches current hour
     result = await session.execute(
         select(User)
         .where(User.notifications_enabled == True)
         .where(User.notification_time.isnot(None))
+        .where(extract('hour', User.notification_time) == current_hour)
     )
     users = result.scalars().all()
 
     sent_count = 0
 
     for user in users:
-        if user.notification_time is None:
-            continue
-
-        # Check if it's the right hour for this user
-        if user.notification_time.hour != current_hour:
-            continue
-
-        # Don't send if already worked out today
         if user.last_workout_date == today:
             continue
 
@@ -115,15 +107,14 @@ async def check_inactivity_reminders(session: AsyncSession) -> int:
     """
     today = date.today()
 
-    # Days when we send reminders (not every day)
     reminder_days = {3, 7, 14}
+    target_dates = {today - timedelta(days=d) for d in reminder_days}
 
-    # Find users who last worked out 3+ days ago
     result = await session.execute(
         select(User)
         .where(User.notifications_enabled == True)
         .where(User.last_workout_date.isnot(None))
-        .where(User.last_workout_date <= today - timedelta(days=3))
+        .where(User.last_workout_date.in_(target_dates))
     )
     users = result.scalars().all()
 
@@ -131,10 +122,6 @@ async def check_inactivity_reminders(session: AsyncSession) -> int:
 
     for user in users:
         days_inactive = (today - user.last_workout_date).days
-
-        # Only send on specific days (3, 7, 14)
-        if days_inactive not in reminder_days:
-            continue
 
         # Send Telegram push
         success = await send_inactivity_reminder(

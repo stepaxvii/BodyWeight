@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.db.models import User, UserAchievement, WorkoutSession, UserExerciseProgress
 from app.utils.achievement_loader import load_achievements
@@ -26,6 +27,24 @@ async def check_achievements(
     )
     unlocked_slugs = set(row[0] for row in result.fetchall())
 
+    # --- Batch pre-fetches to avoid N+1 queries in the loop ---
+    total_completed_workouts_result = await session.execute(
+        select(func.count(WorkoutSession.id))
+        .where(WorkoutSession.user_id == user.id)
+        .where(WorkoutSession.status == "completed")
+    )
+    total_completed_workouts = total_completed_workouts_result.scalar() or 0
+
+    exercise_progress_result = await session.execute(
+        select(UserExerciseProgress)
+        .options(selectinload(UserExerciseProgress.exercise))
+        .where(UserExerciseProgress.user_id == user.id)
+    )
+    exercise_reps_by_slug: dict[str, int] = {}
+    for ep in exercise_progress_result.scalars():
+        if ep.exercise:
+            exercise_reps_by_slug[ep.exercise.slug] = ep.total_reps_ever
+
     for achievement in achievements_data:
         slug = achievement["slug"]
 
@@ -41,13 +60,7 @@ async def check_achievements(
         unlocked = False
 
         if condition_type == "total_workouts":
-            count_result = await session.execute(
-                select(func.count(WorkoutSession.id))
-                .where(WorkoutSession.user_id == user.id)
-                .where(WorkoutSession.status == "completed")
-            )
-            count = count_result.scalar() or 0
-            unlocked = count >= condition_value
+            unlocked = total_completed_workouts >= condition_value
 
         elif condition_type == "streak":
             unlocked = user.current_streak >= condition_value
@@ -59,25 +72,15 @@ async def check_achievements(
             unlocked = user.total_xp >= condition_value
 
         elif condition_type == "exercise_reps":
-            # Count total reps for matching exercises
             exercise_pattern = condition.get("exercise", "")
             if exercise_pattern.endswith("*"):
-                # Wildcard match
                 prefix = exercise_pattern[:-1]
-                reps_result = await session.execute(
-                    select(func.sum(UserExerciseProgress.total_reps_ever))
-                    .join(UserExerciseProgress.exercise)
-                    .where(UserExerciseProgress.user_id == user.id)
-                    .where(UserExerciseProgress.exercise.has(slug=prefix))  # Simplified
+                total_reps = sum(
+                    reps for slug, reps in exercise_reps_by_slug.items()
+                    if slug.startswith(prefix)
                 )
             else:
-                reps_result = await session.execute(
-                    select(func.sum(UserExerciseProgress.total_reps_ever))
-                    .join(UserExerciseProgress.exercise)
-                    .where(UserExerciseProgress.user_id == user.id)
-                    .where(UserExerciseProgress.exercise.has(slug=exercise_pattern))
-                )
-            total_reps = reps_result.scalar() or 0
+                total_reps = exercise_reps_by_slug.get(exercise_pattern, 0)
             unlocked = total_reps >= condition_value
 
         elif condition_type == "time_of_day":
@@ -108,13 +111,7 @@ async def check_achievements(
             # records exercises the user actually performed (skips are never
             # stored anywhere), so every completed workout qualifies. Counting
             # completed sessions is the faithful, measurable reading.
-            count_result = await session.execute(
-                select(func.count(WorkoutSession.id))
-                .where(WorkoutSession.user_id == user.id)
-                .where(WorkoutSession.status == "completed")
-            )
-            count = count_result.scalar() or 0
-            unlocked = count >= condition_value
+            unlocked = total_completed_workouts >= condition_value
 
         if unlocked:
             # Create achievement record

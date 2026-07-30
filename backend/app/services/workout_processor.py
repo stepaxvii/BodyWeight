@@ -175,12 +175,32 @@ async def process_workout_completion(
     # Aggregate per-exercise quantities for challenge progress hook (called below)
     challenge_quantity_by_slug: dict[str, int] = {}
 
-    for ex_data in data.exercises:
-        # Get exercise from DB
-        exercise_result = await session.execute(
-            select(Exercise).where(Exercise.slug == ex_data.exercise_slug)
+    # Batch-load exercises and progress to avoid per-exercise queries
+    slugs = [ex_data.exercise_slug for ex_data in data.exercises]
+    if slugs:
+        exercises_result = await session.execute(
+            select(Exercise).where(Exercise.slug.in_(slugs))
         )
-        exercise = exercise_result.scalar_one_or_none()
+        exercise_by_slug = {e.slug: e for e in exercises_result.scalars().all()}
+
+        exercise_ids = [e.id for e in exercise_by_slug.values()]
+        if exercise_ids:
+            progress_result = await session.execute(
+                select(UserExerciseProgress)
+                .where(UserExerciseProgress.user_id == user.id)
+                .where(UserExerciseProgress.exercise_id.in_(exercise_ids))
+            )
+            progress_by_exercise_id = {
+                p.exercise_id: p for p in progress_result.scalars().all()
+            }
+        else:
+            progress_by_exercise_id = {}
+    else:
+        exercise_by_slug = {}
+        progress_by_exercise_id = {}
+
+    for ex_data in data.exercises:
+        exercise = exercise_by_slug.get(ex_data.exercise_slug)
 
         if not exercise:
             continue  # Skip unknown exercises
@@ -270,12 +290,7 @@ async def process_workout_completion(
         total_xp += xp_earned
 
         # Update user exercise progress
-        progress_result = await session.execute(
-            select(UserExerciseProgress)
-            .where(UserExerciseProgress.user_id == user.id)
-            .where(UserExerciseProgress.exercise_id == exercise.id)
-        )
-        progress = progress_result.scalar_one_or_none()
+        progress = progress_by_exercise_id.get(exercise.id)
 
         best_set = max(ex_data.sets) if ex_data.sets else 0
 
