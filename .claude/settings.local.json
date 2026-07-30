@@ -22,7 +22,12 @@
       "Bash(for slug in workout-10 workout-50 streak-3 streak-14)",
       "Bash(do if [ -f \"frontend/mini-app/static/sprites/badges/$slug.svg\" ])",
       "Bash(npm run check:*)",
-      "Bash(move demo* \"\\(demo\\)\"\" 2>nul & rmdir demo 2>nul & echo \"Done \")"
+      "Bash(move demo* \"\\(demo\\)\"\" 2>nul & rmdir demo 2>nul & echo \"Done \")",
+      "Bash(rm -rf _redesign_extract)",
+      "Bash(unzip -q PixelBot.zip -d _redesign_extract)",
+      "Bash(npm run *)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\stepa\\\\programming\\\\pets\\\\BodyWeight\\\\frontend\\\\mini-app\\\\src\\\\routes\" -Force)",
+      "Bash(Select-Object -ExpandProperty Name)"
     ]
   }
 }
