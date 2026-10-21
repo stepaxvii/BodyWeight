@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { PixelButton, PixelCard, PixelModal, PixelIcon } from '$lib/components/ui';
-	import { api } from '$lib/api/client';
+	import { api, newClientRequestId } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { favoritesStore } from '$lib/stores/favorites.svelte';
@@ -275,6 +275,7 @@
 				is_timed: timeBased,
 			}],
 			completed_at: new Date().toISOString(),
+			client_request_id: newClientRequestId(),
 		};
 
 		try {
@@ -323,7 +324,8 @@
 				distance_km: cyclingDistanceKm,
 				duration_minutes: cyclingDurationMin
 			}],
-			completed_at: new Date().toISOString()
+			completed_at: new Date().toISOString(),
+			client_request_id: newClientRequestId()
 		};
 
 		try {
@@ -376,7 +378,8 @@
 				is_timed: false,
 				steps: walkingSteps
 			}],
-			completed_at: new Date().toISOString()
+			completed_at: new Date().toISOString(),
+			client_request_id: newClientRequestId()
 		};
 
 		try {

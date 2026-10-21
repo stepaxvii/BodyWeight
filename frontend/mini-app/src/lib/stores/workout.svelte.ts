@@ -1,5 +1,5 @@
 import type { WorkoutSession, Exercise, WorkoutExercise } from '$lib/types';
-import { api } from '$lib/api/client';
+import { api, newClientRequestId } from '$lib/api/client';
 import { userStore } from './user.svelte';
 import { telegram } from './telegram.svelte';
 import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
@@ -307,7 +307,8 @@ class WorkoutStore {
 		const workoutData = {
 			duration_seconds: this.timerSeconds,
 			exercises,
-			completed_at: new Date().toISOString()
+			completed_at: new Date().toISOString(),
+			client_request_id: newClientRequestId()
 		};
 
 		this.isLoading = true;

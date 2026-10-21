@@ -61,6 +61,7 @@ class WorkoutCompletionData:
     finished_at: datetime
     exercises: list[ExerciseSetData]
     workout_session_id: int | None = None  # If None, will create new session
+    client_request_id: str | None = None  # Idempotency key for the created session
 
 
 @dataclass
@@ -159,6 +160,7 @@ async def process_workout_completion(
             duration_seconds=int(duration),
             streak_multiplier=streak_mult,
             status="completed",
+            client_request_id=data.client_request_id,
             total_xp_earned=0,
             total_coins_earned=0,
             total_reps=0,
@@ -166,6 +168,39 @@ async def process_workout_completion(
         )
         session.add(workout)
         await session.flush()
+
+    # Collapse duplicate slugs: a payload may list the same exercise more than
+    # once (a routine repeating an exercise, or a duplicated client payload).
+    # Merge their sets into ONE entry so exactly one WorkoutExercise row is
+    # created per exercise and reps/XP are counted once — never doubled.
+    if len(data.exercises) > 1:
+        merged: dict[str, ExerciseSetData] = {}
+        order: list[str] = []
+        for ex_data in data.exercises:
+            existing = merged.get(ex_data.exercise_slug)
+            if existing is None:
+                merged[ex_data.exercise_slug] = ExerciseSetData(
+                    exercise_slug=ex_data.exercise_slug,
+                    sets=list(ex_data.sets),
+                    is_timed=ex_data.is_timed,
+                    distance_km=ex_data.distance_km,
+                    duration_minutes=ex_data.duration_minutes,
+                    steps=ex_data.steps,
+                )
+                order.append(ex_data.exercise_slug)
+            else:
+                # Same slug repeated: concatenate sets; for cycling/walking sum
+                # the components. (No shipped client emits a multi-cycling
+                # payload, so the cycling avg-speed multiplier is never applied
+                # to a summed distance/duration here.)
+                existing.sets = existing.sets + list(ex_data.sets)
+                if ex_data.distance_km is not None:
+                    existing.distance_km = (existing.distance_km or 0) + ex_data.distance_km
+                if ex_data.duration_minutes is not None:
+                    existing.duration_minutes = (existing.duration_minutes or 0) + ex_data.duration_minutes
+                if ex_data.steps is not None:
+                    existing.steps = (existing.steps or 0) + ex_data.steps
+        data.exercises = [merged[s] for s in order]
 
     # 5. Process each exercise
     total_xp = 0

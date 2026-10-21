@@ -1,6 +1,8 @@
 from datetime import datetime, date, timedelta
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import select, func
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
@@ -64,6 +66,37 @@ def _make_workout_response(workout: WorkoutSession) -> WorkoutResponse:
         status=workout.status,
         exercises=[_make_exercise_response(we) for we in workout.exercises],
     )
+
+
+def _dedup_summary(workout: WorkoutSession) -> WorkoutSummaryResponse:
+    """Summary for an already-recorded (deduped) submission.
+
+    Reports no NEW xp/coins/achievements — they were all granted on the
+    original submission; this only re-confirms the stored workout so a
+    retried/replayed submit still gets a success response.
+    """
+    return WorkoutSummaryResponse(
+        workout=_make_workout_response(workout),
+        new_achievements=[],
+        level_up=False,
+        new_level=None,
+        challenge_progress=[],
+    )
+
+
+async def _find_by_request_id(
+    session: AsyncSession, user_id: int, client_request_id: str
+) -> WorkoutSession | None:
+    """Look up a previously-recorded workout by its client idempotency key."""
+    result = await session.execute(
+        select(WorkoutSession)
+        .options(
+            selectinload(WorkoutSession.exercises).selectinload(WorkoutExercise.exercise)
+        )
+        .where(WorkoutSession.user_id == user_id)
+        .where(WorkoutSession.client_request_id == client_request_id)
+    )
+    return result.scalar_one_or_none()
 
 
 @router.get(
@@ -282,6 +315,22 @@ async def submit_workout(
                     detail="Walking steps must be positive",
                 )
 
+    # Capture the id as a plain int NOW. It is read again after a rollback in
+    # the IntegrityError path below, where touching the (expired) ORM User would
+    # trigger an illegal sync lazy-load (MissingGreenlet) under async SQLAlchemy.
+    uid = user.id
+
+    # Idempotency: a retried or offline-replayed submit carries the same
+    # client_request_id. Return the already-recorded workout instead of
+    # creating a duplicate (the common case: a slow first request committed
+    # server-side, then the client re-sent it).
+    if request.client_request_id:
+        existing = await _find_by_request_id(
+            session, uid, request.client_request_id
+        )
+        if existing is not None:
+            return _dedup_summary(existing)
+
     # Cancel any stale active workouts
     active_result = await session.execute(
         select(WorkoutSession)
@@ -299,6 +348,7 @@ async def submit_workout(
         user_id=user.id,
         started_at=now - timedelta(seconds=request.duration_seconds),
         finished_at=now,
+        client_request_id=request.client_request_id,
         exercises=[
             ProcessorExerciseSetData(
                 exercise_slug=ex.exercise_slug,
@@ -313,7 +363,20 @@ async def submit_workout(
     )
 
     # Process workout through unified processor
-    result = await process_workout_completion(completion_data, session)
+    try:
+        result = await process_workout_completion(completion_data, session)
+    except IntegrityError:
+        # A concurrent identical submit won the race on the unique
+        # (user_id, client_request_id) constraint. Roll back and return the
+        # workout the other request already recorded.
+        await session.rollback()
+        if request.client_request_id:
+            existing = await _find_by_request_id(
+                session, uid, request.client_request_id
+            )
+            if existing is not None:
+                return _dedup_summary(existing)
+        raise
 
     # Reload workout with exercises for response
     workout_result = await session.execute(
