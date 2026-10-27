@@ -7,6 +7,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from app.config import settings
+from app.bot.session import make_ipv4_session
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ def get_bot() -> Bot:
         _bot = Bot(
             token=settings.bot_token,
             default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+            session=make_ipv4_session(),
         )
     return _bot
 

@@ -7,6 +7,7 @@ from aiogram.client.default import DefaultBotProperties
 
 from app.config import settings
 from app.bot.handlers import start
+from app.bot.session import make_ipv4_session
 from app.db.database import async_engine
 
 logging.basicConfig(
@@ -28,7 +29,12 @@ async def on_startup(bot: Bot):
         BotCommand(command="stats", description="View your stats"),
         BotCommand(command="help", description="Get help"),
     ]
-    await bot.set_my_commands(commands)
+    # Non-fatal: a transient Telegram error here must NOT crash startup and
+    # send the container into a restart loop (polling still works without it).
+    try:
+        await bot.set_my_commands(commands)
+    except Exception as e:
+        logger.warning("set_my_commands failed (non-fatal, continuing to poll): %s", e)
 
     logger.info("Bot started successfully")
 
@@ -48,6 +54,7 @@ async def main():
     bot = Bot(
         token=settings.bot_token,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+        session=make_ipv4_session(),
     )
 
     dp = Dispatcher()

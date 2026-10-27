@@ -10,6 +10,7 @@ from app.config import settings
 from app.db.database import async_session_maker
 from app.db.models import User
 from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button, get_leaderboard_consent_keyboard, get_link_confirmation_keyboard
+from app.bot.session import make_ipv4_session
 
 router = Router()
 
@@ -341,6 +342,7 @@ async def send_link_confirmation(telegram_id: int, web_username: str, link_token
     bot = Bot(
         token=settings.bot_token,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+        session=make_ipv4_session(),
     )
     try:
         await bot.send_message(
