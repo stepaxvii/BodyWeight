@@ -1,6 +1,6 @@
 """Workout session and workout exercise models."""
 from datetime import datetime
-from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -26,6 +26,17 @@ class WorkoutSession(Base):
     streak_multiplier: Mapped[float] = mapped_column(Numeric(3, 2), default=1.00)
     status: Mapped[str] = mapped_column(String(20), default="active", index=True)
 
+    # Client-generated idempotency key. A retried or offline-replayed /submit
+    # reuses the same value, so the server returns the existing session instead
+    # of creating a duplicate. Nullable for legacy rows / non-/submit sessions.
+    client_request_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    # Unique INDEX (not Constraint) to match migration 016's op.create_index and
+    # avoid autogenerate drift; SQLite+Postgres both treat NULLs as distinct.
+    __table_args__ = (
+        Index("uq_workout_user_request", "user_id", "client_request_id", unique=True),
+    )
+
     user: Mapped["User"] = relationship(back_populates="workout_sessions")
     exercises: Mapped[list["WorkoutExercise"]] = relationship(
         back_populates="workout_session", cascade="all, delete-orphan"
@@ -45,6 +56,10 @@ class WorkoutExercise(Base):
     xp_earned: Mapped[int] = mapped_column(Integer, default=0)
     coins_earned: Mapped[int] = mapped_column(Integer, default=0)
     completed_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    __table_args__ = (
+        Index("uq_workout_exercise", "workout_session_id", "exercise_id", unique=True),
+    )
 
     workout_session: Mapped["WorkoutSession"] = relationship(back_populates="exercises")
     exercise: Mapped["Exercise"] = relationship()

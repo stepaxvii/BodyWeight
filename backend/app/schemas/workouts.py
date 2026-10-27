@@ -19,6 +19,7 @@ class CompleteWorkoutRequest(BaseModel):
     duration_seconds: int
     exercises: list[ExerciseSetData]
     completed_at: datetime | None = None  # ISO timestamp; if omitted, uses server time
+    client_request_id: str | None = None  # Idempotency key; dedupes retries/replays
 
 
 class WorkoutExerciseResponse(BaseModel):

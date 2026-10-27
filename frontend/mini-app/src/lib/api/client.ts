@@ -39,6 +39,23 @@ import type {
 const API_BASE = '/bodyweight/api';
 const TOKEN_KEY = 'pixelfit_token';
 
+/**
+ * Stable per-submission idempotency key. Generate ONCE when building a workout
+ * payload and reuse it across every send of that payload (client retries AND
+ * the offline sync queue), so the backend dedupes a re-sent workout instead of
+ * recording it twice.
+ */
+export function newClientRequestId(): string {
+	try {
+		if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+			return crypto.randomUUID();
+		}
+	} catch {
+		/* fall through to the manual fallback */
+	}
+	return `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+}
+
 class ApiClient {
 	private initData: string = '';
 	private jwtToken: string = '';
@@ -86,6 +103,11 @@ class ApiClient {
 		}
 
 		const url = `${API_BASE}${endpoint}`;
+		// Only idempotent methods may be auto-retried. Retrying a POST (e.g.
+		// /workouts/submit) after a timeout/offline blip re-sends a request the
+		// server may have already processed — the classic duplicate-record bug.
+		const method = (options.method ?? 'GET').toUpperCase();
+		const retriable = method === 'GET' || method === 'HEAD';
 		const controller = new AbortController();
 		const timeout = setTimeout(() => controller.abort(), 10000);
 
@@ -115,7 +137,7 @@ class ApiClient {
 
 			return await response.json();
 		} catch (error) {
-			if (_retry && error instanceof Error && (error.name === 'AbortError' || !navigator.onLine)) {
+			if (_retry && retriable && error instanceof Error && (error.name === 'AbortError' || !navigator.onLine)) {
 			 clearTimeout(timeout);
 				return this.request<T>(endpoint, options, false);
 			}
@@ -258,8 +280,10 @@ class ApiClient {
 			is_timed: boolean;
 			distance_km?: number;
 			duration_minutes?: number;
+			steps?: number;
 		}>;
 		completed_at?: string;
+		client_request_id?: string;
 	}): Promise<WorkoutSummaryResponse> {
 		return this.request<WorkoutSummaryResponse>('/workouts/submit', {
 			method: 'POST',

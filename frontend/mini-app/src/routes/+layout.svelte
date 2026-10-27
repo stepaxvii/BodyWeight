@@ -9,7 +9,7 @@
 	import AuthScreen from '$lib/components/AuthScreen.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
-	import { api } from '$lib/api/client';
+	import { api, newClientRequestId } from '$lib/api/client';
 
 	let { children } = $props();
 	let isTelegramApp = $state(false);
@@ -69,35 +69,52 @@
 		window.addEventListener('online', syncPendingWorkouts);
 	});
 
+	let isSyncingPending = false;
 	async function syncPendingWorkouts() {
-		if (!navigator.onLine) return;
+		// Single-flight: onMount and the 'online' event can both fire this; a
+		// second concurrent run must not drain the same queue snapshot again.
+		if (!navigator.onLine || isSyncingPending) return;
+		isSyncingPending = true;
 		try {
-			const raw = localStorage.getItem('pending_workouts');
-			if (!raw) return;
-			const pending = JSON.parse(raw) as Array<{ data: any; timestamp: number }>;
-			if (pending.length === 0) return;
+			let syncedAny = false;
+			// Send-then-remove: keep each item in the persisted queue until its
+			// submit SUCCEEDS, so a reload/kill mid-send never loses a workout.
+			// Duplicates are prevented by the stable client_request_id (the
+			// backend dedupes a re-send to a no-op), not by removing early.
+			while (true) {
+				const queue = JSON.parse(localStorage.getItem('pending_workouts') || '[]') as Array<{ data: any; timestamp: number }>;
+				if (queue.length === 0) break;
 
-			const remaining = [];
-			for (const item of pending) {
+				const item = queue[0];
+				// Backfill a key for entries queued by a pre-fix app version so
+				// their retries are idempotent too.
+				if (item?.data && !item.data.client_request_id) {
+					item.data.client_request_id = newClientRequestId();
+					localStorage.setItem('pending_workouts', JSON.stringify(queue));
+				}
+
 				try {
 					await api.submitWorkout(item.data);
+					syncedAny = true;
 				} catch {
-					remaining.push(item);
+					break; // leave the item queued; retry on the next 'online' event
 				}
+
+				// Remove the head ONLY after a confirmed success (re-read in case
+				// a new workout was appended during the await).
+				const after = JSON.parse(localStorage.getItem('pending_workouts') || '[]') as Array<{ data: any; timestamp: number }>;
+				after.shift();
+				localStorage.setItem('pending_workouts', JSON.stringify(after));
 			}
 
-			if (remaining.length === 0) {
-				localStorage.removeItem('pending_workouts');
-			} else {
-				localStorage.setItem('pending_workouts', JSON.stringify(remaining));
-			}
-
-			// Reload user data after sync
-			if (remaining.length < pending.length && userStore.isAuthenticated) {
+			// Reload user data after a successful sync
+			if (syncedAny && userStore.isAuthenticated) {
 				await userStore.loadUser();
 			}
 		} catch {
 			// Ignore sync errors
+		} finally {
+			isSyncingPending = false;
 		}
 	}
 </script>

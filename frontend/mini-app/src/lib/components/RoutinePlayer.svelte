@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { PixelButton, PixelCard, PixelIcon, PixelProgress } from '$lib/components/ui';
 	import ExerciseInfoModal from '$lib/components/ExerciseInfoModal.svelte';
-	import { api } from '$lib/api/client';
+	import { api, newClientRequestId } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { sound } from '$lib/stores/sound.svelte';
@@ -276,6 +276,7 @@
 			duration_seconds: timerSeconds,
 			exercises: completedExercises,
 			completed_at: new Date().toISOString(),
+			client_request_id: newClientRequestId(),
 		};
 
 		try {
