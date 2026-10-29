@@ -319,6 +319,22 @@ async def record_progress(
     )
     rows = result.all()
 
+    # Batch-load today's existing progress rows for every (challenge, exercise)
+    # pair this workout could touch — one query instead of one SELECT per row.
+    challenge_ids = {c.id for c, _, _ in rows}
+    exercise_ids = {e.id for _, _, e in rows}
+    progress_by_key: dict[tuple[int, int], ChallengeProgress] = {}
+    if challenge_ids and exercise_ids:
+        existing_result = await session.execute(
+            select(ChallengeProgress)
+            .where(ChallengeProgress.user_id == user.id)
+            .where(ChallengeProgress.progress_date == workout_date)
+            .where(ChallengeProgress.challenge_id.in_(challenge_ids))
+            .where(ChallengeProgress.exercise_id.in_(exercise_ids))
+        )
+        for p in existing_result.scalars().all():
+            progress_by_key[(p.challenge_id, p.exercise_id)] = p
+
     # challenge_id -> (Challenge, [deltas]) for challenges that gained progress
     grouped: dict[int, tuple[Challenge, list[ChallengeExerciseDelta]]] = {}
 
@@ -327,16 +343,10 @@ async def record_progress(
         if reps <= 0:
             continue
 
-        # Find or create progress row for (challenge, user, exercise, date)
-        prog_result = await session.execute(
-            select(ChallengeProgress).where(
-                ChallengeProgress.challenge_id == challenge.id,
-                ChallengeProgress.user_id == user.id,
-                ChallengeProgress.exercise_id == exercise.id,
-                ChallengeProgress.progress_date == workout_date,
-            )
-        )
-        prog = prog_result.scalar_one_or_none()
+        # Find or create progress row for (challenge, user, exercise, date).
+        # Cache created rows in progress_by_key so a repeated (challenge,
+        # exercise) pair in `rows` reuses the same row instead of duplicating.
+        prog = progress_by_key.get((challenge.id, exercise.id))
         if prog is None:
             prog = ChallengeProgress(
                 challenge_id=challenge.id,
@@ -348,6 +358,7 @@ async def record_progress(
                 completed=False,
             )
             session.add(prog)
+            progress_by_key[(challenge.id, exercise.id)] = prog
 
         if prog.completed:
             continue  # already capped
@@ -379,24 +390,32 @@ async def record_progress(
     # Resolve whether each touched challenge's DAY is now fully complete (AND
     # across all its exercises). Flush first so the counts see fresh rows.
     await session.flush()
+    touched_ids = list(grouped.keys())
+
+    # Total exercises per touched challenge — one grouped query (not one COUNT
+    # per challenge).
+    n_ex_rows = await session.execute(
+        select(ChallengeExercise.challenge_id, func.count(ChallengeExercise.id))
+        .where(ChallengeExercise.challenge_id.in_(touched_ids))
+        .group_by(ChallengeExercise.challenge_id)
+    )
+    n_ex_by_challenge = {cid: cnt for cid, cnt in n_ex_rows.all()}
+
+    # Completed-today rows per touched challenge for this user — one grouped query.
+    completed_rows = await session.execute(
+        select(ChallengeProgress.challenge_id, func.count(ChallengeProgress.id))
+        .where(ChallengeProgress.challenge_id.in_(touched_ids))
+        .where(ChallengeProgress.user_id == user.id)
+        .where(ChallengeProgress.progress_date == workout_date)
+        .where(ChallengeProgress.completed.is_(True))
+        .group_by(ChallengeProgress.challenge_id)
+    )
+    completed_by_challenge = {cid: cnt for cid, cnt in completed_rows.all()}
+
     out: list[ChallengeProgressDelta] = []
     for cid, (challenge, deltas) in grouped.items():
-        n_ex = (
-            await session.execute(
-                select(func.count(ChallengeExercise.id)).where(
-                    ChallengeExercise.challenge_id == cid
-                )
-            )
-        ).scalar() or 0
-        completed_today = (
-            await session.execute(
-                select(func.count(ChallengeProgress.id))
-                .where(ChallengeProgress.challenge_id == cid)
-                .where(ChallengeProgress.user_id == user.id)
-                .where(ChallengeProgress.progress_date == workout_date)
-                .where(ChallengeProgress.completed.is_(True))
-            )
-        ).scalar() or 0
+        n_ex = n_ex_by_challenge.get(cid, 0)
+        completed_today = completed_by_challenge.get(cid, 0)
         out.append(
             ChallengeProgressDelta(
                 challenge_id=cid,

@@ -83,31 +83,44 @@ class WorkoutCompletionResult:
     challenge_progress: list[Any] = field(default_factory=list)
 
 
-async def _exercise_day_total(
+async def _exercise_day_totals(
     session: AsyncSession,
     user_id: int,
-    exercise_id: int,
+    exercise_ids: list[int],
     day: date,
     current_workout_id: int | None,
-    current_reps: int,
-) -> int:
-    """Total reps for `exercise_id` across all of `day`'s completed workouts.
+) -> dict[int, int]:
+    """Prior total reps per exercise across `day`'s completed workouts.
 
-    The current workout is excluded from the query (it may not be flushed yet)
-    and added back explicitly, so the result is correct regardless of state.
+    The current workout is excluded (it may hold just-added, autoflushed rows
+    that must not be double-counted); the caller adds this workout's reps back
+    explicitly. Returns {exercise_id: prior_total}; absent ids mean zero.
+
+    Batched into one grouped query (vs. one aggregate per exercise in the loop),
+    and the day filter is a half-open datetime range rather than
+    func.date(finished_at) so it can use an index on finished_at.
     """
+    if not exercise_ids:
+        return {}
+    day_start = datetime.combine(day, datetime.min.time())
+    next_day = day_start + timedelta(days=1)
     query = (
-        select(func.coalesce(func.sum(WorkoutExercise.total_reps), 0))
+        select(
+            WorkoutExercise.exercise_id,
+            func.coalesce(func.sum(WorkoutExercise.total_reps), 0),
+        )
         .join(WorkoutSession, WorkoutExercise.workout_session_id == WorkoutSession.id)
         .where(WorkoutSession.user_id == user_id)
         .where(WorkoutSession.status == "completed")
-        .where(WorkoutExercise.exercise_id == exercise_id)
-        .where(func.date(WorkoutSession.finished_at) == day)
+        .where(WorkoutExercise.exercise_id.in_(exercise_ids))
+        .where(WorkoutSession.finished_at >= day_start)
+        .where(WorkoutSession.finished_at < next_day)
+        .group_by(WorkoutExercise.exercise_id)
     )
     if current_workout_id is not None:
         query = query.where(WorkoutSession.id != current_workout_id)
-    prev_total = (await session.execute(query)).scalar() or 0
-    return int(prev_total) + current_reps
+    result = await session.execute(query)
+    return {ex_id: int(total or 0) for ex_id, total in result.all()}
 
 
 async def process_workout_completion(
@@ -238,6 +251,16 @@ async def process_workout_completion(
         exercise_by_slug = {}
         progress_by_exercise_id = {}
 
+    # Prior-day totals per exercise for the best_single_day personal record —
+    # ONE grouped query instead of a per-exercise aggregate inside the loop.
+    day_prev_totals = await _exercise_day_totals(
+        session,
+        user.id,
+        [e.id for e in exercise_by_slug.values()],
+        today,
+        workout.id,
+    )
+
     for ex_data in data.exercises:
         exercise = exercise_by_slug.get(ex_data.exercise_slug)
 
@@ -341,9 +364,7 @@ async def process_workout_completion(
                 progress.best_workout_reps = max(progress.best_workout_reps, total_reps)
                 progress.best_single_day = max(
                     progress.best_single_day,
-                    await _exercise_day_total(
-                        session, user.id, exercise.id, today, workout.id, total_reps
-                    ),
+                    day_prev_totals.get(exercise.id, 0) + total_reps,
                 )
             progress.last_performed_at = data.finished_at
 
@@ -432,7 +453,7 @@ async def process_workout_completion(
         await _notify_friends_about_workout(user, session)
 
     # 10. Update user goals
-    await _update_user_goals(user.id, data, workout, session)
+    await _update_user_goals(user, data, workout, session)
 
     # 11. Check achievements
     new_achievements = await check_achievements(session, user)
@@ -496,17 +517,21 @@ async def process_workout_completion(
 
 
 async def _update_user_goals(
-    user_id: int,
+    user: User,
     data: WorkoutCompletionData,
     workout: WorkoutSession,
     session: AsyncSession,
 ) -> None:
-    """Update user goals based on completed workout."""
+    """Update user goals based on completed workout.
+
+    `user` is the already-loaded caller object (same identity-map instance), so
+    goal updates read/mutate it directly instead of re-fetching by id.
+    """
     today = date.today()
 
     goals_result = await session.execute(
         select(UserGoal)
-        .where(UserGoal.user_id == user_id)
+        .where(UserGoal.user_id == user.id)
         .where(UserGoal.completed.is_(False))
         .where(UserGoal.end_date >= today)
     )
@@ -520,9 +545,7 @@ async def _update_user_goals(
         elif goal.goal_type == "total_xp":
             goal.current_value += workout.total_xp_earned
         elif goal.goal_type == "workout_streak":
-            user = await session.get(User, user_id)
-            if user:
-                goal.current_value = user.current_streak
+            goal.current_value = user.current_streak
         elif goal.goal_type.startswith("exercise_"):
             # Format: exercise_{slug}_{metric}
             parts = goal.goal_type.split("_", 2)
@@ -549,18 +572,16 @@ async def _update_user_goals(
             msg = f"Цель выполнена: {goal.target_value} {goal.goal_type}"
             await save_notification(
                 session=session,
-                user_id=user_id,
+                user_id=user.id,
                 notification_type="goal_completed",
                 title="Цель достигнута!",
                 message=msg,
             )
 
             # Award bonus coins
-            user = await session.get(User, user_id)
-            if user:
-                bonus_goal_coins = 5
-                user.coins += bonus_goal_coins
-                workout.total_coins_earned += bonus_goal_coins
+            bonus_goal_coins = 5
+            user.coins += bonus_goal_coins
+            workout.total_coins_earned += bonus_goal_coins
 
 
 async def _notify_friends_about_workout(user: User, session: AsyncSession) -> None:

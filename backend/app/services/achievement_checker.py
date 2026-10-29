@@ -45,6 +45,11 @@ async def check_achievements(
         if ep.exercise:
             exercise_reps_by_slug[ep.exercise.slug] = ep.total_reps_ever
 
+    # Lazily load the last completed workout at most once — only time_of_day
+    # achievements need it, so users with none pending never pay for the query.
+    last_workout_loaded = False
+    last_completed_workout: WorkoutSession | None = None
+
     for achievement in achievements_data:
         slug = achievement["slug"]
 
@@ -88,14 +93,17 @@ async def check_achievements(
             before_time = condition.get("before")
             after_time = condition.get("after")
 
-            last_workout_result = await session.execute(
-                select(WorkoutSession)
-                .where(WorkoutSession.user_id == user.id)
-                .where(WorkoutSession.status == "completed")
-                .order_by(WorkoutSession.finished_at.desc())
-                .limit(1)
-            )
-            last_workout = last_workout_result.scalar_one_or_none()
+            if not last_workout_loaded:
+                last_workout_result = await session.execute(
+                    select(WorkoutSession)
+                    .where(WorkoutSession.user_id == user.id)
+                    .where(WorkoutSession.status == "completed")
+                    .order_by(WorkoutSession.finished_at.desc())
+                    .limit(1)
+                )
+                last_completed_workout = last_workout_result.scalar_one_or_none()
+                last_workout_loaded = True
+            last_workout = last_completed_workout
 
             if last_workout and last_workout.finished_at:
                 workout_time = last_workout.finished_at.time()
