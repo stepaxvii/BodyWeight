@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,9 +25,35 @@ def get_bot() -> Bot:
         _bot = Bot(
             token=settings.bot_token,
             default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-            session=make_ipv4_session(),
+            # Bound each push to 5s so one slow/unreachable Telegram call can't
+            # stall for aiogram's 60s default. Pushes are also dispatched off the
+            # request path (see dispatch_in_background), so this is a safety net.
+            session=make_ipv4_session(timeout=5),
         )
     return _bot
+
+
+# Strong references to in-flight background push tasks — without them the event
+# loop may garbage-collect a task before it finishes (see asyncio docs).
+_background_tasks: set["asyncio.Task"] = set()
+
+
+def dispatch_in_background(coro) -> None:
+    """Fire a best-effort coroutine off the request path (non-blocking).
+
+    Used so Telegram pushes never hold the DB transaction / HTTP response open
+    while waiting on api.telegram.org. Exceptions inside the coroutine are the
+    coroutine's own responsibility (it should be best-effort).
+    """
+    try:
+        task = asyncio.create_task(coro)
+    except RuntimeError:
+        # No running event loop (e.g. called from a sync context) — best-effort.
+        logger.warning("dispatch_in_background: no running event loop; push skipped")
+        coro.close()  # avoid "coroutine was never awaited" warning
+        return
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
 
 
 def get_open_app_keyboard() -> InlineKeyboardMarkup:
@@ -249,6 +276,27 @@ async def send_friend_workout_notification(
     except Exception as e:
         logger.error(f"Failed to send friend workout notification to {telegram_id}: {e}")
         return False
+
+
+async def send_friend_workout_notifications(
+    telegram_ids: list[int],
+    friend_name: str,
+) -> None:
+    """Send the 'friend worked out today' push to many users concurrently.
+
+    Best-effort: each send has its own try/except (returns False on failure) and
+    we also pass return_exceptions=True so one failure can't cancel the rest.
+    Meant to be run via dispatch_in_background so it never blocks the submit.
+    """
+    if not telegram_ids:
+        return
+    await asyncio.gather(
+        *(
+            send_friend_workout_notification(telegram_id=tid, friend_name=friend_name)
+            for tid in telegram_ids
+        ),
+        return_exceptions=True,
+    )
 
 
 def get_open_challenge_keyboard(challenge_id: int) -> InlineKeyboardMarkup:

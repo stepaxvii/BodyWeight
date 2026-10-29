@@ -281,7 +281,11 @@
 		try {
 			const response = await api.submitWorkout(workoutData);
 			const completed = response.workout;
-			await userStore.loadUser();
+			// Reflect earned XP/coins optimistically and refresh in the background
+			// so we don't block on a second round-trip before closing.
+			userStore.addXp(completed.total_xp_earned);
+			userStore.addCoins(completed.total_coins_earned);
+			void userStore.loadUser();
 			onsave?.(completed.total_xp_earned, completed.total_coins_earned);
 			handleClose();
 		} catch (err) {
@@ -331,7 +335,11 @@
 		try {
 			const response = await api.submitWorkout(workoutData);
 			const completed = response.workout;
-			await userStore.loadUser();
+			// Reflect earned XP/coins optimistically and refresh in the background
+			// so we don't block on a second round-trip before closing.
+			userStore.addXp(completed.total_xp_earned);
+			userStore.addCoins(completed.total_coins_earned);
+			void userStore.loadUser();
 			onsave?.(completed.total_xp_earned, completed.total_coins_earned);
 			handleClose();
 		} catch (err) {
@@ -385,7 +393,11 @@
 		try {
 			const response = await api.submitWorkout(workoutData);
 			const completed = response.workout;
-			await userStore.loadUser();
+			// Reflect earned XP/coins optimistically and refresh in the background
+			// so we don't block on a second round-trip before closing.
+			userStore.addXp(completed.total_xp_earned);
+			userStore.addCoins(completed.total_coins_earned);
+			void userStore.loadUser();
 			onsave?.(completed.total_xp_earned, completed.total_coins_earned);
 			handleClose();
 		} catch (err) {

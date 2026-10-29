@@ -37,7 +37,11 @@ from app.services.xp_calculator import (
     get_streak_multiplier,
 )
 from app.services.achievement_checker import check_achievements
-from app.services.notifications import save_notification, send_friend_workout_notification
+from app.services.notifications import (
+    save_notification,
+    send_friend_workout_notifications,
+    dispatch_in_background,
+)
 from app.services.boss import deal_damage as boss_deal_damage
 from app.services.challenges import record_progress as challenges_record_progress
 
@@ -565,10 +569,8 @@ async def _notify_friends_about_workout(user: User, session: AsyncSession) -> No
 
     Only sends ONE notification per friend per day.
     """
-    import logging
     from sqlalchemy import and_, or_
 
-    logger = logging.getLogger(__name__)
     today = date.today()
 
     # Get all accepted friends (in both directions)
@@ -592,6 +594,7 @@ async def _notify_friends_about_workout(user: User, session: AsyncSession) -> No
 
     user_name = user.username or user.first_name or "Друг"
 
+    push_targets: list[int] = []
     for friend in friends:
         # Check if we already sent friend_workout notification to this friend today
         existing_notification = await session.execute(
@@ -603,16 +606,13 @@ async def _notify_friends_about_workout(user: User, session: AsyncSession) -> No
         if existing_notification.scalar_one_or_none():
             continue  # Already notified today
 
-        # Send Telegram push (async, don't wait)
-        try:
-            await send_friend_workout_notification(
-                telegram_id=friend.telegram_id,
-                friend_name=user_name,
-            )
-        except Exception as e:
-            logger.error(f"Failed to send friend workout notification: {e}")
+        # Collect the Telegram push target; the actual send is dispatched AFTER
+        # this loop, off the request path, so a slow api.telegram.org call never
+        # blocks the submit response or holds the DB transaction open.
+        if friend.telegram_id:
+            push_targets.append(friend.telegram_id)
 
-        # Save in-app notification
+        # Save in-app notification (bell) — DB work stays in the transaction.
         await save_notification(
             session=session,
             user_id=friend.id,
@@ -620,4 +620,12 @@ async def _notify_friends_about_workout(user: User, session: AsyncSession) -> No
             title="Друг уже потренировался!",
             message=f"{user_name} уже потренировался сегодня. Не отставай!",
             related_user_id=user.id,
+        )
+
+    # Fire all Telegram pushes concurrently in the background (best-effort,
+    # non-blocking). The task holds only plain data (ids + name), not the
+    # session or ORM objects, so it is safe after the request transaction ends.
+    if push_targets:
+        dispatch_in_background(
+            send_friend_workout_notifications(push_targets, user_name)
         )

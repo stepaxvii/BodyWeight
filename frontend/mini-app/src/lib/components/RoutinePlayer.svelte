@@ -570,14 +570,20 @@
 					<PixelButton variant="primary" size="lg" fullWidth onclick={skipRest}><PixelIcon name="play" /> Пропустить отдых</PixelButton>
 					<PixelButton variant="ghost" fullWidth onclick={() => addRest(15)}>+15 секунд</PixelButton>
 				{:else}
-					{#if isTimeBased && !isExerciseTimerStarted}
-						<PixelButton variant="primary" size="lg" fullWidth onclick={startExerciseTimer}><PixelIcon name="play" /> Старт таймера</PixelButton>
-					{:else if isTimeBased && exerciseTimerSeconds > 0}
-						<PixelButton variant="secondary" size="lg" fullWidth onclick={togglePause}><PixelIcon name={isPaused ? 'play' : 'pause'} /> {isPaused ? 'Продолжить' : 'Пауза'}</PixelButton>
-					{:else}
-						<PixelButton variant="success" size="lg" fullWidth disabled={isSubmitting} onclick={completeExercise}><PixelIcon name="check" /> {isSubmitting ? 'Отправка…' : 'Готово'}</PixelButton>
-					{/if}
-					<PixelButton variant="ghost" fullWidth onclick={skipExercise}>Пропустить</PixelButton>
+					<div class="pa2-actions">
+						<div class="pa2-actions__skip">
+							<PixelButton variant="ghost" size="md" fullWidth onclick={skipExercise}>Пропустить</PixelButton>
+						</div>
+						<div class="pa2-actions__main">
+							{#if isTimeBased && !isExerciseTimerStarted}
+								<PixelButton variant="primary" size="lg" fullWidth onclick={startExerciseTimer}><PixelIcon name="play" /> Старт таймера</PixelButton>
+							{:else if isTimeBased && exerciseTimerSeconds > 0}
+								<PixelButton variant="secondary" size="lg" fullWidth onclick={togglePause}><PixelIcon name={isPaused ? 'play' : 'pause'} /> {isPaused ? 'Продолжить' : 'Пауза'}</PixelButton>
+							{:else}
+								<PixelButton variant="success" size="lg" fullWidth disabled={isSubmitting} onclick={completeExercise}><PixelIcon name="check" /> {isSubmitting ? 'Отправка…' : 'Готово'}</PixelButton>
+							{/if}
+						</div>
+					</div>
 				{/if}
 			</div>
 		</div>
@@ -916,5 +922,33 @@
 
 	.player__controls {
 		padding: 0 14px 14px;
+	}
+
+	/* Active-screen action row: the narrow "Пропустить" (≈1/4) sits on the left,
+	   on the same line as the main action (Старт таймера / Пауза / Готово, ≈3/4). */
+	.pa2-actions {
+		display: flex;
+		gap: var(--spacing-sm);
+		align-items: stretch;
+	}
+	.pa2-actions__skip {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+	}
+	.pa2-actions__main {
+		flex: 3 1 0;
+		min-width: 0;
+		display: flex;
+	}
+	/* Both buttons fill the row height so the shorter skip button lines up with
+	   the taller lg main button. */
+	.pa2-actions :global(.pixel-button) {
+		height: 100%;
+	}
+	/* The 1/4 column is tight — trim the skip label's side padding so it fits. */
+	.pa2-actions__skip :global(.pixel-button) {
+		padding-left: var(--spacing-xs);
+		padding-right: var(--spacing-xs);
 	}
 </style>

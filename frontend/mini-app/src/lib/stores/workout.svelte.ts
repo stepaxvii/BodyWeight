@@ -317,13 +317,20 @@ class WorkoutStore {
 
 			const response = await api.submitWorkout(workoutData);
 
-			// Reload user data from server to get updated XP, level, coins, streak
-			await userStore.loadUser();
-
+			// Show the result immediately from the submit response — it already
+			// carries earned XP/coins/level_up, so we don't wait on a second
+			// round-trip before flipping the UI.
 			this.session = response.workout;
 			this.isActive = false;
 			this.selectedExercises = [];
 			this.exerciseData = new Map();
+
+			// Reflect earned XP/coins optimistically, then reconcile with the
+			// server (streak/level/coins) in the background — without blocking.
+			userStore.addXp(response.workout.total_xp_earned);
+			userStore.addCoins(response.workout.total_coins_earned);
+			void userStore.loadUser();
+
 			telegram.hapticNotification('success');
 			return response.workout;
 		} catch (err) {
