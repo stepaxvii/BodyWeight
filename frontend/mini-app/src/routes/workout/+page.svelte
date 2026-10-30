@@ -211,11 +211,11 @@
 
 	// Category colors (by load type) — theme tokens so they track the palette
 	const categoryColors: Record<string, string> = {
-		strength: 'var(--pixel-red)',
-		cardio: 'var(--pixel-orange)',
-		static: 'var(--pixel-accent)',
-		'dynamic-stretch': 'var(--pixel-green)',
-		'static-stretch': 'var(--pixel-cyan)'
+		strength: 'var(--cat-strength)',
+		cardio: 'var(--cat-cardio)',
+		static: 'var(--cat-static)',
+		'dynamic-stretch': 'var(--cat-dynamic-stretch)',
+		'static-stretch': 'var(--cat-static-stretch)'
 	};
 
 	const routineCategoryTabs: { id: RoutineCategory; name: string }[] = [

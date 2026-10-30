@@ -4,7 +4,7 @@
     "name": "Strength",
     "name_ru": "Силовые",
     "icon": "strength",
-    "color": "#d82800",
+    "color": "#e23744",
     "sort_order": 1,
     "description": "Exercises that involve overcoming resistance",
     "description_ru": "Упражнения на преодоление сопротивления"
@@ -14,7 +14,7 @@
     "name": "Cardio",
     "name_ru": "Кардио",
     "icon": "cardio",
-    "color": "#ff6b35",
+    "color": "#e07a1e",
     "sort_order": 2,
     "description": "Exercises that elevate heart rate and build endurance",
     "description_ru": "Упражнения для повышения пульса и выносливости"
@@ -24,7 +24,7 @@
     "name": "Static",
     "name_ru": "Статика",
     "icon": "static",
-    "color": "#0058f8",
+    "color": "#1fa89a",
     "sort_order": 3,
     "description": "Isometric holds and position maintenance",
     "description_ru": "Изометрические удержания позиций"
@@ -34,7 +34,7 @@
     "name": "Dynamic Stretch",
     "name_ru": "Динамическая растяжка",
     "icon": "dynamic",
-    "color": "#00a800",
+    "color": "#15936a",
     "sort_order": 4,
     "description": "Stretching through movement",
     "description_ru": "Растяжка в движении"
@@ -44,7 +44,7 @@
     "name": "Static Stretch",
     "name_ru": "Статическая растяжка",
     "icon": "stretch",
-    "color": "#00a8a8",
+    "color": "#8a3fd6",
     "sort_order": 5,
     "description": "Holding stretch positions",
     "description_ru": "Удержание поз растяжки"

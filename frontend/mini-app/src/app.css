@@ -59,6 +59,14 @@
 	--podium2: #ddd5c4;
 	--podium3: #e0a85e;
 
+	/* Exercise-category hues — 5 distinct, none blue (so they never clash with
+	   the cobalt action accent); orange kept clear of the gold reward colour. */
+	--cat-strength: #e23744;
+	--cat-cardio: #e07a1e;
+	--cat-static: #1fa89a;
+	--cat-dynamic-stretch: #15936a;
+	--cat-static-stretch: #8a3fd6;
+
 	/* Fonts — Pixel Operator (self-hosted; readable Cyrillic) for ALL text and
 	   headings; Silkscreen ONLY for digits. Silkscreen has NO Cyrillic, so it must
 	   never be a fallback for text: dropped from --font-display, and in --font-data
