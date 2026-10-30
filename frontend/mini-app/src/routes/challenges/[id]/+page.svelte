@@ -615,9 +615,19 @@
 
 	.today-bar-wrap {
 		grid-column: 1 / -1;
-		height: 6px;
+		height: 10px;
 		background: var(--pixel-bg-dark);
-		border: 1px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
+		overflow: hidden;
+		position: relative;
+		box-shadow: var(--inset-well);
+	}
+	.today-bar-wrap::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: var(--seg-notches);
 	}
 
 	.today-bar {
@@ -780,10 +790,19 @@
 	}
 
 	.part-pct-bar {
-		height: 4px;
-		background: var(--pixel-card);
-		border: 1px solid var(--border-color);
+		height: 8px;
+		background: var(--pixel-bg-dark);
+		border: 2px solid var(--border-color);
 		overflow: hidden;
+		position: relative;
+		box-shadow: var(--inset-well);
+	}
+	.part-pct-bar::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: var(--seg-notches);
 	}
 
 	.part-pct-fill {

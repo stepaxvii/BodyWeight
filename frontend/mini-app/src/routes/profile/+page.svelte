@@ -99,8 +99,7 @@
 		!!records &&
 			(!!records.best_set ||
 				!!records.best_workout ||
-				records.longest_workout_seconds > 0 ||
-				records.max_streak > 0)
+				records.longest_workout_seconds > 0)
 	);
 
 	function openTitlePicker() {
@@ -138,11 +137,6 @@
 					<span>{xpInLevel} / {xpNeeded} XP</span>
 					<span>до Ур.{userStore.level + 1}</span>
 				</div>
-			</div>
-			<div class="char__facts">
-				<span class="char__fact"><PixelIcon name="flame" size="sm" color="var(--danger)" /> Серия {userStore.streak}</span>
-				<span class="char__fact"><PixelIcon name="medal" size="sm" color="var(--gold)" /> Рекорд {userStore.user?.max_streak || 0}</span>
-				<span class="char__fact"><PixelIcon name="coin" size="sm" color="var(--gold)" /> {userStore.coins}</span>
 			</div>
 		</header>
 	</section>
@@ -218,11 +212,6 @@
 				<span class="band3__l">Монеты</span>
 			</div>
 			<div class="band3__i">
-				<PixelIcon name="streak" size="sm" color="var(--danger)" class="anim-flicker" />
-				<span class="band3__v"><CountUp value={userStore.streak} /></span>
-				<span class="band3__l">Серия</span>
-			</div>
-			<div class="band3__i">
 				<PixelIcon name="trophy" size="sm" color="var(--gold)" />
 				<span class="band3__v"><CountUp value={unlockedCount} /></span>
 				<span class="band3__l">Значки</span>
@@ -252,12 +241,6 @@
 					<span class="rec__v">{fmtDuration(records.longest_workout_seconds)}</span>
 					<span class="rec__l">Дольше всего</span>
 					<span class="rec__sub">одна тренировка</span>
-				</div>
-				<div class="rec">
-					<PixelIcon name="medal" size="md" color="var(--gold)" />
-					<span class="rec__v">{records.max_streak}</span>
-					<span class="rec__l">Макс. серия</span>
-					<span class="rec__sub">дней подряд</span>
 				</div>
 			</div>
 		</section>

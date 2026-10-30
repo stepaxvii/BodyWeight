@@ -1506,8 +1506,14 @@
 
 	.reps-input {
 		font-size: var(--font-size-lg);
-		min-width: 48px;
+		min-width: 56px;
 		text-align: center;
+		font-family: var(--font-data);
+		color: var(--pixel-accent);
+		background: var(--pixel-bg-dark);
+		border: var(--border-width) solid var(--border-color);
+		box-shadow: var(--inset-well);
+		padding: 6px 8px;
 	}
 
 	.workout-actions {
