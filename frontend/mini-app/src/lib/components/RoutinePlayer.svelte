@@ -839,7 +839,7 @@
 		background: var(--bg3);
 		border: var(--bw) solid var(--line);
 		box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.14),
-			inset -2px -2px 0 rgba(0, 0, 0, 0.32), var(--shadow);
+			inset -2px -2px 0 rgba(0, 0, 0, 0.32), 3px 3px 0 var(--pixel-black);
 	}
 	.pa2-count__v {
 		font-family: var(--font-display);

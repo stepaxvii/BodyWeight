@@ -448,7 +448,7 @@
 	}
 	.rec-grid {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(3, 1fr);
 		gap: var(--spacing-sm);
 	}
 	.rec {
@@ -458,6 +458,7 @@
 		gap: 4px;
 		padding: 12px 8px;
 		text-align: center;
+		min-width: 0;
 		background: var(--bg2);
 		border: var(--bw) solid var(--line);
 		box-shadow: var(--shadow);

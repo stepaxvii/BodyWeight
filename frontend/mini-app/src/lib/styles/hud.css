@@ -275,10 +275,6 @@
 .char .segbar .seg { background: rgba(0,0,0,.25); }
 .char .segbar .seg--on { background: var(--gold); }
 .char__xprow { display: flex; justify-content: space-between; font-family: var(--font-data); font-size: 12px; opacity: .9; }
-.char__facts { display: flex; flex-wrap: wrap; gap: 7px; }
-.char__fact { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
-  background: rgba(0,0,0,.2); border: 2px solid rgba(0,0,0,.28); padding: 5px 8px;
-  font-family: var(--font-data); font-size: 12px; }
 
 .badge-slot { cursor: default; }
 .badge-slot--more { cursor: pointer; color: var(--muted); font-family: var(--font-data); font-size: 14px; border-style: dashed; }
