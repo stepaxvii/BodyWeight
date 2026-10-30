@@ -420,7 +420,7 @@
 		max-height: 400px;
 		background: var(--pixel-bg);
 		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--panel-shadow);
 		z-index: 101;
 		display: flex;
 		flex-direction: column;
@@ -529,7 +529,7 @@
 		text-decoration: none;
 		background: var(--cta-bg);
 		border: var(--border-width) solid var(--cta-edge);
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--panel-shadow);
 		padding: var(--spacing-md);
 		transition: all var(--transition-fast);
 	}
@@ -587,7 +587,7 @@
 		padding: var(--spacing-sm);
 		background: var(--pixel-card);
 		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--panel-shadow);
 		font-family: var(--font-display);
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
@@ -637,7 +637,7 @@
 	.progress-card {
 		background: var(--hero-bg);
 		border: var(--border-width) solid var(--hero-edge);
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--panel-shadow);
 		padding: var(--spacing-md);
 	}
 
@@ -703,7 +703,7 @@
 		justify-content: space-around;
 		background: var(--stat-bg);
 		border: var(--border-width) solid var(--stat-edge);
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--panel-shadow);
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
@@ -814,7 +814,7 @@
 		gap: var(--spacing-sm);
 		background: var(--pixel-card);
 		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--panel-shadow);
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 

@@ -532,7 +532,7 @@
 	.badges-card {
 		background: var(--pixel-card);
 		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--panel-shadow);
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
@@ -603,7 +603,7 @@
 		justify-content: space-between;
 		background: var(--pixel-card);
 		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--panel-shadow);
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
@@ -653,7 +653,7 @@
 		justify-content: space-between;
 		background: var(--pixel-card);
 		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--panel-shadow);
 		padding: var(--spacing-sm) var(--spacing-md);
 		margin-top: var(--spacing-sm);
 	}
