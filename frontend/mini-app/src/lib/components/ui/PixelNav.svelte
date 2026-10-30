@@ -158,9 +158,7 @@
 	}
 
 	.nav-item.active {
-		background: var(--pixel-accent);
-		color: var(--on-accent);
-		border-radius: var(--radius-sm);
+		color: var(--pixel-accent);
 	}
 
 	.icon-wrapper {
@@ -173,12 +171,12 @@
 
 	.active-indicator {
 		position: absolute;
-		top: 2px;
+		top: 0;
 		left: 50%;
 		transform: translateX(-50%);
-		width: 6px;
-		height: 6px;
-		background: var(--pixel-bg);
+		width: 20px;
+		height: 4px;
+		background: var(--pixel-accent);
 	}
 
 	/* Modal styles */

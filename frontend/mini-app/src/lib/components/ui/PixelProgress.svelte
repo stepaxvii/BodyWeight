@@ -68,6 +68,17 @@
 		border: var(--border-width) solid var(--border-color);
 		border-radius: var(--radius-sm);
 		overflow: hidden;
+		position: relative;
+		box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.18);
+	}
+
+	/* NES segmented notches over xp/default bars (hp keeps its own segments) */
+	.pixel-progress:not(.hp) .track::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: repeating-linear-gradient(90deg, transparent 0 10px, rgba(0, 0, 0, 0.28) 10px 12px);
 	}
 
 	/* Sizes */
@@ -86,9 +97,9 @@
 		animation: progress-pulse 2s ease-in-out infinite;
 	}
 
-	/* XP variant - blue/purple gradient feel */
+	/* XP variant — gold (reward colour) */
 	.pixel-progress.xp .bar {
-		background: var(--pixel-blue);
+		background: var(--pixel-yellow);
 	}
 
 	/* HP variant - color changes based on health */
