@@ -18,7 +18,7 @@
 	--text: #211d18;
 	--muted: #6f6556;
 	--dim: #a8997f;
-	--accent: #ff5a1f;   /* tangerine — main action / active / links */
+	--accent: #2f6bd8;   /* cobalt — main action / active / links */
 	--accent2: #15936a;  /* grass green */
 	--gold: #f5a700;     /* rewards / XP numbers / coins */
 	--danger: #e23744;
@@ -39,14 +39,14 @@
 	--chip-bg: rgba(0, 0, 0, 0.2);
 	--chip-edge: rgba(0, 0, 0, 0.3);
 	--chip-num: #ffb000;
-	--cta-bg: #ff5a1f;
+	--cta-bg: #2f6bd8;
 	--cta-text: #ffffff;
 	--cta-edge: #211d18;
 	--stat-bg: #ffc02e;
 	--stat-text: #211d18;
 	--stat-edge: #211d18;
 	--seg-off: #e0d3ba;
-	--seg-on: #ff5a1f;
+	--seg-on: #2f6bd8;
 	--hp-on: #e23744;
 	--hm0: #e0d3ba;
 	--hm1: #c2e08a;
@@ -83,7 +83,7 @@
 	--pixel-card: var(--card-bg);
 	--pixel-card-hover: #f3ecdc;
 	--pixel-accent: var(--accent);
-	--pixel-accent-hover: #ff7a47;
+	--pixel-accent-hover: #4a82e6;
 	--pixel-green: var(--green);
 	--pixel-green-light: #2bb085;
 	--pixel-yellow: var(--gold);
