@@ -141,6 +141,48 @@
 		</header>
 	</section>
 
+	<!-- Streak (core daily mechanic) — the single home for streak & record -->
+	<section class="streak-section">
+		<div class="streak-card">
+			<div class="streak-left">
+				<PixelIcon name="streak" size="lg" color="var(--pixel-yellow)" />
+				<div class="streak-numbers">
+					<span class="streak-current">{userStore.streak} дней</span>
+					<span class="streak-max">Рекорд: {userStore.user?.max_streak || 0}</span>
+				</div>
+			</div>
+			<div class="streak-visual">
+				{#each Array(7) as _, i}
+					<div class="streak-day" class:active={i < Math.min(userStore.streak, 7)}></div>
+				{/each}
+			</div>
+		</div>
+
+		<div class="freeze-card">
+			<div class="freeze-left">
+				<span class="freeze-icon"><PixelIcon name="snowflake" size="lg" color="var(--accent2)" /></span>
+				<div class="freeze-numbers">
+					<span class="freeze-title">Заморозки: {userStore.streakFreezes}/{MAX_STREAK_FREEZES}</span>
+					<span class="freeze-hint">Спасают серию за пропущенный день</span>
+				</div>
+			</div>
+			<button
+				class="freeze-buy"
+				disabled={freezeBuying || userStore.streakFreezes >= MAX_STREAK_FREEZES || userStore.coins < STREAK_FREEZE_PRICE}
+				onclick={handleBuyFreeze}
+			>
+				{#if userStore.streakFreezes >= MAX_STREAK_FREEZES}
+					Максимум
+				{:else}
+					{STREAK_FREEZE_PRICE} <PixelIcon name="coin" size="sm" color="var(--gold)" />
+				{/if}
+			</button>
+		</div>
+		{#if freezeMessage}
+			<p class="freeze-message">{freezeMessage}</p>
+		{/if}
+	</section>
+
 	<!-- Avatar Picker Modal -->
 	<AvatarPicker
 		open={showAvatarPicker}
@@ -275,48 +317,6 @@
 			</div>
 		</section>
 	{/if}
-
-	<!-- Streak Info - Compact -->
-	<section class="streak-section">
-		<div class="streak-card">
-			<div class="streak-left">
-				<PixelIcon name="streak" size="lg" color="var(--pixel-yellow)" />
-				<div class="streak-numbers">
-					<span class="streak-current">{userStore.streak} дней</span>
-					<span class="streak-max">Рекорд: {userStore.user?.max_streak || 0}</span>
-				</div>
-			</div>
-			<div class="streak-visual">
-				{#each Array(7) as _, i}
-					<div class="streak-day" class:active={i < Math.min(userStore.streak, 7)}></div>
-				{/each}
-			</div>
-		</div>
-
-		<div class="freeze-card">
-			<div class="freeze-left">
-				<span class="freeze-icon"><PixelIcon name="snowflake" size="lg" color="var(--accent2)" /></span>
-				<div class="freeze-numbers">
-					<span class="freeze-title">Заморозки: {userStore.streakFreezes}/{MAX_STREAK_FREEZES}</span>
-					<span class="freeze-hint">Спасают серию за пропущенный день</span>
-				</div>
-			</div>
-			<button
-				class="freeze-buy"
-				disabled={freezeBuying || userStore.streakFreezes >= MAX_STREAK_FREEZES || userStore.coins < STREAK_FREEZE_PRICE}
-				onclick={handleBuyFreeze}
-			>
-				{#if userStore.streakFreezes >= MAX_STREAK_FREEZES}
-					Максимум
-				{:else}
-					{STREAK_FREEZE_PRICE} <PixelIcon name="coin" size="sm" color="var(--gold)" />
-				{/if}
-			</button>
-		</div>
-		{#if freezeMessage}
-			<p class="freeze-message">{freezeMessage}</p>
-		{/if}
-	</section>
 
 	<!-- Quick Link - Friends -->
 	<section class="links-section">
