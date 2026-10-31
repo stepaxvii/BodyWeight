@@ -266,9 +266,19 @@
 		line-height: 1.3;
 	}
 	.chal-hero__bar {
-		height: 8px;
+		height: 12px;
 		background: rgba(0, 0, 0, 0.25);
 		border: 2px solid var(--hero-edge);
+		overflow: hidden;
+		position: relative;
+		box-shadow: var(--inset-well);
+	}
+	.chal-hero__bar::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: var(--seg-notches);
 	}
 	.chal-hero__fill {
 		height: 100%;
@@ -296,10 +306,19 @@
 	}
 	.chal-prog__bar {
 		flex: 1;
-		height: 7px;
+		height: 10px;
 		background: var(--bg3);
 		border: 2px solid var(--line);
 		overflow: hidden;
+		position: relative;
+		box-shadow: var(--inset-well);
+	}
+	.chal-prog__bar::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: var(--seg-notches);
 	}
 	.chal-prog__fill {
 		height: 100%;

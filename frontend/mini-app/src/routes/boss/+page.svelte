@@ -354,10 +354,20 @@
 
 	.hp-track-large {
 		width: 100%;
-		height: 14px;
+		height: 18px;
 		background: var(--pixel-bg-dark);
 		border: var(--border-width) solid var(--border-color);
 		overflow: hidden;
+		position: relative;
+		box-shadow: var(--inset-well);
+	}
+
+	.hp-track-large::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: var(--seg-notches);
 	}
 
 	.hp-fill-large {

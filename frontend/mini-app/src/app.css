@@ -18,7 +18,7 @@
 	--text: #211d18;
 	--muted: #6f6556;
 	--dim: #a8997f;
-	--accent: #ff5a1f;   /* tangerine — main action / active / links */
+	--accent: #2f6bd8;   /* cobalt — main action / active / links */
 	--accent2: #15936a;  /* grass green */
 	--gold: #f5a700;     /* rewards / XP numbers / coins */
 	--danger: #e23744;
@@ -29,7 +29,7 @@
 	--sun: #ffc02e;      /* stat tiles */
 	--bw: 3px;
 	--radius: 0px;
-	--shadow: 3px 3px 0 #211d18;
+	--shadow: var(--bevel), 3px 3px 0 #211d18;
 	--shadow-accent: 3px 3px 0 #211d18;
 	--hero-bg: #5a3d2b;
 	--hero-text: #f7eede;
@@ -39,14 +39,14 @@
 	--chip-bg: rgba(0, 0, 0, 0.2);
 	--chip-edge: rgba(0, 0, 0, 0.3);
 	--chip-num: #ffb000;
-	--cta-bg: #ff5a1f;
+	--cta-bg: #2f6bd8;
 	--cta-text: #ffffff;
 	--cta-edge: #211d18;
 	--stat-bg: #ffc02e;
 	--stat-text: #211d18;
 	--stat-edge: #211d18;
 	--seg-off: #e0d3ba;
-	--seg-on: #ff5a1f;
+	--seg-on: #2f6bd8;
 	--hp-on: #e23744;
 	--hm0: #e0d3ba;
 	--hm1: #c2e08a;
@@ -58,6 +58,14 @@
 	--avframe: #211d18;
 	--podium2: #ddd5c4;
 	--podium3: #e0a85e;
+
+	/* Exercise-category hues — 5 distinct, none blue (so they never clash with
+	   the cobalt action accent); orange kept clear of the gold reward colour. */
+	--cat-strength: #e23744;
+	--cat-cardio: #e07a1e;
+	--cat-static: #1fa89a;
+	--cat-dynamic-stretch: #15936a;
+	--cat-static-stretch: #8a3fd6;
 
 	/* Fonts — Pixel Operator (self-hosted; readable Cyrillic) for ALL text and
 	   headings; Silkscreen ONLY for digits. Silkscreen has NO Cyrillic, so it must
@@ -83,7 +91,7 @@
 	--pixel-card: var(--card-bg);
 	--pixel-card-hover: #f3ecdc;
 	--pixel-accent: var(--accent);
-	--pixel-accent-hover: #ff7a47;
+	--pixel-accent-hover: #4a82e6;
 	--pixel-green: var(--green);
 	--pixel-green-light: #2bb085;
 	--pixel-yellow: var(--gold);
@@ -122,6 +130,15 @@
 	--shadow-sm: 2px 2px 0px var(--pixel-black);
 	--shadow-md: 3px 3px 0px var(--pixel-black);
 	--shadow-lg: 5px 5px 0px var(--pixel-black);
+
+	/* Chunky NES panel bevel — inset highlight (top-left) + shade (bottom-right)
+	   layered over the hard drop shadow. Reusable across the bespoke screen panels. */
+	--bevel: inset 2px 2px 0 rgba(255, 255, 255, 0.22), inset -2px -2px 0 rgba(0, 0, 0, 0.18);
+	--panel-shadow: var(--bevel), var(--shadow-md);
+	/* Recessed well for meters/inputs (XP, HP, rep slots) */
+	--inset-well: inset 2px 2px 0 rgba(0, 0, 0, 0.2);
+	/* Segmented notch overlay for NES-style meters */
+	--seg-notches: repeating-linear-gradient(90deg, transparent 0 10px, rgba(0, 0, 0, 0.28) 10px 12px);
 
 	/* Fonts (app names) — body Pixelify Sans, headings/numbers Silkscreen */
 	--font-pixel: var(--font-ui);

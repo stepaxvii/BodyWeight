@@ -85,7 +85,7 @@
 		background: var(--pixel-accent);
 		border-color: var(--pixel-accent-hover);
 		color: var(--on-accent);
-		box-shadow: var(--shadow-md);
+		box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.22), inset -2px -2px 0 rgba(0, 0, 0, 0.18), var(--shadow-md);
 	}
 
 	.pixel-button.primary:hover:not(:disabled) {
@@ -95,7 +95,7 @@
 	.pixel-button.secondary {
 		background: var(--pixel-card);
 		border-color: var(--border-light);
-		box-shadow: var(--shadow-md);
+		box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.22), inset -2px -2px 0 rgba(0, 0, 0, 0.18), var(--shadow-md);
 	}
 
 	.pixel-button.secondary:hover:not(:disabled) {
@@ -107,7 +107,7 @@
 		background: var(--pixel-green);
 		border-color: var(--pixel-green-light);
 		color: var(--pixel-white);
-		box-shadow: var(--shadow-md);
+		box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.22), inset -2px -2px 0 rgba(0, 0, 0, 0.18), var(--shadow-md);
 	}
 
 	.pixel-button.success:hover:not(:disabled) {
@@ -118,7 +118,7 @@
 		background: var(--pixel-red);
 		border-color: var(--pixel-orange);
 		color: var(--pixel-white);
-		box-shadow: var(--shadow-md);
+		box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.22), inset -2px -2px 0 rgba(0, 0, 0, 0.18), var(--shadow-md);
 	}
 
 	.pixel-button.danger:hover:not(:disabled) {

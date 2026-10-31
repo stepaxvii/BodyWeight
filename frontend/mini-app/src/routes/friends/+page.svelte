@@ -691,7 +691,7 @@
 	.modal-dialog {
 		background: var(--pixel-card);
 		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--panel-shadow);
 		max-width: 320px;
 		width: 100%;
 		animation: modal-appear 0.2s ease-out;

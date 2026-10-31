@@ -99,8 +99,7 @@
 		!!records &&
 			(!!records.best_set ||
 				!!records.best_workout ||
-				records.longest_workout_seconds > 0 ||
-				records.max_streak > 0)
+				records.longest_workout_seconds > 0)
 	);
 
 	function openTitlePicker() {
@@ -139,12 +138,49 @@
 					<span>до Ур.{userStore.level + 1}</span>
 				</div>
 			</div>
-			<div class="char__facts">
-				<span class="char__fact"><PixelIcon name="flame" size="sm" color="var(--danger)" /> Серия {userStore.streak}</span>
-				<span class="char__fact"><PixelIcon name="medal" size="sm" color="var(--gold)" /> Рекорд {userStore.user?.max_streak || 0}</span>
-				<span class="char__fact"><PixelIcon name="coin" size="sm" color="var(--gold)" /> {userStore.coins}</span>
-			</div>
 		</header>
+	</section>
+
+	<!-- Streak (core daily mechanic) — the single home for streak & record -->
+	<section class="streak-section">
+		<div class="streak-card">
+			<div class="streak-left">
+				<PixelIcon name="streak" size="lg" color="var(--pixel-yellow)" />
+				<div class="streak-numbers">
+					<span class="streak-current">{userStore.streak} дней</span>
+					<span class="streak-max">Рекорд: {userStore.user?.max_streak || 0}</span>
+				</div>
+			</div>
+			<div class="streak-visual">
+				{#each Array(7) as _, i}
+					<div class="streak-day" class:active={i < Math.min(userStore.streak, 7)}></div>
+				{/each}
+			</div>
+		</div>
+
+		<div class="freeze-card">
+			<div class="freeze-left">
+				<span class="freeze-icon"><PixelIcon name="snowflake" size="lg" color="var(--accent2)" /></span>
+				<div class="freeze-numbers">
+					<span class="freeze-title">Заморозки: {userStore.streakFreezes}/{MAX_STREAK_FREEZES}</span>
+					<span class="freeze-hint">Спасают серию за пропущенный день</span>
+				</div>
+			</div>
+			<button
+				class="freeze-buy"
+				disabled={freezeBuying || userStore.streakFreezes >= MAX_STREAK_FREEZES || userStore.coins < STREAK_FREEZE_PRICE}
+				onclick={handleBuyFreeze}
+			>
+				{#if userStore.streakFreezes >= MAX_STREAK_FREEZES}
+					Максимум
+				{:else}
+					{STREAK_FREEZE_PRICE} <PixelIcon name="coin" size="sm" color="var(--gold)" />
+				{/if}
+			</button>
+		</div>
+		{#if freezeMessage}
+			<p class="freeze-message">{freezeMessage}</p>
+		{/if}
 	</section>
 
 	<!-- Avatar Picker Modal -->
@@ -218,11 +254,6 @@
 				<span class="band3__l">Монеты</span>
 			</div>
 			<div class="band3__i">
-				<PixelIcon name="streak" size="sm" color="var(--danger)" class="anim-flicker" />
-				<span class="band3__v"><CountUp value={userStore.streak} /></span>
-				<span class="band3__l">Серия</span>
-			</div>
-			<div class="band3__i">
 				<PixelIcon name="trophy" size="sm" color="var(--gold)" />
 				<span class="band3__v"><CountUp value={unlockedCount} /></span>
 				<span class="band3__l">Значки</span>
@@ -252,12 +283,6 @@
 					<span class="rec__v">{fmtDuration(records.longest_workout_seconds)}</span>
 					<span class="rec__l">Дольше всего</span>
 					<span class="rec__sub">одна тренировка</span>
-				</div>
-				<div class="rec">
-					<PixelIcon name="medal" size="md" color="var(--gold)" />
-					<span class="rec__v">{records.max_streak}</span>
-					<span class="rec__l">Макс. серия</span>
-					<span class="rec__sub">дней подряд</span>
 				</div>
 			</div>
 		</section>
@@ -292,48 +317,6 @@
 			</div>
 		</section>
 	{/if}
-
-	<!-- Streak Info - Compact -->
-	<section class="streak-section">
-		<div class="streak-card">
-			<div class="streak-left">
-				<PixelIcon name="streak" size="lg" color="var(--pixel-yellow)" />
-				<div class="streak-numbers">
-					<span class="streak-current">{userStore.streak} дней</span>
-					<span class="streak-max">Рекорд: {userStore.user?.max_streak || 0}</span>
-				</div>
-			</div>
-			<div class="streak-visual">
-				{#each Array(7) as _, i}
-					<div class="streak-day" class:active={i < Math.min(userStore.streak, 7)}></div>
-				{/each}
-			</div>
-		</div>
-
-		<div class="freeze-card">
-			<div class="freeze-left">
-				<span class="freeze-icon"><PixelIcon name="snowflake" size="lg" color="var(--accent2)" /></span>
-				<div class="freeze-numbers">
-					<span class="freeze-title">Заморозки: {userStore.streakFreezes}/{MAX_STREAK_FREEZES}</span>
-					<span class="freeze-hint">Спасают серию за пропущенный день</span>
-				</div>
-			</div>
-			<button
-				class="freeze-buy"
-				disabled={freezeBuying || userStore.streakFreezes >= MAX_STREAK_FREEZES || userStore.coins < STREAK_FREEZE_PRICE}
-				onclick={handleBuyFreeze}
-			>
-				{#if userStore.streakFreezes >= MAX_STREAK_FREEZES}
-					Максимум
-				{:else}
-					{STREAK_FREEZE_PRICE} <PixelIcon name="coin" size="sm" color="var(--gold)" />
-				{/if}
-			</button>
-		</div>
-		{#if freezeMessage}
-			<p class="freeze-message">{freezeMessage}</p>
-		{/if}
-	</section>
 
 	<!-- Quick Link - Friends -->
 	<section class="links-section">
@@ -465,7 +448,7 @@
 	}
 	.rec-grid {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(3, 1fr);
 		gap: var(--spacing-sm);
 	}
 	.rec {
@@ -475,6 +458,7 @@
 		gap: 4px;
 		padding: 12px 8px;
 		text-align: center;
+		min-width: 0;
 		background: var(--bg2);
 		border: var(--bw) solid var(--line);
 		box-shadow: var(--shadow);
@@ -532,7 +516,7 @@
 	.badges-card {
 		background: var(--pixel-card);
 		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--panel-shadow);
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
@@ -603,7 +587,7 @@
 		justify-content: space-between;
 		background: var(--pixel-card);
 		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--panel-shadow);
 		padding: var(--spacing-sm) var(--spacing-md);
 	}
 
@@ -653,7 +637,7 @@
 		justify-content: space-between;
 		background: var(--pixel-card);
 		border: var(--border-width) solid var(--border-color);
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--panel-shadow);
 		padding: var(--spacing-sm) var(--spacing-md);
 		margin-top: var(--spacing-sm);
 	}

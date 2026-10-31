@@ -46,7 +46,7 @@
 		background: var(--pixel-card);
 		border: var(--border-width) solid var(--border-color);
 		border-radius: var(--radius-sm);
-		box-shadow: var(--shadow-sm);
+		box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.45), inset -2px -2px 0 rgba(0, 0, 0, 0.1), var(--shadow-sm);
 		position: relative;
 	}
 

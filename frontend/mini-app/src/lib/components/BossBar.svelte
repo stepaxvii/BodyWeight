@@ -137,10 +137,21 @@
 
 	.hp-track {
 		width: 100%;
-		height: 8px;
+		height: 14px;
 		background: var(--pixel-bg-dark);
-		border: 1px solid var(--border-color);
+		border: var(--border-width) solid var(--border-color);
 		overflow: hidden;
+		position: relative;
+		box-shadow: var(--inset-well);
+	}
+
+	/* segmented notches over the HP fill — NES meter */
+	.hp-track::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: var(--seg-notches);
 	}
 
 	.hp-fill {
