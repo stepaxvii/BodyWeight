@@ -7,7 +7,7 @@
 	import { sound } from '$lib/stores/sound.svelte';
 	import { exercisesStore } from '$lib/stores/exercises.svelte';
 	import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
-	import type { Routine, RoutineExercise, Exercise, ChallengeProgressSummary } from '$lib/types';
+	import type { Routine, RoutineExercise, Exercise, ChallengeProgressSummary, ShareCardResponse } from '$lib/types';
 	import { onMount, onDestroy } from 'svelte';
 
 	interface Props {
@@ -56,6 +56,12 @@
 	// Challenge progress this workout credited (shown on the done screen)
 	let challengeProgress = $state<ChallengeProgressSummary[]>([]);
 	let showInfoExercise = $state<Exercise | null>(null);
+
+	// Share-card flow: the submitted session id (null when the workout was
+	// queued offline) + the prepared card, fetched once on first share tap.
+	let completedSessionId = $state<number | null>(null);
+	let shareCard = $state<ShareCardResponse | null>(null);
+	let isPreparingShare = $state(false);
 
 	const currentExercise = $derived(routine.exercises[currentStep]);
 	const exerciseData = $derived(allExercises.find(e => e.slug === currentExercise?.slug));
@@ -286,6 +292,7 @@
 			totalXpEarned = completed.workout.total_xp_earned;
 			totalCoinsEarned = completed.workout.total_coins_earned;
 			challengeProgress = completed.challenge_progress ?? [];
+			completedSessionId = completed.workout.id;
 
 			userStore.addXp(completed.workout.total_xp_earned);
 			userStore.addCoins(completed.workout.total_coins_earned);
@@ -337,9 +344,44 @@
 		onclose?.();
 	}
 
+	// Prepare the share card once and reuse it for chat + story shares.
+	async function ensureShareCard(): Promise<ShareCardResponse | null> {
+		if (shareCard) return shareCard;
+		if (completedSessionId === null || isPreparingShare) return null;
+		isPreparingShare = true;
+		try {
+			shareCard = await api.prepareShareCard(completedSessionId);
+			return shareCard;
+		} catch (err) {
+			console.error('Failed to prepare share card:', err);
+			return null;
+		} finally {
+			isPreparingShare = false;
+		}
+	}
+
 	async function shareWorkout() {
 		telegram.hapticImpact('medium');
 
+		// Card flow: server-rendered PNG shared one-tap via prepared inline
+		// message (Bot API 8.0); falls back to a plain invite-link share.
+		if (telegram.webApp) {
+			const card = await ensureShareCard();
+			if (card) {
+				if (card.prepared_message_id && telegram.canShareMessage) {
+					telegram.shareMessage(card.prepared_message_id);
+				} else {
+					telegram.openTelegramLink(
+						`https://t.me/share/url?url=${encodeURIComponent(card.invite_link)}&text=${encodeURIComponent(card.share_text)}`
+					);
+				}
+				telegram.hapticNotification('success');
+				return;
+			}
+		}
+
+		// Text fallback — offline-queued workout (no session id), card prep
+		// failed, or running outside Telegram.
 		// Группируем по упражнению и суммируем повторы/секунды
 		const bySlug = new Map<string, { total: number; is_timed: boolean }>();
 		for (const ce of completedExercises) {
@@ -371,11 +413,18 @@
 			...exerciseLines
 		].join('\n');
 
+		// Персональная инвайт-ссылка (клики идут в реферальную программу);
+		// при ошибке — обычная ссылка на бота.
+		let inviteLink = 'https://t.me/pixelfitbot';
+		try {
+			inviteLink = (await api.getInviteLink()).invite_link;
+		} catch {
+			// офлайн/ошибка — остаёмся на общей ссылке бота
+		}
+
 		// Внутри Telegram WebApp – всё как раньше
 		if (telegram.webApp) {
-			const botUsername = 'pixelfitbot';
-			const botLink = `https://t.me/${botUsername}`;
-			const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(shareText)}`;
+			const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(shareText)}`;
 			telegram.openTelegramLink(shareUrl);
 		}
 		// В браузере — системное меню «Поделиться» только с текстом тренировки
@@ -399,6 +448,16 @@
 		}
 
 		telegram.hapticNotification('success');
+	}
+
+	async function shareToStory() {
+		telegram.hapticImpact('medium');
+		const card = await ensureShareCard();
+		if (!card) return;
+		if (telegram.canShareToStory) {
+			telegram.shareToStory(card.story_url, { text: card.share_text });
+			telegram.hapticNotification('success');
+		}
 	}
 
 	function skipExercise() {
@@ -495,7 +554,10 @@
 				</div>
 			{/if}
 			<div class="player__doneactions">
-				<PixelButton variant="secondary" fullWidth onclick={shareWorkout}><PixelIcon name="share" /> Поделиться</PixelButton>
+				<PixelButton variant="secondary" fullWidth disabled={isPreparingShare} onclick={shareWorkout}><PixelIcon name="share" /> Поделиться</PixelButton>
+				{#if completedSessionId !== null && telegram.canShareToStory}
+					<PixelButton variant="secondary" fullWidth disabled={isPreparingShare} onclick={shareToStory}>В сторис</PixelButton>
+				{/if}
 				<PixelButton variant="success" fullWidth onclick={handleClose}><PixelIcon name="check" /> Готово</PixelButton>
 			</div>
 		</div>

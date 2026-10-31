@@ -41,6 +41,12 @@ declare global {
 		setBackgroundColor(color: string): void;
 		openTelegramLink(url: string): void;
 		openLink(url: string, options?: { try_instant_view?: boolean }): void;
+		// Optional: present only on newer Telegram clients — always version-guard.
+		isVersionAtLeast?(version: string): boolean;
+		// Bot API 8.0 (WebApp >= 8.0): share a prepared inline message
+		shareMessage?(msgId: string, callback?: (sent: boolean) => void): void;
+		// Bot API 7.8 (WebApp >= 7.8): share media to a Telegram Story
+		shareToStory?(mediaUrl: string, params?: TelegramStoryShareParams): void;
 		showAlert(message: string, callback?: () => void): void;
 		showConfirm(message: string, callback?: (confirmed: boolean) => void): void;
 		showPopup(
@@ -51,6 +57,14 @@ declare global {
 			},
 			callback?: (buttonId: string) => void
 		): void;
+	}
+
+	interface TelegramStoryShareParams {
+		text?: string;
+		widget_link?: {
+			url: string;
+			name?: string;
+		};
 	}
 
 	interface TelegramUser {

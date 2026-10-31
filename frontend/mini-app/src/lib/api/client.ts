@@ -32,7 +32,8 @@ import type {
 	ChallengeCalendar,
 	ChallengeClaimResult,
 	ChallengeCreatePayload,
-	ChallengeStatus
+	ChallengeStatus,
+	ShareCardResponse
 } from '$lib/types';
 
 const API_BASE = '/bodyweight/api';
@@ -287,6 +288,14 @@ class ApiClient {
 		return this.request<WorkoutSummaryResponse>('/workouts/submit', {
 			method: 'POST',
 			body: JSON.stringify(data)
+		});
+	}
+
+	// Share: server-rendered workout card (PNG) + prepared inline message for
+	// one-tap sharing into any chat. Owner-only on the backend.
+	async prepareShareCard(sessionId: number): Promise<ShareCardResponse> {
+		return this.request<ShareCardResponse>(`/share/workout/${sessionId}`, {
+			method: 'POST'
 		});
 	}
 

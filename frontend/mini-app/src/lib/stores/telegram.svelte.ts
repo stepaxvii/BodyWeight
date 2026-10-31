@@ -124,6 +124,33 @@ class TelegramStore {
 		this.webApp?.openTelegramLink(url);
 	}
 
+	// Share helpers — both APIs appeared in newer Bot API versions, so every
+	// call site must check the matching can* guard first (older clients simply
+	// don't have the methods).
+	get canShareMessage(): boolean {
+		return (
+			this.webApp?.isVersionAtLeast?.('8.0') === true &&
+			typeof this.webApp?.shareMessage === 'function'
+		);
+	}
+
+	// Share a prepared inline message (Bot API 8.0 savePreparedInlineMessage id)
+	shareMessage(preparedMessageId: string, callback?: (sent: boolean) => void) {
+		this.webApp?.shareMessage?.(preparedMessageId, callback);
+	}
+
+	get canShareToStory(): boolean {
+		return (
+			this.webApp?.isVersionAtLeast?.('7.8') === true &&
+			typeof this.webApp?.shareToStory === 'function'
+		);
+	}
+
+	// Share media (image/video URL) to a Telegram Story (Bot API 7.8)
+	shareToStory(mediaUrl: string, params?: TelegramStoryShareParams) {
+		this.webApp?.shareToStory?.(mediaUrl, params);
+	}
+
 	// Popup helpers
 	showPopup(params: { title?: string; message: string; buttons?: Array<{ type?: string; text?: string }> }) {
 		this.webApp?.showPopup(params);

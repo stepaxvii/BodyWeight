@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from .routes import auth, users, exercises, workouts, achievements, leaderboard, friends, goals, shop, custom_routines, notifications, boss, challenges
+from .routes import auth, users, exercises, workouts, achievements, leaderboard, friends, goals, shop, custom_routines, notifications, boss, challenges, share
 
 api_router = APIRouter(prefix="/api")
 
@@ -17,3 +17,4 @@ api_router.include_router(custom_routines.router, prefix="/custom-routines", tag
 api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
 api_router.include_router(boss.router, prefix="/boss", tags=["boss"])
 api_router.include_router(challenges.router, prefix="/challenges", tags=["challenges"])
+api_router.include_router(share.router, prefix="/share", tags=["Share"])

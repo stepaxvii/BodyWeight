@@ -261,6 +261,17 @@ export interface WorkoutSummaryResponse {
 	challenge_progress: ChallengeProgressSummary[];
 }
 
+// Share card (matches backend POST /api/share/workout/{session_id})
+export interface ShareCardResponse {
+	card_url: string;
+	story_url: string;
+	// null when the Telegram prepare call failed or the user has no telegram_id —
+	// the frontend then falls back to a t.me/share/url link share.
+	prepared_message_id: string | null;
+	invite_link: string;
+	share_text: string;
+}
+
 // Achievement types (matches backend AchievementResponse)
 export interface Achievement {
 	slug: string;

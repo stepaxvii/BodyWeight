@@ -16,7 +16,7 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
 	import { buildProgramOfDay } from '$lib/utils/programOfDay';
-	import type { ExerciseCategory, Exercise, Routine, RoutineCategory, CustomRoutineListItem, CustomRoutine } from '$lib/types';
+	import type { ExerciseCategory, Exercise, Routine, RoutineCategory, CustomRoutineListItem, CustomRoutine, ShareCardResponse } from '$lib/types';
 
 	// Data
 	let categories = $state<ExerciseCategory[]>([]);
@@ -429,14 +429,72 @@
 	}
 
 	async function startWorkout() {
+		// A new workout replaces the previous "похвастаться" panel
+		completedSessionId = null;
+		completedXp = 0;
+		shareCard = null;
 		await workoutStore.startWorkout();
 	}
 
 	// Check if workout has any sets
 	const hasSets = $derived(workoutStore.totalSets > 0);
 
+	// Share-card state (Strava-style boast panel after a successful submit)
+	let completedSessionId = $state<number | null>(null);
+	let completedXp = $state(0);
+	let shareCard = $state<ShareCardResponse | null>(null);
+	let isPreparingShare = $state(false);
+
 	async function finishWorkout() {
-		await workoutStore.completeWorkout();
+		const session = await workoutStore.completeWorkout();
+		// Offline-queued submits get a synthetic session (id: -1) — no server
+		// card exists for them, so the share panel is online-only.
+		if (session && session.id > 0) {
+			completedSessionId = session.id;
+			completedXp = session.total_xp_earned;
+			shareCard = null;
+		}
+	}
+
+	// Prepare the card once on first tap of either share button, then reuse it.
+	async function ensureShareCard(): Promise<ShareCardResponse | null> {
+		if (shareCard) return shareCard;
+		if (completedSessionId === null || isPreparingShare) return null;
+		isPreparingShare = true;
+		try {
+			shareCard = await api.prepareShareCard(completedSessionId);
+			return shareCard;
+		} catch (err) {
+			console.error('Failed to prepare share card:', err);
+			telegram.hapticNotification('error');
+			return null;
+		} finally {
+			isPreparingShare = false;
+		}
+	}
+
+	async function shareCardToChat() {
+		telegram.hapticImpact('medium');
+		const card = await ensureShareCard();
+		if (!card) return;
+		if (card.prepared_message_id && telegram.canShareMessage) {
+			telegram.shareMessage(card.prepared_message_id);
+		} else {
+			// Prepared message unavailable (old client / prepare failed) —
+			// plain link share with the personal invite link.
+			telegram.openTelegramLink(
+				`https://t.me/share/url?url=${encodeURIComponent(card.invite_link)}&text=${encodeURIComponent(card.share_text)}`
+			);
+		}
+	}
+
+	async function shareCardToStory() {
+		telegram.hapticImpact('medium');
+		const card = await ensureShareCard();
+		if (!card) return;
+		if (telegram.canShareToStory) {
+			telegram.shareToStory(card.story_url, { text: card.share_text });
+		}
 	}
 
 	// Cancel workout state
@@ -866,6 +924,34 @@
 			</Banner>
 		</div>
 
+		<!-- Share panel — appears only after a successful submit (card flow) -->
+		{#if completedSessionId !== null}
+			<section class="share-section">
+				<PixelCard variant="accent" padding="md">
+					<div class="share-block">
+						<div class="share-head">
+							<PixelIcon name="trophy" size="lg" color="var(--gold)" />
+							<div class="share-head-text">
+								<span class="share-title">Похвастаться?</span>
+								<span class="share-sub">Тренировка завершена: <span class="share-xp">+{completedXp} XP</span></span>
+							</div>
+						</div>
+						<div class="share-actions">
+							<PixelButton variant="primary" fullWidth onclick={shareCardToChat} disabled={isPreparingShare}>
+								<PixelIcon name="share" size="sm" />
+								Отправить в чат
+							</PixelButton>
+							{#if telegram.canShareToStory}
+								<PixelButton variant="secondary" fullWidth onclick={shareCardToStory} disabled={isPreparingShare}>
+									В сторис
+								</PixelButton>
+							{/if}
+						</div>
+					</div>
+				</PixelCard>
+			</section>
+		{/if}
+
 		<!-- Программа дня — featured hero (date-seeded, no equipment, medium difficulty) -->
 		{#if programOfDay && activeMainTab === 'routines'}
 			<section class="program-section">
@@ -1215,6 +1301,48 @@
 
 	.hub-banner {
 		margin-bottom: var(--spacing-md);
+	}
+
+	/* Share panel (post-submit boast) */
+	.share-section {
+		margin-bottom: var(--spacing-md);
+	}
+
+	.share-block {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+	}
+
+	.share-head {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+	}
+
+	.share-head-text {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.share-title {
+		font-size: var(--font-size-md);
+	}
+
+	.share-sub {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+	}
+
+	.share-xp {
+		color: var(--gold);
+	}
+
+	.share-actions {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
 	}
 
 	.banner-action {
