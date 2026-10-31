@@ -20,8 +20,8 @@ Fonts: Latin-only strings use Pixel Operator (same TTFs the frontend ships).
 Pixel Operator has NO Cyrillic glyphs in any released version — in the web app
 the browser silently falls back to a system font for Russian text, but Pillow
 has no fallback chain and would draw tofu boxes. Russian strings therefore use
-Pixelify Sans (OFL, bundled next to the Pixel Operator files), a proportional
-pixel face with full Cyrillic coverage. Neither font has emoji glyphs — all
+Press Start 2P (OFL, bundled next to the Pixel Operator files), the classic
+NES-style face with full Cyrillic coverage. Neither font has emoji glyphs — all
 decoration (bullets, corner stairs) is drawn with plain rectangles.
 """
 import io
@@ -44,8 +44,9 @@ DIM = "#a8997f"        # faint decoration
 _FONTS_DIR = Path(__file__).resolve().parent.parent / "assets" / "fonts"
 _FONT_REGULAR = _FONTS_DIR / "PixelOperator.ttf"
 _FONT_BOLD = _FONTS_DIR / "PixelOperator-Bold.ttf"
-_FONT_CYR_REGULAR = _FONTS_DIR / "PixelifySans-Regular.ttf"
-_FONT_CYR_BOLD = _FONTS_DIR / "PixelifySans-Bold.ttf"
+# Press Start 2P has a single weight — regular and bold map to the same file.
+_FONT_CYR_REGULAR = _FONTS_DIR / "PressStart2P-Regular.ttf"
+_FONT_CYR_BOLD = _FONTS_DIR / "PressStart2P-Regular.ttf"
 
 # Canvas geometry
 POST_SIZE = (1080, 1350)
@@ -209,6 +210,13 @@ def render_card(data: CardData, variant: str = "post") -> bytes:
     if data.boss_damage > 0:
         rows.append((f"Боссу: -{_fmt(data.boss_damage)} HP", COBALT))
 
+    # Press Start 2P is wide — fit every row at one shared size so the stat
+    # block keeps a uniform look even with long numbers.
+    row_max_w = inner_w - BULLET - 28
+    row_size = ROW_H
+    for text, _ in rows:
+        row_size = min(row_size, _fit_size(draw, text, False, ROW_H, row_max_w))
+
     # Centre the content block vertically inside the panel
     content_h = (
         BRAND_SIZE + 56
@@ -252,7 +260,7 @@ def render_card(data: CardData, variant: str = "post") -> bytes:
         )
         draw.text(
             (inner_left + BULLET + 28, y + ROW_H // 2), text,
-            font=_font(text, False, ROW_H), fill=INK, anchor="lm",
+            font=_font(text, False, row_size), fill=INK, anchor="lm",
         )
         y += ROW_H + ROW_GAP
 
