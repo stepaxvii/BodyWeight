@@ -360,28 +360,11 @@
 		}
 	}
 
+	// «Поделиться» — текстовый отчёт с полным списком упражнений (карточка
+	// остаётся только для сторис).
 	async function shareWorkout() {
 		telegram.hapticImpact('medium');
 
-		// Card flow: server-rendered PNG shared one-tap via prepared inline
-		// message (Bot API 8.0); falls back to a plain invite-link share.
-		if (telegram.webApp) {
-			const card = await ensureShareCard();
-			if (card) {
-				if (card.prepared_message_id && telegram.canShareMessage) {
-					telegram.shareMessage(card.prepared_message_id);
-				} else {
-					telegram.openTelegramLink(
-						`https://t.me/share/url?url=${encodeURIComponent(card.invite_link)}&text=${encodeURIComponent(card.share_text)}`
-					);
-				}
-				telegram.hapticNotification('success');
-				return;
-			}
-		}
-
-		// Text fallback — offline-queued workout (no session id), card prep
-		// failed, or running outside Telegram.
 		// Группируем по упражнению и суммируем повторы/секунды
 		const bySlug = new Map<string, { total: number; is_timed: boolean }>();
 		for (const ce of completedExercises) {
@@ -555,7 +538,7 @@
 			{/if}
 			<div class="player__doneactions">
 				<div class="done__sharerow">
-					<PixelButton variant="secondary" fullWidth disabled={isPreparingShare} onclick={shareWorkout}><PixelIcon name="share" /> Поделиться</PixelButton>
+					<PixelButton variant="secondary" fullWidth onclick={shareWorkout}><PixelIcon name="share" /> Поделиться</PixelButton>
 					{#if completedSessionId !== null && telegram.canShareToStory}
 						<PixelButton variant="secondary" fullWidth disabled={isPreparingShare} onclick={shareToStory}>В сторис</PixelButton>
 					{/if}
