@@ -6,6 +6,15 @@
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { Friend } from '$lib/types';
 
+	// Персональная ссылка-приглашение + прогресс реферальных наград
+	type InviteInfo = {
+		invite_link: string;
+		user_id: number;
+		rewarded_invites: number;
+		rewards_cap: number;
+		reward_coins: number;
+	};
+
 	let friends = $state<Friend[]>([]);
 	let friendRequests = $state<Friend[]>([]);
 	let searchResults = $state<Friend[]>([]);
@@ -14,6 +23,7 @@
 	let isSearching = $state(false);
 	let activeTab = $state<'friends' | 'requests' | 'search'>('friends');
 	let error = $state<string | null>(null);
+	let inviteInfo = $state<InviteInfo | null>(null);
 
 	// Confirmation dialog state
 	let confirmRemove = $state<{ id: number; name: string; isRequest: boolean } | null>(null);
@@ -30,8 +40,17 @@
 			activeTab = 'search';
 		}
 
-		await loadFriends();
+		await Promise.all([loadFriends(), loadInviteInfo()]);
 	});
+
+	async function loadInviteInfo() {
+		try {
+			inviteInfo = await api.getInviteLink();
+		} catch (err) {
+			// Не блокируем экран — кнопка «Поделиться» подгрузит ссылку сама
+			console.error('Failed to load invite link:', err);
+		}
+	}
 
 	async function loadFriends() {
 		isLoading = true;
@@ -72,21 +91,26 @@
 		try {
 			telegram.hapticImpact('medium');
 
-			const botUsername = 'pixelfitbot';
-			const botLink = `https://t.me/${botUsername}`;
+			// Персональная ссылка: бот сразу добавит отправителя и друга в друзья
+			let info = inviteInfo;
+			if (!info) {
+				info = await api.getInviteLink();
+				inviteInfo = info;
+			}
+			const inviteLink = info.invite_link;
 
-			const inviteText = `PixelFit - 8-bit фитнес трекер! Набирай опыт, прокачивай уровень, открывай достижения. Присоединяйся!`;
+			const inviteText = 'Тренируйся со мной в PixelFit — фитнес с 8-битной душой прямо в Telegram';
 
 			// Try Telegram share if inside TMA
 			if (telegram.webApp) {
-				const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(inviteText)}`;
+				const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(inviteText)}`;
 				telegram.openTelegramLink(shareUrl);
 			} else if (navigator.share) {
 				// Browser: native Web Share API
-				await navigator.share({ title: 'PixelFit', text: inviteText, url: botLink });
+				await navigator.share({ title: 'PixelFit', text: inviteText, url: inviteLink });
 			} else {
 				// Fallback: copy to clipboard
-				await navigator.clipboard.writeText(`${inviteText}\n${botLink}`);
+				await navigator.clipboard.writeText(`${inviteText}\n${inviteLink}`);
 				error = null;
 				alert('Ссылка скопирована в буфер обмена');
 			}
@@ -271,6 +295,15 @@
 						<PixelIcon name="link" size="sm" color="var(--primary)" />
 						<span>Пригласить друга</span>
 					</div>
+					{#if inviteInfo}
+						<div class="referral-note">
+							<span class="referral-note__reward">
+								<PixelIcon name="coin" size="sm" color="var(--gold)" />
+								<span>+{inviteInfo.reward_coins} монет за первую тренировку друга</span>
+							</span>
+							<span class="referral-note__progress">Награждено приглашений: {inviteInfo.rewarded_invites}/{inviteInfo.rewards_cap}</span>
+						</div>
+					{/if}
 					<PixelButton size="sm" variant="secondary" onclick={shareInviteLink}>
 						<PixelIcon name="share" />
 						Поделиться приглашением
@@ -507,6 +540,32 @@
 		gap: var(--spacing-xs);
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
+	}
+
+	/* Реферальная плашка: награда отправителю + прогресс наград */
+	.referral-note {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: var(--spacing-xs) var(--spacing-sm);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		background: var(--pixel-bg-dark);
+		border: var(--border-width) solid var(--border-color);
+		font-size: var(--font-size-xs);
+	}
+
+	.referral-note__reward {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		color: var(--text-secondary);
+		min-width: 0;
+	}
+
+	.referral-note__progress {
+		flex-shrink: 0;
+		color: var(--gold);
 	}
 
 	.search-box {

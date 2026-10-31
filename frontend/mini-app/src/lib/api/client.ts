@@ -351,7 +351,13 @@ class ApiClient {
 		});
 	}
 
-	async getInviteLink(): Promise<{ invite_link: string; user_id: number }> {
+	async getInviteLink(): Promise<{
+		invite_link: string;
+		user_id: number;
+		rewarded_invites: number;
+		rewards_cap: number;
+		reward_coins: number;
+	}> {
 		return this.request('/friends/invite-link');
 	}
 

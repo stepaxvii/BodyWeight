@@ -111,6 +111,18 @@ async def collect_daily_stats(session: AsyncSession, day: date) -> dict:
         )
     ).scalar_one()
 
+    # Referral rewards granted: referral.py writes a "referral_reward"
+    # notification for every rewarded invite — count those.
+    referral_rewards = (
+        await session.execute(
+            select(func.count())
+            .select_from(Notification)
+            .where(Notification.notification_type == "referral_reward")
+            .where(Notification.created_at >= day_start)
+            .where(Notification.created_at < day_end)
+        )
+    ).scalar_one()
+
     # Boss covering that day + approximate damage dealt. This mirrors the
     # per-workout damage cap in services/boss.py (DAMAGE_CAP_PER_WORKOUT) and
     # is an APPROXIMATION: real damage is also trimmed by remaining boss HP.
@@ -159,6 +171,7 @@ async def collect_daily_stats(session: AsyncSession, day: date) -> dict:
         "top_exercises": [(name_ru, cnt) for name_ru, cnt in top_exercises],
         "challenge_joins": challenge_joins,
         "streak_freezes_used": streak_freezes_used,
+        "referral_rewards": referral_rewards,
         "boss": boss_stats,
     }
 
@@ -221,6 +234,9 @@ def format_digest(stats: dict, day: date) -> str:
         extras.append(f"🎯 Челленджи: +{_fmt(stats['challenge_joins'])}")
     if stats["streak_freezes_used"]:
         extras.append(f"🧊 Заморозок: {_fmt(stats['streak_freezes_used'])}")
+    if stats["referral_rewards"]:
+        n = stats["referral_rewards"]
+        extras.append(f"🤝 Рефералка: {_fmt(n)} {_plural(n, 'награда', 'награды', 'наград')}")
     if extras:
         lines.append(" · ".join(extras))
 

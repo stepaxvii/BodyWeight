@@ -44,6 +44,7 @@ from app.services.notifications import (
 )
 from app.services.boss import deal_damage as boss_deal_damage
 from app.services.challenges import record_progress as challenges_record_progress
+from app.services.referral import grant_referral_reward_on_first_workout
 
 
 @dataclass
@@ -457,6 +458,24 @@ async def process_workout_completion(
 
     # 11. Check achievements
     new_achievements = await check_achievements(session, user)
+
+    # 11.5 Referral reward: if this submit is the user's FIRST completed workout,
+    # reward their inviter (best-effort — never block workout completion).
+    # The current session is already flushed as "completed", so a count of 1
+    # means exactly this workout.
+    try:
+        completed_workouts = (
+            await session.execute(
+                select(func.count(WorkoutSession.id))
+                .where(WorkoutSession.user_id == user.id)
+                .where(WorkoutSession.status == "completed")
+            )
+        ).scalar() or 0
+        if completed_workouts == 1:
+            await grant_referral_reward_on_first_workout(session, user)
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("Failed to grant referral reward")
 
     # Note: Coins and XP from achievements are already awarded
     # We just track them in workout summary for display

@@ -4,13 +4,14 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command, CommandStart
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
-from sqlalchemy import select
+from sqlalchemy import and_, func, or_, select
 
 from app.config import settings
 from app.db.database import async_session_maker
-from app.db.models import User
+from app.db.models import Friendship, User, WorkoutSession
 from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button, get_link_confirmation_keyboard
 from app.bot.session import make_ipv4_session
+from app.services.notifications import save_notification
 
 router = Router()
 
@@ -47,6 +48,86 @@ async def get_or_create_user(telegram_id: int, username: str | None, first_name:
         return user
 
 
+async def _connect_invited_friend(invitee_id: int, inviter_id: int) -> tuple[User | None, bool]:
+    """Auto-create an accepted friendship between the invite clicker and the inviter.
+
+    Returns (inviter, became_friends). inviter is None when the invite link
+    points at a non-existent user; became_friends is True only when a new
+    friendship was created or a pending one was upgraded to accepted.
+
+    Also attributes the referral (users.invited_by_user_id) — but ONLY when the
+    clicker hasn't really started yet: no inviter recorded and zero completed
+    workouts. Veterans are never retroactively claimed (see services/referral.py).
+    """
+    async with async_session_maker() as session:
+        me = await session.get(User, invitee_id)
+        inviter_result = await session.execute(
+            select(User).where(User.id == inviter_id)
+        )
+        inviter = inviter_result.scalar_one_or_none()
+        if not me or not inviter:
+            return None, False
+
+        # Existing friendship rows between the two (either direction, any status)
+        rows_result = await session.execute(
+            select(Friendship).where(
+                or_(
+                    and_(Friendship.user_id == me.id, Friendship.friend_id == inviter.id),
+                    and_(Friendship.user_id == inviter.id, Friendship.friend_id == me.id),
+                )
+            )
+        )
+        rows = {(f.user_id, f.friend_id): f for f in rows_result.scalars().all()}
+        forward = rows.get((me.id, inviter.id))
+        reverse = rows.get((inviter.id, me.id))
+
+        already_friends = (
+            forward is not None and forward.status == "accepted"
+            and reverse is not None and reverse.status == "accepted"
+        )
+        became_friends = False
+        if not already_friends:
+            # Reciprocal accepted rows — same shape as the accept flow in
+            # api/routes/friends.py (pending rows are upgraded in place).
+            if forward is None:
+                session.add(Friendship(user_id=me.id, friend_id=inviter.id, status="accepted"))
+            else:
+                forward.status = "accepted"
+            if reverse is None:
+                session.add(Friendship(user_id=inviter.id, friend_id=me.id, status="accepted"))
+            else:
+                reverse.status = "accepted"
+            became_friends = True
+
+        # Referral attribution: only for brand-new users or users with zero
+        # completed workouts who have no inviter recorded yet.
+        if me.invited_by_user_id is None:
+            completed_workouts = (
+                await session.execute(
+                    select(func.count(WorkoutSession.id))
+                    .where(WorkoutSession.user_id == me.id)
+                    .where(WorkoutSession.status == "completed")
+                )
+            ).scalar() or 0
+            if completed_workouts == 0:
+                me.invited_by_user_id = inviter.id
+
+        if became_friends:
+            invitee_name = me.username or me.first_name or "Пользователь"
+            await save_notification(
+                session=session,
+                user_id=inviter.id,
+                notification_type="friend_joined",
+                title="Друг присоединился!",
+                message=f"{invitee_name} присоединился по твоему приглашению — вы теперь друзья!",
+                related_user_id=me.id,
+            )
+
+        await session.commit()
+        await session.refresh(inviter)
+        return inviter, became_friends
+
+
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     """Handle /start command with optional deep link parameter."""
@@ -71,22 +152,43 @@ async def cmd_start(message: Message):
 
     # Check if this is a friend invite
     if start_param and start_param.startswith('addfriend_'):
+        friend = None
+        became_friends = False
         try:
             friend_id = int(start_param.replace('addfriend_', ''))
-            # Get friend's name from database
-            async with async_session_maker() as session:
-                result = await session.execute(
-                    select(User).where(User.id == friend_id)
+            # Guard against self-invite: a user clicking their own link
+            if friend_id != db_user.id:
+                friend, became_friends = await _connect_invited_friend(
+                    invitee_id=db_user.id,
+                    inviter_id=friend_id,
                 )
-                friend = result.scalar_one_or_none()
+        except Exception as e:
+            logger.error(f"Error processing friend invite: {e}")
+            start_param = None
 
-            if friend:
-                friend_name = friend.username or friend.first_name or "Пользователь"
-                welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
+        if friend:
+            friend_name = friend.username or friend.first_name or "Пользователь"
+
+            # Tell the inviter their invite worked (best-effort direct message)
+            if became_friends and friend.telegram_id and message.bot:
+                invitee_name = db_user.username or db_user.first_name or "Пользователь"
+                try:
+                    await message.bot.send_message(
+                        chat_id=friend.telegram_id,
+                        text=(
+                            f"🤝 <b>{invitee_name}</b> присоединился по твоему "
+                            f"приглашению — вы теперь друзья!"
+                        ),
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to notify inviter {friend.id} about joined friend: {e}")
+
+            welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
 
 Привет, {user.first_name or 'друг'}! 👋
 
-<b>{friend_name}</b> приглашает тебя присоединиться к тренировкам!
+Вы теперь друзья с <b>{friend_name}</b>! 🤝
+Тренируйтесь вместе и соревнуйтесь!
 
 💪 Большое количество упражнений
 🏆 Система достижений и наград
@@ -95,23 +197,7 @@ async def cmd_start(message: Message):
 
 Открой приложение и начни тренироваться вместе!
 """
-            else:
-                welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
-
-Добро пожаловать, {user.first_name or 'друг'}! 👋
-
-Тренируйся как в игре! Набирай опыт, прокачивай уровень, открывай достижения.
-
-💪 Большое количество упражнений
-🏆 Система достижений
-📊 Соревнования с друзьями
-⚡ Streaks и бонусы
-
-Открой приложение и начни свой фитнес-путь!
-"""
-        except (ValueError, Exception) as e:
-            logger.error(f"Error parsing friend invite: {e}")
-            start_param = None
+        else:
             welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
 
 Добро пожаловать, {user.first_name or 'друг'}! 👋

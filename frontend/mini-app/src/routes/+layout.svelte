@@ -28,6 +28,13 @@
 			}
 		}
 
+		// Invite link from a friend: startapp=addfriend_<user_id>. The bot's
+		// /start handler has already created the friendship — just open friends.
+		if (param.startsWith('addfriend_')) {
+			goto(`${base}/friends`);
+			return;
+		}
+
 		const routes: Record<string, string> = {
 			friends_requests: '/friends?tab=requests',
 			friends: '/friends',
@@ -36,7 +43,7 @@
 
 		const route = routes[param];
 		if (route) {
-			goto(route);
+			goto(`${base}${route}`);
 		}
 	}
 

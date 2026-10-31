@@ -46,6 +46,11 @@ class User(Base):
     is_onboarded: Mapped[bool] = mapped_column(Boolean, default=False)
     leaderboard_visible: Mapped[bool] = mapped_column(BooleanCoerce, default=True)
 
+    # Referral program: who invited this user (set once, for new/zero-workout
+    # users only) and how many of THIS user's invitees already earned a reward
+    invited_by_user_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    referral_rewards_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())

@@ -365,6 +365,32 @@ async def send_announcement_push(telegram_id: int, text: str) -> bool:
         return False
 
 
+async def send_referral_reward_push(telegram_id: int, text: str) -> bool:
+    """
+    Send the referral reward push to the inviter via Telegram bot.
+    Used when an invited user completes their first workout.
+
+    Args:
+        telegram_id: Telegram ID of the inviter to notify
+        text: HTML-formatted message body
+
+    Returns:
+        True if notification was sent successfully
+    """
+    try:
+        bot = get_bot()
+        await bot.send_message(
+            chat_id=telegram_id,
+            text=text,
+            reply_markup=get_open_app_keyboard(),
+        )
+        logger.info(f"Referral reward push sent to {telegram_id}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send referral reward push to {telegram_id}: {e}")
+        return False
+
+
 async def send_admin_digest(text: str) -> bool:
     """
     Send the daily stats digest to the project admin via Telegram bot.

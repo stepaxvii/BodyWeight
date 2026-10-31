@@ -307,9 +307,13 @@ async def get_invite_link(
     Returns a Telegram deep link that opens the bot with start parameter.
     Format: https://t.me/bot_username?start=addfriend_{user_id}
 
-    When another user opens this link, they'll see a prompt to add this user as friend.
+    When another user opens this link, the bot auto-creates the friendship and
+    the inviter earns coins once the invitee completes their first workout
+    (capped — see services/referral.py). The referral progress is returned
+    alongside the link for the friends screen.
     """
     from app.config import settings
+    from app.services.referral import REFERRAL_REWARD_COINS, REFERRAL_REWARDS_CAP
 
     if not settings.bot_username:
         raise HTTPException(
@@ -325,6 +329,9 @@ async def get_invite_link(
     return {
         "invite_link": invite_link,
         "user_id": user.id,
+        "rewarded_invites": user.referral_rewards_count,
+        "rewards_cap": REFERRAL_REWARDS_CAP,
+        "reward_coins": REFERRAL_REWARD_COINS,
     }
 
 
