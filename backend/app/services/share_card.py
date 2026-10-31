@@ -205,7 +205,7 @@ def render_card(data: CardData, variant: str = "post") -> bytes:
         rows.append((f"Время: {_fmt(data.duration_minutes)} мин", GOLD))
     if data.streak_days > 0:
         rows.append(
-            (f"Серия: {data.streak_days} {_plural_days(data.streak_days)}", GOLD)
+            (f"Серия: {_fmt(data.streak_days)} {_plural_days(data.streak_days)}", GOLD)
         )
     if data.boss_damage > 0:
         rows.append((f"Боссу: -{_fmt(data.boss_damage)} HP", COBALT))
