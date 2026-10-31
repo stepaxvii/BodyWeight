@@ -9,16 +9,11 @@ from sqlalchemy import select
 from app.config import settings
 from app.db.database import async_session_maker
 from app.db.models import User
-from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button, get_leaderboard_consent_keyboard, get_link_confirmation_keyboard
+from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button, get_link_confirmation_keyboard
 from app.bot.session import make_ipv4_session
 
 router = Router()
 
-LEADERBOARD_CONSENT_TEXT = """📊 <b>Рейтинг</b>
-
-Показывать твой username (или имя) в общем рейтинге и у друзей?
-
-Можно изменить позже в настройках приложения."""
 logger = logging.getLogger(__name__)
 
 
@@ -148,80 +143,6 @@ async def cmd_start(message: Message):
         welcome_text,
         reply_markup=get_main_keyboard(start_param=start_param),
     )
-
-    # Показать предложение «показывать в рейтинге» только если в БД False (один явный запрос)
-    async with async_session_maker() as session:
-        r = await session.execute(
-            select(User.leaderboard_visible).where(User.telegram_id == user.id)
-        )
-        row = r.one_or_none()
-    leaderboard_visible = row[0] if row is not None else None
-    raw_val = row[0] if row is not None else None
-    logger.info(
-        "cmd_start: telegram_id=%s leaderboard_visible=%s raw_type=%s (для проверки: sqlite3 <путь_к_БД> \"SELECT telegram_id, leaderboard_visible FROM users WHERE telegram_id=%s\")",
-        user.id, leaderboard_visible, type(raw_val).__name__ if raw_val is not None else None, user.id,
-    )
-    if row is not None and not row[0]:
-        try:
-            await message.answer(
-                LEADERBOARD_CONSENT_TEXT,
-                reply_markup=get_leaderboard_consent_keyboard(),
-            )
-            logger.info("cmd_start: отправлено сообщение «показывать в рейтинге» telegram_id=%s", user.id)
-        except Exception as e:
-            logger.exception("cmd_start: не удалось отправить сообщение рейтинга telegram_id=%s: %s", user.id, e)
-    else:
-        logger.info("cmd_start: сообщение рейтинга не отправляем (leaderboard_visible=True или нет строки) telegram_id=%s", user.id)
-
-
-@router.callback_query(F.data == "leaderboard_consent_yes")
-async def callback_leaderboard_yes(callback: CallbackQuery):
-    """Пользователь согласился на показ в рейтинге."""
-    if not callback.from_user:
-        await callback.answer()
-        return
-    async with async_session_maker() as session:
-        result = await session.execute(
-            select(User).where(User.telegram_id == callback.from_user.id)
-        )
-        user = result.scalar_one_or_none()
-        if user:
-            user.leaderboard_visible = True
-            await session.commit()
-    await callback.answer("Ок, ты будешь в рейтинге!")
-    if callback.message:
-        try:
-            await callback.message.edit_text(
-                LEADERBOARD_CONSENT_TEXT + "\n\n✅ Показывать в рейтинге.",
-                reply_markup=None,
-            )
-        except Exception:
-            pass
-
-
-@router.callback_query(F.data == "leaderboard_consent_no")
-async def callback_leaderboard_no(callback: CallbackQuery):
-    """Пользователь отказался от показа в рейтинге."""
-    if not callback.from_user:
-        await callback.answer()
-        return
-    async with async_session_maker() as session:
-        result = await session.execute(
-            select(User).where(User.telegram_id == callback.from_user.id)
-        )
-        user = result.scalar_one_or_none()
-        if user:
-            user.leaderboard_visible = False
-            await session.commit()
-    await callback.answer("Ок, скрыт из рейтинга.")
-    if callback.message:
-        try:
-            await callback.message.edit_text(
-                LEADERBOARD_CONSENT_TEXT + "\n\n❌ Не показывать в рейтинге.",
-                reply_markup=None,
-            )
-        except Exception:
-            pass
 
 
 @router.message(Command("workout"))

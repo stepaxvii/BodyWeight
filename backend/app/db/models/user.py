@@ -44,7 +44,7 @@ class User(Base):
 
     # Onboarding
     is_onboarded: Mapped[bool] = mapped_column(Boolean, default=False)
-    leaderboard_visible: Mapped[bool] = mapped_column(BooleanCoerce, default=False)
+    leaderboard_visible: Mapped[bool] = mapped_column(BooleanCoerce, default=True)
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

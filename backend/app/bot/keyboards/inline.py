@@ -28,18 +28,6 @@ def get_webapp_button(start_param: str | None = None) -> InlineKeyboardMarkup:
     )
 
 
-def get_leaderboard_consent_keyboard() -> InlineKeyboardMarkup:
-    """Клавиатура согласия на показ в рейтинге."""
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text="Да, показывать", callback_data="leaderboard_consent_yes"),
-                InlineKeyboardButton(text="Нет, скрыть", callback_data="leaderboard_consent_no"),
-            ]
-        ]
-    )
-
-
 def get_link_confirmation_keyboard(link_token: str) -> InlineKeyboardMarkup:
     """Keyboard for confirming Telegram account linking."""
     return InlineKeyboardMarkup(

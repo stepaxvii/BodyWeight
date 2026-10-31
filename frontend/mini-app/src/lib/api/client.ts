@@ -11,7 +11,6 @@ import type {
 	WorkoutSummaryResponse,
 	Achievement,
 	LeaderboardEntry,
-	LeaderboardType,
 	Goal,
 	Friend,
 	ShopItem,
@@ -316,10 +315,9 @@ class ApiClient {
 		return allAchievements;
 	}
 
-	// Leaderboard
-	async getLeaderboard(type: LeaderboardType = 'global'): Promise<LeaderboardEntry[]> {
-		const endpoint = type === 'global' ? '/leaderboard' : `/leaderboard/${type}`;
-		const response = await this.request<{ entries: LeaderboardEntry[]; current_user_rank: number | null }>(endpoint);
+	// Leaderboard (недельный рейтинг друзей)
+	async getLeaderboard(): Promise<LeaderboardEntry[]> {
+		const response = await this.request<{ entries: LeaderboardEntry[]; current_user_rank: number | null }>('/leaderboard');
 		return Array.isArray(response?.entries) ? response.entries : [];
 	}
 

@@ -304,8 +304,6 @@ export interface LeaderboardResponse {
 	current_user_rank: number | null;
 }
 
-export type LeaderboardType = 'global' | 'friends' | 'weekly';
-
 // Goal types (matches backend GoalResponse)
 export interface Goal {
 	id: number;

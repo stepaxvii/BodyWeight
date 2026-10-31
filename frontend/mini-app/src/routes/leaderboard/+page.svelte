@@ -1,24 +1,24 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { PixelCard, PixelIcon, PixelAvatar, EmptyState, PixelTabs, PixelButton, CountUp } from '$lib/components/ui';
+	import { goto } from '$app/navigation';
+	import { base } from '$app/paths';
+	import { PixelIcon, PixelAvatar, EmptyState, PixelButton, CountUp } from '$lib/components/ui';
 	import UserProfileModal from '$lib/components/UserProfileModal.svelte';
 	import Banner from '$lib/components/ui/Banner.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
-	import type { LeaderboardEntry, LeaderboardType } from '$lib/types';
+	import type { LeaderboardEntry } from '$lib/types';
 
 	let entries = $state<LeaderboardEntry[]>([]);
-	let activeTab = $state<LeaderboardType>('global');
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
 	let selectedUserId = $state<number | null>(null);
 	let updatingVisibility = $state(false);
 
-	// Current user's own entry (for the pinned "your rank" card)
-	const me = $derived(entries.find((e) => e.is_current_user));
-
-	const leaderboardConsentText = `Показывать твой username (или имя) в общем рейтинге и у друзей?`;
+	// Есть ли вообще соперники (кроме самого пользователя)
+	const hasRivals = $derived(entries.some((e) => !e.is_current_user));
+	const showPodium = $derived(entries.length >= 3);
 
 	async function showMeInLeaderboard() {
 		if (updatingVisibility || userStore.user?.leaderboard_visible) return;
@@ -33,12 +33,6 @@
 			updatingVisibility = false;
 		}
 	}
-
-	const leaderboardTabs: { id: LeaderboardType; label: string }[] = [
-		{ id: 'global', label: 'Все' },
-		{ id: 'weekly', label: 'Неделя' },
-		{ id: 'friends', label: 'Друзья' }
-	];
 
 	onMount(async () => {
 		// Рейтинг и пользователь параллельно
@@ -55,7 +49,7 @@
 		isLoading = true;
 		error = null;
 		try {
-			const list = await api.getLeaderboard(activeTab);
+			const list = await api.getLeaderboard();
 			entries = Array.isArray(list) ? list : [];
 		} catch (err) {
 			console.error('Failed to load leaderboard:', err);
@@ -66,18 +60,12 @@
 		}
 	}
 
-	async function switchTab(tab: LeaderboardType) {
-		if (tab === activeTab) return;
-		activeTab = tab;
-		await loadLeaderboard();
-	}
-
 	function getRankColor(rank: number): string {
 		switch (rank) {
-			case 1: return 'var(--pixel-yellow)';
-			case 2: return 'var(--pixel-light)';
-			case 3: return 'var(--pixel-orange)';
-			default: return 'var(--text-secondary)';
+			case 1: return 'var(--gold)';
+			case 2: return 'var(--dim)';
+			case 3: return 'var(--podium3)';
+			default: return 'var(--muted)';
 		}
 	}
 
@@ -91,22 +79,33 @@
 		selectedUserId = entry.user_id;
 		telegram.hapticImpact('light');
 	}
+
+	function goInviteFriend() {
+		telegram.hapticImpact('light');
+		goto(`${base}/friends`);
+	}
 </script>
 
 <div class="page container">
 	<div class="banner-wrap">
-		<Banner icon="trophy" title="Рейтинг" deco="crown" />
+		<Banner icon="trophy" title="Рейтинг" sub="Неделя среди друзей" deco="crown" />
 	</div>
 
-	<!-- Tabs -->
-	<PixelTabs tabs={leaderboardTabs} activeTab={activeTab} onTabChange={switchTab} />
+	<p class="lb-note">
+		<PixelIcon name="clock" size="sm" color="var(--muted)" />
+		<span>Очки сбрасываются каждый понедельник</span>
+	</p>
 
-	<!-- Окно с предложением и кнопка принятия — показываем, если в БД нет согласия на показ в рейтинге -->
+	<!-- Скрыт из рейтинга — панель с предложением показать себя друзьям -->
 	{#if userStore.isAuthenticated && (userStore.user == null || userStore.user.leaderboard_visible !== true)}
-		<PixelCard class="leaderboard-consent-card">
-			<p class="consent-message">📊 <strong>Рейтинг</strong></p>
-			<p class="consent-message">{leaderboardConsentText}</p>
-			<p class="consent-hint">Можно изменить позже в настройках приложения.</p>
+		<div class="lb-hidden">
+			<div class="lb-hidden__head">
+				<span class="slot slot--md"><PixelIcon name="lock" size="md" color="var(--muted)" /></span>
+				<div class="lb-hidden__txt">
+					<span class="lb-hidden__t">Ты скрыт из рейтинга</span>
+					<span class="lb-hidden__s">Друзья не видят тебя в недельном рейтинге.</span>
+				</div>
+			</div>
 			<PixelButton
 				variant="primary"
 				fullWidth
@@ -114,9 +113,9 @@
 				loading={updatingVisibility}
 				onclick={showMeInLeaderboard}
 			>
-				Показывать меня в рейтинге
+				Показывать меня друзьям
 			</PixelButton>
-		</PixelCard>
+		</div>
 	{/if}
 
 	<!-- Leaderboard Content -->
@@ -130,14 +129,19 @@
 			icon="trophy"
 			message={error}
 		/>
-	{:else if entries.length === 0}
-		<EmptyState
-			icon="trophy"
-			message="Пока никого нет"
-		/>
+	{:else if !hasRivals}
+		<!-- Пусто: кроме тебя соревноваться некому -->
+		<div class="lb-empty anim-pop">
+			<span class="slot slot--lg"><PixelIcon name="friends" size="lg" color="var(--muted)" /></span>
+			<p class="lb-empty__t">Пока соревноваться не с кем</p>
+			<p class="lb-empty__s">Добавь друзей — и недельная гонка за XP начнётся.</p>
+			<PixelButton variant="primary" fullWidth onclick={goInviteFriend}>
+				Пригласить друга
+			</PixelButton>
+		</div>
 	{:else}
-		<!-- Top 3 Podium -->
-		{#if activeTab !== 'friends' && entries.length >= 3}
+		<!-- Top 3 Podium (недельные XP) -->
+		{#if showPodium}
 			<div class="podium">
 				<!-- 2nd Place -->
 				<button
@@ -148,7 +152,7 @@
 					<PixelAvatar
 						avatarId={entries[1].avatar_id || 'shadow-wolf'}
 						size="lg"
-						borderColor="var(--pixel-light)"
+						borderColor="var(--line)"
 					/>
 					<span class="podium-name">{entries[1].username ? `${entries[1].username}` : entries[1].first_name}</span>
 					<span class="podium-xp"><CountUp value={entries[1].total_xp} /> XP</span>
@@ -162,12 +166,12 @@
 					onclick={() => openUserProfile(entries[0])}
 				>
 					<div class="podium-crown">
-						<PixelIcon name="trophy" color="var(--pixel-yellow)" />
+						<PixelIcon name="crown" color="var(--ink)" />
 					</div>
 					<PixelAvatar
 						avatarId={entries[0].avatar_id || 'shadow-wolf'}
 						size="xl"
-						borderColor="var(--pixel-yellow)"
+						borderColor="var(--line)"
 					/>
 					<span class="podium-name">{entries[0].username ? `${entries[0].username}` : entries[0].first_name}</span>
 					<span class="podium-xp"><CountUp value={entries[0].total_xp} /> XP</span>
@@ -183,7 +187,7 @@
 					<PixelAvatar
 						avatarId={entries[2].avatar_id || 'shadow-wolf'}
 						size="lg"
-						borderColor="var(--pixel-orange)"
+						borderColor="var(--line)"
 					/>
 					<span class="podium-name">{entries[2].username ? `${entries[2].username}` : entries[2].first_name}</span>
 					<span class="podium-xp"><CountUp value={entries[2].total_xp} /> XP</span>
@@ -192,12 +196,10 @@
 			</div>
 		{/if}
 
-		<!-- Full List -->
+		<!-- Остальные места -->
 		<div class="leaderboard-list anim-rows">
 			{#each entries as entry, i}
-				{@const hasPodium = activeTab !== 'friends' && entries.length >= 3}
-				{@const showInList = activeTab === 'friends' || !hasPodium || i >= 3}
-				{#if showInList}
+				{#if !showPodium || i >= 3}
 					<button
 						class="entry-card"
 						class:accent={entry.is_current_user}
@@ -205,7 +207,7 @@
 						onclick={() => openUserProfile(entry)}
 					>
 						<div class="entry" class:current-user={entry.is_current_user}>
-							<div class="entry-rank" style="color: {getRankColor(entry.rank)}">
+							<div class="entry-rank" style="color: {entry.is_current_user ? 'var(--on-accent)' : getRankColor(entry.rank)}">
 								{#if getRankIcon(entry.rank)}
 									<PixelIcon name={getRankIcon(entry.rank)} size="sm" color={getRankColor(entry.rank)} />
 								{/if}
@@ -234,7 +236,7 @@
 							</div>
 
 							<div class="entry-streak">
-								<PixelIcon name="streak" size="sm" color="var(--pixel-yellow)" />
+								<PixelIcon name="streak" size="sm" color="var(--gold)" />
 								<span>{entry.current_streak}</span>
 							</div>
 						</div>
@@ -242,18 +244,6 @@
 				{/if}
 			{/each}
 		</div>
-
-		{#if activeTab !== 'friends' && me}
-			<div class="lb-you-card">
-				<span class="lb-you-card__rank">#{me.rank}</span>
-				<PixelAvatar avatarId={me.avatar_id || 'shadow-wolf'} size="md" showBorder={false} />
-				<div class="lb-you-meta">
-					<span class="lb-you-name">{me.username || me.first_name}</span>
-					<span class="lb-you-sub">Ур.{me.level}</span>
-				</div>
-				<span class="lb-you-xp"><CountUp value={me.total_xp} /> XP</span>
-			</div>
-		{/if}
 	{/if}
 </div>
 
@@ -270,36 +260,18 @@
 	}
 
 	.banner-wrap {
-		margin-bottom: var(--spacing-md);
+		margin-bottom: var(--spacing-sm);
 	}
 
-	/* Pinned "your rank" card (.lb-you-card / __rank live in hud.css; tangerine bg) */
-	.lb-you-card {
-		margin-top: var(--spacing-sm);
-	}
-	.lb-you-meta {
-		flex: 1;
+	/* Caption: weekly reset rule */
+	.lb-note {
 		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		min-width: 0;
-	}
-	.lb-you-name {
-		font-size: var(--font-size-xs);
-		color: var(--on-accent);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-	.lb-you-sub {
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		margin: 0 0 var(--spacing-md);
 		font-size: 10px;
-		color: var(--on-accent);
-		opacity: 0.85;
-	}
-	.lb-you-xp {
-		font-family: var(--font-data);
-		font-size: var(--font-size-sm);
-		color: var(--on-accent);
+		color: var(--muted);
 	}
 
 	/* Loading */
@@ -309,9 +281,67 @@
 		align-items: center;
 		gap: var(--spacing-md);
 		padding: var(--spacing-xl);
-		color: var(--text-secondary);
+		color: var(--muted);
 		font-size: var(--font-size-sm);
-		text-transform: uppercase;
+	}
+
+	/* "Hidden from leaderboard" panel */
+	.lb-hidden {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
+		background: var(--bg2);
+		border: var(--bw) solid var(--line);
+		box-shadow: var(--shadow);
+		margin-bottom: var(--spacing-md);
+	}
+	.lb-hidden__head {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+	}
+	.lb-hidden__txt {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+	.lb-hidden__t {
+		font-family: var(--font-display);
+		font-size: var(--font-size-sm);
+		color: var(--text);
+	}
+	.lb-hidden__s {
+		font-size: 11px;
+		color: var(--muted);
+		line-height: 1.4;
+	}
+
+	/* Empty: nobody to compete with yet */
+	.lb-empty {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-lg) var(--spacing-md);
+		background: var(--bg2);
+		border: var(--bw) solid var(--line);
+		box-shadow: var(--shadow);
+		text-align: center;
+	}
+	.lb-empty__t {
+		margin: var(--spacing-xs) 0 0;
+		font-family: var(--font-display);
+		font-size: var(--font-size-sm);
+		color: var(--text);
+	}
+	.lb-empty__s {
+		margin: 0 0 var(--spacing-sm);
+		font-size: 11px;
+		color: var(--muted);
+		line-height: 1.5;
 	}
 
 	/* Podium */
@@ -321,7 +351,7 @@
 		align-items: flex-end;
 		gap: var(--spacing-sm);
 		margin-bottom: var(--spacing-lg);
-		padding: var(--spacing-md);
+		padding: var(--spacing-md) var(--spacing-md) var(--spacing-sm);
 	}
 
 	.podium-item {
@@ -330,37 +360,36 @@
 		align-items: center;
 		gap: var(--spacing-xs);
 		padding: var(--spacing-sm);
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
+		background: var(--bg2);
+		border: var(--bw) solid var(--line);
+		box-shadow: var(--shadow);
 		position: relative;
 		cursor: pointer;
-		font-family: var(--font-pixel);
-		color: var(--text-primary);
+		font-family: var(--font-display);
+		color: var(--text);
 		transition: transform var(--transition-fast);
 	}
 
-	.podium-item.clickable:hover {
-		transform: scale(1.05);
+	.podium-item.clickable:active {
+		transform: translate(2px, 2px);
+		box-shadow: var(--bevel);
 	}
 
 	.podium-item.first {
 		padding: var(--spacing-md);
-		background: var(--pixel-yellow);
-		border-color: var(--border-color);
+		background: var(--gold);
 		margin-bottom: var(--spacing-md);
 		color: var(--ink);
 	}
 
 	.podium-item.second {
-		background: #dfe5cf;
-		border-color: var(--border-color);
+		background: var(--podium2);
 		padding-bottom: var(--spacing-md);
 		color: var(--ink);
 	}
 
 	.podium-item.third {
-		background: #d89a5a;
-		border-color: var(--border-color);
+		background: var(--podium3);
 		padding-bottom: var(--spacing-md);
 		color: var(--ink);
 	}
@@ -380,6 +409,7 @@
 	}
 
 	.podium-xp {
+		font-family: var(--font-data);
 		font-size: var(--font-size-xs);
 		color: var(--ink);
 		margin-bottom: 4px;
@@ -390,12 +420,13 @@
 		bottom: -12px;
 		width: 24px;
 		height: 24px;
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		color: var(--text-primary);
+		background: var(--bg3);
+		border: var(--bw) solid var(--line);
+		color: var(--text);
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		font-family: var(--font-data);
 		font-size: var(--font-size-xs);
 	}
 
@@ -409,23 +440,25 @@
 	.entry-card {
 		width: 100%;
 		padding: var(--spacing-sm);
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-		font-family: var(--font-pixel);
-		color: var(--text-primary);
+		background: var(--bg2);
+		border: var(--bw) solid var(--line);
+		box-shadow: var(--shadow);
+		font-family: var(--font-ui);
+		color: var(--text);
 		cursor: pointer;
 		text-align: left;
-		transition: border-color var(--transition-fast);
+		transition: transform 0.08s;
 	}
 
-	.entry-card.clickable:hover {
-		border-color: var(--pixel-accent);
+	.entry-card.clickable:active {
+		transform: translate(2px, 2px);
+		box-shadow: var(--bevel);
 	}
 
+	/* Current-user row sits on the cobalt accent block */
 	.entry-card.accent {
-		border-color: var(--border-color);
-		background: var(--pixel-accent);
-		color: var(--ink);
+		background: var(--accent);
+		color: var(--on-accent);
 	}
 
 	.entry {
@@ -443,6 +476,7 @@
 		align-items: center;
 		gap: 2px;
 		min-width: 40px;
+		font-family: var(--font-data);
 		font-size: var(--font-size-xs);
 	}
 
@@ -467,21 +501,20 @@
 	.you-badge {
 		font-size: 6px;
 		padding: 1px 4px;
-		background: var(--pixel-yellow);
+		background: var(--gold);
 		color: var(--ink);
 	}
 
 	.entry-level {
 		font-size: 8px;
-		color: var(--text-secondary);
+		color: var(--muted);
 	}
 
-	/* Current-user row sits on amber accent block — text reads dark */
 	.entry-card.accent .entry-level,
 	.entry-card.accent .entry-xp,
 	.entry-card.accent .entry-xp-label,
 	.entry-card.accent .entry-streak {
-		color: var(--ink);
+		color: var(--on-accent);
 	}
 
 	.entry-stats {
@@ -492,39 +525,28 @@
 	}
 
 	.entry-xp {
+		font-family: var(--font-data);
 		font-size: var(--font-size-sm);
-		color: var(--pixel-green);
+		color: var(--gold);
 	}
 
 	.entry-xp-label {
 		font-size: 10px;
-		color: var(--text-muted);
+		color: var(--muted);
 	}
 
 	.entry-streak {
 		display: flex;
 		align-items: center;
 		gap: 2px;
+		font-family: var(--font-data);
 		font-size: var(--font-size-xs);
-		color: var(--pixel-yellow);
+		color: var(--gold);
 		min-width: 32px;
 	}
 
 	@keyframes pixel-bounce {
 		0%, 100% { transform: translateY(0); }
 		50% { transform: translateY(-4px); }
-	}
-
-	.leaderboard-consent-card {
-		margin-bottom: var(--spacing-md);
-	}
-	.consent-message {
-		margin: 0 0 var(--spacing-xs);
-		font-size: var(--font-size-sm);
-	}
-	.consent-hint {
-		margin: 0 0 var(--spacing-sm);
-		font-size: var(--font-size-xs);
-		color: var(--text-secondary);
 	}
 </style>
