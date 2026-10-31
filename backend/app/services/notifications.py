@@ -365,6 +365,33 @@ async def send_announcement_push(telegram_id: int, text: str) -> bool:
         return False
 
 
+async def send_admin_digest(text: str) -> bool:
+    """
+    Send the daily stats digest to the project admin via Telegram bot.
+    No open-app keyboard — it's a plain informational message.
+
+    Args:
+        text: HTML-formatted message body
+
+    Returns:
+        True if the digest was sent successfully
+    """
+    if not settings.admin_telegram_id:
+        logger.debug("Admin digest skipped: ADMIN_TELEGRAM_ID is not set")
+        return False
+    try:
+        bot = get_bot()
+        await bot.send_message(
+            chat_id=settings.admin_telegram_id,
+            text=text,
+        )
+        logger.info(f"Admin digest sent to {settings.admin_telegram_id}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send admin digest to {settings.admin_telegram_id}: {e}")
+        return False
+
+
 async def close_bot():
     """Close bot session (call on app shutdown)."""
     global _bot

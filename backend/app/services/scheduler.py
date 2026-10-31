@@ -247,6 +247,32 @@ async def daily_challenge_lifecycle_job():
             logger.error(f"Error in daily challenge lifecycle job: {e}")
 
 
+async def daily_admin_stats_job():
+    """
+    Run at 05:00 UTC (08:00 МСК). Collects yesterday's aggregate stats and
+    sends the digest to the project admin via Telegram. Skipped when
+    ADMIN_TELEGRAM_ID is not configured.
+    """
+    from app.config import settings
+    from app.db.database import async_session_maker
+    from app.services.admin_stats import collect_daily_stats, format_digest
+    from app.services.notifications import send_admin_digest
+
+    if not settings.admin_telegram_id:
+        logger.info("Daily admin stats job skipped: ADMIN_TELEGRAM_ID is not set")
+        return
+
+    async with async_session_maker() as session:
+        try:
+            yesterday = (datetime.utcnow() - timedelta(days=1)).date()
+            stats = await collect_daily_stats(session, yesterday)
+            text = format_digest(stats, yesterday)
+            if await send_admin_digest(text):
+                logger.info(f"Daily job: admin digest for {yesterday} sent")
+        except Exception as e:
+            logger.error(f"Error in daily admin stats job: {e}")
+
+
 def start_scheduler():
     """
     Start the APScheduler for periodic notification checks.
@@ -303,6 +329,15 @@ def start_scheduler():
         trigger=CronTrigger(hour=0, minute=10, timezone="UTC"),
         id="daily_challenge_lifecycle",
         name="Challenge lifecycle (UTC midnight)",
+        replace_existing=True,
+    )
+
+    # Yesterday's stats digest to the project admin
+    scheduler.add_job(
+        daily_admin_stats_job,
+        trigger=CronTrigger(hour=5, minute=0, timezone="UTC"),
+        id="daily_admin_stats",
+        name="Admin daily stats digest (05:00 UTC)",
         replace_existing=True,
     )
 

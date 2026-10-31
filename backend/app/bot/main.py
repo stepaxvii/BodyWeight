@@ -6,7 +6,7 @@ from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 
 from app.config import settings
-from app.bot.handlers import start
+from app.bot.handlers import admin, start
 from app.bot.session import make_ipv4_session
 from app.db.database import async_engine
 
@@ -59,7 +59,8 @@ async def main():
 
     dp = Dispatcher()
 
-    # Register routers
+    # Register routers (admin: /digest, только для ADMIN_TELEGRAM_ID)
+    dp.include_router(admin.router)
     dp.include_router(start.router)
 
     # Register startup/shutdown handlers
