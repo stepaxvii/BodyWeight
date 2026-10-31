@@ -26,7 +26,6 @@ from app.api.deps import AsyncSessionDep, CurrentUser
 from app.config import settings
 from app.db.models import MonthlyBoss, WorkoutSession
 from app.schemas import ShareWorkoutResponse
-from app.services.boss import DAMAGE_CAP_PER_WORKOUT
 from app.services.share_card import CardData, render_card
 
 logger = logging.getLogger(__name__)
@@ -217,9 +216,9 @@ async def get_share_card(
             status_code=status.HTTP_404_NOT_FOUND, detail="Card not found"
         )
 
-    # Boss damage mirrors admin_stats.py: the per-workout cap from
-    # services/boss.py, only while a boss covers the workout's date. It is an
-    # APPROXIMATION — real damage is also trimmed by remaining boss HP.
+    # Boss damage is 1:1 with workout XP (services/boss.py), shown only while
+    # a boss covers the workout's date. It is an APPROXIMATION — real damage
+    # is also trimmed by remaining boss HP.
     day = workout.finished_at.date()
     boss_result = await session.execute(
         select(MonthlyBoss)
@@ -227,11 +226,7 @@ async def get_share_card(
         .where(MonthlyBoss.end_date >= day)
     )
     boss = boss_result.scalar_one_or_none()
-    boss_damage = (
-        min(workout.total_xp_earned, DAMAGE_CAP_PER_WORKOUT)
-        if boss is not None
-        else 0
-    )
+    boss_damage = workout.total_xp_earned if boss is not None else 0
 
     data = CardData(
         xp=workout.total_xp_earned,

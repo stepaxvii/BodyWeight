@@ -9,7 +9,7 @@ import html
 import logging
 from datetime import date, datetime, time, timedelta
 
-from sqlalchemy import case, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import (
@@ -21,8 +21,6 @@ from app.db.models import (
     WorkoutExercise,
     WorkoutSession,
 )
-from app.services.boss import DAMAGE_CAP_PER_WORKOUT
-
 logger = logging.getLogger(__name__)
 
 
@@ -123,9 +121,9 @@ async def collect_daily_stats(session: AsyncSession, day: date) -> dict:
         )
     ).scalar_one()
 
-    # Boss covering that day + approximate damage dealt. This mirrors the
-    # per-workout damage cap in services/boss.py (DAMAGE_CAP_PER_WORKOUT) and
-    # is an APPROXIMATION: real damage is also trimmed by remaining boss HP.
+    # Boss covering that day + approximate damage dealt. Damage is 1:1 with
+    # workout XP (services/boss.py); still an APPROXIMATION — real damage is
+    # trimmed by remaining boss HP at the moment of each workout.
     boss = (
         await session.execute(
             select(MonthlyBoss)
@@ -138,18 +136,7 @@ async def collect_daily_stats(session: AsyncSession, day: date) -> dict:
         boss_damage = (
             await session.execute(
                 select(
-                    func.coalesce(
-                        func.sum(
-                            case(
-                                (
-                                    WorkoutSession.total_xp_earned > DAMAGE_CAP_PER_WORKOUT,
-                                    DAMAGE_CAP_PER_WORKOUT,
-                                ),
-                                else_=WorkoutSession.total_xp_earned,
-                            )
-                        ),
-                        0,
-                    )
+                    func.coalesce(func.sum(WorkoutSession.total_xp_earned), 0)
                 ).where(*day_sessions)
             )
         ).scalar_one()

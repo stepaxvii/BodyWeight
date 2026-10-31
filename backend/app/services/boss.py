@@ -25,7 +25,6 @@ from app.services.notifications import save_notification
 logger = logging.getLogger(__name__)
 
 # Tunables
-DAMAGE_CAP_PER_WORKOUT = 1500
 REWARD_TIERS = [
     # (min_damage, tier_id, coins_full, coins_half_on_expiry)
     # Calibrated for 50K boss HP: tier4 = 5% of HP solo, tier1 = participation.
@@ -138,7 +137,7 @@ async def deal_damage(
     """
     Apply damage from a completed workout to the active boss.
 
-    Returns the actual damage dealt (after cap, possibly trimmed by remaining HP).
+    Damage equals the workout XP 1:1 (possibly trimmed by remaining HP).
     Safe no-op if boss is not active or xp_earned <= 0.
     """
     if xp_earned <= 0:
@@ -148,9 +147,8 @@ async def deal_damage(
     if boss.status != "active" or boss.current_hp <= 0:
         return 0
 
-    damage = min(xp_earned, DAMAGE_CAP_PER_WORKOUT)
     # Don't overshoot below zero
-    damage = min(damage, boss.current_hp)
+    damage = min(xp_earned, boss.current_hp)
 
     if damage <= 0:
         return 0
