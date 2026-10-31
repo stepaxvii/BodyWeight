@@ -72,3 +72,6 @@ alembic.ini.local
 
 # Docs
 docs/
+
+# Local branding assets (YouTube cover/icons)
+branding/
