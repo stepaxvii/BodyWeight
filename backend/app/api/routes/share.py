@@ -24,8 +24,8 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.config import settings
-from app.db.models import MonthlyBoss, WorkoutSession
-from app.schemas import ShareWorkoutResponse
+from app.db.models import Exercise, MonthlyBoss, WorkoutExercise, WorkoutSession
+from app.schemas import ShareWorkoutRequest, ShareWorkoutResponse
 from app.services.share_card import CardData, render_card
 
 logger = logging.getLogger(__name__)
@@ -59,13 +59,8 @@ def _parse_card_token(token: str) -> int | None:
     return session_id
 
 
-async def _save_prepared_inline_message(
-    telegram_id: int,
-    card_url: str,
-    share_text: str,
-    invite_link: str,
-) -> str | None:
-    """Create a Telegram prepared inline message (Bot API 8.0) for the card.
+async def _save_prepared_inline_message(result: dict) -> str | None:
+    """Create a Telegram prepared inline message (Bot API 8.0).
 
     The pinned aiogram (3.4.1, Bot API 7.x) predates savePreparedInlineMessage,
     so this is a raw Bot API call instead of going through the notifications
@@ -73,22 +68,8 @@ async def _save_prepared_inline_message(
     app/bot/session.py: this server's IPv6 route to api.telegram.org is a
     black hole.
     """
-    result = {
-        "type": "photo",
-        "id": "share",
-        "photo_url": card_url,
-        "thumbnail_url": card_url,
-        "photo_width": 1080,
-        "photo_height": 1350,
-        "caption": share_text,
-        "reply_markup": {
-            "inline_keyboard": [
-                [{"text": "Принять вызов 💪", "url": invite_link}]
-            ]
-        },
-    }
     payload = {
-        "user_id": telegram_id,
+        "user_id": result.pop("_telegram_id"),
         "result": json.dumps(result),
         "allow_user_chats": True,
         "allow_group_chats": True,
@@ -111,6 +92,48 @@ async def _save_prepared_inline_message(
     return str(prepared_id) if prepared_id else None
 
 
+def _challenge_button(invite_link: str) -> dict:
+    return {
+        "inline_keyboard": [[{"text": "Принять вызов 💪", "url": invite_link}]]
+    }
+
+
+def _format_mmss(total_seconds: int) -> str:
+    return f"{total_seconds // 60:02d}:{total_seconds % 60:02d}"
+
+
+async def _build_report_text(
+    session, workout: WorkoutSession, routine_name: str | None
+) -> str:
+    """Text report with the full exercise list — mirrors the frontend share
+    text in RoutinePlayer.svelte (same emoji/line layout)."""
+    rows = (
+        await session.execute(
+            select(WorkoutExercise, Exercise)
+            .join(Exercise, WorkoutExercise.exercise_id == Exercise.id)
+            .where(WorkoutExercise.workout_session_id == workout.id)
+            .order_by(WorkoutExercise.id)
+        )
+    ).all()
+    lines = [
+        f"🏆 {routine_name or 'Тренировка в PixelFit'}",
+        "",
+        f"⏱️ {_format_mmss(workout.total_duration_seconds)}",
+        f"🌟 +{workout.total_xp_earned} XP",
+        f"🪙 {workout.total_coins_earned} монет",
+    ]
+    if rows:
+        lines += ["", "━━━━━━━━━━", "💪 Упражнения", "━━━━━━━━━━"]
+        for we, ex in rows:
+            total = (
+                f"{we.total_duration_seconds} сек"
+                if ex.is_timed
+                else f"{we.total_reps} повт."
+            )
+            lines.append(f"  ▸ {ex.name_ru}: {total}")
+    return "\n".join(lines)
+
+
 @router.post(
     "/workout/{session_id}",
     response_model=ShareWorkoutResponse,
@@ -128,6 +151,7 @@ async def share_workout(
     session_id: int,
     session: AsyncSessionDep,
     user: CurrentUser,
+    body: ShareWorkoutRequest | None = None,
 ):
     result = await session.execute(
         select(WorkoutSession)
@@ -157,21 +181,44 @@ async def share_workout(
     # Best-effort: on ANY failure the frontend still gets the urls and falls
     # back to a t.me/share/url link share.
     prepared_message_id: str | None = None
+    prepared_text_message_id: str | None = None
     if user.telegram_id is not None:
         try:
-            prepared_message_id = await _save_prepared_inline_message(
-                telegram_id=user.telegram_id,
-                card_url=card_url,
-                share_text=share_text,
-                invite_link=invite_link,
-            )
+            prepared_message_id = await _save_prepared_inline_message({
+                "_telegram_id": user.telegram_id,
+                "type": "photo",
+                "id": "share",
+                "photo_url": card_url,
+                "thumbnail_url": card_url,
+                "photo_width": 1080,
+                "photo_height": 1350,
+                "caption": share_text,
+                "reply_markup": _challenge_button(invite_link),
+            })
         except Exception as e:
             logger.warning(f"Failed to prepare inline share message: {e}")
+        # Text variant: the full exercise report with the referral button —
+        # used by the «Поделиться» button in RoutinePlayer.
+        try:
+            report_text = await _build_report_text(
+                session, workout, body.routine_name if body else None
+            )
+            prepared_text_message_id = await _save_prepared_inline_message({
+                "_telegram_id": user.telegram_id,
+                "type": "article",
+                "id": "share_text",
+                "title": "Отчёт о тренировке",
+                "input_message_content": {"message_text": report_text},
+                "reply_markup": _challenge_button(invite_link),
+            })
+        except Exception as e:
+            logger.warning(f"Failed to prepare text share message: {e}")
 
     return ShareWorkoutResponse(
         card_url=card_url,
         story_url=story_url,
         prepared_message_id=prepared_message_id,
+        prepared_text_message_id=prepared_text_message_id,
         invite_link=invite_link,
         share_text=share_text,
     )

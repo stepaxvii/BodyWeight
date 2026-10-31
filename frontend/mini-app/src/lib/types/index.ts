@@ -268,6 +268,8 @@ export interface ShareCardResponse {
 	// null when the Telegram prepare call failed or the user has no telegram_id —
 	// the frontend then falls back to a t.me/share/url link share.
 	prepared_message_id: string | null;
+	// Текстовый отчёт со списком упражнений + кнопка «Принять вызов»
+	prepared_text_message_id: string | null;
 	invite_link: string;
 	share_text: string;
 }

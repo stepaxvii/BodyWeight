@@ -350,7 +350,7 @@
 		if (completedSessionId === null || isPreparingShare) return null;
 		isPreparingShare = true;
 		try {
-			shareCard = await api.prepareShareCard(completedSessionId);
+			shareCard = await api.prepareShareCard(completedSessionId, routine.name);
 			return shareCard;
 		} catch (err) {
 			console.error('Failed to prepare share card:', err);
@@ -365,6 +365,19 @@
 	async function shareWorkout() {
 		telegram.hapticImpact('medium');
 
+		// Основной путь: тот же текстовый отчёт как prepared message — с
+		// кнопкой «Принять вызов» (персональная рефералка) под сообщением.
+		if (telegram.webApp && telegram.canShareMessage) {
+			const card = await ensureShareCard();
+			if (card?.prepared_text_message_id) {
+				telegram.shareMessage(card.prepared_text_message_id);
+				telegram.hapticNotification('success');
+				return;
+			}
+		}
+
+		// Фолбэк (офлайн-тренировка, старый клиент, ошибка подготовки):
+		// собираем тот же отчёт на клиенте и шлём обычным share-линком.
 		// Группируем по упражнению и суммируем повторы/секунды
 		const bySlug = new Map<string, { total: number; is_timed: boolean }>();
 		for (const ce of completedExercises) {

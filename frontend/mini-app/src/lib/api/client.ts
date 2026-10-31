@@ -293,9 +293,10 @@ class ApiClient {
 
 	// Share: server-rendered workout card (PNG) + prepared inline message for
 	// one-tap sharing into any chat. Owner-only on the backend.
-	async prepareShareCard(sessionId: number): Promise<ShareCardResponse> {
+	async prepareShareCard(sessionId: number, routineName?: string): Promise<ShareCardResponse> {
 		return this.request<ShareCardResponse>(`/share/workout/${sessionId}`, {
-			method: 'POST'
+			method: 'POST',
+			body: JSON.stringify({ routine_name: routineName ?? null })
 		});
 	}
 
