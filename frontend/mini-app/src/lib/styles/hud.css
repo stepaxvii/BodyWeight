@@ -181,6 +181,9 @@
 .qty__mid { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   background: var(--bg2); border: var(--bw) solid var(--line); box-shadow: var(--shadow); padding: 10px; }
 .qty__v { font-family: var(--font-data); font-size: 32px; color: var(--accent); line-height: 1; }
+/* editable value: an input dressed as .qty__v (tap to type) */
+.qty__in { width: 100%; padding: 0; background: transparent; border: 0; outline: 0; text-align: center; }
+.qty__in:focus { color: var(--text); }
 .qty__u { font-family: var(--font-ui); font-size: 11px; color: var(--muted); text-transform: uppercase; }
 .qty-row { display: flex; gap: 8px; }
 .qty-row .pill { flex: 1; text-align: center; }

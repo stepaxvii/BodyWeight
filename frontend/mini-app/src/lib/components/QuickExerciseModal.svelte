@@ -425,6 +425,59 @@
 		}
 	}
 
+	// Ручной ввод значений: во время набора применяем число с верхним капом
+	// (нижний не зажимаем, чтобы «3» по пути к «30» не прыгала на минимум),
+	// нижнюю границу приводим на blur. Пустое/недопечатанное поле состояние
+	// не трогает — в нём остаётся последнее валидное значение.
+	function typedInt(e: Event): number | null {
+		const v = parseInt((e.currentTarget as HTMLInputElement).value.replace(/\D/g, ''), 10);
+		return Number.isNaN(v) ? null : v;
+	}
+
+	function typeRepsOrDuration(e: Event) {
+		const v = typedInt(e);
+		if (v === null) return;
+		if (isTimeBased(selectedExercise!)) duration = Math.min(300, v);
+		else reps = Math.min(999, v);
+	}
+	function blurRepsOrDuration(e: Event) {
+		if (isTimeBased(selectedExercise!)) duration = Math.max(5, duration);
+		else reps = Math.max(1, reps);
+		(e.currentTarget as HTMLInputElement).value = String(isTimeBased(selectedExercise!) ? duration : reps);
+	}
+
+	function typeCyclingKm(e: Event) {
+		const cleaned = (e.currentTarget as HTMLInputElement).value
+			.replace(',', '.')
+			.replace(/[^\d.]/g, '');
+		// «12.» — незаконченный ввод дроби, ждём следующую цифру
+		if (!cleaned || cleaned.endsWith('.')) return;
+		const v = parseFloat(cleaned);
+		if (!Number.isNaN(v)) cyclingDistanceKm = Math.min(300, v);
+	}
+	function blurCyclingKm(e: Event) {
+		cyclingDistanceKm = Math.max(0.5, +cyclingDistanceKm.toFixed(1));
+		(e.currentTarget as HTMLInputElement).value = String(cyclingDistanceKm);
+	}
+
+	function typeCyclingMin(e: Event) {
+		const v = typedInt(e);
+		if (v !== null) cyclingDurationMin = Math.min(600, v);
+	}
+	function blurCyclingMin(e: Event) {
+		cyclingDurationMin = Math.max(5, cyclingDurationMin);
+		(e.currentTarget as HTMLInputElement).value = String(cyclingDurationMin);
+	}
+
+	function typeWalkingSteps(e: Event) {
+		const v = typedInt(e);
+		if (v !== null) walkingSteps = Math.min(200000, v);
+	}
+	function blurWalkingSteps(e: Event) {
+		walkingSteps = Math.max(100, walkingSteps);
+		(e.currentTarget as HTMLInputElement).value = String(walkingSteps);
+	}
+
 	function adjustValue(delta: number) {
 		if (isTimeBased(selectedExercise!)) {
 			duration = Math.max(5, Math.min(300, duration + delta));
@@ -551,7 +604,7 @@
 			<span class="ql-label">{isTimeBased(selectedExercise!) ? 'Длительность (секунды)' : 'Количество повторений'}</span>
 			<div class="qty">
 				<button class="qty__btn" onclick={() => adjustValue(isTimeBased(selectedExercise!) ? -10 : -5)} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
-				<div class="qty__mid"><span class="qty__v">{isTimeBased(selectedExercise!) ? duration : reps}</span><span class="qty__u">{isTimeBased(selectedExercise!) ? 'сек' : 'повт.'}</span></div>
+				<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="numeric" maxlength="3" value={String(isTimeBased(selectedExercise!) ? duration : reps)} oninput={typeRepsOrDuration} onblur={blurRepsOrDuration} aria-label={isTimeBased(selectedExercise!) ? 'Секунды' : 'Повторения'} /><span class="qty__u">{isTimeBased(selectedExercise!) ? 'сек' : 'повт.'}</span></div>
 				<button class="qty__btn" onclick={() => adjustValue(isTimeBased(selectedExercise!) ? 10 : 5)} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
 			</div>
 			<PixelButton variant="success" size="lg" fullWidth loading={isSubmitting} onclick={handleSave}><PixelIcon name="check" /> Записать</PixelButton>
@@ -563,13 +616,13 @@
 			<span class="ql-label">Дистанция</span>
 			<div class="qty">
 				<button class="qty__btn" onclick={() => (cyclingDistanceKm = Math.max(0.5, +(cyclingDistanceKm - 0.5).toFixed(1)))} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
-				<div class="qty__mid"><span class="qty__v">{cyclingDistanceKm.toFixed(1)}</span><span class="qty__u">км</span></div>
+				<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="decimal" maxlength="5" value={String(cyclingDistanceKm)} oninput={typeCyclingKm} onblur={blurCyclingKm} aria-label="Дистанция, км" /><span class="qty__u">км</span></div>
 				<button class="qty__btn" onclick={() => (cyclingDistanceKm = +(cyclingDistanceKm + 0.5).toFixed(1))} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
 			</div>
 			<span class="ql-label">Время</span>
 			<div class="qty">
 				<button class="qty__btn" onclick={() => (cyclingDurationMin = Math.max(5, cyclingDurationMin - 1))} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
-				<div class="qty__mid"><span class="qty__v">{cyclingDurationMin}</span><span class="qty__u">мин</span></div>
+				<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="numeric" maxlength="3" value={String(cyclingDurationMin)} oninput={typeCyclingMin} onblur={blurCyclingMin} aria-label="Время, минуты" /><span class="qty__u">мин</span></div>
 				<button class="qty__btn" onclick={() => (cyclingDurationMin = cyclingDurationMin + 1)} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
 			</div>
 			<div class="ql-sum"><span>Ср. скорость: {cyclingSpeedKmh.toFixed(1)} км/ч</span><span class="ql-sum__xp">+{cyclingEstimatedXp} XP</span></div>
@@ -582,7 +635,7 @@
 			<span class="ql-label">Количество шагов</span>
 			<div class="qty">
 				<button class="qty__btn" onclick={() => (walkingSteps = Math.max(100, walkingSteps - 500))} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
-				<div class="qty__mid"><span class="qty__v">{walkingSteps.toLocaleString('ru-RU')}</span><span class="qty__u">шагов</span></div>
+				<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="numeric" maxlength="6" value={String(walkingSteps)} oninput={typeWalkingSteps} onblur={blurWalkingSteps} aria-label="Количество шагов" /><span class="qty__u">шагов</span></div>
 				<button class="qty__btn" onclick={() => (walkingSteps = walkingSteps + 500)} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
 			</div>
 			<div class="ql-sum"><span>≈ {(walkingSteps / 1300).toFixed(1)} км</span><span class="ql-sum__xp">+{walkingEstimatedXp} XP</span></div>
