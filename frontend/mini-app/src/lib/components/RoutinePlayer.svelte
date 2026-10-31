@@ -554,10 +554,12 @@
 				</div>
 			{/if}
 			<div class="player__doneactions">
-				<PixelButton variant="secondary" fullWidth disabled={isPreparingShare} onclick={shareWorkout}><PixelIcon name="share" /> Поделиться</PixelButton>
-				{#if completedSessionId !== null && telegram.canShareToStory}
-					<PixelButton variant="secondary" fullWidth disabled={isPreparingShare} onclick={shareToStory}>В сторис</PixelButton>
-				{/if}
+				<div class="done__sharerow">
+					<PixelButton variant="secondary" fullWidth disabled={isPreparingShare} onclick={shareWorkout}><PixelIcon name="share" /> Поделиться</PixelButton>
+					{#if completedSessionId !== null && telegram.canShareToStory}
+						<PixelButton variant="secondary" fullWidth disabled={isPreparingShare} onclick={shareToStory}>В сторис</PixelButton>
+					{/if}
+				</div>
 				<PixelButton variant="success" fullWidth onclick={handleClose}><PixelIcon name="check" /> Готово</PixelButton>
 			</div>
 		</div>
@@ -696,6 +698,16 @@
 		gap: var(--spacing-sm);
 		width: 100%;
 		margin-top: var(--spacing-md);
+	}
+
+	/* «Поделиться» и «В сторис» — парой в один ряд */
+	.done__sharerow {
+		display: flex;
+		gap: var(--spacing-sm);
+		width: 100%;
+	}
+	.done__sharerow :global(button) {
+		flex: 1;
 	}
 
 	.done__v--green {
