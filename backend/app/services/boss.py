@@ -97,8 +97,15 @@ async def get_or_create_current_boss(session: AsyncSession) -> MonthlyBoss:
     session.add(boss)
     await session.flush()
 
-    # Notify all opted-in users that a new boss appeared
+    # Notify all opted-in users that a new boss appeared:
+    # in-app badge now (same transaction) + a Telegram push off the request
+    # path (fires once — boss creation is guarded by the unique start_date).
     await _broadcast_new_boss_notification(session, boss)
+    from app.services.notifications import (
+        broadcast_new_boss_push,
+        dispatch_in_background,
+    )
+    dispatch_in_background(broadcast_new_boss_push(boss.name_ru, boss.image_emoji))
     return boss
 
 

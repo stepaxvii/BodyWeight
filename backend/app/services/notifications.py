@@ -101,12 +101,15 @@ async def _send(
     *,
     keyboard: InlineKeyboardMarkup | None = None,
     label: str = "push",
+    notify_admin_on_block: bool = True,
 ) -> bool:
     """Single Telegram-send path for every push. Returns True on success.
 
     A 403 means the user blocked the bot — expected, not an error: log at INFO,
-    record the block, and ping the admin once if this is a fresh discovery.
-    Any other failure logs with a traceback.
+    record the block, and (unless suppressed) ping the admin once if this is a
+    fresh discovery. ``notify_admin_on_block=False`` during mass broadcasts so a
+    wave of historical blocks doesn't flood the admin — the digest still shows
+    the jump. Any other failure logs with a traceback.
     """
     try:
         bot = get_bot()
@@ -116,7 +119,7 @@ async def _send(
     except TelegramForbiddenError:
         logger.info("%s skipped: %s has blocked the bot", label, telegram_id)
         changed, total_blocked = await mark_bot_blocked(telegram_id, True)
-        if changed:
+        if changed and notify_admin_on_block:
             notify_admin_bot_blocked(total_blocked)
         return False
     except Exception:
@@ -417,6 +420,67 @@ def notify_admin_bot_blocked(total_blocked: int) -> None:
     dispatch_in_background(send_admin_notice(
         f"🚫 Пользователь заблокировал бота.\nВсего заблокировали: {total_blocked}"
     ))
+
+
+async def broadcast_new_boss_push(boss_name_ru: str, boss_emoji: str) -> None:
+    """Push the monthly new-boss announcement to every reachable user.
+
+    Reachable = has a telegram_id, notifications on, hasn't blocked the bot.
+    Throttled (~22/s) to respect Telegram's rate limit; 403s still record the
+    block (counts update) but DON'T ping the admin per user — a mass broadcast
+    would otherwise flood them. Best-effort: dispatched off the request path
+    (see get_or_create_current_boss) so it never blocks boss creation.
+    """
+    from sqlalchemy import select
+    from app.db.database import async_session_maker
+    from app.db.models import User
+
+    try:
+        async with async_session_maker() as session:
+            rows = (
+                await session.execute(
+                    select(User.telegram_id)
+                    .where(User.telegram_id.isnot(None))
+                    .where(User.notifications_enabled.is_(True))
+                    .where(User.bot_blocked.is_(False))
+                )
+            ).all()
+    except Exception:
+        logger.exception("New-boss broadcast: failed to load audience")
+        return
+
+    telegram_ids = [r[0] for r in rows]
+    if not telegram_ids:
+        return
+
+    text = (
+        f"{boss_emoji} <b>Новый босс месяца!</b>\n\n"
+        f"«{boss_name_ru}» появился над городом.\n"
+        f"Заходи и нанеси первый удар — награды ждут!"
+    )
+    logger.info("New-boss broadcast: sending to %s users", len(telegram_ids))
+
+    sent = 0
+    chunk = 25
+    for i in range(0, len(telegram_ids), chunk):
+        batch = telegram_ids[i:i + chunk]
+        results = await asyncio.gather(
+            *(
+                _send(
+                    tid, text,
+                    keyboard=get_open_app_keyboard(),
+                    label="New-boss push",
+                    notify_admin_on_block=False,
+                )
+                for tid in batch
+            ),
+            return_exceptions=True,
+        )
+        sent += sum(1 for r in results if r is True)
+        if i + chunk < len(telegram_ids):
+            await asyncio.sleep(1.1)  # stay under Telegram's ~30 msg/s cap
+
+    logger.info("New-boss broadcast done: %s/%s delivered", sent, len(telegram_ids))
 
 
 async def close_bot():

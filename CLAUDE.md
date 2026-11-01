@@ -92,7 +92,7 @@ In the SPA, **every internal link and static-asset URL must be prefixed with `ba
 Where the numbers live — edit the right file:
 - **`services/xp_calculator.py`** — all core formulas: `XP = total_reps × (base_xp × 0.3) × streak_mult`, floored (XP is proportional to *total* reps, independent of set split; **difficulty is baked into `base_xp`, there is no separate difficulty multiplier**; timed exercises convert at 10s = 1 rep). Coins (scarce: +1 if session XP≥500, +min(streak//7,4), +1 if ≥45min). Level curve `100·(level-1)²`. Streak multiplier ramps 1.0→1.5 over 7 days. Cycling and walking are special-cased (own formulas; `cycling`/`walking` slugs need extra fields).
 - **`services/streak.py`** — streak-freeze economy (500 coins, max 2). ⚠️ The forward streak *increment* lives in `workout_processor`; the overnight *reset/bridge* lives here — changing streak rules means editing **both**.
-- **`services/boss.py`** (boss damage = workout XP 1:1, no cap; reward tiers), **`services/challenges.py`** (reward tiers, TTLs, per-day AND-completion), **`services/activity_norm.py`** (default 1400 XP/day target for calendar coloring).
+- **`services/boss.py`** (boss damage = workout XP 1:1, no cap; reward tiers; on month rollover `get_or_create_current_boss` fires once — in-app badge in-transaction + a throttled Telegram broadcast to all reachable users via `notifications.broadcast_new_boss_push`, dispatched off the request path), **`services/challenges.py`** (reward tiers, TTLs, per-day AND-completion), **`services/activity_norm.py`** (default 1400 XP/day target for calendar coloring).
 
 ### Scheduler & bot
 
