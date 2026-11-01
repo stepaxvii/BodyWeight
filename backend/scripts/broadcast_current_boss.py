@@ -65,6 +65,7 @@ async def _reachable_count(session) -> int:
             .where(User.telegram_id.isnot(None))
             .where(User.notifications_enabled.is_(True))
             .where(User.bot_blocked.is_(False))
+            .where(User.bot_reachable.is_(True))
         )
     ).scalar_one()
 

@@ -11,7 +11,11 @@ from aiogram import Router
 from aiogram.enums import ChatMemberStatus
 from aiogram.types import ChatMemberUpdated
 
-from app.services.notifications import mark_bot_blocked, notify_admin_bot_blocked
+from app.services.notifications import (
+    mark_bot_blocked,
+    mark_bot_reachable,
+    notify_admin_bot_blocked,
+)
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -19,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 @router.my_chat_member()
 async def on_my_chat_member(event: ChatMemberUpdated):
-    """A user blocked or unblocked the bot in their private chat."""
+    """A user blocked, unblocked, or (re)started the bot in their private chat."""
     # Only care about the private chat with the bot itself.
     if event.chat.type != "private":
         return
@@ -27,13 +31,20 @@ async def on_my_chat_member(event: ChatMemberUpdated):
     telegram_id = event.from_user.id
     blocked = event.new_chat_member.status == ChatMemberStatus.KICKED
 
-    # Same write path as the 403 catch: flips the flag only on a real
-    # transition (so no duplicate pings on echo updates / missing users).
-    changed, total_blocked = await mark_bot_blocked(telegram_id, blocked)
-    if not changed:
-        return
     if blocked:
-        logger.info("User %s blocked the bot (total blocked=%s)", telegram_id, total_blocked)
-        notify_admin_bot_blocked(total_blocked)
-    else:
+        # mark_bot_blocked flips only on a real transition → ping admin once.
+        changed, total_blocked = await mark_bot_blocked(telegram_id, True)
+        if changed:
+            logger.info("User %s blocked the bot (total blocked=%s)", telegram_id, total_blocked)
+            notify_admin_bot_blocked(total_blocked)
+        return
+
+    # Member: they (re)started the bot — there's an open chat again, and they
+    # aren't blocked. Both flags are handled independently (a returning migrated
+    # user may already be bot_blocked=False but bot_reachable=False).
+    unblocked, _ = await mark_bot_blocked(telegram_id, False)
+    restored = await mark_bot_reachable(telegram_id, True)
+    if unblocked:
         logger.info("User %s unblocked the bot", telegram_id)
+    elif restored:
+        logger.info("User %s started the bot — now reachable", telegram_id)

@@ -60,6 +60,18 @@ async def collect_daily_stats(session: AsyncSession, day: date) -> dict:
             .select_from(User)
             .where(User.telegram_id.isnot(None))
             .where(User.bot_blocked.is_(False))
+            .where(User.bot_reachable.is_(True))
+        )
+    ).scalar_one()
+    # Have a telegram_id but never started THIS bot (e.g. after a bot
+    # migration): can't be pushed until they (re)start.
+    not_started_users = (
+        await session.execute(
+            select(func.count())
+            .select_from(User)
+            .where(User.telegram_id.isnot(None))
+            .where(User.bot_blocked.is_(False))
+            .where(User.bot_reachable.is_(False))
         )
     ).scalar_one()
 
@@ -169,6 +181,7 @@ async def collect_daily_stats(session: AsyncSession, day: date) -> dict:
         "total_users": total_users,
         "blocked_users": blocked_users,
         "reachable_users": reachable_users,
+        "not_started_users": not_started_users,
         "active_users": active_users,
         "workouts": workouts,
         "total_xp": total_xp,
@@ -205,9 +218,11 @@ def format_digest(stats: dict, day: date) -> str:
             f"👤 Новых: {_fmt(stats['new_users'])} (всего {_fmt(stats['total_users'])})"
         )
 
-    # Audience for promo — always shown; reachable = has telegram_id and
-    # hasn't blocked the bot.
+    # Audience for promo — always shown; reachable = has telegram_id, hasn't
+    # blocked the bot, and has an open chat (started this bot).
     audience = f"📣 Для промо: {_fmt(stats['reachable_users'])}"
+    if stats["not_started_users"]:
+        audience += f" · 📵 не открыли бота: {_fmt(stats['not_started_users'])}"
     if stats["blocked_users"]:
         audience += f" · 🚫 заблокировали: {_fmt(stats['blocked_users'])}"
     lines.append(audience)

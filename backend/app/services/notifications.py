@@ -3,7 +3,7 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from aiogram import Bot
-from aiogram.exceptions import TelegramForbiddenError
+from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -95,6 +95,42 @@ async def mark_bot_blocked(telegram_id: int, blocked: bool) -> tuple[bool, int]:
         return False, 0
 
 
+async def mark_bot_reachable(telegram_id: int, reachable: bool) -> bool:
+    """Flip users.bot_reachable for a telegram_id (own session, on transition).
+
+    Set False when a send hits "chat not found"/"user is deactivated" (the user
+    never started this bot — distinct from a block). Set True from the bot's
+    my_chat_member "member" update when they (re)start. Returns whether the flag
+    actually changed.
+    """
+    from sqlalchemy import update
+    from app.db.database import async_session_maker
+    from app.db.models import User
+
+    try:
+        async with async_session_maker() as session:
+            result = await session.execute(
+                update(User)
+                .where(User.telegram_id == telegram_id)
+                .where(User.bot_reachable != reachable)
+                .values(bot_reachable=reachable)
+            )
+            await session.commit()
+            return (result.rowcount or 0) > 0
+    except Exception:
+        logger.exception("Failed to update bot_reachable for %s", telegram_id)
+        return False
+
+
+# Bad-Request messages that mean "we can't deliver to this chat at all" (the
+# user never started this bot / deleted their account) — not a transient error.
+_UNREACHABLE_MARKERS = (
+    "chat not found",
+    "user is deactivated",
+    "bot can't initiate conversation",
+)
+
+
 async def _send(
     telegram_id: int,
     text: str,
@@ -109,7 +145,8 @@ async def _send(
     record the block, and (unless suppressed) ping the admin once if this is a
     fresh discovery. ``notify_admin_on_block=False`` during mass broadcasts so a
     wave of historical blocks doesn't flood the admin — the digest still shows
-    the jump. Any other failure logs with a traceback.
+    the jump. A "chat not found" means they never started this bot: flag them
+    unreachable (no admin ping). Transient/other errors log with a traceback.
     """
     try:
         bot = get_bot()
@@ -121,6 +158,16 @@ async def _send(
         changed, total_blocked = await mark_bot_blocked(telegram_id, True)
         if changed and notify_admin_on_block:
             notify_admin_bot_blocked(total_blocked)
+        return False
+    except TelegramBadRequest as e:
+        if any(m in (e.message or "").lower() for m in _UNREACHABLE_MARKERS):
+            logger.info(
+                "%s skipped: %s has no chat with the bot (%s)",
+                label, telegram_id, e.message,
+            )
+            await mark_bot_reachable(telegram_id, False)
+        else:
+            logger.exception("Failed to send %s to %s", label, telegram_id)
         return False
     except Exception:
         logger.exception("Failed to send %s to %s", label, telegram_id)
@@ -448,6 +495,7 @@ async def broadcast_new_boss_push(
                     .where(User.telegram_id.isnot(None))
                     .where(User.notifications_enabled.is_(True))
                     .where(User.bot_blocked.is_(False))
+                    .where(User.bot_reachable.is_(True))
                 )
             ).all()
     except Exception:

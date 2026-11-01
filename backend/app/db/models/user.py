@@ -41,6 +41,11 @@ class User(Base):
     # and defensively on a 403 when sending). BooleanCoerce: SQLite stores a
     # string server_default as truthy, so coerce on read.
     bot_blocked: Mapped[bool] = mapped_column(BooleanCoerce, default=False, server_default="0")
+    # Whether the bot can actually deliver a message: False once a send hits
+    # "chat not found" / "user is deactivated" (user never started THIS bot —
+    # e.g. after a bot migration). Flips back True on the my_chat_member
+    # "member" update when they (re)start. Distinct from bot_blocked.
+    bot_reachable: Mapped[bool] = mapped_column(BooleanCoerce, default=True, server_default="1")
     # 8-bit sound effects toggle (roadmap 5.1)
     sound_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
     # Target XP per day for the activity calendar (history in user_activity_norms)
