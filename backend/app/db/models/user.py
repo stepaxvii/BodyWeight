@@ -37,6 +37,10 @@ class User(Base):
     # Settings
     notification_time: Mapped[time | None] = mapped_column(Time)
     notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Whether this user has blocked the bot (set from the my_chat_member update
+    # and defensively on a 403 when sending). BooleanCoerce: SQLite stores a
+    # string server_default as truthy, so coerce on read.
+    bot_blocked: Mapped[bool] = mapped_column(BooleanCoerce, default=False, server_default="0")
     # 8-bit sound effects toggle (roadmap 5.1)
     sound_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
     # Target XP per day for the activity calendar (history in user_activity_norms)

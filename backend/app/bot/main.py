@@ -6,14 +6,12 @@ from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 
 from app.config import settings
-from app.bot.handlers import admin, start
+from app.bot.handlers import admin, chat_member, start
 from app.bot.session import make_ipv4_session
 from app.db.database import async_engine
+from app.logging_config import setup_logging
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -61,6 +59,8 @@ async def main():
 
     # Register routers (admin: /digest, только для ADMIN_TELEGRAM_ID)
     dp.include_router(admin.router)
+    # Tracks block/unblock of the bot (users.bot_blocked) + notifies admin.
+    dp.include_router(chat_member.router)
     dp.include_router(start.router)
 
     # Register startup/shutdown handlers

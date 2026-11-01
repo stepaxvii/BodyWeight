@@ -45,6 +45,23 @@ async def collect_daily_stats(session: AsyncSession, day: date) -> dict:
     total_users = (
         await session.execute(select(func.count()).select_from(User))
     ).scalar_one()
+    # Audience health: how many blocked the bot, and how many are still
+    # reachable for a promo push (have a telegram_id and haven't blocked).
+    blocked_users = (
+        await session.execute(
+            select(func.count())
+            .select_from(User)
+            .where(User.bot_blocked.is_(True))
+        )
+    ).scalar_one()
+    reachable_users = (
+        await session.execute(
+            select(func.count())
+            .select_from(User)
+            .where(User.telegram_id.isnot(None))
+            .where(User.bot_blocked.is_(False))
+        )
+    ).scalar_one()
 
     # Completed sessions that day: active users, workouts, XP
     day_sessions = (
@@ -150,6 +167,8 @@ async def collect_daily_stats(session: AsyncSession, day: date) -> dict:
     return {
         "new_users": new_users,
         "total_users": total_users,
+        "blocked_users": blocked_users,
+        "reachable_users": reachable_users,
         "active_users": active_users,
         "workouts": workouts,
         "total_xp": total_xp,
@@ -185,6 +204,13 @@ def format_digest(stats: dict, day: date) -> str:
         lines.append(
             f"👤 Новых: {_fmt(stats['new_users'])} (всего {_fmt(stats['total_users'])})"
         )
+
+    # Audience for promo — always shown; reachable = has telegram_id and
+    # hasn't blocked the bot.
+    audience = f"📣 Для промо: {_fmt(stats['reachable_users'])}"
+    if stats["blocked_users"]:
+        audience += f" · 🚫 заблокировали: {_fmt(stats['blocked_users'])}"
+    lines.append(audience)
 
     if stats["workouts"]:
         workouts_word = _plural(stats["workouts"], "тренировка", "тренировки", "тренировок")
@@ -227,7 +253,14 @@ def format_digest(stats: dict, day: date) -> str:
     if extras:
         lines.append(" · ".join(extras))
 
-    if len(lines) == 1:
+    # The audience line is always present, so judge "silence" by activity only.
+    had_activity = any((
+        stats["new_users"], stats["workouts"], stats["total_xp"],
+        stats["challenge_joins"], stats["streak_freezes_used"],
+        stats["referral_rewards"],
+        stats["boss"] is not None and stats["boss"]["damage"],
+    ))
+    if not had_activity:
         lines.append("Тишина — за день активности не было.")
 
     return "\n".join(lines)

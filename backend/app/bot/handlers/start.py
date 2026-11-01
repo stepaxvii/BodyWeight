@@ -11,7 +11,7 @@ from app.db.database import async_session_maker
 from app.db.models import Friendship, User, WorkoutSession
 from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button, get_link_confirmation_keyboard
 from app.bot.session import make_ipv4_session
-from app.services.notifications import save_notification
+from app.services.notifications import notify_admin_new_user, save_notification
 
 router = Router()
 
@@ -36,7 +36,12 @@ async def get_or_create_user(telegram_id: int, username: str | None, first_name:
             session.add(user)
             await session.commit()
             await session.refresh(user)
-            logger.info(f"Created new user: {telegram_id} ({username})")
+            logger.info("Created new user: %s (%s)", telegram_id, username)
+
+            total_users = (
+                await session.execute(select(func.count()).select_from(User))
+            ).scalar_one()
+            notify_admin_new_user(total_users)
         else:
             # Update user info
             user.username = username
@@ -162,8 +167,8 @@ async def cmd_start(message: Message):
                     invitee_id=db_user.id,
                     inviter_id=friend_id,
                 )
-        except Exception as e:
-            logger.error(f"Error processing friend invite: {e}")
+        except Exception:
+            logger.exception("Error processing friend invite for %s", db_user.id)
             start_param = None
 
         if friend:
@@ -180,8 +185,8 @@ async def cmd_start(message: Message):
                             f"приглашению — вы теперь друзья!"
                         ),
                     )
-                except Exception as e:
-                    logger.error(f"Failed to notify inviter {friend.id} about joined friend: {e}")
+                except Exception:
+                    logger.exception("Failed to notify inviter %s about joined friend", friend.id)
 
             welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
 
@@ -391,8 +396,8 @@ async def callback_link_confirm(callback: CallbackQuery):
             else:
                 detail = resp.json().get("detail", "Ошибка")
                 await callback.answer(f"Ошибка: {detail}", show_alert=True)
-    except Exception as e:
-        logger.error(f"Link confirmation error: {e}")
+    except Exception:
+        logger.exception("Link confirmation error")
         await callback.answer("Произошла ошибка. Попробуйте позже.", show_alert=True)
 
 

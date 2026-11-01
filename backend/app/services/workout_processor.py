@@ -10,6 +10,7 @@ This module contains the core business logic for completing workouts:
 - Notification creation
 """
 
+import logging
 from datetime import datetime, date, timedelta
 from typing import Any
 from dataclasses import dataclass, field
@@ -45,6 +46,8 @@ from app.services.notifications import (
 from app.services.boss import deal_damage as boss_deal_damage
 from app.services.challenges import record_progress as challenges_record_progress
 from app.services.referral import grant_referral_reward_on_first_workout
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -429,8 +432,9 @@ async def process_workout_completion(
     try:
         await boss_deal_damage(session, user, total_xp)
     except Exception:
-        import logging
-        logging.getLogger(__name__).exception("Failed to deal boss damage")
+        logger.exception(
+            "Failed to deal boss damage (user=%s session=%s)", user.id, workout.id
+        )
 
     # 8.6 Record challenge progress for any active challenges this user joined
     # (best-effort — never block workout completion). The returned deltas are
@@ -444,8 +448,9 @@ async def process_workout_completion(
             reps_by_slug=challenge_quantity_by_slug,
         )
     except Exception:
-        import logging
-        logging.getLogger(__name__).exception("Failed to record challenge progress")
+        logger.exception(
+            "Failed to record challenge progress (user=%s session=%s)", user.id, workout.id
+        )
 
     await session.flush()
 
@@ -474,8 +479,9 @@ async def process_workout_completion(
         if completed_workouts == 1:
             await grant_referral_reward_on_first_workout(session, user)
     except Exception:
-        import logging
-        logging.getLogger(__name__).exception("Failed to grant referral reward")
+        logger.exception(
+            "Failed to grant referral reward (user=%s session=%s)", user.id, workout.id
+        )
 
     # Note: Coins and XP from achievements are already awarded
     # We just track them in workout summary for display

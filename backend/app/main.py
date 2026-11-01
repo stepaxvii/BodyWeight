@@ -6,15 +6,11 @@ import logging
 from app.config import settings
 from app.api import api_router
 from app.db.database import async_engine, async_session_maker
+from app.logging_config import setup_logging
 from app.services.data_loader import init_data
 from app.services.scheduler import start_scheduler, stop_scheduler
 
-# Configure logging based on settings
-log_level = getattr(logging, settings.log_level.upper(), logging.INFO)
-logging.basicConfig(
-    level=log_level,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+setup_logging()
 logger = logging.getLogger(__name__)
 
 

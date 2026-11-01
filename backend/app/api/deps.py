@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import json
+import logging
 from urllib.parse import parse_qsl, unquote
 from typing import Annotated
 from datetime import datetime, timedelta
@@ -13,6 +14,8 @@ from sqlalchemy import select
 from app.db.database import get_async_session
 from app.db.models import User
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 def validate_telegram_init_data(init_data: str, bot_token: str) -> dict | None:
@@ -111,6 +114,7 @@ async def get_current_user(
         token = authorization[7:]
         user_id = verify_jwt_token(token)
         if user_id is None:
+            logger.warning("Auth rejected: invalid or expired JWT")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired token",
@@ -121,6 +125,7 @@ async def get_current_user(
         )
         user = result.scalar_one_or_none()
         if not user:
+            logger.warning("Auth rejected: JWT valid but user %s not found", user_id)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="User not found",
@@ -153,6 +158,8 @@ async def get_current_user(
     validated_data = validate_telegram_init_data(init_data, settings.bot_token)
 
     if not validated_data:
+        # No token/initData in the log — only that validation failed.
+        logger.warning("Auth rejected: invalid or expired Telegram init data")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired Telegram init data",

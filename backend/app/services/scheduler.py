@@ -159,8 +159,8 @@ async def hourly_notification_job():
             await session.commit()
             if count > 0:
                 logger.info(f"Hourly job: sent {count} daily reminders")
-        except Exception as e:
-            logger.error(f"Error in hourly notification job: {e}")
+        except Exception:
+            logger.exception("Error in hourly notification job")
 
 
 async def daily_inactivity_job():
@@ -176,8 +176,8 @@ async def daily_inactivity_job():
             await session.commit()
             if count > 0:
                 logger.info(f"Daily job: sent {count} inactivity reminders")
-        except Exception as e:
-            logger.error(f"Error in daily inactivity job: {e}")
+        except Exception:
+            logger.exception("Error in daily inactivity job")
 
 
 async def daily_streak_freeze_job():
@@ -197,8 +197,8 @@ async def daily_streak_freeze_job():
                 logger.info(
                     f"Daily job: streaks frozen={stats['frozen']}, broken={stats['broken']}"
                 )
-        except Exception as e:
-            logger.error(f"Error in daily streak freeze job: {e}")
+        except Exception:
+            logger.exception("Error in daily streak freeze job")
 
 
 async def daily_boss_finalization_job():
@@ -218,8 +218,8 @@ async def daily_boss_finalization_job():
             await session.commit()
             if count > 0:
                 logger.info(f"Daily job: finalized {count} boss(es)")
-        except Exception as e:
-            logger.error(f"Error in daily boss finalization job: {e}")
+        except Exception:
+            logger.exception("Error in daily boss finalization job")
 
 
 async def daily_challenge_lifecycle_job():
@@ -243,8 +243,8 @@ async def daily_challenge_lifecycle_job():
                 logger.info(
                     f"Daily job: challenges changed={changed}, finalized={finalized}"
                 )
-        except Exception as e:
-            logger.error(f"Error in daily challenge lifecycle job: {e}")
+        except Exception:
+            logger.exception("Error in daily challenge lifecycle job")
 
 
 async def daily_admin_stats_job():
@@ -269,8 +269,8 @@ async def daily_admin_stats_job():
             text = format_digest(stats, yesterday)
             if await send_admin_digest(text):
                 logger.info(f"Daily job: admin digest for {yesterday} sent")
-        except Exception as e:
-            logger.error(f"Error in daily admin stats job: {e}")
+        except Exception:
+            logger.exception("Error in daily admin stats job")
 
 
 def start_scheduler():

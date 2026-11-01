@@ -3,6 +3,7 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from aiogram import Bot
+from aiogram.exceptions import TelegramForbiddenError
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -56,6 +57,54 @@ def dispatch_in_background(coro) -> None:
     task.add_done_callback(_background_tasks.discard)
 
 
+async def mark_bot_blocked(telegram_id: int, blocked: bool) -> None:
+    """Flip users.bot_blocked for a telegram_id (best-effort, own session).
+
+    Called when a send gets a 403 (user blocked the bot) and from the bot's
+    my_chat_member handler. Keeps the admin digest's reachable count honest.
+    """
+    from sqlalchemy import update
+    from app.db.database import async_session_maker
+    from app.db.models import User
+
+    try:
+        async with async_session_maker() as session:
+            await session.execute(
+                update(User)
+                .where(User.telegram_id == telegram_id)
+                .values(bot_blocked=blocked)
+            )
+            await session.commit()
+    except Exception:
+        logger.exception("Failed to update bot_blocked for %s", telegram_id)
+
+
+async def _send(
+    telegram_id: int,
+    text: str,
+    *,
+    keyboard: InlineKeyboardMarkup | None = None,
+    label: str = "push",
+) -> bool:
+    """Single Telegram-send path for every push. Returns True on success.
+
+    A 403 means the user blocked the bot — that's expected, not an error, so it
+    logs at INFO and records the block. Any other failure logs with a traceback.
+    """
+    try:
+        bot = get_bot()
+        await bot.send_message(chat_id=telegram_id, text=text, reply_markup=keyboard)
+        logger.info("%s sent to %s", label, telegram_id)
+        return True
+    except TelegramForbiddenError:
+        logger.info("%s skipped: %s has blocked the bot", label, telegram_id)
+        await mark_bot_blocked(telegram_id, True)
+        return False
+    except Exception:
+        logger.exception("Failed to send %s to %s", label, telegram_id)
+        return False
+
+
 def get_open_app_keyboard() -> InlineKeyboardMarkup:
     """Get keyboard with button to open the Mini App."""
     from aiogram.types import WebAppInfo
@@ -107,26 +156,14 @@ async def send_friend_request_notification(
     Returns:
         True if notification was sent successfully
     """
-    try:
-        bot = get_bot()
-
-        text = (
-            f"👋 <b>Новая заявка в друзья!</b>\n\n"
-            f"Пользователь <b>{from_user_name}</b> хочет добавить тебя в друзья."
-        )
-
-        await bot.send_message(
-            chat_id=telegram_id,
-            text=text,
-            reply_markup=get_open_app_keyboard(),
-        )
-
-        logger.info(f"Friend request notification sent to {telegram_id}")
-        return True
-
-    except Exception as e:
-        logger.error(f"Failed to send friend request notification to {telegram_id}: {e}")
-        return False
+    text = (
+        f"👋 <b>Новая заявка в друзья!</b>\n\n"
+        f"Пользователь <b>{from_user_name}</b> хочет добавить тебя в друзья."
+    )
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_app_keyboard(), label="Friend request notification",
+    )
 
 
 async def send_daily_reminder(telegram_id: int, streak: int = 0) -> bool:
@@ -140,34 +177,22 @@ async def send_daily_reminder(telegram_id: int, streak: int = 0) -> bool:
     Returns:
         True if notification was sent successfully
     """
-    try:
-        bot = get_bot()
-
-        if streak > 0:
-            text = (
-                f"🏋️ <b>Время тренировки!</b>\n\n"
-                f"🔥 Твой streak: <b>{streak}</b> дней подряд!\n"
-                f"Не останавливайся — продолжай в том же духе!"
-            )
-        else:
-            text = (
-                f"🏋️ <b>Время тренировки!</b>\n\n"
-                f"Начни свой день с упражнений.\n"
-                f"Даже 10 минут — это уже прогресс!"
-            )
-
-        await bot.send_message(
-            chat_id=telegram_id,
-            text=text,
-            reply_markup=get_open_app_keyboard(),
+    if streak > 0:
+        text = (
+            f"🏋️ <b>Время тренировки!</b>\n\n"
+            f"🔥 Твой streak: <b>{streak}</b> дней подряд!\n"
+            f"Не останавливайся — продолжай в том же духе!"
         )
-
-        logger.info(f"Daily reminder sent to {telegram_id}")
-        return True
-
-    except Exception as e:
-        logger.error(f"Failed to send daily reminder to {telegram_id}: {e}")
-        return False
+    else:
+        text = (
+            f"🏋️ <b>Время тренировки!</b>\n\n"
+            f"Начни свой день с упражнений.\n"
+            f"Даже 10 минут — это уже прогресс!"
+        )
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_app_keyboard(), label="Daily reminder",
+    )
 
 
 async def send_inactivity_reminder(telegram_id: int, days_inactive: int) -> bool:
@@ -181,28 +206,17 @@ async def send_inactivity_reminder(telegram_id: int, days_inactive: int) -> bool
     Returns:
         True if notification was sent successfully
     """
-    try:
-        bot = get_bot()
-
-        text = (
-            f"😢 <b>Мы скучаем!</b>\n\n"
-            f"Прошло уже <b>{days_inactive}</b> дня без тренировок.\n"
-            f"Твои мышцы тоже скучают! Вернись к занятиям — "
-            f"начни с лёгкой разминки."
-        )
-
-        await bot.send_message(
-            chat_id=telegram_id,
-            text=text,
-            reply_markup=get_open_app_keyboard(),
-        )
-
-        logger.info(f"Inactivity reminder sent to {telegram_id} ({days_inactive} days)")
-        return True
-
-    except Exception as e:
-        logger.error(f"Failed to send inactivity reminder to {telegram_id}: {e}")
-        return False
+    text = (
+        f"😢 <b>Мы скучаем!</b>\n\n"
+        f"Прошло уже <b>{days_inactive}</b> дня без тренировок.\n"
+        f"Твои мышцы тоже скучают! Вернись к занятиям — "
+        f"начни с лёгкой разминки."
+    )
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_app_keyboard(),
+        label=f"Inactivity reminder ({days_inactive}d)",
+    )
 
 
 async def send_friend_accepted_notification(
@@ -219,27 +233,15 @@ async def send_friend_accepted_notification(
     Returns:
         True if notification was sent successfully
     """
-    try:
-        bot = get_bot()
-
-        text = (
-            f"✅ <b>Заявка принята!</b>\n\n"
-            f"<b>{friend_name}</b> теперь твой друг.\n"
-            f"Тренируйтесь вместе и соревнуйтесь!"
-        )
-
-        await bot.send_message(
-            chat_id=telegram_id,
-            text=text,
-            reply_markup=get_open_app_keyboard(),
-        )
-
-        logger.info(f"Friend accepted notification sent to {telegram_id}")
-        return True
-
-    except Exception as e:
-        logger.error(f"Failed to send friend accepted notification to {telegram_id}: {e}")
-        return False
+    text = (
+        f"✅ <b>Заявка принята!</b>\n\n"
+        f"<b>{friend_name}</b> теперь твой друг.\n"
+        f"Тренируйтесь вместе и соревнуйтесь!"
+    )
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_app_keyboard(), label="Friend accepted notification",
+    )
 
 
 async def send_friend_workout_notification(
@@ -256,26 +258,14 @@ async def send_friend_workout_notification(
     Returns:
         True if notification was sent successfully
     """
-    try:
-        bot = get_bot()
-
-        text = (
-            f"💪 <b>{friend_name}</b> уже потренировался сегодня!\n\n"
-            f"А ты? Не отставай от друзей!"
-        )
-
-        await bot.send_message(
-            chat_id=telegram_id,
-            text=text,
-            reply_markup=get_open_app_keyboard(),
-        )
-
-        logger.info(f"Friend workout notification sent to {telegram_id}")
-        return True
-
-    except Exception as e:
-        logger.error(f"Failed to send friend workout notification to {telegram_id}: {e}")
-        return False
+    text = (
+        f"💪 <b>{friend_name}</b> уже потренировался сегодня!\n\n"
+        f"А ты? Не отставай от друзей!"
+    )
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_app_keyboard(), label="Friend workout notification",
+    )
 
 
 async def send_friend_workout_notifications(
@@ -320,23 +310,16 @@ async def send_new_challenge_push(
     challenge_id: int,
 ) -> bool:
     """Tell a friend that someone created a new challenge they can still join."""
-    try:
-        bot = get_bot()
-        text = (
-            f"🏆 <b>Новый челлендж!</b>\n\n"
-            f"<b>{creator_name}</b> создал «{challenge_title}».\n"
-            f"Впишись, пока открыт приём — потренируйтесь наперегонки!"
-        )
-        await bot.send_message(
-            chat_id=telegram_id,
-            text=text,
-            reply_markup=get_open_challenge_keyboard(challenge_id),
-        )
-        logger.info(f"New-challenge notification sent to {telegram_id}")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to send new-challenge notification to {telegram_id}: {e}")
-        return False
+    text = (
+        f"🏆 <b>Новый челлендж!</b>\n\n"
+        f"<b>{creator_name}</b> создал «{challenge_title}».\n"
+        f"Впишись, пока открыт приём — потренируйтесь наперегонки!"
+    )
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_challenge_keyboard(challenge_id),
+        label="New-challenge notification",
+    )
 
 
 async def send_announcement_push(telegram_id: int, text: str) -> bool:
@@ -351,18 +334,10 @@ async def send_announcement_push(telegram_id: int, text: str) -> bool:
     Returns:
         True if notification was sent successfully
     """
-    try:
-        bot = get_bot()
-        await bot.send_message(
-            chat_id=telegram_id,
-            text=text,
-            reply_markup=get_open_app_keyboard(),
-        )
-        logger.info(f"Announcement push sent to {telegram_id}")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to send announcement push to {telegram_id}: {e}")
-        return False
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_app_keyboard(), label="Announcement push",
+    )
 
 
 async def send_referral_reward_push(telegram_id: int, text: str) -> bool:
@@ -377,18 +352,10 @@ async def send_referral_reward_push(telegram_id: int, text: str) -> bool:
     Returns:
         True if notification was sent successfully
     """
-    try:
-        bot = get_bot()
-        await bot.send_message(
-            chat_id=telegram_id,
-            text=text,
-            reply_markup=get_open_app_keyboard(),
-        )
-        logger.info(f"Referral reward push sent to {telegram_id}")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to send referral reward push to {telegram_id}: {e}")
-        return False
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_app_keyboard(), label="Referral reward push",
+    )
 
 
 async def send_admin_digest(text: str) -> bool:
@@ -405,17 +372,25 @@ async def send_admin_digest(text: str) -> bool:
     if not settings.admin_telegram_id:
         logger.debug("Admin digest skipped: ADMIN_TELEGRAM_ID is not set")
         return False
-    try:
-        bot = get_bot()
-        await bot.send_message(
-            chat_id=settings.admin_telegram_id,
-            text=text,
-        )
-        logger.info(f"Admin digest sent to {settings.admin_telegram_id}")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to send admin digest to {settings.admin_telegram_id}: {e}")
+    return await _send(settings.admin_telegram_id, text, label="Admin digest")
+
+
+async def send_admin_notice(text: str) -> bool:
+    """Push a short event notice to the admin (new registration, bot blocked).
+
+    No-op when ADMIN_TELEGRAM_ID is unset. Meant to be fired best-effort via
+    dispatch_in_background so it never blocks the triggering request.
+    """
+    if not settings.admin_telegram_id:
         return False
+    return await _send(settings.admin_telegram_id, text, label="Admin notice")
+
+
+def notify_admin_new_user(total_users: int) -> None:
+    """Best-effort admin ping on a new registration — no PII, just the total."""
+    dispatch_in_background(send_admin_notice(
+        f"🆕 Новая регистрация!\nВсего пользователей: {total_users}"
+    ))
 
 
 async def close_bot():
