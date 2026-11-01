@@ -422,7 +422,11 @@ def notify_admin_bot_blocked(total_blocked: int) -> None:
     ))
 
 
-async def broadcast_new_boss_push(boss_name_ru: str, boss_emoji: str) -> None:
+async def broadcast_new_boss_push(
+    boss_name_ru: str,
+    boss_emoji: str,
+    limit: int | None = None,
+) -> None:
     """Push the monthly new-boss announcement to every reachable user.
 
     Reachable = has a telegram_id, notifications on, hasn't blocked the bot.
@@ -430,6 +434,7 @@ async def broadcast_new_boss_push(boss_name_ru: str, boss_emoji: str) -> None:
     block (counts update) but DON'T ping the admin per user — a mass broadcast
     would otherwise flood them. Best-effort: dispatched off the request path
     (see get_or_create_current_boss) so it never blocks boss creation.
+    ``limit`` caps recipients (staged/test runs from the one-off script).
     """
     from sqlalchemy import select
     from app.db.database import async_session_maker
@@ -450,6 +455,8 @@ async def broadcast_new_boss_push(boss_name_ru: str, boss_emoji: str) -> None:
         return
 
     telegram_ids = [r[0] for r in rows]
+    if limit is not None:
+        telegram_ids = telegram_ids[:limit]
     if not telegram_ids:
         return
 
