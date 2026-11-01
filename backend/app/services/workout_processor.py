@@ -32,6 +32,7 @@ from app.services.xp_calculator import (
     calculate_exercise_xp,
     calculate_timed_xp,
     calculate_cycling_xp,
+    calculate_running_xp,
     calculate_walking_xp,
     calculate_coins,
     get_level_from_xp,
@@ -284,6 +285,22 @@ async def process_workout_completion(
                 raise ValueError("Cycling distance must be positive")
 
             xp_earned = calculate_cycling_xp(
+                distance_km=ex_data.distance_km,
+                duration_minutes=ex_data.duration_minutes,
+                streak_days=user.current_streak,
+            )
+            # Store distance in 100m units to keep progress-compatible integer metric
+            total_reps = int(round(ex_data.distance_km * 10))
+            total_duration = ex_data.duration_minutes * 60
+            sets_count = 1
+        # Special handling for running activity (distance + duration, like cycling)
+        elif ex_data.exercise_slug == "running" and ex_data.distance_km is not None and ex_data.duration_minutes is not None:
+            if ex_data.duration_minutes < 3:
+                raise ValueError("Running duration must be at least 3 minutes")
+            if ex_data.distance_km <= 0:
+                raise ValueError("Running distance must be positive")
+
+            xp_earned = calculate_running_xp(
                 distance_km=ex_data.distance_km,
                 duration_minutes=ex_data.duration_minutes,
                 streak_days=user.current_streak,

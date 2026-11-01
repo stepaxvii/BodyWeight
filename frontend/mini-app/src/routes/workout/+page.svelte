@@ -154,9 +154,9 @@
 			result = result.filter(e => e.tags.some(t => selectedTags.includes(t)));
 		}
 
-		// Cycling is handled by dedicated input UI (Quick record),
-		// so we don't offer it in the generic workout builder.
-		result = result.filter(e => e.slug !== 'cycling');
+		// Cycling and running are handled by dedicated input UI (Quick record),
+		// so we don't offer them in the generic workout builder.
+		result = result.filter(e => e.slug !== 'cycling' && e.slug !== 'running');
 
 		return result;
 	});

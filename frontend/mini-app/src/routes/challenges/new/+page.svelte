@@ -61,8 +61,9 @@
 		const candidates = exercises.filter(
 			(e) =>
 				!pickedIds.has(e.id) &&
-				// Cycling/walking work but their semantics are weird for daily-target
-				e.slug !== 'cycling'
+				// Cycling/running/walking work but their semantics are weird for daily-target
+				e.slug !== 'cycling' &&
+				e.slug !== 'running'
 		);
 		if (!q) return candidates.slice(0, 50);
 		return candidates

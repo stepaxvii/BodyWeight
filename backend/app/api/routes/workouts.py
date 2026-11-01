@@ -305,6 +305,22 @@ async def submit_workout(
                         "Cycling duration must be at least 5 minutes"
                     ),
                 )
+        elif ex.exercise_slug == "running":
+            if ex.distance_km is None or ex.duration_minutes is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Running requires distance_km and duration_minutes",
+                )
+            if ex.distance_km <= 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Running distance must be positive",
+                )
+            if ex.duration_minutes < 3:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Running duration must be at least 3 minutes",
+                )
         elif ex.exercise_slug == "walking":
             if ex.steps is None:
                 raise HTTPException(

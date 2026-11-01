@@ -5,7 +5,7 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { favoritesStore } from '$lib/stores/favorites.svelte';
 	import { exercisesStore } from '$lib/stores/exercises.svelte';
-	import { calculateCyclingXp, calculateWalkingXp, calculateExerciseXp, calculateTimedXp, xpPerRep } from '$lib/utils/xp';
+	import { calculateCyclingXp, calculateRunningXp, calculateWalkingXp, calculateExerciseXp, calculateTimedXp, xpPerRep } from '$lib/utils/xp';
 	import { getTagName } from '$lib/utils';
 	import type { Exercise, EquipmentType, ExerciseCategory } from '$lib/types';
 	import { onMount } from 'svelte';
@@ -18,7 +18,7 @@
 
 	let { open = $bindable(false), onclose, onsave }: Props = $props();
 
-	type Step = 'mode' | 'exercise' | 'input' | 'filters' | 'cycling-input' | 'walking-input';
+	type Step = 'mode' | 'exercise' | 'input' | 'filters' | 'cycling-input' | 'running-input' | 'walking-input';
 	type ExerciseMode = 'favorites' | 'all';
 
 	let step = $state<Step>('mode');
@@ -30,6 +30,8 @@
 	let duration = $state(30);
 	let cyclingDistanceKm = $state(6.5);
 	let cyclingDurationMin = $state(23);
+	let runningDistanceKm = $state(5.0);
+	let runningDurationMin = $state(30);
 	let walkingSteps = $state(10000);
 	let isSubmitting = $state(false);
 	
@@ -114,9 +116,9 @@
 			result = result.filter(e => e.tags.some(t => selectedTags.includes(t)));
 		}
 
-		// Cycling and walking are handled by dedicated quick-flows,
+		// Cycling, running and walking are handled by dedicated quick-flows,
 		// not by the generic reps/sets UI.
-		result = result.filter(e => e.slug !== 'cycling' && e.slug !== 'walking');
+		result = result.filter(e => e.slug !== 'cycling' && e.slug !== 'running' && e.slug !== 'walking');
 
 		return result;
 	});
@@ -140,6 +142,12 @@
 			telegram.hapticImpact('light');
 			return;
 		}
+		if (ex.slug === 'running') {
+			step = 'running-input';
+			selectedExercise = null;
+			telegram.hapticImpact('light');
+			return;
+		}
 		if (ex.slug === 'walking') {
 			step = 'walking-input';
 			selectedExercise = null;
@@ -154,6 +162,11 @@
 
 	function selectCycling() {
 		step = 'cycling-input';
+		telegram.hapticImpact('light');
+	}
+
+	function selectRunning() {
+		step = 'running-input';
 		telegram.hapticImpact('light');
 	}
 
@@ -176,6 +189,8 @@
 		} else if (step === 'filters') {
 			step = 'exercise';
 		} else if (step === 'cycling-input') {
+			step = 'mode';
+		} else if (step === 'running-input') {
 			step = 'mode';
 		} else if (step === 'walking-input') {
 			step = 'mode';
@@ -241,6 +256,8 @@
 		duration = 30;
 		cyclingDistanceKm = 6.5;
 		cyclingDurationMin = 23;
+		runningDistanceKm = 5.0;
+		runningDurationMin = 30;
 		walkingSteps = 10000;
 		searchQuery = '';
 		selectedEquipment = [];
@@ -366,6 +383,61 @@
 		calculateCyclingXp(cyclingDistanceKm, cyclingDurationMin, userStore.streak)
 	));
 
+	const runningSpeedKmh = $derived.by(() => {
+		if (runningDurationMin <= 0) return 0;
+		return runningDistanceKm / (runningDurationMin / 60);
+	});
+
+	const runningEstimatedXp = $derived.by(() => (
+		calculateRunningXp(runningDistanceKm, runningDurationMin, userStore.streak)
+	));
+
+	async function handleSaveRunning() {
+		if (isSubmitting) return;
+		if (runningDistanceKm <= 0 || runningDurationMin < 3) {
+			telegram.hapticNotification('error');
+			return;
+		}
+
+		isSubmitting = true;
+		telegram.hapticNotification('success');
+
+		const workoutData = {
+			duration_seconds: runningDurationMin * 60,
+			exercises: [{
+				exercise_slug: 'running',
+				sets: [Math.max(1, Math.round(runningDistanceKm * 10))], // 100m units
+				is_timed: false,
+				distance_km: runningDistanceKm,
+				duration_minutes: runningDurationMin
+			}],
+			completed_at: new Date().toISOString(),
+			client_request_id: newClientRequestId()
+		};
+
+		try {
+			const response = await api.submitWorkout(workoutData);
+			const completed = response.workout;
+			userStore.addXp(completed.total_xp_earned);
+			userStore.addCoins(completed.total_coins_earned);
+			void userStore.loadUser();
+			onsave?.(completed.total_xp_earned, completed.total_coins_earned);
+			handleClose();
+		} catch (err) {
+			if (!navigator.onLine) {
+				savePendingWorkout(workoutData);
+				telegram.hapticNotification('success');
+				onsave?.(calculateRunningXp(runningDistanceKm, runningDurationMin, userStore.streak), 0);
+				handleClose();
+			} else {
+				console.error('Failed to save running activity:', err);
+				telegram.hapticNotification('error');
+			}
+		} finally {
+			isSubmitting = false;
+		}
+	}
+
 	const walkingEstimatedXp = $derived.by(() => calculateWalkingXp(walkingSteps, userStore.streak));
 
 	async function handleSaveWalking() {
@@ -469,6 +541,28 @@
 		(e.currentTarget as HTMLInputElement).value = String(cyclingDurationMin);
 	}
 
+	function typeRunningKm(e: Event) {
+		const cleaned = (e.currentTarget as HTMLInputElement).value
+			.replace(',', '.')
+			.replace(/[^\d.]/g, '');
+		if (!cleaned || cleaned.endsWith('.')) return;
+		const v = parseFloat(cleaned);
+		if (!Number.isNaN(v)) runningDistanceKm = Math.min(300, v);
+	}
+	function blurRunningKm(e: Event) {
+		runningDistanceKm = Math.max(0.1, +runningDistanceKm.toFixed(1));
+		(e.currentTarget as HTMLInputElement).value = String(runningDistanceKm);
+	}
+
+	function typeRunningMin(e: Event) {
+		const v = typedInt(e);
+		if (v !== null) runningDurationMin = Math.min(600, v);
+	}
+	function blurRunningMin(e: Event) {
+		runningDurationMin = Math.max(3, runningDurationMin);
+		(e.currentTarget as HTMLInputElement).value = String(runningDurationMin);
+	}
+
 	function typeWalkingSteps(e: Event) {
 		const v = typedInt(e);
 		if (v !== null) walkingSteps = Math.min(200000, v);
@@ -493,6 +587,11 @@
 	<div class="ql">
 		{#if step === 'mode'}
 			<div class="ql-modes">
+				<button class="ql-mode" onclick={selectRunning}>
+					<span class="slot slot--md"><PixelIcon name="run" size="md" color="var(--gold)" /></span>
+					<span class="ql-mode__l">Бег · дистанция</span>
+					<PixelIcon name="chevron" size="sm" color="var(--muted)" class="ql-chev" />
+				</button>
 				<button class="ql-mode" onclick={selectCycling}>
 					<span class="slot slot--md"><PixelIcon name="bike" size="md" color="var(--green)" /></span>
 					<span class="ql-mode__l">Поездка на велосипеде</span>
@@ -627,6 +726,25 @@
 			</div>
 			<div class="ql-sum"><span>Ср. скорость: {cyclingSpeedKmh.toFixed(1)} км/ч</span><span class="ql-sum__xp">+{cyclingEstimatedXp} XP</span></div>
 			<PixelButton variant="success" size="lg" fullWidth loading={isSubmitting} onclick={handleSaveCycling}><PixelIcon name="check" /> Записать поездку</PixelButton>
+			{:else if step === 'running-input'}
+				<div class="ql-back">
+					<button class="ql-backbtn" onclick={goBack} aria-label="Назад"><PixelIcon name="arrowleft" size="sm" /></button>
+					<span class="ql-back__t">Бег</span>
+				</div>
+				<span class="ql-label">Дистанция</span>
+				<div class="qty">
+					<button class="qty__btn" onclick={() => (runningDistanceKm = Math.max(0.1, +(runningDistanceKm - 0.5).toFixed(1)))} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
+					<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="decimal" maxlength="5" value={String(runningDistanceKm)} oninput={typeRunningKm} onblur={blurRunningKm} aria-label="Дистанция, км" /><span class="qty__u">км</span></div>
+					<button class="qty__btn" onclick={() => (runningDistanceKm = +(runningDistanceKm + 0.5).toFixed(1))} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
+				</div>
+				<span class="ql-label">Время</span>
+				<div class="qty">
+					<button class="qty__btn" onclick={() => (runningDurationMin = Math.max(3, runningDurationMin - 1))} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
+					<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="numeric" maxlength="3" value={String(runningDurationMin)} oninput={typeRunningMin} onblur={blurRunningMin} aria-label="Время, минуты" /><span class="qty__u">мин</span></div>
+					<button class="qty__btn" onclick={() => (runningDurationMin = runningDurationMin + 1)} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
+				</div>
+				<div class="ql-sum"><span>Ср. темп: {runningSpeedKmh.toFixed(1)} км/ч</span><span class="ql-sum__xp">+{runningEstimatedXp} XP</span></div>
+				<PixelButton variant="success" size="lg" fullWidth loading={isSubmitting} onclick={handleSaveRunning}><PixelIcon name="check" /> Записать пробежку</PixelButton>
 		{:else if step === 'walking-input'}
 			<div class="ql-back">
 				<button class="ql-backbtn" onclick={goBack} aria-label="Назад"><PixelIcon name="arrowleft" size="sm" /></button>

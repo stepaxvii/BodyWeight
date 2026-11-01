@@ -120,6 +120,30 @@ def calculate_cycling_xp(distance_km: float, duration_minutes: int, streak_days:
     return int(base_xp * multiplier * get_streak_multiplier(streak_days))
 
 
+def calculate_running_xp(distance_km: float, duration_minutes: int, streak_days: int = 0) -> int:
+    """
+    Calculate XP for running based on distance, average pace and streak.
+
+    Running rewards ~2x cycling per km (harder per km). Formula:
+    - base_xp = distance_km * 30
+    - avg_speed = distance_km / (duration_minutes / 60)
+    - multiplier = clamp(1 + (avg_speed - 8) * 0.05, 1, 1.6)  # 8 km/h = jog baseline
+    - xp = floor(base_xp * multiplier * streak_mult)
+
+    ⚠️ Must stay identical to frontend calculateRunningXp in src/lib/utils/xp.ts.
+    """
+    if distance_km <= 0:
+        raise ValueError("distance_km must be positive")
+    if duration_minutes <= 0:
+        raise ValueError("duration_minutes must be positive")
+
+    base_xp = distance_km * 30
+    avg_speed = distance_km / (duration_minutes / 60)
+    multiplier = max(1.0, min(1.6, 1 + (avg_speed - 8) * 0.05))
+
+    return int(base_xp * multiplier * get_streak_multiplier(streak_days))
+
+
 def calculate_walking_xp(steps: int, streak_days: int = 0) -> int:
     """
     Calculate XP for walking based on total step count and streak.

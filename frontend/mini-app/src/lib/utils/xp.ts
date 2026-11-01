@@ -160,6 +160,24 @@ export function calculateCyclingXp(
 }
 
 /**
+ * Calculate running XP from distance, average pace and streak.
+ * Formula mirrors backend calculate_running_xp (base 30/km, pace bonus from 8 km/h).
+ */
+export function calculateRunningXp(
+	distanceKm: number,
+	durationMinutes: number,
+	streakDays: number = 0
+): number {
+	if (distanceKm <= 0 || durationMinutes <= 0) return 0;
+
+	const baseXp = distanceKm * 30;
+	const avgSpeed = distanceKm / (durationMinutes / 60);
+	const multiplier = Math.max(1, Math.min(1.6, 1 + (avgSpeed - 8) * 0.05));
+
+	return Math.floor(baseXp * multiplier * getStreakMultiplier(streakDays));
+}
+
+/**
  * Calculate walking XP from total step count and streak.
  * Formula mirrors backend: 1 XP per 50 steps, scaled by streak.
  */
