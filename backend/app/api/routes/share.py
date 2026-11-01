@@ -118,7 +118,10 @@ async def _build_report_text(
     lines = [
         f"🏆 {routine_name or 'Тренировка в PixelFit'}",
         "",
-        f"⏱️ {_format_mmss(workout.total_duration_seconds)}",
+        # duration_seconds — реальное время тренировки (старт→финиш);
+        # total_duration_seconds — сумма секунд ТОЛЬКО таймированных
+        # упражнений (0 для тренировки из повторений) — не использовать.
+        f"⏱️ {_format_mmss(workout.duration_seconds or 0)}",
         f"🌟 +{workout.total_xp_earned} XP",
         f"🪙 {workout.total_coins_earned} монет",
     ]
@@ -278,7 +281,9 @@ async def get_share_card(
     data = CardData(
         xp=workout.total_xp_earned,
         total_reps=workout.total_reps,
-        duration_minutes=round(workout.total_duration_seconds / 60),
+        # Wall-clock workout time, NOT total_duration_seconds (which sums
+        # only timed-exercise seconds and is 0 for reps-only workouts).
+        duration_minutes=round((workout.duration_seconds or 0) / 60),
         streak_days=workout.user.current_streak,
         boss_damage=boss_damage,
         date_str=workout.finished_at.strftime("%d.%m"),

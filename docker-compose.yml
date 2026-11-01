@@ -7,6 +7,7 @@ services:
       - BOT_TOKEN=${BOT_TOKEN}
       - SECRET_KEY=${SECRET_KEY}
       - MINI_APP_URL=${MINI_APP_URL}
+      - ADMIN_TELEGRAM_ID=${ADMIN_TELEGRAM_ID:-}
       - DEBUG=true
     volumes:
       - ./data:/app/data
@@ -30,6 +31,7 @@ services:
       - BOT_TOKEN=${BOT_TOKEN}
       - SECRET_KEY=${SECRET_KEY}
       - MINI_APP_URL=${MINI_APP_URL}
+      - ADMIN_TELEGRAM_ID=${ADMIN_TELEGRAM_ID:-}
     volumes:
       - ./data:/app/data
     depends_on:
