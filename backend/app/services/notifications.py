@@ -57,26 +57,42 @@ def dispatch_in_background(coro) -> None:
     task.add_done_callback(_background_tasks.discard)
 
 
-async def mark_bot_blocked(telegram_id: int, blocked: bool) -> None:
+async def mark_bot_blocked(telegram_id: int, blocked: bool) -> tuple[bool, int]:
     """Flip users.bot_blocked for a telegram_id (best-effort, own session).
 
-    Called when a send gets a 403 (user blocked the bot) and from the bot's
-    my_chat_member handler. Keeps the admin digest's reachable count honest.
+    Called on a 403 send (user blocked the bot) and from the bot's
+    my_chat_member handler. Returns ``(changed, total_blocked)``: ``changed``
+    is True only on an actual transition — so callers notify the admin exactly
+    once per fresh block, never on repeated sends to an already-blocked user.
+    ``total_blocked`` is the current blocked count (computed only when changed).
     """
-    from sqlalchemy import update
+    from sqlalchemy import func, select, update
     from app.db.database import async_session_maker
     from app.db.models import User
 
     try:
         async with async_session_maker() as session:
-            await session.execute(
+            result = await session.execute(
                 update(User)
                 .where(User.telegram_id == telegram_id)
+                .where(User.bot_blocked != blocked)
                 .values(bot_blocked=blocked)
             )
+            changed = (result.rowcount or 0) > 0
+            total_blocked = 0
+            if changed:
+                total_blocked = (
+                    await session.execute(
+                        select(func.count())
+                        .select_from(User)
+                        .where(User.bot_blocked.is_(True))
+                    )
+                ).scalar_one()
             await session.commit()
+            return changed, total_blocked
     except Exception:
         logger.exception("Failed to update bot_blocked for %s", telegram_id)
+        return False, 0
 
 
 async def _send(
@@ -88,8 +104,9 @@ async def _send(
 ) -> bool:
     """Single Telegram-send path for every push. Returns True on success.
 
-    A 403 means the user blocked the bot — that's expected, not an error, so it
-    logs at INFO and records the block. Any other failure logs with a traceback.
+    A 403 means the user blocked the bot — expected, not an error: log at INFO,
+    record the block, and ping the admin once if this is a fresh discovery.
+    Any other failure logs with a traceback.
     """
     try:
         bot = get_bot()
@@ -98,7 +115,9 @@ async def _send(
         return True
     except TelegramForbiddenError:
         logger.info("%s skipped: %s has blocked the bot", label, telegram_id)
-        await mark_bot_blocked(telegram_id, True)
+        changed, total_blocked = await mark_bot_blocked(telegram_id, True)
+        if changed:
+            notify_admin_bot_blocked(total_blocked)
         return False
     except Exception:
         logger.exception("Failed to send %s to %s", label, telegram_id)
@@ -390,6 +409,13 @@ def notify_admin_new_user(total_users: int) -> None:
     """Best-effort admin ping on a new registration — no PII, just the total."""
     dispatch_in_background(send_admin_notice(
         f"🆕 Новая регистрация!\nВсего пользователей: {total_users}"
+    ))
+
+
+def notify_admin_bot_blocked(total_blocked: int) -> None:
+    """Best-effort admin ping on a fresh bot block — no PII, just the total."""
+    dispatch_in_background(send_admin_notice(
+        f"🚫 Пользователь заблокировал бота.\nВсего заблокировали: {total_blocked}"
     ))
 
 

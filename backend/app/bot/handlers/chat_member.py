@@ -10,11 +10,8 @@ import logging
 from aiogram import Router
 from aiogram.enums import ChatMemberStatus
 from aiogram.types import ChatMemberUpdated
-from sqlalchemy import func, select
 
-from app.db.database import async_session_maker
-from app.db.models import User
-from app.services.notifications import dispatch_in_background, send_admin_notice
+from app.services.notifications import mark_bot_blocked, notify_admin_bot_blocked
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -30,31 +27,13 @@ async def on_my_chat_member(event: ChatMemberUpdated):
     telegram_id = event.from_user.id
     blocked = event.new_chat_member.status == ChatMemberStatus.KICKED
 
-    async with async_session_maker() as session:
-        user = (
-            await session.execute(
-                select(User).where(User.telegram_id == telegram_id)
-            )
-        ).scalar_one_or_none()
-        if user is None:
-            return
-        was_blocked = bool(user.bot_blocked)
-        if was_blocked == blocked:
-            return  # no change — ignore duplicate/echo updates
-        user.bot_blocked = blocked
-        await session.commit()
-
-        if blocked:
-            total_blocked = (
-                await session.execute(
-                    select(func.count())
-                    .select_from(User)
-                    .where(User.bot_blocked.is_(True))
-                )
-            ).scalar_one()
-            logger.info("User %s blocked the bot (total blocked=%s)", telegram_id, total_blocked)
-            dispatch_in_background(send_admin_notice(
-                f"🚫 Пользователь заблокировал бота.\nВсего заблокировали: {total_blocked}"
-            ))
-        else:
-            logger.info("User %s unblocked the bot", telegram_id)
+    # Same write path as the 403 catch: flips the flag only on a real
+    # transition (so no duplicate pings on echo updates / missing users).
+    changed, total_blocked = await mark_bot_blocked(telegram_id, blocked)
+    if not changed:
+        return
+    if blocked:
+        logger.info("User %s blocked the bot (total blocked=%s)", telegram_id, total_blocked)
+        notify_admin_bot_blocked(total_blocked)
+    else:
+        logger.info("User %s unblocked the bot", telegram_id)
