@@ -7,10 +7,21 @@ workout would otherwise reset a streak.
 
 Two independent actions (toggle with --no-streak / --no-coins):
 
-1. Streak bridge (a FREE freeze covering the whole outage): every user with an
-   active streak who couldn't train during the outage gets last_workout_date
-   advanced to yesterday, so their next workout continues the streak. It does
-   NOT consume paid streak_freezes. Forward-only, so re-running is a safe no-op.
+1. Streak bridge (a FREE freeze covering the whole outage, ANY length): every
+   user with an active streak who couldn't train during the outage gets
+   last_workout_date advanced to TODAY, so their streak is carried over intact
+   and the next workout continues it. This collapses a gap of any number of
+   days in one shot — it doesn't matter how long the provider was down. It does
+   NOT consume paid streak_freezes and never lowers a streak. Forward-only, so
+   re-running is a safe no-op.
+
+   Why TODAY (server-local) and not yesterday: workout_processor advances the
+   streak against date.today() (server-local), and the overnight reset job runs
+   in UTC. Bridging to today (same clock the processor uses) guarantees the
+   streak survives regardless of the server timezone or WHAT TIME OF DAY the
+   provider comes back — even a late-evening recovery can't lose a streak. The
+   recovery day effectively becomes a covered grace day; the next workout
+   increments normally.
 
 2. Compensation: +COINS coins to every user, exactly once, with an in-app
    notification and a Telegram push explaining the gift. Idempotent via a dedup
@@ -39,7 +50,7 @@ import argparse
 import asyncio
 import logging
 import sys
-from datetime import datetime, timedelta
+from datetime import date
 from pathlib import Path
 
 # Make `app.*` importable when run as `python scripts/downtime_relief.py`
@@ -98,8 +109,9 @@ async def already_compensated(session, user_id: int) -> bool:
 
 async def main(args: argparse.Namespace) -> None:
     setup_logging()
-    today = datetime.utcnow().date()
-    yesterday = today - timedelta(days=1)
+    # Server-local date — the SAME clock workout_processor uses for the streak,
+    # so the bridge target lines up with the forward increment exactly.
+    today = date.today()
 
     bridged = granted = skipped = push_sent = push_failed = 0
 
@@ -117,16 +129,17 @@ async def main(args: argparse.Namespace) -> None:
             did_write = False
 
             # 1) Streak bridge — free, forward-only. Any active streak that is
-            #    behind (couldn't train during the outage) is carried to
-            #    yesterday so the next workout continues it. Paid freezes untouched.
+            #    behind (hasn't trained today because the app was down) is
+            #    carried to today, so it survives a gap of any length and the
+            #    next workout continues it. Paid freezes untouched; never lowers.
             if (
                 not args.no_streak
                 and user.current_streak > 0
                 and user.last_workout_date is not None
-                and user.last_workout_date < yesterday
+                and user.last_workout_date < today
             ):
                 if not args.dry_run:
-                    user.last_workout_date = yesterday
+                    user.last_workout_date = today
                 bridged += 1
                 did_write = True
 
