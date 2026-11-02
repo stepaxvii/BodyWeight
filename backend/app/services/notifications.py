@@ -391,7 +391,9 @@ async def send_new_challenge_push(
     )
 
 
-async def send_announcement_push(telegram_id: int, text: str) -> bool:
+async def send_announcement_push(
+    telegram_id: int, text: str, *, notify_admin_on_block: bool = True
+) -> bool:
     """
     Send a generic announcement push to a user via Telegram bot.
     Used for one-off feature announcements (new release, etc.).
@@ -399,6 +401,8 @@ async def send_announcement_push(telegram_id: int, text: str) -> bool:
     Args:
         telegram_id: Telegram ID of the user to notify
         text: HTML-formatted message body
+        notify_admin_on_block: set False for mass broadcasts so a wave of
+            historical blocks doesn't flood the admin (the digest still shows it)
 
     Returns:
         True if notification was sent successfully
@@ -406,6 +410,7 @@ async def send_announcement_push(telegram_id: int, text: str) -> bool:
     return await _send(
         telegram_id, text,
         keyboard=get_open_app_keyboard(), label="Announcement push",
+        notify_admin_on_block=notify_admin_on_block,
     )
 
 
