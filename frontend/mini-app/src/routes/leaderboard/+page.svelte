@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
-	import { base } from '$app/paths';
 	import { PixelIcon, PixelAvatar, EmptyState, PixelButton, CountUp } from '$lib/components/ui';
 	import UserProfileModal from '$lib/components/UserProfileModal.svelte';
 	import Banner from '$lib/components/ui/Banner.svelte';
@@ -15,6 +13,7 @@
 	let error = $state<string | null>(null);
 	let selectedUserId = $state<number | null>(null);
 	let updatingVisibility = $state(false);
+	let inviteInfo = $state<{ invite_link: string } | null>(null);
 
 	// Есть ли вообще соперники (кроме самого пользователя)
 	const hasRivals = $derived(entries.some((e) => !e.is_current_user));
@@ -80,9 +79,35 @@
 		telegram.hapticImpact('light');
 	}
 
-	function goInviteFriend() {
-		telegram.hapticImpact('light');
-		goto(`${base}/friends`);
+	// Invite a friend straight from the leaderboard — personal link, the bot
+	// auto-friends both sides. Mirrors friends/+page.svelte shareInviteLink.
+	async function shareInviteLink() {
+		try {
+			telegram.hapticImpact('medium');
+			let info = inviteInfo;
+			if (!info) {
+				info = await api.getInviteLink();
+				inviteInfo = info;
+			}
+			const inviteLink = info.invite_link;
+			const inviteText = 'Тренируйся со мной в PixelFit — фитнес с 8-битной душой прямо в Telegram';
+
+			if (telegram.webApp) {
+				const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(inviteText)}`;
+				telegram.openTelegramLink(shareUrl);
+			} else if (navigator.share) {
+				await navigator.share({ title: 'PixelFit', text: inviteText, url: inviteLink });
+			} else {
+				await navigator.clipboard.writeText(`${inviteText}\n${inviteLink}`);
+				alert('Ссылка скопирована в буфер обмена');
+			}
+			telegram.hapticNotification('success');
+		} catch (err) {
+			// User cancelled the share sheet — not an error.
+			if (err instanceof Error && err.name === 'AbortError') return;
+			telegram.hapticNotification('error');
+			console.error('Failed to share invite link:', err);
+		}
 	}
 </script>
 
@@ -135,8 +160,8 @@
 			<span class="slot slot--lg"><PixelIcon name="friends" size="lg" color="var(--muted)" /></span>
 			<p class="lb-empty__t">Пока соревноваться не с кем</p>
 			<p class="lb-empty__s">Добавь друзей — и недельная гонка за XP начнётся.</p>
-			<PixelButton variant="primary" fullWidth onclick={goInviteFriend}>
-				Пригласить друга
+			<PixelButton variant="primary" fullWidth onclick={shareInviteLink}>
+				<PixelIcon name="share" /> Пригласить друга
 			</PixelButton>
 		</div>
 	{:else}
@@ -244,6 +269,20 @@
 				{/if}
 			{/each}
 		</div>
+
+			<!-- Invite CTA — grow the weekly race straight from the leaderboard -->
+			<div class="lb-invite anim-pop">
+				<div class="lb-invite__head">
+					<span class="slot slot--md"><PixelIcon name="users" size="md" color="var(--accent)" /></span>
+					<div class="lb-invite__txt">
+						<span class="lb-invite__t">Зови друзей в гонку</span>
+						<span class="lb-invite__s">Чем больше соперников — тем жарче недельный рейтинг.</span>
+					</div>
+				</div>
+				<PixelButton variant="primary" fullWidth onclick={shareInviteLink}>
+					<PixelIcon name="share" /> Пригласить друга
+				</PixelButton>
+			</div>
 	{/if}
 </div>
 
@@ -314,6 +353,40 @@
 		color: var(--text);
 	}
 	.lb-hidden__s {
+		font-size: 11px;
+		color: var(--muted);
+		line-height: 1.4;
+	}
+
+	/* Invite CTA under a populated leaderboard — mirrors .lb-hidden */
+	.lb-invite {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
+		background: var(--bg2);
+		border: var(--bw) solid var(--line);
+		box-shadow: var(--shadow);
+		margin-top: var(--spacing-md);
+	}
+	.lb-invite__head {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+	}
+	.lb-invite__txt {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+	.lb-invite__t {
+		font-family: var(--font-display);
+		font-size: var(--font-size-sm);
+		color: var(--text);
+	}
+	.lb-invite__s {
 		font-size: 11px;
 		color: var(--muted);
 		line-height: 1.4;
