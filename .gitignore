@@ -75,3 +75,6 @@ docs/
 
 # Local branding assets (YouTube cover/icons)
 branding/
+
+# Хендофф-бриф для деплоя на Raspberry Pi (локальный, не в репо)
+DEPLOY_BRIEF_RPI.md
