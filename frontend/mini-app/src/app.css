@@ -73,8 +73,12 @@
 	   Pixel Operator is the Cyrillic fallback (digits stay Silkscreen, but Cyrillic
 	   units the design puts in data elements — сек/повт./мин/упр. — fall to Pixel
 	   Operator per-glyph instead of garbling). */
+	/* Headings / display accents stay pixel (8-bit identity). */
 	--font-display: 'Pixel Operator', monospace;
-	--font-ui: 'Pixel Operator', monospace;
+	/* Body & general UI text: the device's native sans — crisp, full Cyrillic,
+	   zero network (SF on iOS, Roboto on Android). Readability first. */
+	--font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	/* Numbers (XP, stats, timers) stay pixel via Silkscreen. */
 	--font-data: 'Silkscreen', 'Pixel Operator', monospace;
 	/* Bumped up vs the prototype's raw px: the designer's preview is shown in a
 	   scaled-up phone frame (~1.5-2x), so 1:1 px look tiny on a real device. */
@@ -143,12 +147,12 @@
 	/* Fonts (app names) — body Pixelify Sans, headings/numbers Silkscreen */
 	--font-pixel: var(--font-ui);
 	/* Bumped up for real-device legibility (body base = 14px like the designer) */
-	--font-size-xs: 11px;
-	--font-size-sm: 14px;
-	--font-size-md: 16px;
-	--font-size-lg: 19px;
-	--font-size-xl: 24px;
-	--font-size-2xl: 32px;
+	--font-size-xs: 12px;
+	--font-size-sm: 15px;
+	--font-size-md: 17px;
+	--font-size-lg: 20px;
+	--font-size-xl: 26px;
+	--font-size-2xl: 34px;
 
 	/* Transitions */
 	--transition-fast: 100ms;
@@ -166,8 +170,11 @@
 
 html {
 	font-size: 16px;
-	-webkit-font-smoothing: none;
-	-moz-osx-font-smoothing: unset;
+	/* Antialias readable body text (the pixel look is kept crisp per-element on
+	   headings / nav / pixel accents below). Rendering with no smoothing is what
+	   made both the Cyrillic fallback and the Latin pixel font hard to read. */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -202,6 +209,8 @@ h1, h2, h3, h4, h5, h6 {
 	line-height: 1.4;
 	color: var(--text-primary);
 	text-transform: uppercase;
+	/* Keep the pixel display font crisp (no antialiasing). */
+	-webkit-font-smoothing: none;
 }
 
 h1 { font-size: var(--font-size-xl); }
