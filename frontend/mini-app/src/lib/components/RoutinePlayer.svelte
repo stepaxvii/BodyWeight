@@ -629,8 +629,16 @@
 
 			<div class="player__controls">
 				{#if isResting}
-					<PixelButton variant="primary" size="lg" fullWidth onclick={skipRest}><PixelIcon name="play" /> {t('modals1.player.skipRest')}</PixelButton>
-					<PixelButton variant="ghost" fullWidth onclick={() => addRest(15)}>{t('modals1.player.addRest')}</PixelButton>
+					<!-- Same layout as the exercise screen: secondary action (+15s) on
+					     the narrow left, main action (skip rest) on the wide right. -->
+					<div class="pa2-actions">
+						<div class="pa2-actions__skip">
+							<PixelButton variant="ghost" size="md" fullWidth onclick={() => addRest(15)}>{t('modals1.player.addRest')}</PixelButton>
+						</div>
+						<div class="pa2-actions__main">
+							<PixelButton variant="primary" size="lg" fullWidth onclick={skipRest}><PixelIcon name="play" /> {t('modals1.player.skipRest')}</PixelButton>
+						</div>
+					</div>
 				{:else}
 					<div class="pa2-actions">
 						<div class="pa2-actions__skip">
