@@ -451,7 +451,7 @@ def format_digest(stats: dict, day: date) -> str:
     # 🏃 Активность
     if t["workouts"]:
         per_user = t["workouts"] / t["active"] if t["active"] else 0
-        per_workout = t["total_reps"] / t["workouts"] if t["workouts"] else 0
+        per_workout = stats["total_reps"] / t["workouts"] if t["workouts"] else 0
         w_word = _plural(t["workouts"], "тренировка", "тренировки", "тренировок")
         lines += [
             "",
