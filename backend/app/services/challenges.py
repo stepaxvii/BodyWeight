@@ -33,6 +33,7 @@ from app.db.models import (
     Friendship,
     User,
 )
+from app.i18n import t
 from app.services.notifications import save_notification
 
 logger = logging.getLogger(__name__)
@@ -246,15 +247,20 @@ async def notify_friends_new_challenge(
     if not friends:
         return []
 
-    creator_name = creator.username or creator.first_name or "Друг"
+    creator_name = creator.username or creator.first_name or t(creator.language, "bot.common.user_fallback")
     push_targets: list[int] = []
     for friend in friends:
         await save_notification(
             session=session,
             user_id=friend.id,
             notification_type="challenge_created",
-            title="Новый челлендж от друга",
-            message=f"{creator_name} создал «{challenge.title}» — впишись, пока открыт приём!",
+            title=t(friend.language, "notifications.new_challenge.title"),
+            message=t(
+                friend.language,
+                "notifications.new_challenge.message",
+                creator_name=creator_name,
+                challenge_title=challenge.title,
+            ),
             related_user_id=creator.id,
         )
         if friend.notifications_enabled and friend.telegram_id:
@@ -269,6 +275,7 @@ async def notify_friends_new_challenge(
 @dataclass
 class ChallengeExerciseDelta:
     """One exercise's contribution from a single workout to a challenge."""
+    exercise_name: str
     exercise_name_ru: str
     added: int
     accumulated: int
@@ -375,6 +382,7 @@ async def record_progress(
         _, deltas = grouped.setdefault(challenge.id, (challenge, []))
         deltas.append(
             ChallengeExerciseDelta(
+                exercise_name=exercise.name,
                 exercise_name_ru=exercise.name_ru,
                 added=to_add,
                 accumulated=prog.accumulated,
@@ -502,14 +510,26 @@ async def finalize_challenge(session: AsyncSession, challenge: Challenge) -> Non
 
     challenge.finalized_at = datetime.utcnow()
 
-    # Notify everyone who joined
+    # Notify everyone who joined, each in their own UI language.
+    lang_rows = await session.execute(
+        select(User.id, User.language).where(
+            User.id.in_([p.user_id for p in participants])
+        )
+    )
+    lang_by_user = {uid: lang for uid, lang in lang_rows.all()}
     for p in participants:
+        lang = lang_by_user.get(p.user_id)
         await save_notification(
             session=session,
             user_id=p.user_id,
             notification_type="challenge_finished",
-            title="Челлендж завершён",
-            message=f"«{challenge.title}»: ты выполнил {p.completion_percent}%. Забери награду!",
+            title=t(lang, "notifications.challenge_finished.title"),
+            message=t(
+                lang,
+                "notifications.challenge_finished.message",
+                challenge_title=challenge.title,
+                percent=p.completion_percent,
+            ),
         )
 
 

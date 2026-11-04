@@ -6,10 +6,10 @@
 	import { base } from '$app/paths';
 	import { PixelNav } from '$lib/components/ui';
 	import OnboardingScreen from '$lib/components/OnboardingScreen.svelte';
-	import AuthScreen from '$lib/components/AuthScreen.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api, newClientRequestId } from '$lib/api/client';
+	import { setLocale, t } from '$lib/i18n/index.svelte';
 
 	let { children } = $props();
 	let isTelegramApp = $state(false);
@@ -61,13 +61,13 @@
 			if (userStore.isAuthenticated && userStore.isOnboarded) {
 				handleStartParam(telegram.startParam);
 			}
-		} else if (!isTelegramApp) {
-			// Browser: try to restore session from stored JWT
-			await userStore.tryRestoreSession();
-		} else {
-			// Dev mode (no Telegram, no stored token)
-			await userStore.authenticate('');
 		}
+		// Outside Telegram there is no auth path — this is a Telegram Mini App.
+		// Unauthenticated sessions fall through to the "open in Telegram" screen.
+
+		// Apply the user's UI language: stored preference wins, Telegram client
+		// language is the fallback hint (english otherwise, via normalizeLang).
+		setLocale(userStore.user?.language ?? telegram.user?.language_code);
 
 		initialized = true;
 
@@ -127,8 +127,8 @@
 </script>
 
 <svelte:head>
-	<title>PixelFit - Pixel Fitness</title>
-	<meta name="description" content="8-bit фитнес трекер с геймификацией" />
+	<title>{t('home.layout.appTitle')}</title>
+	<meta name="description" content={t('home.layout.appDescription')} />
 </svelte:head>
 
 {#if !initialized || userStore.isLoading}
@@ -138,21 +138,17 @@
 {:else if userStore.error && userStore.isAuthenticated}
 	<div class="error-screen">
 		<div class="error-content">
-			<h2>Ошибка</h2>
+			<h2>{t('common.error')}</h2>
 			<p>{userStore.error}</p>
 		</div>
 	</div>
 {:else if !userStore.isAuthenticated}
-	{#if isTelegramApp}
-		<div class="error-screen">
-			<div class="error-content">
-				<h2>Не авторизован</h2>
-				<p>Откройте приложение через Telegram</p>
-			</div>
+	<div class="error-screen">
+		<div class="error-content">
+			<h2>{t('home.layout.unauthorizedTitle')}</h2>
+			<p>{t('home.layout.unauthorizedText')}</p>
 		</div>
-	{:else}
-		<AuthScreen />
-	{/if}
+	</div>
 {:else if !userStore.isOnboarded}
 	<OnboardingScreen />
 {:else}

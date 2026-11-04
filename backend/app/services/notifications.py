@@ -10,6 +10,7 @@ from aiogram.enums import ParseMode
 
 from app.config import settings
 from app.bot.session import make_ipv4_session
+from app.i18n import t
 
 logger = logging.getLogger(__name__)
 
@@ -174,14 +175,14 @@ async def _send(
         return False
 
 
-def get_open_app_keyboard() -> InlineKeyboardMarkup:
+def get_open_app_keyboard(lang: str | None = None) -> InlineKeyboardMarkup:
     """Get keyboard with button to open the Mini App."""
     from aiogram.types import WebAppInfo
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="Открыть приложение",
+                    text=t(lang, "bot.keyboard.open_app"),
                     web_app=WebAppInfo(url=settings.mini_app_url),
                 )
             ]
@@ -214,6 +215,7 @@ async def save_notification(
 async def send_friend_request_notification(
     telegram_id: int,
     from_user_name: str,
+    lang: str = "en",
 ) -> bool:
     """
     Send notification about new friend request.
@@ -221,69 +223,56 @@ async def send_friend_request_notification(
     Args:
         telegram_id: Telegram ID of the user to notify
         from_user_name: Name/username of the user who sent the request
+        lang: recipient's UI language ('ru'|'en')
 
     Returns:
         True if notification was sent successfully
     """
-    text = (
-        f"👋 <b>Новая заявка в друзья!</b>\n\n"
-        f"Пользователь <b>{from_user_name}</b> хочет добавить тебя в друзья."
-    )
+    text = t(lang, "notifications.friend_request.push", from_user_name=from_user_name)
     return await _send(
         telegram_id, text,
-        keyboard=get_open_app_keyboard(), label="Friend request notification",
+        keyboard=get_open_app_keyboard(lang), label="Friend request notification",
     )
 
 
-async def send_daily_reminder(telegram_id: int, streak: int = 0) -> bool:
+async def send_daily_reminder(telegram_id: int, streak: int = 0, lang: str = "en") -> bool:
     """
     Send daily workout reminder.
 
     Args:
         telegram_id: Telegram ID of the user to notify
         streak: Current streak days
+        lang: recipient's UI language ('ru'|'en')
 
     Returns:
         True if notification was sent successfully
     """
     if streak > 0:
-        text = (
-            f"🏋️ <b>Время тренировки!</b>\n\n"
-            f"🔥 Твой streak: <b>{streak}</b> дней подряд!\n"
-            f"Не останавливайся — продолжай в том же духе!"
-        )
+        text = t(lang, "notifications.daily_reminder.with_streak", streak=streak)
     else:
-        text = (
-            f"🏋️ <b>Время тренировки!</b>\n\n"
-            f"Начни свой день с упражнений.\n"
-            f"Даже 10 минут — это уже прогресс!"
-        )
+        text = t(lang, "notifications.daily_reminder.no_streak")
     return await _send(
         telegram_id, text,
-        keyboard=get_open_app_keyboard(), label="Daily reminder",
+        keyboard=get_open_app_keyboard(lang), label="Daily reminder",
     )
 
 
-async def send_inactivity_reminder(telegram_id: int, days_inactive: int) -> bool:
+async def send_inactivity_reminder(telegram_id: int, days_inactive: int, lang: str = "en") -> bool:
     """
     Send reminder to inactive user.
 
     Args:
         telegram_id: Telegram ID of the user to notify
         days_inactive: Number of days since last workout
+        lang: recipient's UI language ('ru'|'en')
 
     Returns:
         True if notification was sent successfully
     """
-    text = (
-        f"😢 <b>Мы скучаем!</b>\n\n"
-        f"Прошло уже <b>{days_inactive}</b> дня без тренировок.\n"
-        f"Твои мышцы тоже скучают! Вернись к занятиям — "
-        f"начни с лёгкой разминки."
-    )
+    text = t(lang, "notifications.inactivity.push", days_inactive=days_inactive)
     return await _send(
         telegram_id, text,
-        keyboard=get_open_app_keyboard(),
+        keyboard=get_open_app_keyboard(lang),
         label=f"Inactivity reminder ({days_inactive}d)",
     )
 
@@ -291,6 +280,7 @@ async def send_inactivity_reminder(telegram_id: int, days_inactive: int) -> bool
 async def send_friend_accepted_notification(
     telegram_id: int,
     friend_name: str,
+    lang: str = "en",
 ) -> bool:
     """
     Send notification that friend request was accepted.
@@ -298,24 +288,22 @@ async def send_friend_accepted_notification(
     Args:
         telegram_id: Telegram ID of the user to notify
         friend_name: Name/username of the friend who accepted
+        lang: recipient's UI language ('ru'|'en')
 
     Returns:
         True if notification was sent successfully
     """
-    text = (
-        f"✅ <b>Заявка принята!</b>\n\n"
-        f"<b>{friend_name}</b> теперь твой друг.\n"
-        f"Тренируйтесь вместе и соревнуйтесь!"
-    )
+    text = t(lang, "notifications.friend_accepted.push", friend_name=friend_name)
     return await _send(
         telegram_id, text,
-        keyboard=get_open_app_keyboard(), label="Friend accepted notification",
+        keyboard=get_open_app_keyboard(lang), label="Friend accepted notification",
     )
 
 
 async def send_friend_workout_notification(
     telegram_id: int,
     friend_name: str,
+    lang: str = "en",
 ) -> bool:
     """
     Send notification that a friend completed a workout today.
@@ -323,42 +311,47 @@ async def send_friend_workout_notification(
     Args:
         telegram_id: Telegram ID of the user to notify
         friend_name: Name/username of the friend who worked out
+        lang: recipient's UI language ('ru'|'en')
 
     Returns:
         True if notification was sent successfully
     """
-    text = (
-        f"💪 <b>{friend_name}</b> уже потренировался сегодня!\n\n"
-        f"А ты? Не отставай от друзей!"
-    )
+    text = t(lang, "notifications.friend_workout.push", friend_name=friend_name)
     return await _send(
         telegram_id, text,
-        keyboard=get_open_app_keyboard(), label="Friend workout notification",
+        keyboard=get_open_app_keyboard(lang), label="Friend workout notification",
     )
 
 
 async def send_friend_workout_notifications(
     telegram_ids: list[int],
     friend_name: str,
+    langs: dict[int, str] | None = None,
 ) -> None:
     """Send the 'friend worked out today' push to many users concurrently.
 
     Best-effort: each send has its own try/except (returns False on failure) and
     we also pass return_exceptions=True so one failure can't cancel the rest.
     Meant to be run via dispatch_in_background so it never blocks the submit.
+
+    ``langs`` optionally maps telegram_id -> UI language; missing entries fall
+    back to English.
     """
     if not telegram_ids:
         return
+    langs = langs or {}
     await asyncio.gather(
         *(
-            send_friend_workout_notification(telegram_id=tid, friend_name=friend_name)
+            send_friend_workout_notification(
+                telegram_id=tid, friend_name=friend_name, lang=langs.get(tid, "en")
+            )
             for tid in telegram_ids
         ),
         return_exceptions=True,
     )
 
 
-def get_open_challenge_keyboard(challenge_id: int) -> InlineKeyboardMarkup:
+def get_open_challenge_keyboard(challenge_id: int, lang: str | None = None) -> InlineKeyboardMarkup:
     """Keyboard whose button deep-links straight into a specific challenge.
 
     Uses the bot ``startapp`` deep link so tapping opens the Mini App with
@@ -367,7 +360,7 @@ def get_open_challenge_keyboard(challenge_id: int) -> InlineKeyboardMarkup:
     url = f"https://t.me/{settings.bot_username}?startapp=challenge_{challenge_id}"
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="Открыть челлендж", url=url)]
+            [InlineKeyboardButton(text=t(lang, "bot.keyboard.open_challenge"), url=url)]
         ]
     )
 
@@ -377,22 +370,24 @@ async def send_new_challenge_push(
     creator_name: str,
     challenge_title: str,
     challenge_id: int,
+    lang: str = "en",
 ) -> bool:
     """Tell a friend that someone created a new challenge they can still join."""
-    text = (
-        f"🏆 <b>Новый челлендж!</b>\n\n"
-        f"<b>{creator_name}</b> создал «{challenge_title}».\n"
-        f"Впишись, пока открыт приём — потренируйтесь наперегонки!"
+    text = t(
+        lang,
+        "notifications.new_challenge.push",
+        creator_name=creator_name,
+        challenge_title=challenge_title,
     )
     return await _send(
         telegram_id, text,
-        keyboard=get_open_challenge_keyboard(challenge_id),
+        keyboard=get_open_challenge_keyboard(challenge_id, lang),
         label="New-challenge notification",
     )
 
 
 async def send_announcement_push(
-    telegram_id: int, text: str, *, notify_admin_on_block: bool = True
+    telegram_id: int, text: str, *, notify_admin_on_block: bool = True, lang: str = "en"
 ) -> bool:
     """
     Send a generic announcement push to a user via Telegram bot.
@@ -400,35 +395,37 @@ async def send_announcement_push(
 
     Args:
         telegram_id: Telegram ID of the user to notify
-        text: HTML-formatted message body
+        text: HTML-formatted message body (already localized by the caller)
         notify_admin_on_block: set False for mass broadcasts so a wave of
             historical blocks doesn't flood the admin (the digest still shows it)
+        lang: recipient's UI language, used only for the keyboard button label
 
     Returns:
         True if notification was sent successfully
     """
     return await _send(
         telegram_id, text,
-        keyboard=get_open_app_keyboard(), label="Announcement push",
+        keyboard=get_open_app_keyboard(lang), label="Announcement push",
         notify_admin_on_block=notify_admin_on_block,
     )
 
 
-async def send_referral_reward_push(telegram_id: int, text: str) -> bool:
+async def send_referral_reward_push(telegram_id: int, text: str, lang: str = "en") -> bool:
     """
     Send the referral reward push to the inviter via Telegram bot.
     Used when an invited user completes their first workout.
 
     Args:
         telegram_id: Telegram ID of the inviter to notify
-        text: HTML-formatted message body
+        text: HTML-formatted message body (already localized by the caller)
+        lang: recipient's UI language, used only for the keyboard button label
 
     Returns:
         True if notification was sent successfully
     """
     return await _send(
         telegram_id, text,
-        keyboard=get_open_app_keyboard(), label="Referral reward push",
+        keyboard=get_open_app_keyboard(lang), label="Referral reward push",
     )
 
 
@@ -463,25 +460,29 @@ async def send_admin_notice(text: str) -> bool:
 def notify_admin_new_user(total_users: int) -> None:
     """Best-effort admin ping on a new registration — no PII, just the total."""
     dispatch_in_background(send_admin_notice(
-        f"🆕 Новая регистрация!\nВсего пользователей: {total_users}"
+        t("ru", "notifications.admin.new_user", total_users=total_users)
     ))
 
 
 def notify_admin_bot_blocked(total_blocked: int) -> None:
     """Best-effort admin ping on a fresh bot block — no PII, just the total."""
     dispatch_in_background(send_admin_notice(
-        f"🚫 Пользователь заблокировал бота.\nВсего заблокировали: {total_blocked}"
+        t("ru", "notifications.admin.bot_blocked", total_blocked=total_blocked)
     ))
 
 
 async def broadcast_new_boss_push(
     boss_name_ru: str,
     boss_emoji: str,
+    boss_name_en: str | None = None,
     limit: int | None = None,
 ) -> None:
     """Push the monthly new-boss announcement to every reachable user.
 
     Reachable = has a telegram_id, notifications on, hasn't blocked the bot.
+    Each recipient gets the push in their own UI language (``users.language``);
+    the boss name is localized too (``boss_name_en`` for English, falling back to
+    the Russian name when no English name is supplied).
     Throttled (~22/s) to respect Telegram's rate limit; 403s still record the
     block (counts update) but DON'T ping the admin per user — a mass broadcast
     would otherwise flood them. Best-effort: dispatched off the request path
@@ -496,7 +497,7 @@ async def broadcast_new_boss_push(
         async with async_session_maker() as session:
             rows = (
                 await session.execute(
-                    select(User.telegram_id)
+                    select(User.telegram_id, User.language)
                     .where(User.telegram_id.isnot(None))
                     .where(User.notifications_enabled.is_(True))
                     .where(User.bot_blocked.is_(False))
@@ -507,40 +508,39 @@ async def broadcast_new_boss_push(
         logger.exception("New-boss broadcast: failed to load audience")
         return
 
-    telegram_ids = [r[0] for r in rows]
+    recipients = [(r[0], r[1]) for r in rows]
     if limit is not None:
-        telegram_ids = telegram_ids[:limit]
-    if not telegram_ids:
+        recipients = recipients[:limit]
+    if not recipients:
         return
 
-    text = (
-        f"{boss_emoji} <b>Новый босс месяца!</b>\n\n"
-        f"«{boss_name_ru}» появился над городом.\n"
-        f"Заходи и нанеси первый удар — награды ждут!"
-    )
-    logger.info("New-boss broadcast: sending to %s users", len(telegram_ids))
+    def _text(lang: str | None) -> str:
+        name = boss_name_en if (lang == "en" and boss_name_en) else boss_name_ru
+        return t(lang, "boss.new.push", emoji=boss_emoji, name=name)
+
+    logger.info("New-boss broadcast: sending to %s users", len(recipients))
 
     sent = 0
     chunk = 25
-    for i in range(0, len(telegram_ids), chunk):
-        batch = telegram_ids[i:i + chunk]
+    for i in range(0, len(recipients), chunk):
+        batch = recipients[i:i + chunk]
         results = await asyncio.gather(
             *(
                 _send(
-                    tid, text,
-                    keyboard=get_open_app_keyboard(),
+                    tid, _text(lang),
+                    keyboard=get_open_app_keyboard(lang),
                     label="New-boss push",
                     notify_admin_on_block=False,
                 )
-                for tid in batch
+                for tid, lang in batch
             ),
             return_exceptions=True,
         )
         sent += sum(1 for r in results if r is True)
-        if i + chunk < len(telegram_ids):
+        if i + chunk < len(recipients):
             await asyncio.sleep(1.1)  # stay under Telegram's ~30 msg/s cap
 
-    logger.info("New-boss broadcast done: %s/%s delivered", sent, len(telegram_ids))
+    logger.info("New-boss broadcast done: %s/%s delivered", sent, len(recipients))
 
 
 async def close_bot():

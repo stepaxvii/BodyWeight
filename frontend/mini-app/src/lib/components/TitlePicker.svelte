@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { PixelIcon } from '$lib/components/ui';
+	import { t as tr, ln } from '$lib/i18n/index.svelte';
 	import { api } from '$lib/api/client';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
@@ -23,7 +24,7 @@
 		try {
 			titles = await api.getShopItems('title');
 		} catch (e) {
-			error = e instanceof Error ? e.message : 'Не удалось загрузить';
+			error = e instanceof Error ? e.message : tr('routines.titles.errorLoad');
 		} finally {
 			loading = false;
 		}
@@ -57,7 +58,7 @@
 			// Acquire first if not owned (free titles cost 0 coins).
 			if (!t.owned) {
 				if (coins < t.price_coins) {
-					error = 'Недостаточно монет';
+					error = tr('routines.titles.errorNoCoins');
 					telegram.hapticNotification('error');
 					return;
 				}
@@ -68,7 +69,7 @@
 			await load(); // refresh owned/equipped flags
 			telegram.hapticNotification('success');
 		} catch (e) {
-			error = e instanceof Error ? e.message : 'Ошибка';
+			error = e instanceof Error ? e.message : tr('routines.titles.error');
 			telegram.hapticNotification('error');
 		} finally {
 			busyId = null;
@@ -81,16 +82,16 @@
 		<div class="tp-sheet" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
 			<span class="tp-grip"></span>
 			<div class="tp-head">
-				<span class="tp-title">Титулы</span>
-				<button class="tp-close" onclick={onclose} aria-label="Закрыть">
+				<span class="tp-title">{tr('routines.titles.heading')}</span>
+				<button class="tp-close" onclick={onclose} aria-label={tr('routines.titles.close')}>
 					<PixelIcon name="close" size="sm" />
 				</button>
 			</div>
 
-			<p class="tp-sub">Звание под ником. Часть открывается по уровню, часть — за монеты.</p>
+			<p class="tp-sub">{tr('routines.titles.subtitle')}</p>
 
 			{#if loading}
-				<p class="tp-msg">Загрузка…</p>
+				<p class="tp-msg">{tr('routines.titles.loading')}</p>
 			{:else if error}
 				<p class="tp-msg tp-msg--err">{error}</p>
 			{/if}
@@ -112,20 +113,20 @@
 								color={st === 'equipped' ? 'var(--on-accent)' : 'var(--gold)'}
 							/>
 						</span>
-						<span class="tp-name">{t.name_ru}</span>
+						<span class="tp-name">{ln(t.name, t.name_ru)}</span>
 						<span class="tp-status">
 							{#if busyId === t.id}
 								…
 							{:else if st === 'equipped'}
-								<PixelIcon name="check" size="sm" color="var(--on-accent)" /> Надет
+								<PixelIcon name="check" size="sm" color="var(--on-accent)" /> {tr('routines.titles.equipped')}
 							{:else if st === 'owned'}
-								Надеть
+								{tr('routines.titles.equip')}
 							{:else if st === 'locked'}
-								<PixelIcon name="lock" size="sm" color="var(--muted)" /> Ур.{t.required_level}
+								<PixelIcon name="lock" size="sm" color="var(--muted)" /> {tr('routines.titles.lockedLevel', { level: t.required_level })}
 							{:else if st === 'buy'}
 								{t.price_coins} <PixelIcon name="coin" size="sm" color="var(--gold)" />
 							{:else}
-								Получить
+								{tr('routines.titles.acquire')}
 							{/if}
 						</span>
 					</button>

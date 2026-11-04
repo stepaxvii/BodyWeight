@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/i18n/index.svelte';
 	// Difficulty pips (designer's <Diff/>): `n` filled of `max`. Ported 1:1 from
 	// the designer app.css (.diff / .diff__d).
 	interface Props {
@@ -8,7 +9,7 @@
 	let { n, max = 5 }: Props = $props();
 </script>
 
-<span class="diff" title="Сложность {n}/{max}">
+<span class="diff" title={t('uimisc.diff.title', { n, max })}>
 	{#each Array(max) as _, i}
 		<span class="diff__d" class:on={i < n}></span>
 	{/each}

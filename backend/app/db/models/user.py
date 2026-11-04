@@ -17,10 +17,10 @@ class User(Base):
     first_name: Mapped[str | None] = mapped_column(String(255))
     last_name: Mapped[str | None] = mapped_column(String(255))
     avatar_id: Mapped[str] = mapped_column(String(50), default="shadow-wolf")
-
-    # Web auth fields
-    email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True, index=True)
-    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # UI + bot language: 'ru' or 'en'. Set from the Telegram client language_code
+    # on first /start (English fallback); existing users backfilled to 'ru'
+    # (migration 020). Changed via the profile language switcher (PUT /users/me).
+    language: Mapped[str] = mapped_column(String(5), default="en", server_default="ru")
 
     # Gamification
     level: Mapped[int] = mapped_column(Integer, default=1)

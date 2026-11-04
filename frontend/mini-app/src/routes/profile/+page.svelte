@@ -7,6 +7,7 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { t, ln } from '$lib/i18n/index.svelte';
 	import type { Achievement, AvatarId, UserActivity, DayActivity, UserRecords } from '$lib/types';
 
 	let achievements = $state<Achievement[]>([]);
@@ -30,10 +31,10 @@
 		try {
 			await userStore.buyStreakFreeze();
 			telegram.hapticNotification('success');
-			freezeMessage = '🧊 Заморозка куплена!';
+			freezeMessage = t('profile.freeze.bought');
 		} catch (err) {
 			telegram.hapticNotification('error');
-			freezeMessage = err instanceof Error ? err.message : 'Не удалось купить';
+			freezeMessage = err instanceof Error ? err.message : t('profile.freeze.buyFailed');
 		} finally {
 			freezeBuying = false;
 		}
@@ -113,7 +114,7 @@
 	<section class="hero-section">
 		<header class="char">
 			<div class="char__top">
-				<button class="char__avbtn" aria-label="Сменить аватар" onclick={openAvatarPicker}>
+				<button class="char__avbtn" aria-label={t('profile.hero.changeAvatar')} onclick={openAvatarPicker}>
 					<span class="char__avslot slot slot--lg">
 						<PixelAvatar avatarId={userStore.user?.avatar_id || 'shadow-wolf'} size="lg" showBorder={false} />
 					</span>
@@ -121,21 +122,21 @@
 				</button>
 				<div class="char__id">
 					<span class="char__name">{userStore.displayName}</span>
-					<button class="char__title char__title--btn" onclick={openTitlePicker} aria-label="Сменить титул">
+					<button class="char__title char__title--btn" onclick={openTitlePicker} aria-label={t('profile.hero.changeTitle')}>
 						<PixelIcon name="crown" size="sm" color="var(--gold)" />
-						{userStore.user?.equipped_title || 'Выбрать титул'}
+						{userStore.user?.equipped_title || t('profile.hero.pickTitle')}
 					</button>
-					<span class="char__lvl">Уровень {userStore.level}</span>
+					<span class="char__lvl">{t('profile.hero.level', { n: userStore.level })}</span>
 				</div>
-				<a class="char__settings" href="{base}/settings" aria-label="Настройки">
+				<a class="char__settings" href="{base}/settings" aria-label={t('profile.hero.settings')}>
 					<PixelIcon name="gear" size="md" color="var(--hero-text)" />
 				</a>
 			</div>
 			<div class="char__xp">
 				<PixelProgress value={xpInLevel} max={xpNeeded} variant="xp" size="sm" />
 				<div class="char__xprow">
-					<span>{xpInLevel} / {xpNeeded} XP</span>
-					<span>до Ур.{userStore.level + 1}</span>
+					<span>{t('profile.hero.xpValue', { current: xpInLevel, needed: xpNeeded })}</span>
+					<span>{t('profile.hero.toNextLevel', { n: userStore.level + 1 })}</span>
 				</div>
 			</div>
 		</header>
@@ -147,8 +148,8 @@
 			<div class="streak-left">
 				<PixelIcon name="streak" size="lg" color="var(--pixel-yellow)" />
 				<div class="streak-numbers">
-					<span class="streak-current">{userStore.streak} дней</span>
-					<span class="streak-max">Рекорд: {userStore.user?.max_streak || 0}</span>
+					<span class="streak-current">{t('profile.streak.days', { n: userStore.streak })}</span>
+					<span class="streak-max">{t('profile.streak.record', { n: userStore.user?.max_streak || 0 })}</span>
 				</div>
 			</div>
 			<div class="streak-visual">
@@ -162,8 +163,8 @@
 			<div class="freeze-left">
 				<span class="freeze-icon"><PixelIcon name="snowflake" size="lg" color="var(--accent2)" /></span>
 				<div class="freeze-numbers">
-					<span class="freeze-title">Заморозки: {userStore.streakFreezes}/{MAX_STREAK_FREEZES}</span>
-					<span class="freeze-hint">Спасают серию за пропущенный день</span>
+					<span class="freeze-title">{t('profile.freeze.count', { current: userStore.streakFreezes, max: MAX_STREAK_FREEZES })}</span>
+					<span class="freeze-hint">{t('profile.freeze.hint')}</span>
 				</div>
 			</div>
 			<button
@@ -172,7 +173,7 @@
 				onclick={handleBuyFreeze}
 			>
 				{#if userStore.streakFreezes >= MAX_STREAK_FREEZES}
-					Максимум
+					{t('profile.freeze.max')}
 				{:else}
 					{STREAK_FREEZE_PRICE} <PixelIcon name="coin" size="sm" color="var(--gold)" />
 				{/if}
@@ -197,7 +198,7 @@
 	<!-- Activity bar chart: week / 2 weeks / month -->
 	{#if activityData}
 		<section class="activity-chart-section">
-			<h3 class="chart-section-title">Активность</h3>
+			<h3 class="chart-section-title">{t('profile.activity.title')}</h3>
 			<div class="chart-controls">
 				<div class="chart-range-btns">
 					<button
@@ -205,28 +206,28 @@
 						class:active={chartRange === 'week'}
 						onclick={() => { chartRange = 'week'; telegram.hapticImpact('light'); }}
 					>
-						7 дней
+						{t('profile.activity.range7')}
 					</button>
 					<button
 						class="range-btn"
 						class:active={chartRange === '2weeks'}
 						onclick={() => { chartRange = '2weeks'; telegram.hapticImpact('light'); }}
 					>
-						14 дней
+						{t('profile.activity.range14')}
 					</button>
 					<button
 						class="range-btn"
 						class:active={chartRange === 'month'}
 						onclick={() => { chartRange = 'month'; telegram.hapticImpact('light'); }}
 					>
-						30 дней
+						{t('profile.activity.range30')}
 					</button>
 					<button
 						class="range-btn"
 						class:active={chartRange === '3months'}
 						onclick={() => { chartRange = '3months'; telegram.hapticImpact('light'); }}
 					>
-						90 дней
+						{t('profile.activity.range90')}
 					</button>
 				</div>
 			</div>
@@ -251,12 +252,12 @@
 			<div class="band3__i">
 				<PixelIcon name="coin" size="sm" color="var(--gold)" class="anim-coin-spin" />
 				<span class="band3__v"><CountUp value={userStore.coins} /></span>
-				<span class="band3__l">Монеты</span>
+				<span class="band3__l">{t('profile.stats.coins')}</span>
 			</div>
 			<div class="band3__i">
 				<PixelIcon name="trophy" size="sm" color="var(--gold)" />
 				<span class="band3__v"><CountUp value={unlockedCount} /></span>
-				<span class="band3__l">Значки</span>
+				<span class="band3__l">{t('profile.stats.badges')}</span>
 			</div>
 		</div>
 	</section>
@@ -264,25 +265,25 @@
 	<!-- Personal records (roadmap 2.3) -->
 	{#if hasRecords && records}
 		<section class="records-section">
-			<h3 class="section-title">Личные рекорды</h3>
+			<h3 class="section-title">{t('profile.records.title')}</h3>
 			<div class="rec-grid">
 				<div class="rec">
 					<PixelIcon name="dumbbell" size="md" color="var(--accent)" />
 					<span class="rec__v">{records.best_set ? records.best_set.value : '—'}</span>
-					<span class="rec__l">Лучший подход</span>
-					<span class="rec__sub">{records.best_set ? records.best_set.exercise_name_ru : 'нет данных'}</span>
+					<span class="rec__l">{t('profile.records.bestSet')}</span>
+					<span class="rec__sub">{records.best_set ? ln(records.best_set.exercise_name, records.best_set.exercise_name_ru) : t('profile.records.noData')}</span>
 				</div>
 				<div class="rec">
 					<PixelIcon name="flame" size="md" color="var(--danger)" />
 					<span class="rec__v">{records.best_workout ? records.best_workout.value : '—'}</span>
-					<span class="rec__l">Рекорд за трен.</span>
-					<span class="rec__sub">{records.best_workout ? records.best_workout.exercise_name_ru : 'нет данных'}</span>
+					<span class="rec__l">{t('profile.records.bestWorkout')}</span>
+					<span class="rec__sub">{records.best_workout ? ln(records.best_workout.exercise_name, records.best_workout.exercise_name_ru) : t('profile.records.noData')}</span>
 				</div>
 				<div class="rec">
 					<PixelIcon name="timer" size="md" color="var(--accent2)" />
 					<span class="rec__v">{fmtDuration(records.longest_workout_seconds)}</span>
-					<span class="rec__l">Дольше всего</span>
-					<span class="rec__sub">одна тренировка</span>
+					<span class="rec__l">{t('profile.records.longest')}</span>
+					<span class="rec__sub">{t('profile.records.oneWorkout')}</span>
 				</div>
 			</div>
 		</section>
@@ -294,15 +295,15 @@
 			<div class="badges-card">
 				<div class="badges-header">
 					<PixelIcon name="trophy" size="md" color="var(--pixel-accent)" />
-					<span class="badges-title">Значки</span>
+					<span class="badges-title">{t('profile.badges.title')}</span>
 					<span class="badges-count">{unlockedCount}/{achievements.length}</span>
 				</div>
 				<div class="badges-grid anim-rows">
 					{#each unlockedAchievements.slice(0, 16) as achievement}
-						<div class="badge-item" title={achievement.name_ru}>
+						<div class="badge-item" title={ln(achievement.name, achievement.name_ru)}>
 						<img
 							src="{base}/sprites/badges/{achievement.slug}.svg"
-							alt={achievement.name_ru}
+							alt={ln(achievement.name, achievement.name_ru)}
 							class="badge-icon"
 							loading="lazy"
 						/>
@@ -324,7 +325,7 @@
 			<PixelCard hoverable>
 				<div class="link-content">
 					<PixelIcon name="friend" color="var(--pixel-cyan)" />
-					<span>Друзья</span>
+					<span>{t('profile.links.friends')}</span>
 				</div>
 			</PixelCard>
 		</a>
@@ -343,14 +344,14 @@
 			<div class="day-stat">
 				<PixelIcon name="workout" size="md" color="var(--pixel-accent)" />
 				<div class="day-stat-content">
-					<span class="day-stat-label">Тренировки</span>
+					<span class="day-stat-label">{t('profile.day.workouts')}</span>
 					<span class="day-stat-value">{selectedDay.activity.workouts}</span>
 				</div>
 			</div>
 			<div class="day-stat">
 				<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
 				<div class="day-stat-content">
-					<span class="day-stat-label">XP заработано</span>
+					<span class="day-stat-label">{t('profile.day.xpEarned')}</span>
 					<span class="day-stat-value">{selectedDay.activity.total_xp}</span>
 				</div>
 			</div>
@@ -358,7 +359,7 @@
 	{:else}
 		<div class="no-activity">
 			<PixelIcon name="calendar" size="lg" color="var(--text-muted)" />
-			<p>Нет тренировок в этот день</p>
+			<p>{t('profile.day.noActivity')}</p>
 		</div>
 	{/if}
 </PixelModal>

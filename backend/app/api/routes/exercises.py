@@ -39,10 +39,10 @@ class CategoryResponse(BaseModel):
 @router.get(
     "/categories",
     response_model=list[CategoryResponse],
-    summary="Получить категории упражнений",
+    summary="Get exercise categories",
     description=(
-        "Возвращает все категории упражнений с количеством "
-        "упражнений в каждой. Данные кэшируются на 10 минут."
+        "Returns all exercise categories with the number of "
+        "exercises in each. The data is cached for 10 minutes."
     ),
     tags=["Exercises"]
 )
@@ -73,20 +73,20 @@ async def get_categories(session: AsyncSessionDep):
 @router.get(
     "",
     response_model=PaginatedResponse[ExerciseResponse],
-    summary="Получить упражнения",
+    summary="Get exercises",
     description="""
-    Возвращает список упражнений с поддержкой фильтрации и пагинации.
+    Returns a list of exercises with support for filtering and pagination.
 
-    **Фильтры:**
-    * `category` - фильтр по slug категории
-    * `tags` - фильтр по тегам (через запятую)
-    * `difficulty` - фильтр по сложности (1-5)
-    * `max_level` - показывать только упражнения до указанного уровня
-    * `favorites_only` - показывать только избранные упражнения
+    **Filters:**
+    * `category` - filter by category slug
+    * `tags` - filter by tags (comma-separated)
+    * `difficulty` - filter by difficulty (1-5)
+    * `max_level` - show only exercises up to the specified level
+    * `favorites_only` - show only favorite exercises
 
-    **Пагинация:**
-    * `skip` - количество пропущенных элементов
-    * `limit` - максимальное количество элементов (1-100)
+    **Pagination:**
+    * `skip` - number of items to skip
+    * `limit` - maximum number of items (1-100)
     """,
     tags=["Exercises"]
 )
@@ -94,22 +94,22 @@ async def get_exercises(
     session: AsyncSessionDep,
     user: CurrentUser,
     category: str | None = Query(
-        None, description="Фильтр по slug категории"
+        None, description="Filter by category slug"
     ),
     tags: str | None = Query(
-        None, description="Фильтр по тегам (через запятую)"
+        None, description="Filter by tags (comma-separated)"
     ),
     difficulty: int | None = Query(
-        None, ge=1, le=5, description="Фильтр по сложности (1-5)"
+        None, ge=1, le=5, description="Filter by difficulty (1-5)"
     ),
     max_level: int | None = Query(
-        None, description="Показывать упражнения до указанного уровня"
+        None, description="Show exercises up to the specified level"
     ),
     favorites_only: bool = Query(
-        False, description="Показывать только избранные упражнения"
+        False, description="Show only favorite exercises"
     ),
-    skip: int = Query(0, ge=0, description="Количество пропущенных"),
-    limit: int = Query(50, ge=1, le=100, description="Максимум элементов"),
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(50, ge=1, le=100, description="Maximum number of items"),
 ):
     query = (
         select(Exercise)
@@ -198,10 +198,10 @@ async def get_exercises(
 @router.get(
     "/{slug}",
     response_model=ExerciseWithProgressResponse,
-    summary="Получить упражнение по slug",
+    summary="Get exercise by slug",
     description=(
-        "Возвращает детальную информацию об упражнении, "
-        "включая прогресс пользователя."
+        "Returns detailed information about an exercise, "
+        "including the user's progress."
     ),
     tags=["Exercises"]
 )
@@ -284,9 +284,9 @@ async def get_exercise(
 @router.get(
     "/{slug}/progress",
     response_model=ExerciseProgressResponse,
-    summary="Получить прогресс по упражнению",
+    summary="Get exercise progress",
     description=(
-        "Возвращает прогресс пользователя по конкретному упражнению."
+        "Returns the user's progress for a specific exercise."
     ),
     tags=["Exercises"]
 )
@@ -363,6 +363,7 @@ class RoutineData(BaseModel):
 
 @router.get("/routines/all", response_model=list[RoutineData])
 async def get_routines(
+    user: CurrentUser,
     category: str | None = Query(
         None,
         description="Filter by category: morning, home, pullup-bar, dip-bars"
@@ -374,11 +375,15 @@ async def get_routines(
     if category:
         routines = [r for r in routines if r.get("category") == category]
 
+    is_ru = (user.language or "").startswith("ru")
+
     return [
         RoutineData(
             slug=r["slug"],
-            name=r["name"],
-            description=r["description"],
+            name=r["name"] if is_ru else (r.get("name_en") or r["name"]),
+            description=(
+                r["description"] if is_ru else r.get("description_en")
+            ) or r.get("description"),
             category=r.get("category", "morning"),
             duration_minutes=r["duration_minutes"],
             difficulty=r["difficulty"],
@@ -396,16 +401,20 @@ async def get_routines(
 
 
 @router.get("/routines/{slug}", response_model=RoutineData)
-async def get_routine(slug: str):
+async def get_routine(slug: str, user: CurrentUser):
     """Get a specific routine by slug."""
     routines = load_all_routines()
+
+    is_ru = (user.language or "").startswith("ru")
 
     for r in routines:
         if r["slug"] == slug:
             return RoutineData(
                 slug=r["slug"],
-                name=r["name"],
-                description=r["description"],
+                name=r["name"] if is_ru else (r.get("name_en") or r["name"]),
+                description=(
+                    r["description"] if is_ru else r.get("description_en")
+                ) or r.get("description"),
                 category=r.get("category", "morning"),
                 duration_minutes=r["duration_minutes"],
                 difficulty=r["difficulty"],

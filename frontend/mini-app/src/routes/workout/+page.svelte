@@ -16,6 +16,7 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
 	import { buildProgramOfDay } from '$lib/utils/programOfDay';
+	import { t, ln } from '$lib/i18n/index.svelte';
 	import type { ExerciseCategory, Exercise, Routine, RoutineCategory, CustomRoutineListItem, CustomRoutine, ShareCardResponse } from '$lib/types';
 
 	// Data
@@ -218,20 +219,20 @@
 		'static-stretch': 'var(--cat-static-stretch)'
 	};
 
-	const routineCategoryTabs: { id: RoutineCategory; name: string }[] = [
-		{ id: 'morning', name: 'Зарядка' },
-		{ id: 'home', name: 'Дома' },
-		{ id: 'pullup-bar', name: 'Турник' },
-		{ id: 'dip-bars', name: 'Брусья' },
-		{ id: 'dumbbell', name: 'Гантели' },
-		{ id: 'resistance-band', name: 'Эспандер' }
-	];
+	const routineCategoryTabs = $derived<{ id: RoutineCategory; name: string }[]>([
+		{ id: 'morning', name: t('workout.routineCategories.morning') },
+		{ id: 'home', name: t('workout.routineCategories.home') },
+		{ id: 'pullup-bar', name: t('workout.routineCategories.pullupBar') },
+		{ id: 'dip-bars', name: t('workout.routineCategories.dipBars') },
+		{ id: 'dumbbell', name: t('workout.routineCategories.dumbbell') },
+		{ id: 'resistance-band', name: t('workout.routineCategories.resistanceBand') }
+	]);
 
 	const mainTabs = $derived.by(() => [
-		{ id: 'my-routines' as const, label: 'Мои', badge: customRoutines.length },
-		{ id: 'routines' as const, label: 'Сеты' },
-		{ id: 'favorites' as const, label: 'Избранное', badge: favoritesStore.count },
-		{ id: 'exercises' as const, label: 'Упражнения' }
+		{ id: 'my-routines' as const, label: t('workout.tabs.myRoutines'), badge: customRoutines.length },
+		{ id: 'routines' as const, label: t('workout.tabs.routines') },
+		{ id: 'favorites' as const, label: t('workout.tabs.favorites'), badge: favoritesStore.count },
+		{ id: 'exercises' as const, label: t('workout.tabs.exercises') }
 	]);
 
 	// Handle visibility change for pause/resume
@@ -679,12 +680,12 @@
 		<!-- Loading state -->
 		<div class="loading-container">
 			<div class="loading-spinner"></div>
-			<p class="loading-text">Загрузка...</p>
+			<p class="loading-text">{t('workout.loading')}</p>
 		</div>
 	{:else if workoutStore.isActive}
 		<!-- ACTIVE WORKOUT VIEW -->
 		<header class="workout-header">
-			<h1>Тренировка</h1>
+			<h1>{t('workout.active.title')}</h1>
 			<div class="timer" class:paused={workoutStore.isPaused}>
 				<PixelIcon name="timer" color={workoutStore.isPaused ? "var(--text-secondary)" : "var(--pixel-accent)"} />
 				<span class="timer-value">{workoutStore.formattedDuration}</span>
@@ -696,11 +697,11 @@
 			<div class="workout-stats">
 				<div class="stat">
 					<span class="stat-value">{workoutStore.totalSets}</span>
-					<span class="stat-label">Подходов</span>
+					<span class="stat-label">{t('workout.active.stats.sets')}</span>
 				</div>
 				<div class="stat">
 					<span class="stat-value">{workoutStore.totalReps}</span>
-					<span class="stat-label">Повторов</span>
+					<span class="stat-label">{t('workout.active.stats.reps')}</span>
 				</div>
 				<div class="stat">
 					{#if !workoutStore.isActive && workoutStore.session?.total_xp_earned}
@@ -715,7 +716,7 @@
 					{:else}
 						<span class="stat-value text-green">—</span>
 					{/if}
-					<span class="stat-label">XP</span>
+					<span class="stat-label">{t('workout.active.stats.xp')}</span>
 				</div>
 			</div>
 		</PixelCard>
@@ -730,12 +731,12 @@
 					<PixelCard padding="md">
 						<div class="exercise-card">
 							<div class="exercise-header">
-								<span class="exercise-name">{exercise.name_ru}</span>
+								<span class="exercise-name">{ln(exercise.name, exercise.name_ru)}</span>
 								<div class="exercise-header-right">
 									<button
 										class="favorite-toggle"
 										onclick={() => favoritesStore.toggleFavorite(exercise.id)}
-										title={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}
+										title={isFavorite ? t('workout.active.favorite.remove') : t('workout.active.favorite.add')}
 									>
 										<PixelIcon
 											name={isFavorite ? 'heart' : 'heart-empty'}
@@ -746,7 +747,7 @@
 									<button
 										class="info-toggle"
 										onclick={() => openExerciseInfo(exercise)}
-										title="Описание упражнения"
+										title={t('workout.active.exerciseInfo')}
 									>
 										<PixelIcon name="search" size="sm" />
 									</button>
@@ -787,7 +788,7 @@
 									disabled={workoutStore.isLoading}
 								>
 									<PixelIcon name="check" size="sm" />
-									Подход
+									{t('workout.active.addSet')}
 								</PixelButton>
 							</div>
 						</div>
@@ -802,12 +803,12 @@
 					<PixelCard padding="md">
 						<div class="exercise-card">
 							<div class="exercise-header">
-								<span class="exercise-name">{we.exercise_name_ru}</span>
+								<span class="exercise-name">{ln(we.exercise_name, we.exercise_name_ru)}</span>
 								<div class="exercise-header-right">
 									<button
 										class="favorite-toggle"
 										onclick={() => favoritesStore.toggleFavorite(we.exercise_id)}
-										title={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}
+										title={isFavorite ? t('workout.active.favorite.remove') : t('workout.active.favorite.add')}
 									>
 										<PixelIcon
 											name={isFavorite ? 'heart' : 'heart-empty'}
@@ -819,7 +820,7 @@
 										<button
 											class="info-toggle"
 											onclick={() => openExerciseInfo(fullExercise)}
-											title="Описание упражнения"
+											title={t('workout.active.exerciseInfo')}
 										>
 											<PixelIcon name="search" size="sm" />
 										</button>
@@ -829,9 +830,9 @@
 
 							<!-- Show previous totals -->
 							<div class="sets-list">
-								<span class="set-badge">{we.total_reps} повт.</span>
-								<span class="set-badge">{we.sets_completed} подх.</span>
-								<span class="set-badge text-green">+{we.xp_earned} XP</span>
+								<span class="set-badge">{t('workout.active.prevReps', { reps: we.total_reps })}</span>
+								<span class="set-badge">{t('workout.active.prevSets', { sets: we.sets_completed })}</span>
+								<span class="set-badge text-green">{t('workout.active.prevXp', { xp: we.xp_earned })}</span>
 							</div>
 
 							<!-- Add more sets -->
@@ -858,7 +859,7 @@
 									disabled={workoutStore.isLoading}
 								>
 									<PixelIcon name="check" size="sm" />
-									Подход
+									{t('workout.active.addSet')}
 								</PixelButton>
 							</div>
 						</div>
@@ -866,7 +867,7 @@
 				{/each}
 			{:else}
 				<PixelCard variant="warning" padding="md">
-					<p>У вас есть активная тренировка без упражнений. Завершите или отмените её.</p>
+					<p>{t('workout.active.noExercises')}</p>
 				</PixelCard>
 			{/if}
 		</div>
@@ -881,13 +882,13 @@
 				disabled={!hasSets || workoutStore.isLoading}
 			>
 				<PixelIcon name="check" />
-				Завершить тренировку
+				{t('workout.active.finish')}
 			</PixelButton>
 			{#if !hasSets}
-				<p class="hint-text">Добавьте хотя бы один подход</p>
+				<p class="hint-text">{t('workout.active.addSetHint')}</p>
 			{/if}
 			<PixelButton variant="ghost" fullWidth onclick={requestCancelWorkout}>
-				Отменить тренировку
+				{t('workout.active.cancel')}
 			</PixelButton>
 		</div>
 
@@ -896,14 +897,14 @@
 			<div class="modal-overlay" onclick={dismissCancelConfirm}>
 				<div class="modal-content" onclick={(e) => e.stopPropagation()}>
 					<PixelCard padding="lg">
-						<h3 class="modal-title">Отменить тренировку?</h3>
-						<p class="modal-text">Весь прогресс тренировки будет потерян.</p>
+						<h3 class="modal-title">{t('workout.cancelConfirm.title')}</h3>
+						<p class="modal-text">{t('workout.cancelConfirm.text')}</p>
 						<div class="modal-actions">
 							<PixelButton variant="danger" fullWidth onclick={confirmCancelWorkout}>
-								Да, отменить
+								{t('workout.cancelConfirm.confirm')}
 							</PixelButton>
 							<PixelButton variant="secondary" fullWidth onclick={dismissCancelConfirm}>
-								Продолжить тренировку
+								{t('workout.cancelConfirm.keep')}
 							</PixelButton>
 						</div>
 					</PixelCard>
@@ -915,9 +916,9 @@
 		<!-- SELECTION VIEW -->
 
 		<div class="hub-banner">
-			<Banner icon="dumbbell" title="Тренировка" sub={exercisesTotal ? `${exercisesTotal} упражнений` : undefined} deco="dumbbell">
+			<Banner icon="dumbbell" title={t('workout.banner.title')} sub={exercisesTotal ? t('workout.banner.exercisesCount', { count: exercisesTotal }) : undefined} deco="dumbbell">
 				{#snippet action()}
-					<button class="banner-action" onclick={createCustomRoutine} aria-label="Создать сет">
+					<button class="banner-action" onclick={createCustomRoutine} aria-label={t('workout.banner.createSet')}>
 						<PixelIcon name="plus" size="md" color="currentColor" />
 					</button>
 				{/snippet}
@@ -932,18 +933,18 @@
 						<div class="share-head">
 							<PixelIcon name="trophy" size="lg" color="var(--gold)" />
 							<div class="share-head-text">
-								<span class="share-title">Похвастаться?</span>
-								<span class="share-sub">Тренировка завершена: <span class="share-xp">+{completedXp} XP</span></span>
+								<span class="share-title">{t('workout.share.title')}</span>
+								<span class="share-sub">{t('workout.share.completed')} <span class="share-xp">{t('workout.share.xp', { xp: completedXp })}</span></span>
 							</div>
 						</div>
 						<div class="share-actions">
 							<PixelButton variant="primary" fullWidth onclick={shareCardToChat} disabled={isPreparingShare}>
 								<PixelIcon name="share" size="sm" />
-								Отправить в чат
+								{t('workout.share.toChat')}
 							</PixelButton>
 							{#if telegram.canShareToStory}
 								<PixelButton variant="secondary" fullWidth onclick={shareCardToStory} disabled={isPreparingShare}>
-									В сторис
+									{t('workout.share.toStory')}
 								</PixelButton>
 							{/if}
 						</div>
@@ -957,9 +958,9 @@
 			<section class="program-section">
 				<div class="feat">
 					<div class="feat__band">
-						<span>★ Программа дня</span>
+						<span>{t('workout.program.badge')}</span>
 						<span class="feat__rew">
-							<PixelIcon name="xp" size="sm" color="var(--on-accent)" /> +{programXp} XP
+							<PixelIcon name="xp" size="sm" color="var(--on-accent)" /> {t('workout.program.reward', { xp: programXp })}
 						</span>
 					</div>
 					<div class="feat__body">
@@ -971,10 +972,10 @@
 							<span class="feat__sub">{programOfDay.description}</span>
 							<div class="feat__stats">
 								<span class="feat__stat">
-									<PixelIcon name="timer" size="sm" color="var(--accent2)" /> ~{programOfDay.duration_minutes}м
+									<PixelIcon name="timer" size="sm" color="var(--accent2)" /> {t('workout.program.durationMin', { minutes: programOfDay.duration_minutes })}
 								</span>
 								<span class="feat__stat">
-									<PixelIcon name="workout" size="sm" color="var(--accent)" /> {programOfDay.exercises.length} упр.
+									<PixelIcon name="workout" size="sm" color="var(--accent)" /> {t('workout.program.exercisesShort', { count: programOfDay.exercises.length })}
 								</span>
 							</div>
 						</div>
@@ -982,7 +983,7 @@
 					<div class="feat__go">
 						<PixelButton variant="primary" fullWidth onclick={startProgramOfDay}>
 							<PixelIcon name="play" size="sm" />
-							Начать тренировку
+							{t('workout.program.start')}
 						</PixelButton>
 					</div>
 				</div>
@@ -1011,7 +1012,7 @@
 									<span class="item__name">{routine.name}</span>
 									<div class="item__sub">
 										<span class="item__tag"><PixelIcon name="dumbbell" size="sm" color="var(--muted)" /> {routine.exercises.length}</span>
-										<span class="item__tag"><PixelIcon name="timer" size="sm" color="var(--muted)" /> ~{routine.duration_minutes}м</span>
+										<span class="item__tag"><PixelIcon name="timer" size="sm" color="var(--muted)" /> {t('workout.routines.durationMin', { minutes: routine.duration_minutes })}</span>
 										<Diff n={routine.difficulty} max={3} />
 									</div>
 								</div>
@@ -1019,12 +1020,12 @@
 							</button>
 						{/each}
 						{#if filteredRoutines.length === 0}
-							<EmptyState message="Нет сетов в этой категории" />
+							<EmptyState message={t('workout.routines.emptyCategory')} />
 						{/if}
 					</div>
 				</section>
 			{:else}
-				<EmptyState icon="play" message="Сеты загружаются..." />
+				<EmptyState icon="play" message={t('workout.routines.loading')} />
 			{/if}
 
 		{:else if activeMainTab === 'my-routines'}
@@ -1046,7 +1047,7 @@
 						<div class="category-group">
 							<div class="category-group-header">
 								<span class="category-group-title" style="color: {categoryColors[group.category.slug]}">
-									{group.category.name_ru}
+									{ln(group.category.name, group.category.name_ru)}
 								</span>
 								<span class="category-group-count">
 									{group.exercises.length}
@@ -1068,8 +1069,8 @@
 				{:else}
 					<EmptyState
 						icon="heart-empty"
-						message="Нет избранных упражнений"
-						hint="Нажми на сердечко, чтобы добавить"
+						message={t('workout.favorites.empty')}
+						hint={t('workout.favorites.emptyHint')}
 					/>
 				{/if}
 			</section>
@@ -1080,17 +1081,17 @@
 				<!-- Filter header -->
 				<div class="filter-header">
 					<span class="filter-label">
-						{filteredExercises.length} / {exercisesTotal || filteredExercises.length} упражнений
+						{t('workout.exercises.count', { shown: filteredExercises.length, total: exercisesTotal || filteredExercises.length })}
 					</span>
 					<div class="filter-actions-row">
 						{#if activeFilterCount > 0 || activeCategory || searchQuery}
 							<button class="clear-filters-btn" onclick={clearAllFilters}>
-								Сбросить
+								{t('workout.exercises.reset')}
 							</button>
 						{/if}
 						<button class="filter-btn" onclick={openFilterModal}>
 							<PixelIcon name="settings" size="sm" />
-							Фильтр
+							{t('workout.exercises.filter')}
 							{#if activeFilterCount > 0}
 								<span class="filter-badge">{activeFilterCount}</span>
 							{/if}
@@ -1103,7 +1104,7 @@
 					<input
 						type="text"
 						class="search-input"
-						placeholder="Поиск упражнений..."
+						placeholder={t('workout.exercises.searchPlaceholder')}
 						bind:value={searchQuery}
 					/>
 					{#if searchQuery}
@@ -1124,7 +1125,7 @@
 							style="--cat-color: {categoryColors[category.slug]}"
 							onclick={() => selectCategory(category.slug)}
 						>
-							{category.name_ru}
+							{ln(category.name, category.name_ru)}
 						</button>
 					{/each}
 				</div>
@@ -1143,8 +1144,8 @@
 					{#if filteredExercises.length === 0 && !exercisesLoading}
 						<EmptyState
 							icon="search"
-							message="Ничего не найдено"
-							buttonText="Сбросить фильтры"
+							message={t('workout.exercises.notFound')}
+							buttonText={t('workout.exercises.resetFilters')}
 							onButtonClick={clearAllFilters}
 						/>
 					{/if}
@@ -1158,9 +1159,9 @@
 								fullWidth
 							>
 								{#if exercisesLoading}
-									Загрузка...
+									{t('workout.exercises.loading')}
 								{:else}
-									Загрузить ещё
+									{t('workout.exercises.loadMore')}
 								{/if}
 							</PixelButton>
 						</div>
@@ -1173,14 +1174,14 @@
 		{#if workoutStore.selectedCount > 0}
 			<div class="selection-panel">
 				<div class="selection-info">
-					<span class="selection-count">Выбрано: {workoutStore.selectedCount}</span>
+					<span class="selection-count">{t('workout.selection.selected', { count: workoutStore.selectedCount })}</span>
 					<button class="clear-btn" onclick={() => workoutStore.clearSelection()}>
-						Очистить
+						{t('workout.selection.clear')}
 					</button>
 				</div>
 				<PixelButton variant="primary" size="lg" fullWidth onclick={startWorkout}>
 					<PixelIcon name="play" />
-					Начать тренировку
+					{t('workout.selection.start')}
 				</PixelButton>
 			</div>
 		{/if}
@@ -1248,17 +1249,17 @@
 				<PixelIcon name="warning" size="lg" color="var(--pixel-yellow)" />
 			</div>
 			<div class="modal-body">
-				<p class="modal-title">Удалить сет?</p>
+				<p class="modal-title">{t('workout.deleteConfirm.title')}</p>
 				<p class="modal-text">
-					Вы уверены, что хотите удалить сет "{confirmDelete.name}"?
+					{t('workout.deleteConfirm.text', { name: confirmDelete.name })}
 				</p>
 			</div>
 			<div class="modal-actions">
 				<PixelButton variant="secondary" onclick={cancelDelete}>
-					Отмена
+					{t('workout.deleteConfirm.cancel')}
 				</PixelButton>
 				<PixelButton variant="danger" onclick={confirmDeleteRoutine}>
-					Удалить
+					{t('workout.deleteConfirm.delete')}
 				</PixelButton>
 			</div>
 		</div>
@@ -1272,17 +1273,17 @@
 		<div class="modal-content exercise-info-modal" onclick={(e) => e.stopPropagation()}>
 			<PixelCard padding="lg">
 				<div class="info-modal-header">
-					<h3 class="modal-title">{exercise.name_ru}</h3>
+					<h3 class="modal-title">{ln(exercise.name, exercise.name_ru)}</h3>
 					<button class="close-btn" onclick={closeExerciseInfo}><PixelIcon name="close" size="sm" /></button>
 				</div>
 
 				<!-- Description -->
 				<div class="info-description">
-					<p>{exercise.description_ru || exercise.description || 'Описание отсутствует'}</p>
+					<p>{ln(exercise.description, exercise.description_ru) || t('workout.exerciseInfo.noDescription')}</p>
 				</div>
 
 				<PixelButton variant="secondary" fullWidth onclick={closeExerciseInfo}>
-					Закрыть
+					{t('workout.exerciseInfo.close')}
 				</PixelButton>
 			</PixelCard>
 		</div>

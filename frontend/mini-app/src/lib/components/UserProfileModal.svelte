@@ -3,6 +3,7 @@
 	import { PixelButton, PixelIcon, PixelAvatar } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { t } from '$lib/i18n/index.svelte';
 	import type { UserProfile } from '$lib/types';
 
 	interface Props {
@@ -32,7 +33,7 @@
 			profile = await api.getUserProfile(id);
 		} catch (err) {
 			console.error('Failed to load user profile:', err);
-			error = 'Не удалось загрузить профиль';
+			error = t('modals2.loadError');
 		} finally {
 			isLoading = false;
 		}
@@ -103,7 +104,7 @@
 			{#if isLoading}
 				<div class="loading">
 					<div class="loading-spinner"></div>
-					<span>Загрузка...</span>
+					<span>{t('modals2.loading')}</span>
 				</div>
 			{:else if error}
 				<div class="error">
@@ -119,9 +120,9 @@
 						borderColor="var(--pixel-accent)"
 					/>
 					<h2 class="username">
-						{profile.username ? `${profile.username}` : (profile.first_name || 'Пользователь')}
+						{profile.username ? `${profile.username}` : (profile.first_name || t('modals2.defaultUser'))}
 					</h2>
-					<div class="level-badge">Ур.{profile.level}</div>
+					<div class="level-badge">{t('modals2.levelShort', { level: profile.level })}</div>
 					{#if profile.equipped_title}
 						<span class="profile-title"><PixelIcon name="crown" size="sm" color="var(--gold)" /> {profile.equipped_title}</span>
 					{/if}
@@ -137,19 +138,19 @@
 					<div class="stat-item">
 						<PixelIcon name="coin" size="md" color="var(--pixel-orange)" />
 						<span class="stat-value">{profile.coins}</span>
-						<span class="stat-label">Монеты</span>
+						<span class="stat-label">{t('modals2.coins')}</span>
 					</div>
 					<div class="stat-item">
 						<PixelIcon name="streak" size="md" color="var(--pixel-yellow)" />
 						<span class="stat-value">{profile.current_streak}</span>
-						<span class="stat-label">Серия</span>
+						<span class="stat-label">{t('modals2.streak')}</span>
 					</div>
 				</div>
 
 				<!-- Badges -->
 				{#if profile.achievements.length > 0}
 					<div class="badges-section">
-						<h3 class="section-title">Значки</h3>
+						<h3 class="section-title">{t('modals2.badges')}</h3>
 						<div class="badges-grid">
 							{#each profile.achievements as slug}
 								<div class="badge-item">
@@ -165,7 +166,7 @@
 				{:else}
 					<div class="no-badges">
 						<PixelIcon name="trophy" size="md" color="var(--text-muted)" />
-						<span>Пока нет значков</span>
+						<span>{t('modals2.noBadges')}</span>
 					</div>
 				{/if}
 
@@ -174,7 +175,7 @@
 					{#if profile.is_friend}
 						<div class="friend-status">
 							<PixelIcon name="friend" size="sm" color="var(--pixel-green)" />
-							<span>Друг</span>
+							<span>{t('modals2.friend')}</span>
 						</div>
 					{:else if profile.friend_request_received}
 						<!-- Incoming request - show Accept/Decline buttons -->
@@ -185,7 +186,7 @@
 								onclick={handleAcceptRequest}
 								disabled={isLoading}
 							>
-								Принять
+								{t('modals2.accept')}
 							</PixelButton>
 							<PixelButton
 								variant="secondary"
@@ -193,13 +194,13 @@
 								onclick={handleDeclineRequest}
 								disabled={isLoading}
 							>
-								Отклонить
+								{t('modals2.decline')}
 							</PixelButton>
 						</div>
 					{:else if profile.friend_request_sent}
 						<div class="friend-status pending">
 							<PixelIcon name="clock" size="sm" color="var(--pixel-yellow)" />
-							<span>Заявка отправлена</span>
+							<span>{t('modals2.requestSent')}</span>
 						</div>
 					{:else if profile.username}
 						<PixelButton
@@ -213,10 +214,10 @@
 							{:else}
 								<PixelIcon name="plus" size="sm" />
 							{/if}
-							Добавить в друзья
+							{t('modals2.addFriend')}
 						</PixelButton>
 					{:else}
-						<p class="no-username">У пользователя нет username</p>
+						<p class="no-username">{t('modals2.noUsername')}</p>
 					{/if}
 				</div>
 			{/if}

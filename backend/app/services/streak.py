@@ -16,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import User
+from app.i18n import t
 from app.services.notifications import save_notification, send_announcement_push
 
 logger = logging.getLogger(__name__)
@@ -32,10 +33,17 @@ async def buy_streak_freeze(session: AsyncSession, user: User) -> User:
     Raises ValueError if the user is already at the cap or can't afford it.
     """
     if user.streak_freezes >= MAX_STREAK_FREEZES:
-        raise ValueError(f"Можно держать не больше {MAX_STREAK_FREEZES} заморозок")
+        raise ValueError(
+            t(user.language, "content.streak_freeze_cap", max=MAX_STREAK_FREEZES)
+        )
     if user.coins < STREAK_FREEZE_PRICE_COINS:
         raise ValueError(
-            f"Недостаточно монет: нужно {STREAK_FREEZE_PRICE_COINS}, есть {user.coins}"
+            t(
+                user.language,
+                "content.streak_freeze_funds",
+                price=STREAK_FREEZE_PRICE_COINS,
+                coins=user.coins,
+            )
         )
 
     user.coins -= STREAK_FREEZE_PRICE_COINS
@@ -81,11 +89,12 @@ async def process_streak_freezes(session: AsyncSession) -> dict:
                 session=session,
                 user_id=user.id,
                 notification_type="streak_freeze_used",
-                title="🧊 Заморозка использована",
-                message=(
-                    f"Ты пропустил день, но заморозка спасла серию — "
-                    f"стрик {user.current_streak} дней сохранён. "
-                    f"Осталось заморозок: {user.streak_freezes}."
+                title=t(user.language, "notifications.streak_freeze.title"),
+                message=t(
+                    user.language,
+                    "notifications.streak_freeze.message",
+                    streak=user.current_streak,
+                    freezes=user.streak_freezes,
                 ),
             )
 
@@ -93,11 +102,13 @@ async def process_streak_freezes(session: AsyncSession) -> dict:
                 try:
                     await send_announcement_push(
                         user.telegram_id,
-                        (
-                            f"🧊 <b>Заморозка спасла твой стрик!</b>\n\n"
-                            f"Ты пропустил день, но серия в <b>{user.current_streak}</b> "
-                            f"дней сохранена.\nОсталось заморозок: <b>{user.streak_freezes}</b>."
+                        t(
+                            user.language,
+                            "notifications.streak_freeze.push",
+                            streak=user.current_streak,
+                            freezes=user.streak_freezes,
                         ),
+                        lang=user.language,
                     )
                 except Exception:
                     logger.exception("Failed to push streak-freeze notice to %s", user.telegram_id)

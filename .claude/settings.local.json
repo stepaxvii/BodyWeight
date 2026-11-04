@@ -27,7 +27,8 @@
       "Bash(unzip -q PixelBot.zip -d _redesign_extract)",
       "Bash(npm run *)",
       "Bash(Get-ChildItem \"C:\\\\Users\\\\stepa\\\\programming\\\\pets\\\\BodyWeight\\\\frontend\\\\mini-app\\\\src\\\\routes\" -Force)",
-      "Bash(Select-Object -ExpandProperty Name)"
+      "Bash(Select-Object -ExpandProperty Name)",
+      "Bash(python3 *)"
     ]
   }
 }

@@ -1,6 +1,7 @@
 /**
  * Formatting utilities
  */
+import { t } from '$lib/i18n/index.svelte';
 
 /**
  * Format duration in seconds to MM:SS
@@ -46,11 +47,11 @@ export function formatRelativeTime(date: string | Date, locale: string = 'ru-RU'
 	const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
 	if (diffDays === 0) {
-		return 'Сегодня';
+		return t('misc.relativeTime.today');
 	} else if (diffDays === 1) {
-		return 'Вчера';
+		return t('misc.relativeTime.yesterday');
 	} else if (diffDays < 7) {
-		return `${diffDays} дн. назад`;
+		return t('misc.relativeTime.daysAgo', { count: diffDays });
 	} else {
 		return formatDate(d, locale);
 	}
@@ -64,7 +65,10 @@ export function formatNumber(num: number, locale: string = 'ru-RU'): string {
 }
 
 /**
- * Pluralize Russian words
+ * Pluralize using three forms: [one, few, many].
+ * The selector follows Russian grammar (one / few 2–4 / many);
+ * English catalogs supply the same string for `few` and `many`, so the
+ * singular/plural split still comes out correct.
  */
 export function pluralize(count: number, forms: [string, string, string]): string {
 	const n = Math.abs(count) % 100;
@@ -82,13 +86,22 @@ export function pluralize(count: number, forms: [string, string, string]): strin
 	return forms[2]; // много (genitive plural)
 }
 
+/** Resolve the localized [one, few, many] forms for a plural word. */
+function forms(word: string): [string, string, string] {
+	return [
+		t(`misc.plurals.${word}.one`),
+		t(`misc.plurals.${word}.few`),
+		t(`misc.plurals.${word}.many`)
+	];
+}
+
 /**
- * Get Russian pluralized text for common words
+ * Get the localized, correctly pluralized form of a common word.
  */
 export const plurals = {
-	day: (count: number) => pluralize(count, ['день', 'дня', 'дней']),
-	workout: (count: number) => pluralize(count, ['тренировка', 'тренировки', 'тренировок']),
-	rep: (count: number) => pluralize(count, ['повторение', 'повторения', 'повторений']),
-	coin: (count: number) => pluralize(count, ['монета', 'монеты', 'монет']),
-	friend: (count: number) => pluralize(count, ['друг', 'друга', 'друзей'])
+	day: (count: number) => pluralize(count, forms('day')),
+	workout: (count: number) => pluralize(count, forms('workout')),
+	rep: (count: number) => pluralize(count, forms('rep')),
+	coin: (count: number) => pluralize(count, forms('coin')),
+	friend: (count: number) => pluralize(count, forms('friend'))
 };

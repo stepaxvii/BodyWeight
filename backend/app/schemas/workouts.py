@@ -60,6 +60,7 @@ class WorkoutResponse(BaseModel):
 
 class ChallengeExerciseProgressSummary(BaseModel):
     """One exercise's credited contribution to a challenge from this workout."""
+    exercise_name: str
     exercise_name_ru: str
     added: int
     accumulated: int

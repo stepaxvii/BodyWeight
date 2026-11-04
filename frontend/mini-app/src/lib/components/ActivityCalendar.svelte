@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { DayActivity } from '$lib/types';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { t } from '$lib/i18n/index.svelte';
 
 	interface Props {
 		activityData: Record<string, DayActivity>;
@@ -64,16 +65,15 @@
 		return cols;
 	});
 
-	const RU_MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-
 	// Month abbreviation above the column where each new month starts (GitHub-style).
-	const monthLabels = $derived.by(() =>
-		columns.map((col, i) => {
+	const monthLabels = $derived.by(() => {
+		const monthNames = t('comp1.activityCalendar.months').split(',');
+		return columns.map((col, i) => {
 			const m = col[0].getMonth();
-			if (i === 0) return RU_MONTHS[m];
-			return m !== columns[i - 1][0].getMonth() ? RU_MONTHS[m] : '';
-		})
-	);
+			if (i === 0) return monthNames[m];
+			return m !== columns[i - 1][0].getMonth() ? monthNames[m] : '';
+		});
+	});
 
 	function handleClick(date: Date) {
 		if (!onDayClick) return;
@@ -85,7 +85,7 @@
 
 <section class="activity">
 	<div class="sec-head">
-		<span class="sec-head__t">Активность</span>
+		<span class="sec-head__t">{t('comp1.activityCalendar.title')}</span>
 		<span class="sec-head__m">{year}</span>
 	</div>
 
@@ -109,7 +109,7 @@
 						<button
 							class="hm-cell"
 							data-lvl={levelFor(xp, norm)}
-							title="{ds}: {xp}/{norm} XP, {act?.workouts || 0} тренировок"
+							title={t('comp1.activityCalendar.cellTitle', { date: ds, xp, norm, workouts: act?.workouts || 0 })}
 							onclick={() => handleClick(day)}
 						></button>
 					{/if}
@@ -119,13 +119,13 @@
 	</div>
 
 	<div class="activity__legend">
-		<span>меньше</span>
+		<span>{t('comp1.activityCalendar.less')}</span>
 		<span class="hm-cell" data-lvl="0"></span>
 		<span class="hm-cell" data-lvl="1"></span>
 		<span class="hm-cell" data-lvl="2"></span>
 		<span class="hm-cell" data-lvl="3"></span>
 		<span class="hm-cell" data-lvl="4"></span>
-		<span>больше</span>
+		<span>{t('comp1.activityCalendar.more')}</span>
 	</div>
 </section>
 

@@ -80,8 +80,6 @@ export interface User {
 	username?: string;
 	first_name?: string;
 	last_name?: string;
-	email?: string | null;
-	has_password: boolean;
 	avatar_id: AvatarId;
 	level: number;
 	total_xp: number;
@@ -93,6 +91,7 @@ export interface User {
 	notification_time?: string;
 	notifications_enabled: boolean;
 	sound_enabled: boolean;
+	language: 'ru' | 'en';
 	is_onboarded: boolean;
 	leaderboard_visible: boolean;
 	daily_activity_norm: number;
@@ -104,6 +103,7 @@ export interface User {
 // Personal records (matches backend UserRecordsResponse)
 export interface ExerciseRecord {
 	exercise_slug: string;
+	exercise_name?: string;
 	exercise_name_ru: string;
 	value: number;
 }
@@ -236,6 +236,7 @@ export interface WorkoutSet {
 
 // Per-exercise challenge credit from a workout (matches backend schema)
 export interface ChallengeExerciseProgressSummary {
+	exercise_name?: string;
 	exercise_name_ru: string;
 	added: number;
 	accumulated: number;
@@ -370,13 +371,6 @@ export interface AuthResponse {
 	is_new: boolean;
 }
 
-// WebAuthResponse (matches backend WebAuthResponse)
-export interface WebAuthResponse {
-	user: User;
-	token: string;
-	is_new: boolean;
-}
-
 // Navigation
 export type NavItem = 'home' | 'workout' | 'challenges' | 'profile' | 'leaderboard';
 
@@ -407,6 +401,7 @@ export interface CustomRoutineExercise {
 	id: number;
 	exercise_id: number;
 	exercise_slug: string;
+	exercise_name?: string;
 	exercise_name_ru: string;
 	is_timed: boolean;
 	sort_order: number;
@@ -476,10 +471,12 @@ export type BossStatus = 'active' | 'defeated' | 'expired';
 export interface Boss {
 	id: number;
 	slug: string;
+	name?: string;
 	name_ru: string;
 	image_emoji: string;
 	image_url: string | null;
 	theme: string;
+	legend?: string;
 	legend_ru: string;
 	max_hp: number;
 	current_hp: number;
@@ -524,6 +521,7 @@ export interface BossClaimResult {
 
 export interface BossHistoryItem {
 	id: number;
+	name?: string;
 	name_ru: string;
 	image_emoji: string;
 	image_url: string | null;
@@ -560,6 +558,7 @@ export interface ChallengeCreatePayload {
 export interface ChallengeExerciseInfo {
 	exercise_id: number;
 	exercise_slug: string;
+	exercise_name?: string;
 	exercise_name_ru: string;
 	daily_target: number;
 	is_timed: boolean;
@@ -619,6 +618,7 @@ export interface ChallengeDayProgress {
 	progress_date: string;
 	exercise_id: number;
 	exercise_slug: string;
+	exercise_name?: string;
 	exercise_name_ru: string;
 	accumulated: number;
 	target: number;

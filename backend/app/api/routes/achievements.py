@@ -14,15 +14,15 @@ router = APIRouter()
 @router.get(
     "",
     response_model=PaginatedResponse[AchievementResponse],
-    summary="Получить достижения",
-    description="Возвращает список всех достижений с информацией о статусе разблокировки для текущего пользователя. Поддерживает пагинацию.",
+    summary="Get achievements",
+    description="Returns the list of all achievements with unlock status information for the current user. Supports pagination.",
     tags=["Achievements"]
 )
 async def get_achievements(
     session: AsyncSessionDep,
     user: CurrentUser,
-    skip: int = Query(0, ge=0, description="Количество пропущенных элементов"),
-    limit: int = Query(50, ge=1, le=100, description="Максимальное количество элементов"),
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(50, ge=1, le=100, description="Maximum number of items"),
 ):
     achievements_data = load_achievements()
 
@@ -69,14 +69,14 @@ async def get_achievements(
 @router.get(
     "/recent",
     response_model=list[RecentAchievementResponse],
-    summary="Последние достижения",
-    description="Возвращает список недавно разблокированных достижений пользователя.",
+    summary="Recent achievements",
+    description="Returns the list of the user's recently unlocked achievements.",
     tags=["Achievements"]
 )
 async def get_recent_achievements(
     session: AsyncSessionDep,
     user: CurrentUser,
-    limit: int = Query(5, ge=1, le=20, description="Максимальное количество достижений"),
+    limit: int = Query(5, ge=1, le=20, description="Maximum number of achievements"),
 ):
     achievements_data = load_achievements()
     achievements_by_slug = {a["slug"]: a for a in achievements_data}

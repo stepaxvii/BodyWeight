@@ -8,6 +8,7 @@ from aiogram.types import Message
 
 from app.config import settings
 from app.db.database import async_session_maker
+from app.i18n import t
 from app.services.admin_stats import collect_daily_stats, format_digest
 
 router = Router()
@@ -33,4 +34,4 @@ async def cmd_admin_digest(message: Message):
         await message.answer(format_digest(stats, yesterday))
     except Exception as e:
         logger.error(f"Failed to build admin digest for {yesterday}: {e}")
-        await message.answer("Не удалось собрать сводку, посмотри логи.")
+        await message.answer(t("ru", "bot.admin.digest_failed"))

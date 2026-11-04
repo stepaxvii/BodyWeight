@@ -1,117 +1,121 @@
 /**
- * Маппинг английских тегов упражнений на русские названия
+ * Mapping of English exercise-tag slugs to localized names.
+ * Display strings live in the `misc.tags` i18n namespace; this file only
+ * maps each raw tag slug to its message key.
  */
+import { t } from '$lib/i18n/index.svelte';
 
-export const TAG_TRANSLATIONS: Record<string, string> = {
-	// Группы мышц
-	'chest': 'грудь',
-	'triceps': 'трицепс',
-	'biceps': 'бицепс',
-	'shoulders': 'плечи',
-	'back': 'спина',
-	'lats': 'широчайшие',
-	'core': 'кор',
-	'abs': 'пресс',
-	'obliques': 'косые',
-	'legs': 'ноги',
-	'quads': 'квадрицепс',
-	'hamstrings': 'бицепс бедра',
-	'glutes': 'ягодицы',
-	'calves': 'икры',
-	'hip-flexors': 'сгибатели бедра',
-	'lower-back': 'поясница',
-	'upper-back': 'верх спины',
-	'forearms': 'предплечья',
-	'traps': 'трапеции',
-	'neck': 'шея',
-	'full-body': 'всё тело',
+const TAG_KEYS: Record<string, string> = {
+	// Muscle groups
+	'chest': 'chest',
+	'triceps': 'triceps',
+	'biceps': 'biceps',
+	'shoulders': 'shoulders',
+	'back': 'back',
+	'lats': 'lats',
+	'core': 'core',
+	'abs': 'abs',
+	'obliques': 'obliques',
+	'legs': 'legs',
+	'quads': 'quads',
+	'hamstrings': 'hamstrings',
+	'glutes': 'glutes',
+	'calves': 'calves',
+	'hip-flexors': 'hipFlexors',
+	'lower-back': 'lowerBack',
+	'upper-back': 'upperBack',
+	'forearms': 'forearms',
+	'traps': 'traps',
+	'neck': 'neck',
+	'full-body': 'fullBody',
 
-	// Уровень сложности
-	'beginner': 'новичок',
-	'intermediate': 'средний',
-	'advanced': 'продвинутый',
-	'expert': 'эксперт',
+	// Difficulty level
+	'beginner': 'beginner',
+	'intermediate': 'intermediate',
+	'advanced': 'advanced',
+	'expert': 'expert',
 
-	// Место/оборудование
-	'home': 'дома',
-	'outdoor': 'на улице',
-	'gym': 'зал',
-	'pullup-bar': 'турник',
-	'dip-bars': 'брусья',
-	'bench': 'скамья',
-	'bike': 'велосипед',
-	'wall': 'стена',
-	'floor': 'пол',
-	'no-equipment': 'без инвентаря',
+	// Place/equipment
+	'home': 'home',
+	'outdoor': 'outdoor',
+	'gym': 'gym',
+	'pullup-bar': 'pullupBar',
+	'dip-bars': 'dipBars',
+	'bench': 'bench',
+	'bike': 'bike',
+	'wall': 'wall',
+	'floor': 'floor',
+	'no-equipment': 'noEquipment',
 
-	// Тип упражнения
-	'push': 'жим',
-	'pull': 'тяга',
-	'hold': 'удержание',
-	'static': 'статика',
-	'dynamic': 'динамика',
-	'explosive': 'взрывное',
-	'plyometric': 'плиометрика',
-	'balance': 'баланс',
-	'flexibility': 'гибкость',
-	'mobility': 'мобильность',
-	'stretch': 'растяжка',
-	'warmup': 'разминка',
-	'cooldown': 'заминка',
+	// Exercise type
+	'push': 'push',
+	'pull': 'pull',
+	'hold': 'hold',
+	'static': 'static',
+	'dynamic': 'dynamic',
+	'explosive': 'explosive',
+	'plyometric': 'plyometric',
+	'balance': 'balance',
+	'flexibility': 'flexibility',
+	'mobility': 'mobility',
+	'stretch': 'stretch',
+	'warmup': 'warmup',
+	'cooldown': 'cooldown',
 
-	// Кардио
-	'cardio': 'кардио',
-	'hiit': 'ВИИТ',
-	'endurance': 'выносливость',
-	'fat-burn': 'жиросжигание',
-	'energy': 'энергия',
+	// Cardio
+	'cardio': 'cardio',
+	'hiit': 'hiit',
+	'endurance': 'endurance',
+	'fat-burn': 'fatBurn',
+	'energy': 'energy',
 
-	// Оборудование
-	'dumbbell': 'гантели',
-	'resistance-band': 'эспандер',
-	'home-friendly': 'дома',
+	// Equipment
+	'dumbbell': 'dumbbell',
+	'resistance-band': 'resistanceBand',
+	'home-friendly': 'homeFriendly',
 
-	// Тип нагрузки
-	'strength': 'сила',
-	'power': 'мощь',
-	'functional': 'функциональная',
-	'isolation': 'изоляция',
-	'gymnastics': 'гимнастика',
-	'push-pull': 'тяни-толкай',
-	'grip-strength': 'хват',
-	'coordination': 'координация',
-	'mindful': 'осознанная',
-	'intense': 'интенсивная',
-	'quick': 'быстрая',
-	'time-saver': 'экономит время',
+	// Load type
+	'strength': 'strength',
+	'power': 'power',
+	'functional': 'functional',
+	'isolation': 'isolation',
+	'gymnastics': 'gymnastics',
+	'push-pull': 'pushPull',
+	'grip-strength': 'gripStrength',
+	'coordination': 'coordination',
+	'mindful': 'mindful',
+	'intense': 'intense',
+	'quick': 'quick',
+	'time-saver': 'timeSaver',
 
-	// Части тела
-	'arms': 'руки',
-	'delts': 'дельты',
-	'upper-body': 'верх тела',
-	'lower-body': 'низ тела',
+	// Body parts
+	'arms': 'arms',
+	'delts': 'delts',
+	'upper-body': 'upperBody',
+	'lower-body': 'lowerBody',
 
-	// Части тела для растяжки
-	'spine': 'позвоночник',
-	'hips': 'бёдра',
-	'groin': 'пах',
-	'ankles': 'голеностоп',
-	'wrists': 'запястья',
-	'chest-stretch': 'грудь',
-	'back-stretch': 'спина',
-	'leg-stretch': 'ноги',
-	'arm-stretch': 'руки',
+	// Body parts for stretching
+	'spine': 'spine',
+	'hips': 'hips',
+	'groin': 'groin',
+	'ankles': 'ankles',
+	'wrists': 'wrists',
+	'chest-stretch': 'chestStretch',
+	'back-stretch': 'backStretch',
+	'leg-stretch': 'legStretch',
+	'arm-stretch': 'armStretch',
 };
 
 /**
- * Получить русское название тега
+ * Get the localized name of a tag (falls back to the raw tag slug).
  */
 export function getTagName(tag: string): string {
-	return TAG_TRANSLATIONS[tag] || tag;
+	const key = TAG_KEYS[tag];
+	return key ? t(`misc.tags.${key}`) : tag;
 }
 
 /**
- * Получить русские названия для массива тегов
+ * Get localized names for an array of tags.
  */
 export function getTagNames(tags: string[]): string[] {
 	return tags.map(getTagName);

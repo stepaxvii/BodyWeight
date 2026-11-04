@@ -111,7 +111,9 @@ async def main() -> None:
     logger.info("Sending to %s user(s)%s …", target, " (limited)" if args.limit else "")
 
     try:
-        await broadcast_new_boss_push(boss.name_ru, boss.image_emoji, limit=args.limit)
+        await broadcast_new_boss_push(
+            boss.name_ru, boss.image_emoji, boss_name_en=boss.name, limit=args.limit
+        )
     finally:
         await close_bot()
         await async_engine.dispose()

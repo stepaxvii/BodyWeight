@@ -3,6 +3,7 @@ import { api, newClientRequestId } from '$lib/api/client';
 import { userStore } from './user.svelte';
 import { telegram } from './telegram.svelte';
 import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
+import { ln } from '$lib/i18n/index.svelte';
 
 // Set data for each exercise
 interface ExerciseSetData {
@@ -149,7 +150,7 @@ class WorkoutStore {
 							exercise: null,
 							exerciseId: we.exercise_id,
 							exerciseSlug: we.exercise_slug,
-							exerciseName: we.exercise_name_ru,
+							exerciseName: ln(we.exercise_name, we.exercise_name_ru),
 							isTimed: we.is_timed ?? false,
 							sets: [], // We don't know individual sets, only totals
 							inputReps: we.is_timed ? 30 : 10 // Default 30 sec for timed, 10 reps otherwise
@@ -190,7 +191,7 @@ class WorkoutStore {
 				exercise,
 				exerciseId: exercise.id,
 				exerciseSlug: exercise.slug,
-				exerciseName: exercise.name_ru,
+				exerciseName: ln(exercise.name, exercise.name_ru),
 				isTimed,
 				sets: [],
 				inputReps: isTimed ? 30 : 10 // default 30 sec for timed, 10 reps otherwise

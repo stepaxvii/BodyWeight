@@ -4,6 +4,7 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { api } from '$lib/api/client';
+	import { t, ln } from '$lib/i18n/index.svelte';
 	import type { AvatarId, Avatar } from '$lib/types';
 
 	interface Props {
@@ -98,7 +99,7 @@
 	}
 </script>
 
-<PixelModal {open} title="Выбор аватара" {onclose}>
+<PixelModal {open} title={t('uimisc.avatarPicker.title')} {onclose}>
 	<div class="avatar-picker">
 		<div class="avatars-grid">
 			{#each AVATARS as avatar}
@@ -131,20 +132,20 @@
 							ring={isCurrent}
 						/>
 					</div>
-					<span class="avatar-name">{avatar.name_ru}</span>
+					<span class="avatar-name">{ln(avatar.name, avatar.name_ru)}</span>
 					{#if locked}
 						<span class="avatar-req">Lv.{avatar.requiredLevel}</span>
 					{:else if isCurrent}
-						<span class="avatar-current">Текущий</span>
+						<span class="avatar-current">{t('uimisc.avatarPicker.current')}</span>
 					{:else if isPurchased(avatar.id)}
-						<span class="avatar-available">Доступен</span>
+						<span class="avatar-available">{t('uimisc.avatarPicker.available')}</span>
 					{:else if avatar.price > 0}
 						<span class="avatar-price">
 							<PixelIcon name="coin" size="sm" color="var(--pixel-orange)" />
 							{avatar.price}
 						</span>
 					{:else}
-						<span class="avatar-free">Бесплатно</span>
+						<span class="avatar-free">{t('uimisc.avatarPicker.free')}</span>
 					{/if}
 				</button>
 			{/each}
@@ -161,9 +162,9 @@
 				disabled={selectedAvatar === currentAvatarId}
 			>
 				{#if selectedAvatar === currentAvatarId}
-					Выбрано
+					{t('uimisc.avatarPicker.selected')}
 				{:else}
-					Выбрать
+					{t('uimisc.avatarPicker.select')}
 				{/if}
 			</PixelButton>
 		</div>

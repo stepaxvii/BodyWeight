@@ -38,6 +38,7 @@ from app.services.xp_calculator import (
     get_level_from_xp,
     get_streak_multiplier,
 )
+from app.i18n import t
 from app.services.achievement_checker import check_achievements
 from app.services.notifications import (
     save_notification,
@@ -517,20 +518,22 @@ async def process_workout_completion(
             session=session,
             user_id=user.id,
             notification_type="level_up",
-            title="Новый уровень!",
-            message=f"Поздравляем! Ты достиг {new_level} уровня!",
+            title=t(user.language, "notifications.level_up.title"),
+            message=t(user.language, "notifications.level_up.message", level=new_level),
         )
 
+    is_ru = (user.language or "").startswith("ru")
     for achievement in new_achievements:
-        default_name = 'Достижение'
-        name_en = achievement.get('name', default_name)
-        ach_name = achievement.get('name_ru', name_en)
+        default_name = t(user.language, "notifications.achievement.default_name")
+        name_en = achievement.get('name') or default_name
+        name_ru = achievement.get('name_ru') or name_en
+        ach_name = name_ru if is_ru else name_en
         await save_notification(
             session=session,
             user_id=user.id,
             notification_type="achievement",
-            title="Новое достижение!",
-            message=f"Получено: {ach_name}",
+            title=t(user.language, "notifications.achievement.title"),
+            message=t(user.language, "notifications.achievement.message", name=ach_name),
         )
 
     await session.flush()
@@ -611,13 +614,17 @@ async def _update_user_goals(
             goal.completed_at = data.finished_at
 
             # Create notification
-            msg = f"Цель выполнена: {goal.target_value} {goal.goal_type}"
             await save_notification(
                 session=session,
                 user_id=user.id,
                 notification_type="goal_completed",
-                title="Цель достигнута!",
-                message=msg,
+                title=t(user.language, "notifications.goal_completed.title"),
+                message=t(
+                    user.language,
+                    "notifications.goal_completed.message",
+                    target=goal.target_value,
+                    goal_type=goal.goal_type,
+                ),
             )
 
             # Award bonus coins
@@ -655,9 +662,10 @@ async def _notify_friends_about_workout(user: User, session: AsyncSession) -> No
     if not friends:
         return
 
-    user_name = user.username or user.first_name or "Друг"
+    user_name = user.username or user.first_name or t(user.language, "bot.common.user_fallback")
 
     push_targets: list[int] = []
+    push_langs: dict[int, str] = {}
     for friend in friends:
         # Check if we already sent friend_workout notification to this friend today
         existing_notification = await session.execute(
@@ -674,14 +682,16 @@ async def _notify_friends_about_workout(user: User, session: AsyncSession) -> No
         # blocks the submit response or holds the DB transaction open.
         if friend.telegram_id:
             push_targets.append(friend.telegram_id)
+            push_langs[friend.telegram_id] = friend.language
 
-        # Save in-app notification (bell) — DB work stays in the transaction.
+        # Save in-app notification (bell) in the friend's language — DB work
+        # stays in the transaction.
         await save_notification(
             session=session,
             user_id=friend.id,
             notification_type="friend_workout",
-            title="Друг уже потренировался!",
-            message=f"{user_name} уже потренировался сегодня. Не отставай!",
+            title=t(friend.language, "notifications.friend_workout.title"),
+            message=t(friend.language, "notifications.friend_workout.message", user_name=user_name),
             related_user_id=user.id,
         )
 
@@ -690,5 +700,5 @@ async def _notify_friends_about_workout(user: User, session: AsyncSession) -> No
     # session or ORM objects, so it is safe after the request transaction ends.
     if push_targets:
         dispatch_in_background(
-            send_friend_workout_notifications(push_targets, user_name)
+            send_friend_workout_notifications(push_targets, user_name, push_langs)
         )

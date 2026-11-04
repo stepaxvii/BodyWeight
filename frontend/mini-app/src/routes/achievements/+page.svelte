@@ -4,6 +4,7 @@
 	import { PixelCard, PixelIcon, PixelProgress, PixelButton, EmptyState, PixelTabs } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { t, ln } from '$lib/i18n/index.svelte';
 	import type { Achievement } from '$lib/types';
 
 	let achievements = $state<Achievement[]>([]);
@@ -64,11 +65,11 @@
 		filter = newFilter;
 	}
 
-	const achievementTabs = [
-		{ id: 'all' as const, label: 'Все' },
-		{ id: 'unlocked' as const, label: 'Открыто' },
-		{ id: 'locked' as const, label: 'Закрыто' }
-	];
+	const achievementTabs = $derived([
+		{ id: 'all' as const, label: t('achievements.tabs.all') },
+		{ id: 'unlocked' as const, label: t('achievements.tabs.unlocked') },
+		{ id: 'locked' as const, label: t('achievements.tabs.locked') }
+	]);
 
 	function getProgressPercent(achievement: Achievement): number {
 		if (achievement.unlocked) return 100;
@@ -79,16 +80,16 @@
 
 <div class="page container">
 	<header class="page-header">
-		<h1>Достижения</h1>
+		<h1>{t('achievements.title')}</h1>
 	</header>
 
 	<!-- Completion hero -->
 	<div class="ach-hero">
 		<span class="slot slot--lg"><PixelIcon name="trophy" size="xl" color="var(--gold)" /></span>
 		<div class="ach-hero__info">
-			<span class="ach-hero__t">Собрано {unlockedCount} из {totalCount}</span>
+			<span class="ach-hero__t">{t('achievements.hero.collected', { count: unlockedCount, total: totalCount })}</span>
 			<div class="gauge"><div class="gauge__fill" style="width: {collectedPct}%; background: var(--gold);"></div></div>
-			<span class="ach-hero__s">{collectedPct}% собрано</span>
+			<span class="ach-hero__s">{t('achievements.hero.percent', { percent: collectedPct })}</span>
 		</div>
 	</div>
 
@@ -106,7 +107,7 @@
 					<div class="achievement-icon" class:locked={!achievement.unlocked}>
 						<img
 							src="{base}/sprites/badges/{achievement.slug}.svg"
-							alt={achievement.name_ru}
+							alt={ln(achievement.name, achievement.name_ru)}
 							class="achievement-badge-icon"
 						/>
 						{#if !achievement.unlocked}
@@ -117,8 +118,8 @@
 					</div>
 
 					<div class="achievement-info">
-						<span class="achievement-name">{achievement.name_ru}</span>
-						<span class="achievement-desc">{achievement.description_ru}</span>
+						<span class="achievement-name">{ln(achievement.name, achievement.name_ru)}</span>
+						<span class="achievement-desc">{ln(achievement.description, achievement.description_ru)}</span>
 					</div>
 
 					{#if !achievement.unlocked && achievement.progress !== undefined && achievement.condition.value}
@@ -169,7 +170,7 @@
 	{#if filteredAchievements().length === 0 && !isLoading}
 		<EmptyState
 			icon="trophy"
-			message="Нет достижений для показа"
+			message={t('achievements.empty')}
 		/>
 	{/if}
 
@@ -182,9 +183,9 @@
 				fullWidth
 			>
 				{#if isLoading}
-					Загрузка...
+					{t('achievements.loading')}
 				{:else}
-					Загрузить ещё
+					{t('achievements.loadMore')}
 				{/if}
 			</PixelButton>
 		</div>

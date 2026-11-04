@@ -48,26 +48,26 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="PixelFit Fitness API",
     description="""
-    API для Telegram Mini App фитнес-трекера с геймификацией.
+    API for the gamified Telegram Mini App fitness tracker.
 
-    ## Основные возможности:
+    ## Key features:
 
-    * 🏋️ **Тренировки** - создание, отслеживание и завершение тренировок
-    * 💪 **Упражнения** - каталог упражнений с фильтрацией и избранным
-    * 🏆 **Достижения** - система достижений и наград
-    * 📊 **Статистика** - отслеживание прогресса, XP, уровней и монет
-    * 👥 **Социальные функции** - друзья, рейтинг, лидерборды
-    * 🎯 **Цели** - постановка и отслеживание целей
-    * 🛒 **Магазин** - покупка аватаров и предметов за монеты
+    * 🏋️ **Workouts** - create, track, and finish workouts
+    * 💪 **Exercises** - exercise catalog with filtering and favorites
+    * 🏆 **Achievements** - achievement and reward system
+    * 📊 **Statistics** - track progress, XP, levels, and coins
+    * 👥 **Social features** - friends, rankings, leaderboards
+    * 🎯 **Goals** - set and track goals
+    * 🛒 **Shop** - buy avatars and items with coins
 
-    ## Аутентификация
+    ## Authentication
 
-    Все запросы требуют заголовок:
+    All requests require the header:
     ```
     Authorization: tma <telegram_init_data>
     ```
 
-    Где `telegram_init_data` - данные от Telegram WebApp.
+    Where `telegram_init_data` is the data from the Telegram WebApp.
     """,
     version="2.0.0",
     lifespan=lifespan,

@@ -7,6 +7,7 @@
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { favoritesStore } from '$lib/stores/favorites.svelte';
 	import { exercisesStore } from '$lib/stores/exercises.svelte';
+	import { t, ln } from '$lib/i18n/index.svelte';
 	import type { Exercise, CustomRoutine, CustomRoutineType, CustomRoutineCreate, ExerciseCategory } from '$lib/types';
 
 	interface RoutineExerciseItem {
@@ -149,11 +150,11 @@
 		return Math.max(1, Math.round(totalSeconds / 60));
 	});
 
-	const routineTypes: { id: CustomRoutineType; label: string }[] = [
-		{ id: 'morning', label: 'Зарядка' },
-		{ id: 'workout', label: 'Тренировка' },
-		{ id: 'stretch', label: 'Растяжка' }
-	];
+	const routineTypes = $derived<{ id: CustomRoutineType; label: string }[]>([
+		{ id: 'morning', label: t('comp1.routineEditor.typeMorning') },
+		{ id: 'workout', label: t('comp1.routineEditor.typeWorkout') },
+		{ id: 'stretch', label: t('comp1.routineEditor.typeStretch') }
+	]);
 
 	// Pending exercise for sets selection
 	let pendingExercise = $state<Exercise | null>(null);
@@ -227,11 +228,11 @@
 	async function handleSubmit() {
 		// Validation
 		if (!name.trim()) {
-			error = 'Введите название сета';
+			error = t('comp1.routineEditor.errorName');
 			return;
 		}
 		if (selectedExercises.length === 0) {
-			error = 'Добавьте хотя бы одно упражнение';
+			error = t('comp1.routineEditor.errorNoExercises');
 			return;
 		}
 
@@ -262,7 +263,7 @@
 			onsave(result);
 		} catch (err) {
 			console.error('Failed to save routine:', err);
-			error = err instanceof Error ? err.message : 'Ошибка сохранения';
+			error = err instanceof Error ? err.message : t('comp1.routineEditor.errorSave');
 			telegram.hapticNotification('error');
 		} finally {
 			isSubmitting = false;
@@ -277,7 +278,7 @@
 			<button class="back-btn" onclick={onclose}>
 				<PixelIcon name="close" />
 			</button>
-			<h2 class="editor-title">{editingRoutine ? 'Редактировать' : 'Новый сет'}</h2>
+			<h2 class="editor-title">{editingRoutine ? t('routines.editor.titleEdit') : t('routines.editor.titleNew')}</h2>
 			<button
 				class="save-btn"
 				onclick={handleSubmit}
@@ -298,10 +299,10 @@
 		<!-- Navigation tabs -->
 		<div class="editor-tabs">
 			<button class="tab" class:active={currentView === 'info'} onclick={() => currentView = 'info'}>
-				Инфо
+				{t('routines.editor.tabInfo')}
 			</button>
 			<button class="tab" class:active={currentView === 'exercises'} onclick={() => currentView = 'exercises'}>
-				Упражнения
+				{t('routines.editor.tabExercises')}
 				{#if selectedExercises.length > 0}
 					<span class="tab-badge">{selectedExercises.length}</span>
 				{/if}
@@ -313,21 +314,21 @@
 			{#if currentView === 'info'}
 				<!-- Basic info form -->
 				<div class="form-section">
-					<label class="form-label">Название</label>
+					<label class="form-label">{t('routines.editor.labelName')}</label>
 					<input
 						type="text"
 						class="form-input"
-						placeholder="Мой сет"
+						placeholder={t('routines.editor.placeholderName')}
 						bind:value={name}
 						maxlength="50"
 					/>
 				</div>
 
 				<div class="form-section">
-					<label class="form-label">Описание (опционально)</label>
+					<label class="form-label">{t('routines.editor.labelDescription')}</label>
 					<textarea
 						class="form-textarea"
-						placeholder="Описание сета..."
+						placeholder={t('routines.editor.placeholderDescription')}
 						bind:value={description}
 						maxlength="200"
 						rows="3"
@@ -335,7 +336,7 @@
 				</div>
 
 				<div class="form-section">
-					<label class="form-label">Тип</label>
+					<label class="form-label">{t('routines.editor.labelType')}</label>
 					<div class="type-selector">
 						{#each routineTypes as type}
 							<button
@@ -352,11 +353,11 @@
 				<div class="summary-card">
 					<div class="summary-item">
 						<PixelIcon name="timer" color="var(--text-secondary)" />
-						<span>~{estimatedDuration} мин</span>
+						<span>{t('routines.editor.durationMin', { minutes: estimatedDuration })}</span>
 					</div>
 					<div class="summary-item">
 						<PixelIcon name="dumbbell" color="var(--text-secondary)" />
-						<span>{selectedExercises.length} упр.</span>
+						<span>{t('routines.editor.exercisesCount', { count: selectedExercises.length })}</span>
 					</div>
 				</div>
 
@@ -365,16 +366,16 @@
 				{#if selectedExercises.length === 0}
 					<div class="empty-exercises">
 						<PixelIcon name="dumbbell" size="xl" color="var(--text-muted)" />
-						<p>Нет упражнений</p>
+						<p>{t('routines.editor.emptyExercises')}</p>
 						<PixelButton variant="primary" onclick={() => { clearPickerFilters(); showExercisePicker = true; }}>
-							Добавить упражнение
+							{t('routines.editor.addExercise')}
 						</PixelButton>
 					</div>
 				{:else}
 					<div class="add-exercise-btn">
 						<PixelButton variant="secondary" fullWidth onclick={() => { clearPickerFilters(); showExercisePicker = true; }}>
 							<PixelIcon name="plus" />
-							Добавить упражнение
+							{t('routines.editor.addExercise')}
 						</PixelButton>
 					</div>
 
@@ -396,14 +397,14 @@
 								</div>
 
 								<div class="exercise-info">
-									<span class="exercise-name">{item.exercise.name_ru}</span>
+									<span class="exercise-name">{ln(item.exercise.name, item.exercise.name_ru)}</span>
 									<div class="exercise-params">
 										{#if item.target_duration}
-											<span class="param">{item.target_duration} сек</span>
+											<span class="param">{t('routines.editor.paramDuration', { seconds: item.target_duration })}</span>
 										{:else if item.target_reps}
-											<span class="param">{item.target_reps} повт</span>
+											<span class="param">{t('routines.editor.paramReps', { reps: item.target_reps })}</span>
 										{/if}
-										<span class="param rest">отдых {item.rest_seconds}с</span>
+										<span class="param rest">{t('routines.editor.paramRest', { seconds: item.rest_seconds })}</span>
 									</div>
 								</div>
 
@@ -429,7 +430,7 @@
 	<div class="picker-overlay" onclick={() => showExercisePicker = false}>
 		<div class="picker-container" onclick={(e) => e.stopPropagation()}>
 			<div class="picker-header">
-				<h3>Выберите упражнение</h3>
+				<h3>{t('routines.editor.pickerTitle')}</h3>
 				<button class="close-btn" onclick={() => showExercisePicker = false}>
 					<PixelIcon name="close" />
 				</button>
@@ -442,7 +443,7 @@
 					class:active={pickerActiveTab === 'all'}
 					onclick={() => { pickerActiveTab = 'all'; telegram.hapticImpact('light'); }}
 				>
-					Все
+					{t('routines.editor.tabAll')}
 				</button>
 				<button
 					class="picker-tab"
@@ -450,7 +451,7 @@
 					onclick={() => { pickerActiveTab = 'favorites'; telegram.hapticImpact('light'); }}
 				>
 					<PixelIcon name="star" size="sm" />
-					Избранное
+					{t('routines.editor.tabFavorites')}
 				</button>
 			</div>
 
@@ -458,7 +459,7 @@
 				<input
 					type="text"
 					class="search-input"
-					placeholder="Поиск..."
+					placeholder={t('routines.editor.placeholderSearch')}
 					bind:value={searchQuery}
 				/>
 			</div>
@@ -466,17 +467,17 @@
 			<!-- Filter header -->
 			<div class="picker-filter-header">
 				<span class="picker-filter-label">
-					{filteredExercises.length} упражнений
+					{t('routines.editor.filteredCount', { count: filteredExercises.length })}
 				</span>
 				<div class="picker-filter-actions">
 					{#if pickerActiveFilterCount > 0 || pickerActiveCategory || searchQuery || pickerActiveTab === 'favorites'}
 						<button class="picker-clear-btn" onclick={clearPickerFilters}>
-							Сбросить
+							{t('routines.editor.reset')}
 						</button>
 					{/if}
 					<button class="picker-filter-btn" onclick={() => showPickerFilterModal = true}>
 						<PixelIcon name="settings" size="sm" />
-						Фильтр
+						{t('routines.editor.filter')}
 						{#if pickerActiveFilterCount > 0}
 							<span class="picker-filter-badge">{pickerActiveFilterCount}</span>
 						{/if}
@@ -494,7 +495,7 @@
 							style="--cat-color: {categoryColors[category.slug]}"
 							onclick={() => selectPickerCategory(category.slug)}
 						>
-							{category.name_ru}
+							{ln(category.name, category.name_ru)}
 						</button>
 					{/each}
 				</div>
@@ -504,12 +505,12 @@
 				{#if exercisesLoading}
 					<div class="picker-loading">
 						<div class="spinner"></div>
-						<p>Загрузка упражнений...</p>
+						<p>{t('routines.editor.loadingExercises')}</p>
 					</div>
 				{:else if filteredExercises.length === 0}
 					<div class="picker-empty">
 						<PixelIcon name="search" size="lg" color="var(--text-muted)" />
-						<p>Упражнения не найдены</p>
+						<p>{t('routines.editor.noExercisesFound')}</p>
 					</div>
 				{:else}
 					{#each filteredExercises as exercise (exercise.id)}
@@ -520,23 +521,23 @@
 							onclick={() => selectExerciseToAdd(exercise)}
 						>
 							<div class="picker-item-info">
-								<span class="picker-item-name">{exercise.name_ru}</span>
+								<span class="picker-item-name">{ln(exercise.name, exercise.name_ru)}</span>
 								<span class="picker-item-type">
-									{exercise.is_timed ? 'На время' : 'Повторения'}
+									{exercise.is_timed ? t('routines.editor.typeTimed') : t('routines.editor.typeReps')}
 								</span>
 							</div>
 						</button>
 						<button
 							class="picker-item-action favorite"
 							onclick={() => { favoritesStore.toggleFavorite(exercise.id); telegram.hapticImpact('light'); }}
-							title="Избранное"
+							title={t('routines.editor.favorite')}
 						>
 							<PixelIcon name={isFav ? 'heart' : 'heart-empty'} size="sm" color={isFav ? 'var(--pixel-red)' : 'var(--text-muted)'} />
 						</button>
 						<button
 							class="picker-item-action info"
 							onclick={() => { showInfoExercise = exercise; }}
-							title="Подробнее"
+							title={t('routines.editor.more')}
 						>
 							<PixelIcon name="search" size="sm" />
 						</button>
@@ -559,7 +560,7 @@
 	<div class="settings-overlay" onclick={() => pendingExercise = null}>
 		<div class="settings-container" onclick={(e) => e.stopPropagation()}>
 			<div class="settings-header">
-				<h3>{pendingExercise.name_ru}</h3>
+				<h3>{ln(pendingExercise.name, pendingExercise.name_ru)}</h3>
 				<button class="close-btn" onclick={() => pendingExercise = null}>
 					<PixelIcon name="close" />
 				</button>
@@ -567,7 +568,7 @@
 
 			<div class="settings-content">
 				<div class="form-section">
-					<label class="form-label">Количество подходов</label>
+					<label class="form-label">{t('routines.editor.labelSets')}</label>
 					<div class="number-input">
 						<button onclick={() => pendingSets = Math.max(1, pendingSets - 1)}>-</button>
 						<input
@@ -583,7 +584,7 @@
 
 			<div class="settings-footer">
 				<PixelButton variant="primary" fullWidth onclick={confirmAddExercise}>
-					Добавить {pendingSets > 1 ? `${pendingSets} подхода` : ''}
+					{pendingSets > 1 ? t('routines.editor.addSets', { count: pendingSets }) : t('routines.editor.add')}
 				</PixelButton>
 			</div>
 		</div>
@@ -596,7 +597,7 @@
 	<div class="settings-overlay" onclick={() => editingExerciseIndex = null}>
 		<div class="settings-container" onclick={(e) => e.stopPropagation()}>
 			<div class="settings-header">
-				<h3>{item.exercise.name_ru}</h3>
+				<h3>{ln(item.exercise.name, item.exercise.name_ru)}</h3>
 				<button class="close-btn" onclick={() => editingExerciseIndex = null}>
 					<PixelIcon name="close" />
 				</button>
@@ -605,7 +606,7 @@
 			<div class="settings-content">
 				{#if item.exercise.is_timed}
 					<div class="form-section">
-						<label class="form-label">Время (секунд)</label>
+						<label class="form-label">{t('routines.editor.labelTime')}</label>
 						<div class="number-input">
 							<button onclick={() => updateExerciseSettings(editingExerciseIndex, { target_duration: Math.max(5, (item.target_duration || 30) - 5) })}>-</button>
 							<input
@@ -620,7 +621,7 @@
 					</div>
 				{:else}
 					<div class="form-section">
-						<label class="form-label">Повторения</label>
+						<label class="form-label">{t('routines.editor.labelReps')}</label>
 						<div class="number-input">
 							<button onclick={() => updateExerciseSettings(editingExerciseIndex, { target_reps: Math.max(1, (item.target_reps || 10) - 1) })}>-</button>
 							<input
@@ -636,7 +637,7 @@
 				{/if}
 
 				<div class="form-section">
-					<label class="form-label">Отдых после (секунд)</label>
+					<label class="form-label">{t('routines.editor.labelRest')}</label>
 					<div class="number-input">
 						<button onclick={() => updateExerciseSettings(editingExerciseIndex, { rest_seconds: Math.max(0, item.rest_seconds - 5) })}>-</button>
 						<input
@@ -653,7 +654,7 @@
 
 			<div class="settings-footer">
 				<PixelButton variant="primary" fullWidth onclick={() => editingExerciseIndex = null}>
-					Готово
+					{t('routines.editor.done')}
 				</PixelButton>
 			</div>
 		</div>

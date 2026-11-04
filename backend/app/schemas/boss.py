@@ -6,11 +6,13 @@ from pydantic import BaseModel
 class BossResponse(BaseModel):
     id: int
     slug: str
+    name: str
     name_ru: str
     image_emoji: str
     image_url: str | None = None
     theme: str
     legend_ru: str
+    legend_en: str | None = None
     max_hp: int
     current_hp: int
     start_date: date
@@ -57,6 +59,7 @@ class BossClaimResponse(BaseModel):
 
 class BossHistoryEntry(BaseModel):
     id: int
+    name: str
     name_ru: str
     image_emoji: str
     image_url: str | None = None

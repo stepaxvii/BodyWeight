@@ -6,16 +6,17 @@
 	import { api } from '$lib/api/client';
 	import { exercisesStore } from '$lib/stores/exercises.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { t, ln } from '$lib/i18n/index.svelte';
 	import type { Exercise, ChallengeExerciseInput } from '$lib/types';
 
 	const MAX_EXERCISES = 5;
 	const DURATION_PRESETS = [7, 14, 30, 60];
 	// Reward tiers — must mirror backend REWARD_TIERS in services/challenges.py
 	const REWARD_TIERS = [
-		{ pct: 100, coins: 200, label: 'Идеально' },
-		{ pct: 80, coins: 100, label: 'Отлично' },
-		{ pct: 50, coins: 40, label: 'Неплохо' },
-		{ pct: 1, coins: 10, label: 'Участие' }
+		{ pct: 100, coins: 200, labelKey: 'challenges.tiers.perfect' },
+		{ pct: 80, coins: 100, labelKey: 'challenges.tiers.great' },
+		{ pct: 50, coins: 40, labelKey: 'challenges.tiers.good' },
+		{ pct: 1, coins: 10, labelKey: 'challenges.tiers.participation' }
 	];
 
 	let title = $state('');
@@ -96,9 +97,9 @@
 	}
 
 	function targetUnit(ex: Exercise): string {
-		if (ex.is_timed) return 'сек';
-		if (ex.slug === 'walking') return 'шагов';
-		return 'повт.';
+		if (ex.is_timed) return t('challenges.new.unitSec');
+		if (ex.slug === 'walking') return t('challenges.new.unitSteps');
+		return t('challenges.new.unitReps');
 	}
 
 	function stepFor(ex: Exercise): number {
@@ -110,11 +111,11 @@
 		error = null;
 
 		if (!title.trim()) {
-			error = 'Введи название';
+			error = t('challenges.new.errorNoTitle');
 			return;
 		}
 		if (pickedExercises.length === 0) {
-			error = 'Добавь хотя бы одно упражнение';
+			error = t('challenges.new.errorNoExercises');
 			return;
 		}
 
@@ -136,7 +137,7 @@
 			telegram.hapticNotification('success');
 			goto(`${base}/challenges/${created.id}`);
 		} catch (e) {
-			error = e instanceof Error ? e.message : 'Не удалось создать челлендж';
+			error = e instanceof Error ? e.message : t('challenges.new.errorCreate');
 			telegram.hapticNotification('error');
 		} finally {
 			submitting = false;
@@ -146,15 +147,15 @@
 
 <div class="new-page">
 	<header class="cn-head">
-		<a href="{base}/challenges" class="cn-back" aria-label="Назад">
+		<a href="{base}/challenges" class="cn-back" aria-label={t('challenges.new.backAria')}>
 			<PixelIcon name="arrowleft" size="md" color="var(--text)" />
 		</a>
-		<h1 class="cn-title">Новый челлендж</h1>
+		<h1 class="cn-title">{t('challenges.new.title')}</h1>
 	</header>
 
 	<!-- Название -->
 	<section class="cn-sec">
-		<div class="sec-head"><span class="sec-head__t">Название</span></div>
+		<div class="sec-head"><span class="sec-head__t">{t('challenges.new.nameSection')}</span></div>
 		<div class="searchbar">
 			<PixelIcon name="edit" size="sm" color="var(--muted)" />
 			<input
@@ -162,28 +163,28 @@
 				type="text"
 				maxlength="120"
 				bind:value={title}
-				placeholder="Напр. «100 отжиманий в день»"
+				placeholder={t('challenges.new.namePlaceholder')}
 			/>
 		</div>
 		<textarea
 			class="cn-textarea"
 			bind:value={description}
-			placeholder="Описание (необязательно) — в чём суть"
+			placeholder={t('challenges.new.descPlaceholder')}
 			rows="2"
 		></textarea>
 	</section>
 
 	<!-- Старт + длительность -->
 	<section class="cn-sec">
-		<div class="sec-head"><span class="sec-head__t">Старт</span></div>
+		<div class="sec-head"><span class="sec-head__t">{t('challenges.new.startSection')}</span></div>
 		<input class="cn-date" type="date" min={todayIso()} bind:value={startDate} />
-		<p class="cn-hint">Друзья смогут присоединиться, пока челлендж не стартовал.</p>
+		<p class="cn-hint">{t('challenges.new.startHint')}</p>
 
-		<div class="sec-head sec-head--mt"><span class="sec-head__t">Длительность</span><span class="sec-head__m">{durationDays} дн.</span></div>
+		<div class="sec-head sec-head--mt"><span class="sec-head__t">{t('challenges.new.durationSection')}</span><span class="sec-head__m">{t('challenges.new.durationValue', { count: durationDays })}</span></div>
 		<div class="qty-row">
 			{#each DURATION_PRESETS as d}
 				<button class="pill" class:is-active={durationDays === d} onclick={() => { durationDays = d; telegram.hapticImpact('light'); }}>
-					{d} дн.
+					{t('challenges.new.presetDays', { count: d })}
 				</button>
 			{/each}
 		</div>
@@ -192,29 +193,29 @@
 
 	<!-- Упражнения и цели -->
 	<section class="cn-sec">
-		<div class="sec-head"><span class="sec-head__t">Упражнения и цели</span><span class="sec-head__m">{pickedExercises.length}/{MAX_EXERCISES}</span></div>
+		<div class="sec-head"><span class="sec-head__t">{t('challenges.new.exercisesSection')}</span><span class="sec-head__m">{pickedExercises.length}/{MAX_EXERCISES}</span></div>
 
 		<div class="cn-callout">
 			<PixelIcon name="warning" size="sm" color="var(--accent)" />
-			<span>День засчитывается, только если выполнены <b>все</b> упражнения с целью. Лишние повторы идут в обычный опыт, но не в челлендж.</span>
+			<span>{@html t('challenges.new.callout')}</span>
 		</div>
 
 		{#if pickedExercises.length === 0}
-			<p class="cn-empty">Пока ничего не выбрано</p>
+			<p class="cn-empty">{t('challenges.new.emptyExercises')}</p>
 		{:else}
 			<div class="cn-list">
 				{#each pickedExercises as p, i (p.exercise.id)}
 					<div class="cn-ex is-on">
-						<button class="cn-ex__pick" onclick={() => removeExercise(i)} aria-label="Убрать упражнение">
+						<button class="cn-ex__pick" onclick={() => removeExercise(i)} aria-label={t('challenges.new.removeAria')}>
 							<span class="slot slot--sm slot--filled cn-ex__slot">
 								<PixelIcon name="check" size="sm" color="var(--on-accent)" />
 							</span>
-							<span class="cn-ex__name">{p.exercise.name_ru}</span>
+							<span class="cn-ex__name">{ln(p.exercise.name, p.exercise.name_ru)}</span>
 						</button>
 						<div class="cn-ex__tgt">
-							<button class="cn-step" onclick={() => stepTarget(i, -stepFor(p.exercise))} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
+							<button class="cn-step" onclick={() => stepTarget(i, -stepFor(p.exercise))} aria-label={t('challenges.new.stepLessAria')}><PixelIcon name="minus" size="sm" /></button>
 							<span class="cn-ex__val">{p.daily_target} <span class="cn-ex__u">{targetUnit(p.exercise)}</span></span>
-							<button class="cn-step" onclick={() => stepTarget(i, stepFor(p.exercise))} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
+							<button class="cn-step" onclick={() => stepTarget(i, stepFor(p.exercise))} aria-label={t('challenges.new.stepMoreAria')}><PixelIcon name="plus" size="sm" /></button>
 						</div>
 					</div>
 				{/each}
@@ -224,28 +225,28 @@
 		{#if pickedExercises.length < MAX_EXERCISES}
 			<button class="cn-add" onclick={() => (showPicker = !showPicker)}>
 				<PixelIcon name="plus" size="sm" />
-				<span>{showPicker ? 'Закрыть' : 'Добавить упражнение'}</span>
+				<span>{showPicker ? t('challenges.new.pickerClose') : t('challenges.new.pickerAdd')}</span>
 			</button>
 
 			{#if showPicker}
 				<div class="cn-picker">
 					<div class="searchbar">
 						<PixelIcon name="search" size="sm" color="var(--muted)" />
-						<input class="searchbar__in" type="text" placeholder="Поиск упражнения..." bind:value={pickerSearch} />
+						<input class="searchbar__in" type="text" placeholder={t('challenges.new.pickerSearchPlaceholder')} bind:value={pickerSearch} />
 					</div>
 					<div class="cn-picker__list">
 						{#each filteredExercises as ex (ex.id)}
 							<button class="cn-picker__item" onclick={() => addExercise(ex)}>
-								<span>{ex.name_ru}</span>
+								<span>{ln(ex.name, ex.name_ru)}</span>
 								{#if ex.is_timed}
-									<span class="cn-picker__tag">время</span>
+									<span class="cn-picker__tag">{t('challenges.new.pickerTagTimed')}</span>
 								{:else if ex.slug === 'walking'}
-									<span class="cn-picker__tag">шаги</span>
+									<span class="cn-picker__tag">{t('challenges.new.pickerTagSteps')}</span>
 								{/if}
 							</button>
 						{/each}
 						{#if filteredExercises.length === 0}
-							<div class="cn-picker__empty">Ничего не найдено</div>
+							<div class="cn-picker__empty">{t('challenges.new.pickerEmpty')}</div>
 						{/if}
 					</div>
 				</div>
@@ -255,13 +256,13 @@
 
 	<!-- Награды -->
 	<section class="cn-sec">
-		<div class="sec-head"><span class="sec-head__t">Награды</span><span class="sec-head__m">по % выполнения</span></div>
+		<div class="sec-head"><span class="sec-head__t">{t('challenges.new.rewardsSection')}</span><span class="sec-head__m">{t('challenges.new.rewardsSub')}</span></div>
 		<div class="cn-tiers">
-			{#each REWARD_TIERS as t}
+			{#each REWARD_TIERS as tier}
 				<div class="cn-tier">
-					<span class="cn-tier__pct">{t.pct}%+</span>
-					<span class="cn-tier__label">{t.label}</span>
-					<span class="cn-tier__coins"><PixelIcon name="coin" size="sm" color="var(--gold)" /> {t.coins}</span>
+					<span class="cn-tier__pct">{tier.pct}%+</span>
+					<span class="cn-tier__label">{t(tier.labelKey)}</span>
+					<span class="cn-tier__coins"><PixelIcon name="coin" size="sm" color="var(--gold)" /> {tier.coins}</span>
 				</div>
 			{/each}
 		</div>
@@ -272,7 +273,7 @@
 	{/if}
 
 	<PixelButton variant="success" size="lg" fullWidth loading={submitting} onclick={submit}>
-		<PixelIcon name="check" /> Создать челлендж
+		<PixelIcon name="check" /> {t('challenges.new.submit')}
 	</PixelButton>
 </div>
 

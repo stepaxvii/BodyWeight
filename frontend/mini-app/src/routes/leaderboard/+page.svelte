@@ -6,6 +6,7 @@
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
+	import { t } from '$lib/i18n/index.svelte';
 	import type { LeaderboardEntry } from '$lib/types';
 
 	let entries = $state<LeaderboardEntry[]>([]);
@@ -52,7 +53,7 @@
 			entries = Array.isArray(list) ? list : [];
 		} catch (err) {
 			console.error('Failed to load leaderboard:', err);
-			error = err instanceof Error ? err.message : 'Ошибка загрузки рейтинга';
+			error = err instanceof Error ? err.message : t('leaderboard.loadError');
 			entries = [];
 		} finally {
 			isLoading = false;
@@ -90,7 +91,7 @@
 				inviteInfo = info;
 			}
 			const inviteLink = info.invite_link;
-			const inviteText = 'Тренируйся со мной в PixelFit — фитнес с 8-битной душой прямо в Telegram';
+			const inviteText = t('leaderboard.invite.text');
 
 			if (telegram.webApp) {
 				const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(inviteText)}`;
@@ -99,7 +100,7 @@
 				await navigator.share({ title: 'PixelFit', text: inviteText, url: inviteLink });
 			} else {
 				await navigator.clipboard.writeText(`${inviteText}\n${inviteLink}`);
-				alert('Ссылка скопирована в буфер обмена');
+				alert(t('leaderboard.invite.copied'));
 			}
 			telegram.hapticNotification('success');
 		} catch (err) {
@@ -113,12 +114,12 @@
 
 <div class="page container">
 	<div class="banner-wrap">
-		<Banner icon="trophy" title="Рейтинг" sub="Неделя среди друзей" deco="crown" />
+		<Banner icon="trophy" title={t('leaderboard.title')} sub={t('leaderboard.subtitle')} deco="crown" />
 	</div>
 
 	<p class="lb-note">
 		<PixelIcon name="clock" size="sm" color="var(--muted)" />
-		<span>Очки сбрасываются каждый понедельник</span>
+		<span>{t('leaderboard.resetNote')}</span>
 	</p>
 
 	<!-- Скрыт из рейтинга — панель с предложением показать себя друзьям -->
@@ -127,8 +128,8 @@
 			<div class="lb-hidden__head">
 				<span class="slot slot--md"><PixelIcon name="lock" size="md" color="var(--muted)" /></span>
 				<div class="lb-hidden__txt">
-					<span class="lb-hidden__t">Ты скрыт из рейтинга</span>
-					<span class="lb-hidden__s">Друзья не видят тебя в недельном рейтинге.</span>
+					<span class="lb-hidden__t">{t('leaderboard.hidden.title')}</span>
+					<span class="lb-hidden__s">{t('leaderboard.hidden.sub')}</span>
 				</div>
 			</div>
 			<PixelButton
@@ -138,7 +139,7 @@
 				loading={updatingVisibility}
 				onclick={showMeInLeaderboard}
 			>
-				Показывать меня друзьям
+				{t('leaderboard.hidden.action')}
 			</PixelButton>
 		</div>
 	{/if}
@@ -147,7 +148,7 @@
 	{#if isLoading}
 		<div class="loading">
 			<div class="pixel-spinner"></div>
-			<span>Загрузка...</span>
+			<span>{t('leaderboard.loading')}</span>
 		</div>
 	{:else if error}
 		<EmptyState
@@ -158,10 +159,10 @@
 		<!-- Пусто: кроме тебя соревноваться некому -->
 		<div class="lb-empty anim-pop">
 			<span class="slot slot--lg"><PixelIcon name="friends" size="lg" color="var(--muted)" /></span>
-			<p class="lb-empty__t">Пока соревноваться не с кем</p>
-			<p class="lb-empty__s">Добавь друзей — и недельная гонка за XP начнётся.</p>
+			<p class="lb-empty__t">{t('leaderboard.empty.title')}</p>
+			<p class="lb-empty__s">{t('leaderboard.empty.sub')}</p>
 			<PixelButton variant="primary" fullWidth onclick={shareInviteLink}>
-				<PixelIcon name="share" /> Пригласить друга
+				<PixelIcon name="share" /> {t('leaderboard.invite.action')}
 			</PixelButton>
 		</div>
 	{:else}
@@ -249,10 +250,10 @@
 								<span class="entry-name">
 									{entry.username ? `${entry.username}` : entry.first_name}
 									{#if entry.is_current_user}
-										<span class="you-badge">ВЫ</span>
+										<span class="you-badge">{t('leaderboard.youBadge')}</span>
 									{/if}
 								</span>
-								<span class="entry-level">Ур.{entry.level}{#if entry.equipped_title} · {entry.equipped_title}{/if}</span>
+								<span class="entry-level">{t('leaderboard.level', { level: entry.level })}{#if entry.equipped_title} · {entry.equipped_title}{/if}</span>
 							</div>
 
 							<div class="entry-stats">
@@ -275,12 +276,12 @@
 				<div class="lb-invite__head">
 					<span class="slot slot--md"><PixelIcon name="users" size="md" color="var(--accent)" /></span>
 					<div class="lb-invite__txt">
-						<span class="lb-invite__t">Зови друзей в гонку</span>
-						<span class="lb-invite__s">Чем больше соперников — тем жарче недельный рейтинг.</span>
+						<span class="lb-invite__t">{t('leaderboard.invite.title')}</span>
+						<span class="lb-invite__s">{t('leaderboard.invite.sub')}</span>
 					</div>
 				</div>
 				<PixelButton variant="primary" fullWidth onclick={shareInviteLink}>
-					<PixelIcon name="share" /> Пригласить друга
+					<PixelIcon name="share" /> {t('leaderboard.invite.action')}
 				</PixelButton>
 			</div>
 	{/if}

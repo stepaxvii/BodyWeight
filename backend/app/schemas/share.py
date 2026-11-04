@@ -7,7 +7,7 @@ class ShareWorkoutRequest(BaseModel):
     """Optional body for POST /share/workout/{session_id}."""
     routine_name: str | None = Field(
         default=None, max_length=120,
-        description="Название рутины для заголовка текстового отчёта",
+        description="Routine name for the text report heading",
     )
 
 

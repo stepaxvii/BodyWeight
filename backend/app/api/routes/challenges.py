@@ -6,6 +6,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
+from app.i18n import t
 from app.db.models import (
     Challenge,
     ChallengeExercise,
@@ -100,7 +101,7 @@ async def _calc_running_completion(
     "",
     response_model=ChallengeDetailsResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Создать челлендж",
+    summary="Create a challenge",
     tags=["Challenges"],
 )
 async def create_challenge_route(
@@ -129,7 +130,7 @@ async def create_challenge_route(
         # Capture before commit — attributes expire on commit (no async lazy-load).
         challenge_id = challenge.id
         challenge_title = challenge.title
-        creator_name = _user_display_name(user) or "Друг"
+        creator_name = _user_display_name(user) or t(user.language, "bot.common.user_fallback")
         # In-app notify friends so they can join while it's still open.
         # Best-effort: a notification hiccup must not fail challenge creation.
         try:
@@ -156,7 +157,7 @@ async def create_challenge_route(
 @router.get(
     "",
     response_model=list[ChallengeListItem],
-    summary="Каталог челленджей",
+    summary="Challenge catalog",
     tags=["Challenges"],
 )
 async def list_challenges_route(
@@ -277,7 +278,7 @@ async def list_challenges_route(
 @router.get(
     "/{challenge_id}",
     response_model=ChallengeDetailsResponse,
-    summary="Детали челленджа",
+    summary="Challenge details",
     tags=["Challenges"],
 )
 async def get_challenge_route(
@@ -291,7 +292,7 @@ async def get_challenge_route(
 @router.post(
     "/{challenge_id}/join",
     response_model=ChallengeDetailsResponse,
-    summary="Присоединиться к челленджу",
+    summary="Join a challenge",
     tags=["Challenges"],
 )
 async def join_challenge_route(
@@ -312,7 +313,7 @@ async def join_challenge_route(
 @router.get(
     "/{challenge_id}/calendar",
     response_model=ChallengeMyCalendarResponse,
-    summary="Календарь прогресса игрока в челлендже",
+    summary="Player's progress calendar in a challenge",
     tags=["Challenges"],
 )
 async def get_calendar_route(
@@ -340,6 +341,7 @@ async def get_calendar_route(
             progress_date=p.progress_date,
             exercise_id=ex.id,
             exercise_slug=ex.slug,
+            exercise_name=ex.name,
             exercise_name_ru=ex.name_ru,
             accumulated=p.accumulated,
             target=p.target,
@@ -354,7 +356,7 @@ async def get_calendar_route(
 @router.post(
     "/{challenge_id}/claim",
     response_model=ChallengeClaimResponse,
-    summary="Забрать награду за челлендж",
+    summary="Claim the challenge reward",
     tags=["Challenges"],
 )
 async def claim_route(
@@ -403,6 +405,7 @@ async def _build_details_response(
         ChallengeExerciseResponse(
             exercise_id=ex.id,
             exercise_slug=ex.slug,
+            exercise_name=ex.name,
             exercise_name_ru=ex.name_ru,
             daily_target=ce.daily_target,
             is_timed=ce.is_timed,

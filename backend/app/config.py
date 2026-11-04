@@ -13,10 +13,8 @@ class Settings(BaseSettings):
     bot_username: str = "pixelfitbot"  # Bot username without @
     mini_app_name: str = "pixelfitbot"  # Mini App short name from BotFather
 
-    # Security
+    # Security — HMAC key for signing share-card tokens (see api/routes/share.py)
     secret_key: str = "change-me-in-production"
-    jwt_algorithm: str = "HS256"
-    jwt_expire_minutes: int = 60 * 24 * 30  # 30 days
 
     # Database (use absolute path to ensure bot and API use same DB)
     database_url: str = f"sqlite+aiosqlite:///{DEFAULT_DB_PATH}"

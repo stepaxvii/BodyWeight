@@ -31,8 +31,8 @@ REWARD_CLAIM_TTL_DAYS = 7
 @router.get(
     "/current",
     response_model=BossResponse,
-    summary="Текущий босс месяца",
-    description="Возвращает активного босса для текущего месяца. Создаёт нового, если ещё не существует.",
+    summary="Current boss of the month",
+    description="Returns the active boss for the current month. Creates a new one if it does not exist yet.",
     tags=["Boss"],
 )
 async def get_current_boss(user: CurrentUser, session: AsyncSessionDep):
@@ -46,8 +46,8 @@ async def get_current_boss(user: CurrentUser, session: AsyncSessionDep):
 @router.get(
     "/leaderboard",
     response_model=BossLeaderboardResponse,
-    summary="Лидерборд по урону по боссу",
-    description="Топ-10 контрибьюторов по урону для текущего босса.",
+    summary="Boss damage leaderboard",
+    description="Top 10 contributors by damage for the current boss.",
     tags=["Boss"],
 )
 async def get_boss_leaderboard(user: CurrentUser, session: AsyncSessionDep):
@@ -81,8 +81,8 @@ async def get_boss_leaderboard(user: CurrentUser, session: AsyncSessionDep):
 @router.get(
     "/me",
     response_model=BossMyContributionResponse,
-    summary="Мой вклад по текущему боссу",
-    description="Возвращает урон, ранг и доступную награду для текущего пользователя.",
+    summary="My contribution to the current boss",
+    description="Returns the current user's damage, rank, and available reward.",
     tags=["Boss"],
 )
 async def get_my_contribution(user: CurrentUser, session: AsyncSessionDep):
@@ -139,8 +139,8 @@ async def get_my_contribution(user: CurrentUser, session: AsyncSessionDep):
 @router.post(
     "/{boss_id}/claim",
     response_model=BossClaimResponse,
-    summary="Забрать награду за босса",
-    description="Зачисляет монеты на счёт пользователя за участие. Доступно 7 дней после финализации.",
+    summary="Claim the boss reward",
+    description="Credits coins to the user's account for participating. Available for 7 days after finalization.",
     tags=["Boss"],
 )
 async def claim_boss_reward(
@@ -163,8 +163,8 @@ async def claim_boss_reward(
 @router.get(
     "/history",
     response_model=BossHistoryResponse,
-    summary="История боссов",
-    description="Список прошедших боссов и личный результат игрока по каждому. Возвращает до 12 последних.",
+    summary="Boss history",
+    description="List of past bosses and the player's personal result for each. Returns up to the 12 most recent.",
     tags=["Boss"],
 )
 async def get_boss_history(user: CurrentUser, session: AsyncSessionDep):
@@ -196,6 +196,7 @@ async def get_boss_history(user: CurrentUser, session: AsyncSessionDep):
         entries.append(
             BossHistoryEntry(
                 id=boss.id,
+                name=boss.name,
                 name_ru=boss.name_ru,
                 image_emoji=boss.image_emoji,
                 image_url=boss.image_url,

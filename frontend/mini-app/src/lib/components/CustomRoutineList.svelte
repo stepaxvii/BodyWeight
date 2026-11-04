@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { PixelIcon, PixelTabs, EmptyState } from '$lib/components/ui';
+	import { t } from '$lib/i18n/index.svelte';
 	import type { CustomRoutineListItem } from '$lib/types';
 
 	interface Props {
@@ -14,12 +15,12 @@
 	type RoutineCategory = 'workout' | 'morning' | 'stretch' | 'other';
 	let activeCategory = $state<RoutineCategory>('workout');
 
-	const categoryTabs = [
-		{ id: 'workout' as const, label: 'Тренировка' },
-		{ id: 'morning' as const, label: 'Зарядка' },
-		{ id: 'stretch' as const, label: 'Растяжка' },
-		{ id: 'other' as const, label: 'Другое' }
-	];
+	const categoryTabs = $derived([
+		{ id: 'workout' as const, label: t('routines.list.typeWorkout') },
+		{ id: 'morning' as const, label: t('routines.list.typeMorning') },
+		{ id: 'stretch' as const, label: t('routines.list.typeStretch') },
+		{ id: 'other' as const, label: t('routines.list.typeOther') }
+	]);
 
 	const filteredRoutines = $derived(
 		routines.filter(r => {
@@ -34,7 +35,7 @@
 
 <div class="routine-list">
 	{#if routines.length === 0}
-		<EmptyState icon="dumbbell" message="У вас пока нет своих сетов" />
+		<EmptyState icon="dumbbell" message={t('routines.list.empty')} />
 	{:else}
 		<PixelTabs tabs={categoryTabs} activeTab={activeCategory} onTabChange={(id) => activeCategory = id} />
 
@@ -50,11 +51,11 @@
 						<div class="item__sub">
 							<span class="item__tag">
 								<PixelIcon name="timer" size="sm" color="var(--muted)" />
-								{routine.duration_minutes}м
+								{t('routines.list.durationMin', { minutes: routine.duration_minutes })}
 							</span>
 							<span class="item__tag">
 								<PixelIcon name="dumbbell" size="sm" color="var(--muted)" />
-								{routine.exercises_count} упр.
+								{t('routines.list.exercisesCount', { count: routine.exercises_count })}
 							</span>
 						</div>
 					</div>
@@ -62,31 +63,31 @@
 						<button
 							class="cust-act cust-act--play"
 							onclick={() => onplay(routine.id)}
-							aria-label="Начать"
-							title="Начать"
+							aria-label={t('routines.list.start')}
+							title={t('routines.list.start')}
 						>
 							<PixelIcon name="play" size="sm" color="var(--on-accent)" />
 						</button>
 						<button
 							class="cust-act"
 							onclick={() => onedit(routine.id)}
-							aria-label="Редактировать"
-							title="Редактировать"
+							aria-label={t('routines.list.edit')}
+							title={t('routines.list.edit')}
 						>
 							<PixelIcon name="edit" size="sm" color="var(--muted)" />
 						</button>
 						<button
 							class="cust-act cust-act--del"
 							onclick={() => ondelete(routine.id, routine.name)}
-							aria-label="Удалить"
-							title="Удалить"
+							aria-label={t('routines.list.delete')}
+							title={t('routines.list.delete')}
 						>
 							<PixelIcon name="trash" size="sm" color="var(--danger)" />
 						</button>
 					</div>
 				</div>
 			{:else}
-				<EmptyState icon="dumbbell" message="Нет сетов в этой категории" />
+				<EmptyState icon="dumbbell" message={t('routines.list.emptyCategory')} />
 			{/each}
 		</div>
 	{/if}

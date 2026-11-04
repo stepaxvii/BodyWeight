@@ -7,6 +7,7 @@
 	import { sound } from '$lib/stores/sound.svelte';
 	import { exercisesStore } from '$lib/stores/exercises.svelte';
 	import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
+	import { t, ln } from '$lib/i18n/index.svelte';
 	import type { Routine, RoutineExercise, Exercise, ChallengeProgressSummary, ShareCardResponse } from '$lib/types';
 	import { onMount, onDestroy } from 'svelte';
 
@@ -391,9 +392,10 @@
 		}
 		const exerciseLines = Array.from(bySlug.entries()).map(([slug, { total, is_timed }]) => {
 			const ex = allExercises.find((e) => e.slug === slug);
-			const name = ex?.name_ru || slug;
-			const totalStr = is_timed ? `${total} сек` : `${total} повт.`;
-			return `  ▸ ${name}: ${totalStr}`;
+			const name = ln(ex?.name, ex?.name_ru) || slug;
+			return is_timed
+				? t('modals1.player.shareLineTimed', { name, total })
+				: t('modals1.player.shareLineReps', { name, total });
 		});
 
 		const shareText = [
@@ -401,10 +403,10 @@
 			'',
 			`⏱️ ${formattedTotalTime}`,
 			`🌟 +${totalXpEarned} XP`,
-			`🪙 ${totalCoinsEarned} монет`,
+			t('modals1.player.shareCoins', { coins: totalCoinsEarned }),
 			'',
 			'━━━━━━━━━━',
-			'💪 Упражнения',
+			t('modals1.player.shareWorkoutsLabel'),
 			'━━━━━━━━━━',
 			...exerciseLines
 		].join('\n');
@@ -473,35 +475,35 @@
 		<!-- PRE-START -->
 		<div class="player__scroll">
 			<div class="player__bar">
-				<button class="player__x" onclick={handleClose} aria-label="Закрыть"><PixelIcon name="close" size="sm" /></button>
+				<button class="player__x" onclick={handleClose} aria-label={t('modals1.player.close')}><PixelIcon name="close" size="sm" /></button>
 				<span class="player__title">{routine.name}</span>
 				<span class="player__x-spacer"></span>
 			</div>
 
 			<div class="feat">
-				<div class="feat__band"><span>Программа</span></div>
+				<div class="feat__band"><span>{t('modals1.player.programBand')}</span></div>
 				<div class="feat__body">
 					<span class="feat__art slot slot--lg"><PixelIcon name="dumbbell" size="xl" color="var(--accent)" /></span>
 					<div class="feat__info">
 						<span class="feat__sub">{routine.description}</span>
 						<div class="feat__stats">
-							<span class="feat__stat"><PixelIcon name="timer" size="sm" color="var(--accent2)" /> ~{routine.duration_minutes} мин</span>
-							<span class="feat__stat"><PixelIcon name="dumbbell" size="sm" color="var(--accent)" /> {routine.exercises.length} упр.</span>
+							<span class="feat__stat"><PixelIcon name="timer" size="sm" color="var(--accent2)" /> {t('modals1.player.durationMin', { minutes: routine.duration_minutes })}</span>
+							<span class="feat__stat"><PixelIcon name="dumbbell" size="sm" color="var(--accent)" /> {t('modals1.player.exercisesCount', { count: routine.exercises.length })}</span>
 						</div>
 					</div>
 				</div>
 			</div>
 
-			<div class="player__listhead">Упражнения</div>
+			<div class="player__listhead">{t('modals1.player.exercisesHead')}</div>
 			<div class="player__list">
 				{#each routine.exercises as ex, i}
 					{@const exData = allExercises.find((e) => e.slug === ex.slug)}
 					<div class="prerow">
 						<span class="prerow__n">{i + 1}</span>
-						<span class="prerow__name">{exData?.name_ru || ex.slug}</span>
-						<span class="prerow__t">{ex.duration ? `${ex.duration} сек` : ex.reps ? `${ex.reps} повт.` : ''}</span>
+						<span class="prerow__name">{ln(exData?.name, exData?.name_ru) || ex.slug}</span>
+						<span class="prerow__t">{ex.duration ? t('modals1.player.unitSecShort', { value: ex.duration }) : ex.reps ? t('modals1.player.unitRepsShort', { value: ex.reps }) : ''}</span>
 						{#if exData}
-							<button class="prerow__i" onclick={() => { showInfoExercise = exData; telegram.hapticImpact('light'); }} aria-label="Подробнее"><PixelIcon name="search" size="sm" color="var(--muted)" /></button>
+							<button class="prerow__i" onclick={() => { showInfoExercise = exData; telegram.hapticImpact('light'); }} aria-label={t('modals1.player.details')}><PixelIcon name="search" size="sm" color="var(--muted)" /></button>
 						{/if}
 					</div>
 				{/each}
@@ -509,7 +511,7 @@
 
 			<div class="player__start">
 				<PixelButton variant="primary" size="lg" fullWidth onclick={startRoutine}>
-					<PixelIcon name="play" /> Начать
+					<PixelIcon name="play" /> {t('modals1.player.start')}
 				</PixelButton>
 			</div>
 		</div>
@@ -519,12 +521,12 @@
 			<span class="done__burst" aria-hidden="true"></span>
 			<PixelIcon name="trophy" size="xl" color="var(--gold)" class="done__trophy" />
 			<span class="done__title">{routine.name}</span>
-			<span class="done__sub">завершён!</span>
+			<span class="done__sub">{t('modals1.player.completed')}</span>
 			<div class="done__grid">
-				<div class="done__stat"><PixelIcon name="timer" size="md" color="var(--accent2)" /><span class="done__v">{formattedTotalTime}</span><span class="done__l">Время</span></div>
-				<div class="done__stat"><PixelIcon name="xp" size="md" color="var(--accent)" /><span class="done__v done__v--green">+{totalXpEarned}</span><span class="done__l">Опыт</span></div>
-				<div class="done__stat"><PixelIcon name="coin" size="md" color="var(--gold)" /><span class="done__v done__v--gold">+{totalCoinsEarned}</span><span class="done__l">Монеты</span></div>
-				<div class="done__stat"><PixelIcon name="dumbbell" size="md" color="var(--accent)" /><span class="done__v">{completedExercisesCount}/{routine.exercises.length}</span><span class="done__l">Упр.</span></div>
+				<div class="done__stat"><PixelIcon name="timer" size="md" color="var(--accent2)" /><span class="done__v">{formattedTotalTime}</span><span class="done__l">{t('modals1.player.statTime')}</span></div>
+				<div class="done__stat"><PixelIcon name="xp" size="md" color="var(--accent)" /><span class="done__v done__v--green">+{totalXpEarned}</span><span class="done__l">{t('modals1.player.statXp')}</span></div>
+				<div class="done__stat"><PixelIcon name="coin" size="md" color="var(--gold)" /><span class="done__v done__v--gold">+{totalCoinsEarned}</span><span class="done__l">{t('modals1.player.statCoins')}</span></div>
+				<div class="done__stat"><PixelIcon name="dumbbell" size="md" color="var(--accent)" /><span class="done__v">{completedExercisesCount}/{routine.exercises.length}</span><span class="done__l">{t('modals1.player.statExercises')}</span></div>
 			</div>
 			{#if challengeProgress.length > 0}
 				<div class="done__chal">
@@ -534,14 +536,14 @@
 								<PixelIcon name="trophy" size="sm" color={cp.day_completed ? 'var(--gold)' : 'var(--accent)'} />
 								<span class="done__chaltitle">{cp.challenge_title}</span>
 								{#if cp.day_completed}
-									<span class="done__chalbadge"><PixelIcon name="check" size="sm" color="var(--on-accent)" /> день закрыт</span>
+									<span class="done__chalbadge"><PixelIcon name="check" size="sm" color="var(--on-accent)" /> {t('modals1.player.dayClosed')}</span>
 								{/if}
 							</div>
 							{#each cp.exercises as ex (ex.exercise_name_ru)}
 								<div class="done__chalrow">
-									<span class="done__chalname">{ex.exercise_name_ru}</span>
+									<span class="done__chalname">{ln(ex.exercise_name, ex.exercise_name_ru)}</span>
 									<span class="done__chalval" class:done__chalval--done={ex.completed}>
-										+{ex.added}{ex.is_timed ? ' сек' : ''} · {ex.accumulated}/{ex.target}{ex.completed ? ' ✓' : ''}
+										+{ex.added}{ex.is_timed ? t('modals1.player.unitSecSuffix') : ''} · {ex.accumulated}/{ex.target}{ex.completed ? ' ✓' : ''}
 									</span>
 								</div>
 							{/each}
@@ -551,12 +553,12 @@
 			{/if}
 			<div class="player__doneactions">
 				<div class="done__sharerow">
-					<PixelButton variant="secondary" fullWidth onclick={shareWorkout}><PixelIcon name="share" /> Поделиться</PixelButton>
+					<PixelButton variant="secondary" fullWidth onclick={shareWorkout}><PixelIcon name="share" /> {t('modals1.player.share')}</PixelButton>
 					{#if completedSessionId !== null && telegram.canShareToStory}
-						<PixelButton variant="secondary" fullWidth disabled={isPreparingShare} onclick={shareToStory}>В сторис</PixelButton>
+						<PixelButton variant="secondary" fullWidth disabled={isPreparingShare} onclick={shareToStory}>{t('modals1.player.shareStory')}</PixelButton>
 					{/if}
 				</div>
-				<PixelButton variant="success" fullWidth onclick={handleClose}><PixelIcon name="check" /> Готово</PixelButton>
+				<PixelButton variant="success" fullWidth onclick={handleClose}><PixelIcon name="check" /> {t('modals1.player.done')}</PixelButton>
 			</div>
 		</div>
 	{:else}
@@ -564,8 +566,8 @@
 		<div class="player__active pa2">
 			<div class="pa2-hero">
 				<div class="pa2-hero__bar">
-					<button class="pa2-x" onclick={handleClose} aria-label="Закрыть"><PixelIcon name="close" size="sm" /></button>
-					<span class="pa2-hero__step">Упражнение {currentStep + 1}/{routine.exercises.length}</span>
+					<button class="pa2-x" onclick={handleClose} aria-label={t('modals1.player.close')}><PixelIcon name="close" size="sm" /></button>
+					<span class="pa2-hero__step">{t('modals1.player.stepCounter', { current: currentStep + 1, total: routine.exercises.length })}</span>
 					<span class="pa2-hero__clock"><PixelIcon name="timer" size="sm" color="var(--hero-num)" /> {formattedTotalTime}</span>
 				</div>
 				<div class="pa2-prog">
@@ -579,18 +581,18 @@
 			</div>
 
 			<div class="pa2-stage">
-				<span class="pa2-hero__name">{isResting ? 'Отдых' : (exerciseData?.name_ru || currentExercise?.slug)}</span>
+				<span class="pa2-hero__name">{isResting ? t('modals1.player.rest') : (ln(exerciseData?.name, exerciseData?.name_ru) || currentExercise?.slug)}</span>
 
 				{#if isResting}
 					{@const restNextEx = routine.exercises[currentStep + 1]}
 					{@const restNextData = allExercises.find((e) => e.slug === restNextEx?.slug)}
 					<div class="pa2-count pa2-count--rest">
 						<span class="pa2-count__box"><span class="pa2-count__v">{restSeconds}</span>
-							<span class="pa2-count__u">секунд отдыха</span>
+							<span class="pa2-count__u">{t('modals1.player.restSeconds')}</span>
 						</span>
 					</div>
 					{#if restNextEx}
-						<div class="pa2-next"><PixelIcon name="arrow-right" size="sm" color="var(--muted)" /> {restNextData?.name_ru || restNextEx.slug} — {restNextEx.duration ? restNextEx.duration + 'с.' : restNextEx.reps + 'п.'}</div>
+						<div class="pa2-next"><PixelIcon name="arrow-right" size="sm" color="var(--muted)" /> {restNextEx.duration ? t('modals1.player.nextTimed', { name: ln(restNextData?.name, restNextData?.name_ru) || restNextEx.slug, duration: restNextEx.duration }) : t('modals1.player.nextReps', { name: ln(restNextData?.name, restNextData?.name_ru) || restNextEx.slug, reps: restNextEx.reps ?? 0 })}</div>
 					{/if}
 				{:else}
 					<div class="pa2-count" class:pa2-count--time={isTimeBased} class:pa2-count--done={isTimeBased && exerciseTimerSeconds === 0 && isExerciseTimerStarted}>
@@ -602,45 +604,45 @@
 							{/if}
 							<span class="pa2-count__u">
 								{#if isTimeBased}
-									{!isExerciseTimerStarted ? 'нажми старт' : exerciseTimerSeconds === 0 ? 'готово!' : 'осталось'}
+									{!isExerciseTimerStarted ? t('modals1.player.pressStart') : exerciseTimerSeconds === 0 ? t('modals1.player.ready') : t('modals1.player.remaining')}
 								{:else}
-									повторений
+									{t('modals1.player.reps')}
 								{/if}
 							</span>
 						</span>
 					</div>
 
-					{#if exerciseData?.description_ru}
+					{#if ln(exerciseData?.description, exerciseData?.description_ru)}
 						<div class="pa2-tech">
-							<div class="pa2-tech__band">Техника</div>
-							<div class="pa2-tech__body">{exerciseData.description_ru}</div>
+							<div class="pa2-tech__band">{t('modals1.player.technique')}</div>
+							<div class="pa2-tech__body">{ln(exerciseData?.description, exerciseData?.description_ru)}</div>
 						</div>
 					{/if}
 
 					{#if currentStep < routine.exercises.length - 1}
 						{@const nextEx = routine.exercises[currentStep + 1]}
 						{@const nextExData = allExercises.find((e) => e.slug === nextEx.slug)}
-						<div class="pa2-next"><PixelIcon name="arrow-right" size="sm" color="var(--muted)" /> {nextExData?.name_ru || nextEx.slug} — {nextEx.duration ? nextEx.duration + 'с.' : nextEx.reps + 'п.'}</div>
+						<div class="pa2-next"><PixelIcon name="arrow-right" size="sm" color="var(--muted)" /> {nextEx.duration ? t('modals1.player.nextTimed', { name: ln(nextExData?.name, nextExData?.name_ru) || nextEx.slug, duration: nextEx.duration }) : t('modals1.player.nextReps', { name: ln(nextExData?.name, nextExData?.name_ru) || nextEx.slug, reps: nextEx.reps ?? 0 })}</div>
 					{/if}
 				{/if}
 			</div>
 
 			<div class="player__controls">
 				{#if isResting}
-					<PixelButton variant="primary" size="lg" fullWidth onclick={skipRest}><PixelIcon name="play" /> Пропустить отдых</PixelButton>
-					<PixelButton variant="ghost" fullWidth onclick={() => addRest(15)}>+15 секунд</PixelButton>
+					<PixelButton variant="primary" size="lg" fullWidth onclick={skipRest}><PixelIcon name="play" /> {t('modals1.player.skipRest')}</PixelButton>
+					<PixelButton variant="ghost" fullWidth onclick={() => addRest(15)}>{t('modals1.player.addRest')}</PixelButton>
 				{:else}
 					<div class="pa2-actions">
 						<div class="pa2-actions__skip">
-							<PixelButton variant="ghost" size="md" fullWidth onclick={skipExercise}>Пропустить</PixelButton>
+							<PixelButton variant="ghost" size="md" fullWidth onclick={skipExercise}>{t('modals1.player.skip')}</PixelButton>
 						</div>
 						<div class="pa2-actions__main">
 							{#if isTimeBased && !isExerciseTimerStarted}
-								<PixelButton variant="primary" size="lg" fullWidth onclick={startExerciseTimer}><PixelIcon name="play" /> Старт таймера</PixelButton>
+								<PixelButton variant="primary" size="lg" fullWidth onclick={startExerciseTimer}><PixelIcon name="play" /> {t('modals1.player.startTimer')}</PixelButton>
 							{:else if isTimeBased && exerciseTimerSeconds > 0}
-								<PixelButton variant="secondary" size="lg" fullWidth onclick={togglePause}><PixelIcon name={isPaused ? 'play' : 'pause'} /> {isPaused ? 'Продолжить' : 'Пауза'}</PixelButton>
+								<PixelButton variant="secondary" size="lg" fullWidth onclick={togglePause}><PixelIcon name={isPaused ? 'play' : 'pause'} /> {isPaused ? t('modals1.player.resume') : t('modals1.player.pause')}</PixelButton>
 							{:else}
-								<PixelButton variant="success" size="lg" fullWidth disabled={isSubmitting} onclick={completeExercise}><PixelIcon name="check" /> {isSubmitting ? 'Отправка…' : 'Готово'}</PixelButton>
+								<PixelButton variant="success" size="lg" fullWidth disabled={isSubmitting} onclick={completeExercise}><PixelIcon name="check" /> {isSubmitting ? t('modals1.player.sending') : t('modals1.player.done')}</PixelButton>
 							{/if}
 						</div>
 					</div>

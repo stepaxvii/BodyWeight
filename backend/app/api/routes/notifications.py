@@ -11,8 +11,8 @@ router = APIRouter()
 @router.get(
     "/unread-count",
     response_model=UnreadCountResponse,
-    summary="Количество непрочитанных уведомлений",
-    description="Возвращает количество непрочитанных уведомлений для текущего пользователя.",
+    summary="Unread notification count",
+    description="Returns the number of unread notifications for the current user.",
     tags=["Notifications"]
 )
 async def get_unread_count(
@@ -31,14 +31,14 @@ async def get_unread_count(
 @router.get(
     "",
     response_model=list[NotificationResponse],
-    summary="Получить уведомления",
-    description="Возвращает список уведомлений пользователя, отсортированных по дате создания (новые первыми).",
+    summary="Get notifications",
+    description="Returns the user's notifications sorted by creation date (newest first).",
     tags=["Notifications"]
 )
 async def get_notifications(
     user: CurrentUser,
     session: AsyncSessionDep,
-    limit: int = Query(20, ge=1, le=100, description="Максимальное количество уведомлений"),
+    limit: int = Query(20, ge=1, le=100, description="Maximum number of notifications"),
 ):
     result = await session.execute(
         select(Notification)

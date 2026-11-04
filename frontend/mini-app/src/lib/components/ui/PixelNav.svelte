@@ -4,6 +4,7 @@
 	import { base } from '$app/paths';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { workoutStore } from '$lib/stores/workout.svelte';
+	import { t } from '$lib/i18n/index.svelte';
 	import type { NavItem } from '$lib/types';
 	import PixelButton from './PixelButton.svelte';
 	import PixelIcon from './PixelIcon.svelte';
@@ -15,13 +16,13 @@
 		icon: string;
 	}
 
-	const navItems: NavItemConfig[] = [
-		{ id: 'home', label: 'Главная', href: `${base}/`, icon: 'home' },
-		{ id: 'workout', label: 'Тренировка', href: `${base}/workout`, icon: 'workout' },
-		{ id: 'challenges', label: 'Челленджи', href: `${base}/challenges`, icon: 'calendar' },
-		{ id: 'leaderboard', label: 'Рейтинг', href: `${base}/leaderboard`, icon: 'trophy' },
-		{ id: 'profile', label: 'Профиль', href: `${base}/profile`, icon: 'user' }
-	];
+	const navItems = $derived<NavItemConfig[]>([
+		{ id: 'home', label: t('home.nav.home'), href: `${base}/`, icon: 'home' },
+		{ id: 'workout', label: t('home.nav.workout'), href: `${base}/workout`, icon: 'workout' },
+		{ id: 'challenges', label: t('home.nav.challenges'), href: `${base}/challenges`, icon: 'calendar' },
+		{ id: 'leaderboard', label: t('home.nav.leaderboard'), href: `${base}/leaderboard`, icon: 'trophy' },
+		{ id: 'profile', label: t('home.nav.profile'), href: `${base}/profile`, icon: 'user' }
+	]);
 
 	// Confirmation dialog state
 	let showConfirmDialog = $state(false);
@@ -82,6 +83,7 @@
 				class:active
 				onclick={(e) => handleNavClick(e, item.href)}
 				aria-current={active ? 'page' : undefined}
+				aria-label={item.label}
 			>
 				<div class="icon-wrapper">
 					<PixelIcon name={item.icon} size="lg" />
@@ -102,18 +104,18 @@
 				<PixelIcon name="workout" size="lg" color="var(--pixel-accent)" />
 			</div>
 			<div class="modal-body">
-				<p class="modal-title">Тренировка активна</p>
-				<p class="modal-text">Что сделать с текущей тренировкой?</p>
+				<p class="modal-title">{t('home.exitDialog.title')}</p>
+				<p class="modal-text">{t('home.exitDialog.text')}</p>
 			</div>
 			<div class="modal-actions">
 				<PixelButton variant="success" onclick={finishAndLeave}>
-					Завершить
+					{t('home.exitDialog.finish')}
 				</PixelButton>
 				<PixelButton variant="secondary" onclick={continueWorkout}>
-					Продолжить
+					{t('home.exitDialog.continue')}
 				</PixelButton>
 				<PixelButton variant="danger" onclick={cancelAndLeave}>
-					Отменить
+					{t('home.exitDialog.cancel')}
 				</PixelButton>
 			</div>
 		</div>

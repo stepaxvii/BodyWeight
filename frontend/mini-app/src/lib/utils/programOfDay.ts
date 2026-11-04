@@ -1,4 +1,5 @@
 import type { Exercise, Routine, RoutineExercise } from '$lib/types';
+import { t } from '$lib/i18n/index.svelte';
 
 /**
  * "Программа дня" (Program of the Day) — a date-seeded random workout built
@@ -117,8 +118,8 @@ export function buildProgramOfDay(exercises: Exercise[], date: Date = new Date()
 
 	return {
 		slug: `program-of-day-${dateSeed(date)}`,
-		name: 'Программа дня',
-		description: 'Подобрана на сегодня — разные группы мышц, без инвентаря.',
+		name: t('misc.programOfDay.name'),
+		description: t('misc.programOfDay.description'),
 		category: 'home',
 		duration_minutes: Math.max(5, picked.length * 3),
 		difficulty: 2,

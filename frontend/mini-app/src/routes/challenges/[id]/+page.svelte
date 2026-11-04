@@ -6,6 +6,7 @@
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
+	import { t, ln } from '$lib/i18n/index.svelte';
 	import type {
 		ChallengeDetails,
 		ChallengeCalendar,
@@ -57,10 +58,10 @@
 		try {
 			details = await api.joinChallenge(challengeId);
 			myCalendar = await api.getChallengeCalendar(challengeId);
-			toast = 'Ты участвуешь!';
+			toast = t('challenges.detail.toastJoined');
 			telegram.hapticNotification('success');
 		} catch (e) {
-			toast = e instanceof Error ? e.message : 'Не удалось присоединиться';
+			toast = e instanceof Error ? e.message : t('challenges.detail.toastJoinError');
 			telegram.hapticNotification('error');
 		} finally {
 			joining = false;
@@ -72,12 +73,12 @@
 		claiming = true;
 		try {
 			const result = await api.claimChallengeReward(challengeId);
-			toast = `Получено: +${result.coins_awarded} монет!`;
+			toast = t('challenges.detail.toastClaimed', { coins: result.coins_awarded });
 			telegram.hapticNotification('success');
 			await userStore.loadStats();
 			await load();
 		} catch (e) {
-			toast = e instanceof Error ? e.message : 'Не удалось забрать награду';
+			toast = e instanceof Error ? e.message : t('challenges.detail.toastClaimError');
 			telegram.hapticNotification('error');
 		} finally {
 			claiming = false;
@@ -89,9 +90,9 @@
 	}
 
 	function statusLabel(s: string): string {
-		if (s === 'upcoming') return 'Скоро';
-		if (s === 'active') return 'Идёт';
-		return 'Завершён';
+		if (s === 'upcoming') return t('challenges.status.upcoming');
+		if (s === 'active') return t('challenges.status.active');
+		return t('challenges.status.finished');
 	}
 
 	function todayIso(): string {
@@ -173,10 +174,10 @@
 
 	// Reward tiers — must mirror backend REWARD_TIERS in services/challenges.py
 	const REWARD_TIERS = [
-		{ pct: 100, coins: 200, label: 'Идеально' },
-		{ pct: 80, coins: 100, label: 'Отлично' },
-		{ pct: 50, coins: 40, label: 'Неплохо' },
-		{ pct: 1, coins: 10, label: 'Участие' }
+		{ pct: 100, coins: 200, labelKey: 'challenges.tiers.perfect' },
+		{ pct: 80, coins: 100, labelKey: 'challenges.tiers.great' },
+		{ pct: 50, coins: 40, labelKey: 'challenges.tiers.good' },
+		{ pct: 1, coins: 10, labelKey: 'challenges.tiers.participation' }
 	];
 
 	const daysUntilStart = $derived.by(() => {
@@ -200,13 +201,13 @@
 		<a href="{base}/challenges" class="back-link">
 			<PixelIcon name="arrow-left" size="sm" />
 		</a>
-		<h1>Челлендж</h1>
+		<h1>{t('challenges.detail.title')}</h1>
 	</header>
 
 	{#if loading}
-		<div class="loading">Загрузка...</div>
+		<div class="loading">{t('challenges.detail.loading')}</div>
 	{:else if !details}
-		<EmptyState title="Не найдено" message="Челлендж не существует или удалён" />
+		<EmptyState title={t('challenges.detail.notFoundTitle')} message={t('challenges.detail.notFoundMessage')} />
 	{:else}
 		<PixelCard padding="md">
 			<div class="hero">
@@ -217,10 +218,10 @@
 				<div class="hero-meta">
 					<span>{fmtDate(details.start_date)} → {fmtDate(details.end_date)}</span>
 					<span class="dot">•</span>
-					<span>{details.duration_days} дн.</span>
+					<span>{t('challenges.detail.durationDays', { count: details.duration_days })}</span>
 					{#if details.creator_name}
 						<span class="dot">•</span>
-						<span>от @{details.creator_name}</span>
+						<span>{t('challenges.detail.fromCreator', { name: details.creator_name })}</span>
 					{/if}
 				</div>
 				{#if details.description}
@@ -228,54 +229,54 @@
 				{/if}
 			</div>
 
-			<div class="targets-head">Каждый день нужно выполнить:</div>
+			<div class="targets-head">{t('challenges.detail.targetsHead')}</div>
 			<div class="exercise-targets">
 				{#each details.exercises as ex (ex.exercise_id)}
 					<div class="ex-target">
-						<span class="ex-name">{ex.exercise_name_ru}</span>
-						<span class="ex-target-val">{ex.daily_target} <b>{#if ex.is_timed}сек{:else if ex.exercise_slug === 'walking'}шагов{:else}повт.{/if}</b></span>
+						<span class="ex-name">{ln(ex.exercise_name, ex.exercise_name_ru)}</span>
+						<span class="ex-target-val">{ex.daily_target} <b>{#if ex.is_timed}{t('challenges.detail.unitSec')}{:else if ex.exercise_slug === 'walking'}{t('challenges.detail.unitSteps')}{:else}{t('challenges.detail.unitReps')}{/if}</b></span>
 					</div>
 				{/each}
 			</div>
 			{#if details.exercises.length > 1}
 				<div class="and-note">
 					<PixelIcon name="warning" size="sm" color="var(--accent)" />
-					<span>День засчитывается, только если выполнены <b>все</b> упражнения.</span>
+					<span>{@html t('challenges.detail.andNote')}</span>
 				</div>
 			{/if}
 
 			{#if details.can_join}
 				<PixelButton variant="success" fullWidth loading={joining} onclick={handleJoin}>
-					Присоединиться
+					{t('challenges.detail.join')}
 				</PixelButton>
-				<p class="join-hint">Приём закрывается со стартом — потом можно только следить.</p>
+				<p class="join-hint">{t('challenges.detail.joinHint')}</p>
 			{:else if details.status === 'upcoming' && details.is_member}
 				<div class="info-msg">
 					{#if daysUntilStart > 0}
-						Ты в челлендже! Старт через <b>{daysUntilStart}</b> дн. — {fmtFull(details.start_date)}
+						{@html t('challenges.detail.startInDays', { days: daysUntilStart, date: fmtFull(details.start_date) })}
 					{:else}
-						Ты в челлендже! Старт сегодня — вперёд!
+						{t('challenges.detail.startToday')}
 					{/if}
 				</div>
 			{:else if details.status === 'active' && !details.is_member}
-				<div class="info-msg muted">Челлендж уже идёт — присоединиться нельзя, но можно следить.</div>
+				<div class="info-msg muted">{t('challenges.detail.activeNoJoin')}</div>
 			{/if}
 		</PixelCard>
 
 		{#if details.is_member && details.status === 'active'}
 			<PixelCard padding="md">
-				<h3 class="section-title">Сегодня</h3>
+				<h3 class="section-title">{t('challenges.detail.todayTitle')}</h3>
 				<div class="today-list">
-					{#each todayProgress as t}
-						<div class="today-row" class:done={t.completed}>
-							<span class="today-name">{t.ex.exercise_name_ru}</span>
+					{#each todayProgress as tp}
+						<div class="today-row" class:done={tp.completed}>
+							<span class="today-name">{ln(tp.ex.exercise_name, tp.ex.exercise_name_ru)}</span>
 							<div class="today-bar-wrap">
 								<div
 									class="today-bar"
-									style="width: {Math.min(100, (t.accumulated / t.target) * 100)}%"
+									style="width: {Math.min(100, (tp.accumulated / tp.target) * 100)}%"
 								></div>
 							</div>
-							<span class="today-val">{t.accumulated} / {t.target}</span>
+							<span class="today-val">{tp.accumulated} / {tp.target}</span>
 						</div>
 					{/each}
 				</div>
@@ -284,7 +285,7 @@
 
 		{#if myCalendar && details.is_member}
 			<PixelCard padding="md">
-				<h3 class="section-title">Твой календарь</h3>
+				<h3 class="section-title">{t('challenges.detail.calendarTitle')}</h3>
 				<div class="calendar-grid">
 					{#each dayCells as cell (cell.iso)}
 						{@const st = dayStatus.get(cell.iso) ?? 'none'}
@@ -298,23 +299,23 @@
 					{/each}
 				</div>
 				<div class="cal-legend">
-					<span><span class="lg lg-full"></span>Полностью</span>
-					<span><span class="lg lg-partial"></span>Частично</span>
-					<span><span class="lg lg-none"></span>Пропуск</span>
-					<span><span class="lg lg-future"></span>Впереди</span>
+					<span><span class="lg lg-full"></span>{t('challenges.detail.calendarFull')}</span>
+					<span><span class="lg lg-partial"></span>{t('challenges.detail.calendarPartial')}</span>
+					<span><span class="lg lg-none"></span>{t('challenges.detail.calendarNone')}</span>
+					<span><span class="lg lg-future"></span>{t('challenges.detail.calendarFuture')}</span>
 				</div>
 			</PixelCard>
 		{/if}
 
 		{#if details.status !== 'finished'}
 			<PixelCard padding="md">
-				<h3 class="section-title">Награды <span class="section-sub">по % выполнения</span></h3>
+				<h3 class="section-title">{t('challenges.detail.rewardsTitle')} <span class="section-sub">{t('challenges.detail.rewardsSub')}</span></h3>
 				<div class="tiers">
-					{#each REWARD_TIERS as t}
+					{#each REWARD_TIERS as tier}
 						<div class="tier">
-							<span class="tier-pct">{t.pct}%+</span>
-							<span class="tier-label">{t.label}</span>
-							<span class="tier-coins"><PixelIcon name="coin" size="sm" color="var(--gold)" /> {t.coins}</span>
+							<span class="tier-pct">{tier.pct}%+</span>
+							<span class="tier-label">{t(tier.labelKey)}</span>
+							<span class="tier-coins"><PixelIcon name="coin" size="sm" color="var(--gold)" /> {tier.coins}</span>
 						</div>
 					{/each}
 				</div>
@@ -327,34 +328,34 @@
 				<PixelCard padding="md">
 					<div class="claim-block">
 						<div class="claim-info">
-							<div class="claim-coins">+{me.reward_coins} монет</div>
+							<div class="claim-coins">{t('challenges.detail.claimCoins', { coins: me.reward_coins })}</div>
 							<div class="claim-stat">
-								Выполнено: <b>{me.completion_percent}%</b> ({me.completed_days} дн.)
+								{@html t('challenges.detail.claimStat', { percent: me.completion_percent, days: me.completed_days })}
 							</div>
 							{#if claimDeadline}
-								<div class="claim-deadline">Успей забрать до {fmtFull(claimDeadline)}</div>
+								<div class="claim-deadline">{t('challenges.detail.claimDeadline', { date: fmtFull(claimDeadline) })}</div>
 							{/if}
 						</div>
 						<PixelButton variant="success" loading={claiming} onclick={handleClaim}>
-							Забрать
+							{t('challenges.detail.claimButton')}
 						</PixelButton>
 					</div>
 				</PixelCard>
 			{:else if me && me.reward_claimed_at}
-				<div class="info-msg muted">Награда забрана: {me.reward_coins} монет ({me.completion_percent}%)</div>
+				<div class="info-msg muted">{t('challenges.detail.rewardClaimed', { coins: me.reward_coins, percent: me.completion_percent })}</div>
 			{/if}
 		{/if}
 
 		<PixelCard padding="md">
-			<h3 class="section-title">Участники ({details.participants.length})</h3>
+			<h3 class="section-title">{t('challenges.detail.participantsTitle', { count: details.participants.length })}</h3>
 			<div class="part-list">
 				{#each details.participants as p (p.user_id)}
 					<div class="part-row" class:part-me={isMe(p)}>
 						<PixelAvatar avatarId={p.avatar_id || 'shadow-wolf'} size="sm" />
 						<div class="part-info">
 							<div class="part-name">
-								{p.username || p.first_name || 'Игрок'}
-								{#if isMe(p)}<span class="me-tag">(ты)</span>{/if}
+								{p.username || p.first_name || t('challenges.detail.playerFallback')}
+								{#if isMe(p)}<span class="me-tag">{t('challenges.detail.meTag')}</span>{/if}
 							</div>
 							<div class="part-pct-bar">
 								<div class="part-pct-fill" style="width: {p.completion_percent}%"></div>

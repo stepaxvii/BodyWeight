@@ -12,14 +12,14 @@ router = APIRouter()
 @router.get(
     "",
     response_model=list[GoalResponse],
-    summary="Получить цели пользователя",
-    description="Возвращает список целей пользователя. По умолчанию показываются только активные цели.",
+    summary="Get user goals",
+    description="Returns the user's goals. By default, only active goals are shown.",
     tags=["Goals"]
 )
 async def get_goals(
     session: AsyncSessionDep,
     user: CurrentUser,
-    active_only: bool = Query(True, description="Показывать только активные цели"),
+    active_only: bool = Query(True, description="Show only active goals"),
 ):
     query = select(UserGoal).where(UserGoal.user_id == user.id)
 
@@ -52,8 +52,8 @@ async def get_goals(
     "",
     response_model=GoalResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Создать цель",
-    description="Создаёт новую цель для пользователя.",
+    summary="Create goal",
+    description="Creates a new goal for the user.",
     tags=["Goals"]
 )
 async def create_goal(

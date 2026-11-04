@@ -8,6 +8,7 @@
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { onMount } from 'svelte';
+	import { t } from '$lib/i18n/index.svelte';
 	import type { Notification, UserActivity, DayActivity } from '$lib/types';
 
 	let quickModalOpen = $state(false);
@@ -52,10 +53,10 @@
 	// Time-based greeting
 	const greeting = $derived(() => {
 		const hour = new Date().getHours();
-		if (hour < 6) return 'Доброй ночи';
-		if (hour < 12) return 'Доброе утро';
-		if (hour < 18) return 'Добрый день';
-		return 'Добрый вечер';
+		if (hour < 6) return t('home.greeting.night');
+		if (hour < 12) return t('home.greeting.morning');
+		if (hour < 18) return t('home.greeting.day');
+		return t('home.greeting.evening');
 	});
 
 	function handleQuickSave(xp: number, coins: number) {
@@ -107,10 +108,10 @@
 	<!-- Compact Header -->
 	<header class="page-header">
 		<div class="header-left">
-			<span class="greeting-text">{greeting()}, {userStore.displayName}!</span>
+			<span class="greeting-text">{t('home.header.hello', { greeting: greeting(), name: userStore.displayName })}</span>
 			<div class="level-badge">
 				<PixelIcon name="level" size="sm" color="var(--pixel-accent)" />
-				<span>Ур.{userStore.level}</span>
+				<span>{t('home.header.levelBadge', { level: userStore.level })}</span>
 			</div>
 		</div>
 		<div class="notification-wrapper">
@@ -132,16 +133,16 @@
 				<div class="notification-overlay" onclick={closeNotifications}></div>
 				<div class="notification-dropdown">
 					<div class="dropdown-header">
-						<span>Уведомления</span>
+						<span>{t('home.notifications.title')}</span>
 						<button type="button" class="close-btn" onclick={closeNotifications}>
 							<PixelIcon name="close" size="sm" />
 						</button>
 					</div>
 					<div class="dropdown-content">
 						{#if notificationsLoading}
-							<div class="dropdown-empty">Загрузка...</div>
+							<div class="dropdown-empty">{t('home.notifications.loading')}</div>
 						{:else if notifications.length === 0}
-							<div class="dropdown-empty">Нет уведомлений</div>
+							<div class="dropdown-empty">{t('home.notifications.empty')}</div>
 						{:else}
 							{#each notifications as notification}
 								<div class="notification-item" class:unread={!notification.is_read}>
@@ -158,7 +159,7 @@
 					</div>
 					{#if notifications.some(n => n.notification_type === 'friend_request' || n.notification_type === 'friend_accepted')}
 						<a href="{base}/friends" class="dropdown-footer" onclick={closeNotifications}>
-							Перейти к друзьям
+							{t('home.notifications.goToFriends')}
 						</a>
 					{/if}
 				</div>
@@ -174,8 +175,8 @@
 					<PixelIcon name="workout" size="xl" color="var(--cta-text)" />
 				</div>
 				<div class="workout-text">
-					<span class="workout-title">Начать тренировку</span>
-					<span class="workout-subtitle">Выбери программу или упражнения</span>
+					<span class="workout-title">{t('home.mainAction.title')}</span>
+					<span class="workout-subtitle">{t('home.mainAction.subtitle')}</span>
 				</div>
 				<div class="workout-arrow anim-nudge">
 					<PixelIcon name="play" size="lg" />
@@ -184,12 +185,12 @@
 		</a>
 		<button class="quick-record-btn" onclick={() => quickModalOpen = true}>
 			<PixelIcon name="plus" size="sm" />
-			<span>Быстрая запись</span>
+			<span>{t('home.mainAction.quickRecord')}</span>
 		</button>
 		{#if lastReward}
 			<div class="reward-toast">
-				<span>+{lastReward.xp} XP</span>
-				<span>+{lastReward.coins} монет</span>
+				<span>{t('home.mainAction.rewardXp', { xp: lastReward.xp })}</span>
+				<span>{t('home.mainAction.rewardCoins', { coins: lastReward.coins })}</span>
 			</div>
 		{/if}
 	</section>
@@ -216,11 +217,11 @@
 			<div class="progress-header">
 				<div class="progress-level">
 					<span class="level-number"><CountUp value={userStore.level} /></span>
-					<span class="level-label">Уровень</span>
+					<span class="level-label">{t('home.progress.levelLabel')}</span>
 				</div>
 				<div class="progress-xp">
 					<PixelProgress value={xpInLevel} max={xpNeeded} variant="xp" size="md" />
-					<span class="xp-label">{xpInLevel}/{xpNeeded} XP до следующего</span>
+					<span class="xp-label">{t('home.progress.xpToNext', { current: xpInLevel, needed: xpNeeded })}</span>
 				</div>
 			</div>
 		</div>
@@ -233,7 +234,7 @@
 				<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
 				<div class="stat-info">
 					<span class="stat-value"><CountUp value={userStore.xp} /></span>
-					<span class="stat-label">XP</span>
+					<span class="stat-label">{t('home.stats.xp')}</span>
 				</div>
 			</div>
 			<div class="stat-divider"></div>
@@ -241,7 +242,7 @@
 				<PixelIcon name="streak" size="md" color="var(--pixel-red)" class="anim-flicker" />
 				<div class="stat-info">
 					<span class="stat-value"><CountUp value={userStore.streak} /></span>
-					<span class="stat-label">Серия</span>
+					<span class="stat-label">{t('home.stats.streak')}</span>
 				</div>
 			</div>
 			<div class="stat-divider"></div>
@@ -249,7 +250,7 @@
 				<PixelIcon name="coin" size="md" color="var(--stat-text)" class="anim-coin-spin" />
 				<div class="stat-info">
 					<span class="stat-value"><CountUp value={userStore.coins} /></span>
-					<span class="stat-label">Монеты</span>
+					<span class="stat-label">{t('home.stats.coins')}</span>
 				</div>
 			</div>
 		</div>
@@ -258,17 +259,17 @@
 	<!-- Weekly Stats -->
 	{#if userStore.stats}
 		<section class="weekly-section">
-			<h3 class="section-title">Эта неделя</h3>
+			<h3 class="section-title">{t('home.weekly.title')}</h3>
 			<div class="weekly-row">
 				<div class="weekly-stat">
 					<PixelIcon name="workout" size="md" color="var(--pixel-green)" />
 					<span class="weekly-value">{userStore.stats.this_week_workouts}</span>
-					<span class="weekly-label">тренировок</span>
+					<span class="weekly-label">{t('home.weekly.workouts')}</span>
 				</div>
 				<div class="weekly-stat">
 					<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
 					<span class="weekly-value">{userStore.stats.this_week_xp}</span>
-					<span class="weekly-label">XP</span>
+					<span class="weekly-label">{t('home.weekly.xp')}</span>
 				</div>
 			</div>
 		</section>
@@ -287,14 +288,14 @@
 				<div class="day-stat">
 					<PixelIcon name="workout" size="md" color="var(--pixel-accent)" />
 					<div class="day-stat-content">
-						<span class="day-stat-label">Тренировки</span>
+						<span class="day-stat-label">{t('home.day.workouts')}</span>
 						<span class="day-stat-value">{selectedDay.activity.workouts}</span>
 					</div>
 				</div>
 				<div class="day-stat">
 					<PixelIcon name="xp" size="md" color="var(--pixel-blue)" />
 					<div class="day-stat-content">
-						<span class="day-stat-label">XP заработано</span>
+						<span class="day-stat-label">{t('home.day.xpEarned')}</span>
 						<span class="day-stat-value">{selectedDay.activity.total_xp}</span>
 					</div>
 				</div>
@@ -302,7 +303,7 @@
 		{:else}
 			<div class="no-activity">
 				<PixelIcon name="close" size="lg" color="var(--text-muted)" />
-				<p>Нет тренировок в этот день</p>
+				<p>{t('home.day.noActivity')}</p>
 			</div>
 		{/if}
 	</PixelModal>

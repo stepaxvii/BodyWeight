@@ -1,8 +1,6 @@
 import type { User, UserStats, AvatarId } from '$lib/types';
 import { api } from '$lib/api/client';
 
-export type AuthMode = 'telegram' | 'web' | null;
-
 // User state using Svelte 5 runes
 class UserStore {
 	user = $state<User | null>(null);
@@ -10,7 +8,6 @@ class UserStore {
 	isLoading = $state(false);
 	isAuthenticated = $state(false);
 	error = $state<string | null>(null);
-	authMode = $state<AuthMode>(null);
 
 	// Derived values
 	get level() {
@@ -58,7 +55,7 @@ class UserStore {
 	get displayName() {
 		if (!this.user) return 'Guest';
 		if (this.user.username) return `${this.user.username}`;
-		return this.user.first_name || this.user.email || 'Guest';
+		return this.user.first_name || 'Guest';
 	}
 
 	get isOnboarded() {
@@ -67,10 +64,6 @@ class UserStore {
 
 	get hasTelegram() {
 		return !!this.user?.telegram_id;
-	}
-
-	get hasWebAuth() {
-		return !!this.user?.email && !!this.user?.has_password;
 	}
 
 	// Telegram Mini App auth
@@ -83,7 +76,6 @@ class UserStore {
 			const response = await api.validateAuth();
 			this.user = response.user;
 			this.isAuthenticated = true;
-			this.authMode = 'telegram';
 			try { localStorage.setItem('cache_user', JSON.stringify(response.user)); } catch {}
 		} catch (err) {
 			// If offline, try cached user data
@@ -93,7 +85,6 @@ class UserStore {
 					if (cached) {
 						this.user = JSON.parse(cached);
 						this.isAuthenticated = true;
-						this.authMode = 'telegram';
 						return;
 					}
 				} catch {}
@@ -103,90 +94,6 @@ class UserStore {
 		} finally {
 			this.isLoading = false;
 		}
-	}
-
-	// Web login
-	async webLogin(login: string, password: string) {
-		this.isLoading = true;
-		this.error = null;
-
-		try {
-			const response = await api.webLogin(login, password);
-			api.setJwtToken(response.token);
-			this.user = response.user;
-			this.isAuthenticated = true;
-			this.authMode = 'web';
-		} catch (err) {
-			this.error = err instanceof Error ? err.message : 'Login failed';
-			this.isAuthenticated = false;
-			throw err;
-		} finally {
-			this.isLoading = false;
-		}
-	}
-
-	// Web register
-	async webRegister(data: { email: string; password: string; username?: string; first_name?: string }) {
-		this.isLoading = true;
-		this.error = null;
-
-		try {
-			const response = await api.webRegister(data);
-			api.setJwtToken(response.token);
-			this.user = response.user;
-			this.isAuthenticated = true;
-			this.authMode = 'web';
-		} catch (err) {
-			this.error = err instanceof Error ? err.message : 'Registration failed';
-			this.isAuthenticated = false;
-			throw err;
-		} finally {
-			this.isLoading = false;
-		}
-	}
-
-	// Try to restore session from stored JWT
-	async tryRestoreSession() {
-		if (!api.hasStoredToken) return false;
-
-		this.isLoading = true;
-		this.error = null;
-
-		try {
-			const user = await api.getCurrentUser();
-			this.user = user;
-			this.isAuthenticated = true;
-			this.authMode = 'web';
-			// Cache user data for offline use
-			try { localStorage.setItem('cache_user', JSON.stringify(user)); } catch {}
-			return true;
-		} catch {
-			// If offline, try to use cached user data instead of logging out
-			if (!navigator.onLine) {
-				try {
-					const cached = localStorage.getItem('cache_user');
-					if (cached) {
-						this.user = JSON.parse(cached);
-						this.isAuthenticated = true;
-						this.authMode = 'web';
-						return true;
-					}
-				} catch {}
-			}
-			api.clearAuth();
-			this.isAuthenticated = false;
-			return false;
-		} finally {
-			this.isLoading = false;
-		}
-	}
-
-	logout() {
-		api.clearAuth();
-		this.user = null;
-		this.isAuthenticated = false;
-		this.authMode = null;
-		this.error = null;
 	}
 
 	async loadUser() {
@@ -329,18 +236,6 @@ class UserStore {
 				console.error('Failed to complete onboarding:', err);
 			}
 		}
-	}
-
-	// Set password for TMA user
-	async setPassword(email: string, password: string) {
-		const response = await api.setPassword(email, password);
-		api.setJwtToken(response.token);
-		this.user = response.user;
-	}
-
-	// Link Telegram account
-	async linkTelegram(telegramId: number) {
-		return await api.linkTelegram(telegramId);
 	}
 }
 

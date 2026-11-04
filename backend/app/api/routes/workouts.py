@@ -104,8 +104,8 @@ async def _find_by_request_id(
 @router.get(
     "/active",
     response_model=WorkoutResponse | None,
-    summary="Получить активную тренировку",
-    description="Возвращает текущую активную тренировку пользователя, если она существует.",
+    summary="Get active workout",
+    description="Returns the user's current active workout, if one exists.",
     tags=["Workouts"]
 )
 async def get_active_workout(
@@ -132,8 +132,8 @@ async def get_active_workout(
     "",
     response_model=WorkoutResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Начать новую тренировку",
-    description="Создаёт новую активную тренировку. Если уже есть активная тренировка, возвращает её.",
+    summary="Start a new workout",
+    description="Creates a new active workout. If an active workout already exists, returns it.",
     tags=["Workouts"]
 )
 async def start_workout(
@@ -249,26 +249,26 @@ async def cancel_workout(
     "/submit",
     response_model=WorkoutSummaryResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Завершить тренировку",
+    summary="Complete a workout",
     description="""
-    Единственный эндпоинт для завершения тренировки.
+    The single endpoint for completing a workout.
 
-    Принимает все данные о тренировке сразу:
-    * Время выполнения (duration_seconds)
-    * Список упражнений с подходами и повторениями
+    Accepts all workout data at once:
+    * Elapsed time (duration_seconds)
+    * List of exercises with sets and reps
 
-    Автоматически выполняет:
-    * Расчёт XP и монет для каждого подхода
-    * Обновление streak пользователя
-    * Проверку и начисление достижений
-    * Обновление прогресса целей
-    * Создание уведомлений (level up, achievements)
-    * Повышение уровня при достижении порога XP
+    Automatically performs:
+    * XP and coin calculation for each set
+    * Updating the user's streak
+    * Checking and awarding achievements
+    * Updating challenge progress
+    * Creating notifications (level up, achievements)
+    * Leveling up when the XP threshold is reached
 
-    Возвращает полную информацию о тренировке, включая:
-    * Общий заработанный XP и монеты
-    * Новые достижения
-    * Информацию о повышении уровня (если было)
+    Returns full workout details, including:
+    * Total XP and coins earned
+    * New achievements
+    * Level-up details (if any)
     """,
     tags=["Workouts"]
 )
@@ -426,6 +426,7 @@ async def submit_workout(
                 day_completed=d.day_completed,
                 exercises=[
                     ChallengeExerciseProgressSummary(
+                        exercise_name=e.exercise_name,
                         exercise_name_ru=e.exercise_name_ru,
                         added=e.added,
                         accumulated=e.accumulated,
@@ -444,15 +445,15 @@ async def submit_workout(
 @router.get(
     "/history",
     response_model=PaginatedResponse[WorkoutResponse],
-    summary="История тренировок",
-    description="Возвращает историю завершённых тренировок пользователя с пагинацией.",
+    summary="Workout history",
+    description="Returns the user's completed workout history with pagination.",
     tags=["Workouts"]
 )
 async def get_workout_history(
     session: AsyncSessionDep,
     user: CurrentUser,
-    skip: int = Query(0, ge=0, description="Количество пропущенных элементов"),
-    limit: int = Query(20, ge=1, le=100, description="Максимальное количество элементов для возврата"),
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(20, ge=1, le=100, description="Maximum number of items to return"),
 ):
     # Count total workouts
     count_stmt = (
@@ -489,8 +490,8 @@ async def get_workout_history(
 @router.get(
     "/today",
     response_model=TodayStatsResponse,
-    summary="Статистика за сегодня",
-    description="Возвращает статистику тренировок пользователя за сегодняшний день.",
+    summary="Today's stats",
+    description="Returns the user's workout statistics for the current day.",
     tags=["Workouts"]
 )
 async def get_today_stats(

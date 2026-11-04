@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { PixelButton, PixelAvatar } from '$lib/components/ui';
+	import { t, ln } from '$lib/i18n/index.svelte';
 	import OnboardingSlides from './OnboardingSlides.svelte';
 	import { AVATARS } from '$lib/data/avatars';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -49,8 +50,8 @@
 	<div class="onboarding">
 		<div class="onboarding-content">
 			<div class="welcome-section">
-				<h1 class="title">Выбери персонажа</h1>
-				<p class="subtitle">Его можно изменить позже в профиле</p>
+				<h1 class="title">{t('comp2.onboarding.pickCharacterTitle')}</h1>
+				<p class="subtitle">{t('comp2.onboarding.pickCharacterSubtitle')}</p>
 			</div>
 
 			<div class="avatar-grid">
@@ -67,7 +68,7 @@
 								showBorder={false}
 							/>
 						</div>
-						<span class="avatar-name">{avatar.name_ru}</span>
+						<span class="avatar-name">{ln(avatar.name, avatar.name_ru)}</span>
 					</button>
 				{/each}
 			</div>
@@ -82,7 +83,7 @@
 					/>
 				</div>
 				<p class="preview-text">
-					{freeAvatars.find(a => a.id === selectedAvatar)?.name_ru ?? 'Волк'}
+					{ln(freeAvatars.find(a => a.id === selectedAvatar)?.name, freeAvatars.find(a => a.id === selectedAvatar)?.name_ru) || t('comp2.onboarding.defaultAvatarName')}
 				</p>
 			</div>
 
@@ -94,7 +95,7 @@
 					loading={isSubmitting}
 					onclick={handleContinue}
 				>
-					Начать тренировки
+					{t('comp2.onboarding.startTraining')}
 				</PixelButton>
 			</div>
 		</div>

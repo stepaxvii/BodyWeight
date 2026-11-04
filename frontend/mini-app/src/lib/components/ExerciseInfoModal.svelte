@@ -2,6 +2,7 @@
 	import { PixelModal, PixelIcon, PixelCard } from '$lib/components/ui';
 	import { getTagName } from '$lib/utils';
 	import { api } from '$lib/api/client';
+	import { t, ln } from '$lib/i18n/index.svelte';
 	import type { Exercise, ExerciseProgress } from '$lib/types';
 
 	interface Props {
@@ -46,19 +47,19 @@
 
 	function getEquipmentLabel(equipment: string): string {
 		const labels: Record<string, string> = {
-			'none': 'Без снаряжения',
-			'pullup-bar': 'Турник',
-			'dip-bars': 'Брусья',
-			'bench': 'Скамья',
-			'wall': 'Стена',
-			'bike': 'Велосипед',
-			'dumbbell': 'Гантели'
+			'none': t('modals2.equipmentNone'),
+			'pullup-bar': t('modals2.equipmentPullupBar'),
+			'dip-bars': t('modals2.equipmentDipBars'),
+			'bench': t('modals2.equipmentBench'),
+			'wall': t('modals2.equipmentWall'),
+			'bike': t('modals2.equipmentBike'),
+			'dumbbell': t('modals2.equipmentDumbbell')
 		};
 		return labels[equipment] || equipment;
 	}
 </script>
 
-<PixelModal {open} title={exercise?.name_ru || 'Упражнение'} {onclose}>
+<PixelModal {open} title={ln(exercise?.name, exercise?.name_ru) || t('modals2.exerciseTitle')} {onclose}>
 	{#if exercise}
 		<div class="exercise-info">
 			<!-- Stats row -->
@@ -76,29 +77,29 @@
 			<!-- Personal stats (roadmap 2.4) -->
 			{#if progress && progress.times_performed > 0}
 				<div class="mystats-section">
-					<h4 class="section-title">Твоя статистика</h4>
+					<h4 class="section-title">{t('modals2.myStats')}</h4>
 					<div class="info-row">
-						<span class="label">Всего повторений</span>
+						<span class="label">{t('modals2.totalReps')}</span>
 						<span class="value">{progress.total_reps_ever}</span>
 					</div>
 					<div class="info-row">
-						<span class="label">Выполнено раз</span>
+						<span class="label">{t('modals2.timesPerformed')}</span>
 						<span class="value">{progress.times_performed}</span>
 					</div>
 					{#if progress.best_single_set > 0}
 						<div class="info-row">
-							<span class="label">Лучший подход</span>
+							<span class="label">{t('modals2.bestSet')}</span>
 							<span class="value">{progress.best_single_set}</span>
 						</div>
 					{/if}
 					{#if progress.best_single_day > 0}
 						<div class="info-row">
-							<span class="label">Рекорд за день</span>
+							<span class="label">{t('modals2.bestDay')}</span>
 							<span class="value">{progress.best_single_day}</span>
 						</div>
 					{/if}
 					<div class="info-row">
-						<span class="label">Последний раз</span>
+						<span class="label">{t('modals2.lastPerformed')}</span>
 						<span class="value">{fmtDate(progress.last_performed_at)}</span>
 					</div>
 				</div>
@@ -106,20 +107,20 @@
 
 			<!-- Equipment -->
 			<div class="info-row">
-				<span class="label">Снаряжение:</span>
+				<span class="label">{t('modals2.equipmentLabel')}</span>
 				<span class="value">{getEquipmentLabel(exercise.equipment)}</span>
 			</div>
 
 			<!-- Type -->
 			<div class="info-row">
-				<span class="label">Тип:</span>
-				<span class="value">{exercise.is_timed ? 'На время' : 'На повторения'}</span>
+				<span class="label">{t('modals2.typeLabel')}</span>
+				<span class="value">{exercise.is_timed ? t('modals2.typeTimed') : t('modals2.typeReps')}</span>
 			</div>
 
 			<!-- Required level -->
 			{#if exercise.required_level > 1}
 				<div class="info-row">
-					<span class="label">Требуемый уровень:</span>
+					<span class="label">{t('modals2.requiredLevelLabel')}</span>
 					<span class="value level">{exercise.required_level}</span>
 				</div>
 			{/if}
@@ -127,15 +128,15 @@
 			<!-- Description -->
 			{#if exercise.description_ru}
 				<div class="description-section">
-					<h4 class="section-title">Техника выполнения</h4>
-					<p class="description">{exercise.description_ru}</p>
+					<h4 class="section-title">{t('modals2.technique')}</h4>
+					<p class="description">{ln(exercise.description, exercise.description_ru)}</p>
 				</div>
 			{/if}
 
 			<!-- Tags/Muscle groups -->
 			{#if exercise.tags && exercise.tags.length > 0}
 				<div class="tags-section">
-					<h4 class="section-title">Группы мышц</h4>
+					<h4 class="section-title">{t('modals2.muscleGroups')}</h4>
 					<div class="tags">
 						{#each exercise.tags as tag}
 							<span class="tag">{getTagName(tag)}</span>
@@ -147,17 +148,17 @@
 			<!-- Progression -->
 			{#if exercise.easier_exercise_slug || exercise.harder_exercise_slug}
 				<div class="progression-section">
-					<h4 class="section-title">Прогрессия</h4>
+					<h4 class="section-title">{t('modals2.progression')}</h4>
 					<div class="progression">
 						{#if exercise.easier_exercise_slug}
 							<div class="progression-item easier">
 								<PixelIcon name="arrow-left" size="sm" color="var(--pixel-green)" />
-								<span>Легче: {exercise.easier_exercise_slug}</span>
+								<span>{t('modals2.easier', { slug: exercise.easier_exercise_slug })}</span>
 							</div>
 						{/if}
 						{#if exercise.harder_exercise_slug}
 							<div class="progression-item harder">
-								<span>Сложнее: {exercise.harder_exercise_slug}</span>
+								<span>{t('modals2.harder', { slug: exercise.harder_exercise_slug })}</span>
 								<PixelIcon name="arrow-right" size="sm" color="var(--pixel-red)" />
 							</div>
 						{/if}

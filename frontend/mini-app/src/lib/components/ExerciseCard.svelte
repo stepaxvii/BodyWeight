@@ -3,6 +3,7 @@
 	import { PixelCard, PixelIcon } from '$lib/components/ui';
 	import { favoritesStore } from '$lib/stores/favorites.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { t, ln } from '$lib/i18n/index.svelte';
 	import type { Exercise } from '$lib/types';
 
 	interface Props {
@@ -79,7 +80,7 @@
 			{/if}
 		</div>
 		<div class="exercise-info">
-			<span class="exercise-name">{exercise.name_ru}</span>
+			<span class="exercise-name">{ln(exercise.name, exercise.name_ru)}</span>
 			<span class="exercise-meta">
 				<span style="color: {categoryColor}">
 					{getDifficultyStars(exercise.difficulty)}
@@ -91,7 +92,7 @@
 			<button
 				class="info-btn"
 				onclick={handleInfoClick}
-				title="Подробнее"
+				title={t('uimisc.exerciseCard.info')}
 			>
 				<PixelIcon name="search" size="sm" />
 			</button>
@@ -100,7 +101,7 @@
 			<button
 				class="favorite-btn"
 				onclick={handleFavoriteClick}
-				title={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}
+				title={isFavorite ? t('uimisc.exerciseCard.removeFavorite') : t('uimisc.exerciseCard.addFavorite')}
 			>
 				<PixelIcon
 					name={isFavorite ? 'heart' : 'heart-empty'}

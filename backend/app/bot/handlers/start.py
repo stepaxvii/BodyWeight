@@ -1,16 +1,14 @@
 import logging
-from aiogram import Bot, Router, F
+from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command, CommandStart
-from aiogram.enums import ParseMode
-from aiogram.client.default import DefaultBotProperties
 from sqlalchemy import and_, func, or_, select
 
 from app.config import settings
 from app.db.database import async_session_maker
 from app.db.models import Friendship, User, WorkoutSession
-from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button, get_link_confirmation_keyboard
-from app.bot.session import make_ipv4_session
+from app.i18n import t
+from app.bot.keyboards.inline import get_main_keyboard, get_webapp_button
 from app.services.notifications import notify_admin_new_user, save_notification
 
 router = Router()
@@ -18,7 +16,7 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
-async def get_or_create_user(telegram_id: int, username: str | None, first_name: str | None, last_name: str | None) -> User:
+async def get_or_create_user(telegram_id: int, username: str | None, first_name: str | None, last_name: str | None, language_code: str | None = None) -> User:
     """Get or create user in database."""
     async with async_session_maker() as session:
         result = await session.execute(
@@ -32,6 +30,8 @@ async def get_or_create_user(telegram_id: int, username: str | None, first_name:
                 username=username,
                 first_name=first_name,
                 last_name=last_name,
+                # Detect UI language from the Telegram client; English fallback.
+                language="ru" if (language_code or "").lower().startswith("ru") else "en",
             )
             session.add(user)
             await session.commit()
@@ -118,13 +118,13 @@ async def _connect_invited_friend(invitee_id: int, inviter_id: int) -> tuple[Use
                 me.invited_by_user_id = inviter.id
 
         if became_friends:
-            invitee_name = me.username or me.first_name or "Пользователь"
+            invitee_name = me.username or me.first_name or t(inviter.language, "bot.common.user_fallback")
             await save_notification(
                 session=session,
                 user_id=inviter.id,
                 notification_type="friend_joined",
-                title="Друг присоединился!",
-                message=f"{invitee_name} присоединился по твоему приглашению — вы теперь друзья!",
+                title=t(inviter.language, "notifications.friend_joined.title"),
+                message=t(inviter.language, "notifications.friend_joined.message", invitee_name=invitee_name),
                 related_user_id=me.id,
             )
 
@@ -145,6 +145,7 @@ async def cmd_start(message: Message):
         telegram_id=user.id,
         username=user.username,
         first_name=user.first_name,
+        language_code=user.language_code,
         last_name=user.last_name,
     )
 
@@ -172,76 +173,59 @@ async def cmd_start(message: Message):
             start_param = None
 
         if friend:
-            friend_name = friend.username or friend.first_name or "Пользователь"
+            friend_name = friend.username or friend.first_name or t(db_user.language, "bot.common.user_fallback")
 
             # Tell the inviter their invite worked (best-effort direct message)
             if became_friends and friend.telegram_id and message.bot:
-                invitee_name = db_user.username or db_user.first_name or "Пользователь"
+                invitee_name = db_user.username or db_user.first_name or t(friend.language, "bot.common.user_fallback")
                 try:
                     await message.bot.send_message(
                         chat_id=friend.telegram_id,
-                        text=(
-                            f"🤝 <b>{invitee_name}</b> присоединился по твоему "
-                            f"приглашению — вы теперь друзья!"
-                        ),
+                        text=t(friend.language, "bot.start.inviter_joined_dm", invitee_name=invitee_name),
                     )
                 except Exception:
                     logger.exception("Failed to notify inviter %s about joined friend", friend.id)
 
-            welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
-
-Привет, {user.first_name or 'друг'}! 👋
-
-Вы теперь друзья с <b>{friend_name}</b>! 🤝
-Тренируйтесь вместе и соревнуйтесь!
-
-💪 Большое количество упражнений
-🏆 Система достижений и наград
-📊 Соревнуйся с друзьями
-⚡ Streaks и ежедневные бонусы
-
-Открой приложение и начни тренироваться вместе!
-"""
+            welcome_text = t(
+                db_user.language,
+                "bot.start.welcome_invited",
+                name=user.first_name or t(db_user.language, "bot.common.friend_fallback"),
+                friend_name=friend_name,
+            )
         else:
-            welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
-
-Добро пожаловать, {user.first_name or 'друг'}! 👋
-
-Тренируйся как в игре! Набирай опыт, прокачивай уровень, открывай достижения.
-
-💪 Большое количество упражнений
-🏆 Система достижений
-📊 Соревнования с друзьями
-⚡ Streaks и бонусы
-
-Открой приложение и начни свой фитнес-путь!
-"""
+            welcome_text = t(
+                db_user.language,
+                "bot.start.welcome_new",
+                name=user.first_name or t(db_user.language, "bot.common.friend_fallback"),
+            )
     else:
         # Returning user or first time without invite
-        welcome_text = f"""🎮 <b>PixelFit - 8-bit Фитнес Трекер</b>
-
-С возвращением, {user.first_name or 'друг'}! 👋
-
-Готов продолжить тренировки? Открой приложение!
-
-💪 Большое количество упражнений
-🏆 Система достижений
-📊 Соревнования с друзьями
-⚡ Streaks и бонусы
-"""
+        welcome_text = t(
+            db_user.language,
+            "bot.start.welcome_returning",
+            name=user.first_name or t(db_user.language, "bot.common.friend_fallback"),
+        )
 
     await message.answer(
         welcome_text,
-        reply_markup=get_main_keyboard(start_param=start_param),
+        reply_markup=get_main_keyboard(start_param=start_param, lang=db_user.language),
     )
 
 
 @router.message(Command("workout"))
 async def cmd_workout(message: Message):
     """Handle /workout command - open Mini App."""
+    user = message.from_user
+    lang = None
+    if user:
+        async with async_session_maker() as session:
+            db_user = (
+                await session.execute(select(User).where(User.telegram_id == user.id))
+            ).scalar_one_or_none()
+            lang = db_user.language if db_user else None
     await message.answer(
-        "Ready to work out? Open the app!",
-        reply_markup=get_webapp_button(),
+        t(lang, "bot.workout.prompt"),
+        reply_markup=get_webapp_button(lang=lang),
     )
 
 
@@ -259,7 +243,7 @@ async def cmd_stats(message: Message):
         db_user = result.scalar_one_or_none()
 
         if not db_user:
-            await message.answer("Please use /start first!")
+            await message.answer(t(None, "bot.stats.need_start"))
             return
 
         from app.services.xp_calculator import xp_for_level
@@ -276,67 +260,57 @@ async def cmd_stats(message: Message):
         filled = int(bar_length * progress_percent / 100)
         progress_bar = "█" * filled + "░" * (bar_length - filled)
 
-        stats_text = f"""
-<b>Your Stats</b>
-
-<b>Level {db_user.level}</b>
-{progress_bar} {progress_percent}%
-{xp_progress}/{xp_needed} XP to next level
-
-<b>Total XP:</b> {db_user.total_xp}
-<b>Coins:</b> {db_user.coins}
-
-<b>Streaks:</b>
-Current: {db_user.current_streak} days
-Best: {db_user.max_streak} days
-
-Keep pushing! Open the app to continue your workout.
-"""
+        stats_text = t(
+            db_user.language,
+            "bot.stats.body",
+            level=db_user.level,
+            progress_bar=progress_bar,
+            progress_percent=progress_percent,
+            xp_progress=xp_progress,
+            xp_needed=xp_needed,
+            total_xp=db_user.total_xp,
+            coins=db_user.coins,
+            current_streak=db_user.current_streak,
+            max_streak=db_user.max_streak,
+        )
 
         await message.answer(
             stats_text,
-            reply_markup=get_webapp_button(),
+            reply_markup=get_webapp_button(lang=db_user.language),
         )
 
 
 @router.message(Command("help"))
 async def cmd_help(message: Message):
     """Handle /help command."""
-    help_text = """
-<b>PixelFit - Workout Tracker</b>
-
-<b>Commands:</b>
-/start - Start the bot
-/workout - Open workout app
-/stats - View your statistics
-/help - Show this message
-
-<b>How it works:</b>
-1. Open the Mini App
-2. Choose exercises from 8 categories
-3. Track your reps and sets
-4. Earn XP and level up!
-5. Maintain your streak for bonus XP
-6. Compete with friends on leaderboards
-
-<b>Tips:</b>
-• Complete workouts daily to keep your streak
-• Try harder variations as you progress
-• Check achievements for bonus rewards
-
-Questions? Just message me!
-"""
+    user = message.from_user
+    lang = None
+    if user:
+        async with async_session_maker() as session:
+            db_user = (
+                await session.execute(select(User).where(User.telegram_id == user.id))
+            ).scalar_one_or_none()
+            lang = db_user.language if db_user else None
 
     await message.answer(
-        help_text,
-        reply_markup=get_main_keyboard(),
+        t(lang, "bot.help.body"),
+        reply_markup=get_main_keyboard(lang=lang),
     )
 
 
 @router.callback_query(F.data == "open_app")
 async def callback_open_app(callback: CallbackQuery):
     """Handle open app callback."""
-    await callback.answer("Opening PixelFit app...")
+    lang = None
+    if callback.from_user:
+        async with async_session_maker() as session:
+            db_user = (
+                await session.execute(
+                    select(User).where(User.telegram_id == callback.from_user.id)
+                )
+            ).scalar_one_or_none()
+            lang = db_user.language if db_user else None
+    await callback.answer(t(lang, "bot.callback.opening_app"))
 
 
 @router.callback_query(F.data == "view_stats")
@@ -345,68 +319,3 @@ async def callback_view_stats(callback: CallbackQuery):
     if callback.message:
         await cmd_stats(callback.message)
     await callback.answer()
-
-
-# ==================== Telegram Link Confirmation ====================
-
-async def send_link_confirmation(telegram_id: int, web_username: str, link_token: str):
-    """Send link confirmation message to Telegram user."""
-    bot = Bot(
-        token=settings.bot_token,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-        session=make_ipv4_session(),
-    )
-    try:
-        await bot.send_message(
-            chat_id=telegram_id,
-            text=f"""🔗 <b>Привязка аккаунта</b>
-
-Получен запрос на привязку вашего Telegram к web-аккаунту <b>{web_username}</b>.
-
-Если это вы — подтвердите привязку.""",
-            reply_markup=get_link_confirmation_keyboard(link_token),
-        )
-    finally:
-        await bot.session.close()
-
-
-@router.callback_query(F.data.startswith("link_confirm_"))
-async def callback_link_confirm(callback: CallbackQuery):
-    """User confirmed linking their Telegram to a web account."""
-    if not callback.from_user or not callback.data:
-        await callback.answer()
-        return
-
-    link_token = callback.data.replace("link_confirm_", "")
-
-    # Call the confirm endpoint internally
-    import httpx
-    try:
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{settings.mini_app_url}/api/auth/confirm-link/{link_token}"
-            )
-            if resp.status_code == 200:
-                await callback.answer("Аккаунт успешно привязан!")
-                if callback.message:
-                    await callback.message.edit_text(
-                        "🔗 <b>Привязка аккаунта</b>\n\n✅ Аккаунт успешно привязан!",
-                        reply_markup=None,
-                    )
-            else:
-                detail = resp.json().get("detail", "Ошибка")
-                await callback.answer(f"Ошибка: {detail}", show_alert=True)
-    except Exception:
-        logger.exception("Link confirmation error")
-        await callback.answer("Произошла ошибка. Попробуйте позже.", show_alert=True)
-
-
-@router.callback_query(F.data.startswith("link_reject_"))
-async def callback_link_reject(callback: CallbackQuery):
-    """User rejected linking."""
-    await callback.answer("Привязка отклонена.")
-    if callback.message:
-        await callback.message.edit_text(
-            "🔗 <b>Привязка аккаунта</b>\n\n❌ Привязка отклонена.",
-            reply_markup=None,
-        )

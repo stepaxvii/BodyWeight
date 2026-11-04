@@ -4,6 +4,7 @@
 	import { PixelCard, PixelButton, PixelIcon, PixelAvatar, EmptyState, PixelTabs } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { t } from '$lib/i18n/index.svelte';
 	import type { Friend } from '$lib/types';
 
 	// Персональная ссылка-приглашение + прогресс реферальных наград
@@ -61,7 +62,7 @@
 				api.getFriendRequests()
 			]);
 		} catch (err) {
-			error = 'Не удалось загрузить друзей';
+			error = t('friends.errors.loadFriends');
 			console.error(err);
 		} finally {
 			isLoading = false;
@@ -79,7 +80,7 @@
 		try {
 			searchResults = await api.searchUsers(searchQuery);
 		} catch (err) {
-			error = 'Ошибка поиска';
+			error = t('friends.errors.search');
 			console.error(err);
 			searchResults = [];
 		} finally {
@@ -99,7 +100,7 @@
 			}
 			const inviteLink = info.invite_link;
 
-			const inviteText = 'Тренируйся со мной в PixelFit — фитнес с 8-битной душой прямо в Telegram';
+			const inviteText = t('friends.invite.text');
 
 			// Try Telegram share if inside TMA
 			if (telegram.webApp) {
@@ -112,7 +113,7 @@
 				// Fallback: copy to clipboard
 				await navigator.clipboard.writeText(`${inviteText}\n${inviteLink}`);
 				error = null;
-				alert('Ссылка скопирована в буфер обмена');
+				alert(t('friends.toasts.linkCopied'));
 			}
 
 			telegram.hapticNotification('success');
@@ -175,10 +176,10 @@
 			}
 
 			telegram.hapticNotification('success');
-			telegram.showAlert('Заявка отправлена');
+			telegram.showAlert(t('friends.toasts.requestSent'));
 		} catch (err) {
 			telegram.hapticNotification('error');
-			error = 'Не удалось отправить заявку';
+			error = t('friends.errors.sendRequest');
 		}
 	}
 
@@ -191,7 +192,7 @@
 			telegram.hapticNotification('success');
 		} catch (err) {
 			telegram.hapticNotification('error');
-			error = 'Не удалось принять заявку';
+			error = t('friends.errors.acceptRequest');
 		}
 	}
 
@@ -215,7 +216,7 @@
 			telegram.hapticNotification('success');
 		} catch (err) {
 			telegram.hapticNotification('error');
-			error = 'Не удалось удалить';
+			error = t('friends.errors.remove');
 		} finally {
 			confirmRemove = null;
 		}
@@ -230,9 +231,9 @@
 	}
 
 	const friendTabs = $derived.by(() => [
-		{ id: 'friends' as const, label: `Друзья (${friends.length})` },
-		{ id: 'requests' as const, label: 'Заявки', badge: friendRequests.length },
-		{ id: 'search' as const, label: 'Поиск' }
+		{ id: 'friends' as const, label: t('friends.tabs.friends', { count: friends.length }) },
+		{ id: 'requests' as const, label: t('friends.tabs.requests'), badge: friendRequests.length },
+		{ id: 'search' as const, label: t('friends.tabs.search') }
 	]);
 
 	function handleSearchInput(e: Event) {
@@ -258,7 +259,7 @@
 
 <div class="page container">
 	<header class="page-header">
-		<h1>Друзья</h1>
+		<h1>{t('friends.title')}</h1>
 	</header>
 
 	<!-- Stat band -->
@@ -266,12 +267,12 @@
 		<div class="band3__i">
 			<PixelIcon name="users" size="sm" color="var(--accent)" />
 			<span class="band3__v">{friends.length}</span>
-			<span class="band3__l">Друзей</span>
+			<span class="band3__l">{t('friends.band.friends')}</span>
 		</div>
 		<div class="band3__i">
 			<PixelIcon name="mail" size="sm" color="var(--gold)" />
 			<span class="band3__v">{friendRequests.length}</span>
-			<span class="band3__l">Заявки</span>
+			<span class="band3__l">{t('friends.band.requests')}</span>
 		</div>
 	</div>
 
@@ -293,20 +294,20 @@
 				<div class="invite-link-section">
 					<div class="invite-info">
 						<PixelIcon name="link" size="sm" color="var(--primary)" />
-						<span>Пригласить друга</span>
+						<span>{t('friends.invite.title')}</span>
 					</div>
 					{#if inviteInfo}
 						<div class="referral-note">
 							<span class="referral-note__reward">
 								<PixelIcon name="coin" size="sm" color="var(--gold)" />
-								<span>+{inviteInfo.reward_coins} монет за первую тренировку друга</span>
+								<span>{t('friends.invite.reward', { coins: inviteInfo.reward_coins })}</span>
 							</span>
-							<span class="referral-note__progress">Награждено приглашений: {inviteInfo.rewarded_invites}/{inviteInfo.rewards_cap}</span>
+							<span class="referral-note__progress">{t('friends.invite.progress', { rewarded: inviteInfo.rewarded_invites, cap: inviteInfo.rewards_cap })}</span>
 						</div>
 					{/if}
 					<PixelButton size="sm" variant="secondary" onclick={shareInviteLink}>
 						<PixelIcon name="share" />
-						Поделиться приглашением
+						{t('friends.invite.share')}
 					</PixelButton>
 				</div>
 			</PixelCard>
@@ -314,7 +315,7 @@
 			<div class="search-box">
 				<input
 					type="text"
-					placeholder="Введите username..."
+					placeholder={t('friends.search.placeholder')}
 					value={searchQuery}
 					oninput={handleSearchInput}
 					onkeydown={handleSearchKeydown}
@@ -331,13 +332,13 @@
 
 			<p class="search-hint">
 				{#if isSearching}
-					Поиск...
+					{t('friends.search.searching')}
 				{:else if searchQuery.length > 0 && searchQuery.length < 2}
-					Минимум 2 символа для поиска
+					{t('friends.search.minChars')}
 				{:else if searchQuery.length >= 2}
-					Найдено: {searchResults.length}
+					{t('friends.search.found', { count: searchResults.length })}
 				{:else}
-					Введите минимум 2 символа для поиска
+					{t('friends.search.prompt')}
 				{/if}
 			</p>
 
@@ -352,20 +353,20 @@
 									{#if user.username && user.first_name}
 										<span class="user-username">{user.first_name}</span>
 									{/if}
-									<span class="user-level">Ур.{user.level}</span>
+									<span class="user-level">{t('friends.user.level', { level: user.level })}</span>
 								</div>
 								<div class="user-action">
 									{#if user.status === 'accepted'}
-										<span class="status-badge accepted">Друг</span>
+										<span class="status-badge accepted">{t('friends.user.statusFriend')}</span>
 									{:else if user.status === 'pending'}
-										<span class="status-badge pending">Отправлено</span>
+										<span class="status-badge pending">{t('friends.user.statusPending')}</span>
 									{:else if user.username}
 										<PixelButton
 											size="sm"
 											variant="primary"
 											onclick={() => addFriend(user.username!)}
 										>
-											Добавить
+											{t('friends.user.add')}
 										</PixelButton>
 									{/if}
 								</div>
@@ -376,7 +377,7 @@
 			{:else if searchQuery.length >= 2 && !isSearching}
 				<EmptyState
 					icon="search"
-					message="Пользователи не найдены"
+					message={t('friends.search.notFound')}
 				/>
 			{/if}
 		</div>
@@ -387,14 +388,14 @@
 		{#if isLoading}
 			<div class="loading">
 				<div class="pixel-spinner"></div>
-				<span>Загрузка...</span>
+				<span>{t('friends.loading')}</span>
 			</div>
 		{:else if friends.length === 0}
 			<EmptyState
 				icon="friends"
-				message="У вас пока нет друзей"
-				hint="Найдите друзей по username"
-				buttonText="Найти друзей"
+				message={t('friends.empty.friendsMessage')}
+				hint={t('friends.empty.friendsHint')}
+				buttonText={t('friends.empty.friendsButton')}
 				onButtonClick={() => switchTab('search')}
 			/>
 		{:else}
@@ -406,11 +407,11 @@
 						<div class="item__body">
 							<span class="item__name">{friend.username ? `${friend.username}` : friend.first_name}</span>
 							<span class="item__sub">
-								<span class="item__tag">Ур.{friend.level}</span>
+								<span class="item__tag">{t('friends.user.level', { level: friend.level })}</span>
 								<span class="item__tag"><PixelIcon name="flame" size="sm" color="var(--gold)" /> {friend.current_streak}</span>
 							</span>
 						</div>
-						<button class="remove-btn" onclick={() => showRemoveConfirmation(friend.id, friend.username || friend.first_name || 'друга', false)}>
+						<button class="remove-btn" onclick={() => showRemoveConfirmation(friend.id, friend.username || friend.first_name || t('friends.fallbackName.friend'), false)}>
 							<PixelIcon name="trash" size="sm" color="var(--text-muted)" />
 						</button>
 					</div>
@@ -424,12 +425,12 @@
 		{#if isLoading}
 			<div class="loading">
 				<div class="pixel-spinner"></div>
-				<span>Загрузка...</span>
+				<span>{t('friends.loading')}</span>
 			</div>
 		{:else if friendRequests.length === 0}
 			<EmptyState
 				icon="mail"
-				message="Нет входящих заявок"
+				message={t('friends.empty.requestsMessage')}
 			/>
 		{:else}
 			<div class="user-list anim-rows">
@@ -442,7 +443,7 @@
 								{#if request.username && request.first_name}
 									<span class="user-username">{request.first_name}</span>
 								{/if}
-								<span class="user-level">Ур.{request.level}</span>
+								<span class="user-level">{t('friends.user.level', { level: request.level })}</span>
 							</div>
 							<div class="request-actions">
 								<PixelButton
@@ -450,9 +451,9 @@
 									variant="primary"
 									onclick={() => acceptRequest(request.id)}
 								>
-									Принять
+									{t('friends.requests.accept')}
 								</PixelButton>
-								<button class="remove-btn" onclick={() => showRemoveConfirmation(request.id, request.username || request.first_name || 'пользователя', true)}>
+								<button class="remove-btn" onclick={() => showRemoveConfirmation(request.id, request.username || request.first_name || t('friends.fallbackName.user'), true)}>
 									<PixelIcon name="close" size="sm" color="var(--text-muted)" />
 								</button>
 							</div>
@@ -472,20 +473,20 @@
 				</div>
 				<div class="modal-body">
 					<p class="modal-title">
-						{confirmRemove.isRequest ? 'Отклонить заявку?' : 'Удалить из друзей?'}
+						{confirmRemove.isRequest ? t('friends.confirm.titleReject') : t('friends.confirm.titleRemove')}
 					</p>
 					<p class="modal-text">
 						{confirmRemove.isRequest
-							? `Вы уверены, что хотите отклонить заявку от ${confirmRemove.name}?`
-							: `Вы уверены, что хотите удалить ${confirmRemove.name} из друзей?`}
+							? t('friends.confirm.textReject', { name: confirmRemove.name })
+							: t('friends.confirm.textRemove', { name: confirmRemove.name })}
 					</p>
 				</div>
 				<div class="modal-actions">
 					<PixelButton variant="secondary" onclick={cancelRemove}>
-						Отмена
+						{t('friends.confirm.cancel')}
 					</PixelButton>
 					<PixelButton variant="danger" onclick={confirmRemoveFriend}>
-						{confirmRemove.isRequest ? 'Отклонить' : 'Удалить'}
+						{confirmRemove.isRequest ? t('friends.confirm.reject') : t('friends.confirm.remove')}
 					</PixelButton>
 				</div>
 			</div>

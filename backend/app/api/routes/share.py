@@ -26,6 +26,7 @@ from sqlalchemy.orm import selectinload
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.config import settings
 from app.db.models import Exercise, MonthlyBoss, WorkoutExercise, WorkoutSession
+from app.i18n import t
 from app.schemas import ShareWorkoutRequest, ShareWorkoutResponse
 from app.services.share_card import CardData, render_card
 
@@ -101,9 +102,9 @@ async def _save_prepared_inline_message(result: dict) -> str | None:
     return str(prepared_id) if prepared_id else None
 
 
-def _challenge_button(invite_link: str) -> dict:
+def _challenge_button(invite_link: str, lang: str | None = None) -> dict:
     return {
-        "inline_keyboard": [[{"text": "Принять вызов 💪", "url": invite_link}]]
+        "inline_keyboard": [[{"text": t(lang, "share.button_challenge"), "url": invite_link}]]
     }
 
 
@@ -112,7 +113,7 @@ def _format_mmss(total_seconds: int) -> str:
 
 
 async def _build_report_text(
-    session, workout: WorkoutSession, routine_name: str | None
+    session, workout: WorkoutSession, routine_name: str | None, lang: str | None = None
 ) -> str:
     """Text report with the full exercise list — mirrors the frontend share
     text in RoutinePlayer.svelte (same emoji/line layout)."""
@@ -124,37 +125,36 @@ async def _build_report_text(
             .order_by(WorkoutExercise.id)
         )
     ).all()
+    is_ru = (lang or "").startswith("ru")
     lines = [
-        f"🏆 {routine_name or 'Тренировка в PixelFit'}",
+        f"🏆 {routine_name or t(lang, 'share.report_name_fallback')}",
         "",
-        # duration_seconds — реальное время тренировки (старт→финиш);
-        # total_duration_seconds — сумма секунд ТОЛЬКО таймированных
-        # упражнений (0 для тренировки из повторений) — не использовать.
+        # duration_seconds — real workout time (start->finish);
+        # total_duration_seconds — sum of seconds for TIMED exercises only
+        # (0 for a reps-only workout) — do not use it here.
         f"⏱️ {_format_mmss(workout.duration_seconds or 0)}",
         f"🌟 +{workout.total_xp_earned} XP",
-        f"🪙 {workout.total_coins_earned} монет",
+        f"🪙 {workout.total_coins_earned} {t(lang, 'share.coins_suffix')}",
     ]
     if rows:
-        lines += ["", "━━━━━━━━━━", "💪 Упражнения", "━━━━━━━━━━"]
+        lines += ["", "━━━━━━━━━━", f"💪 {t(lang, 'share.exercises_header')}", "━━━━━━━━━━"]
         for we, ex in rows:
-            total = (
-                f"{we.total_duration_seconds} сек"
-                if ex.is_timed
-                else f"{we.total_reps} повт."
-            )
-            lines.append(f"  ▸ {ex.name_ru}: {total}")
+            unit = t(lang, "share.unit_sec") if ex.is_timed else t(lang, "share.unit_reps")
+            value = we.total_duration_seconds if ex.is_timed else we.total_reps
+            ex_name = ex.name_ru if is_ru else ex.name
+            lines.append(f"  ▸ {ex_name}: {value} {unit}")
     return "\n".join(lines)
 
 
 @router.post(
     "/workout/{session_id}",
     response_model=ShareWorkoutResponse,
-    summary="Поделиться тренировкой",
+    summary="Share a workout",
     description=(
-        "Готовит карточку завершённой тренировки к шерингу: ссылки на PNG "
-        "(пост и сторис), персональную инвайт-ссылку и prepared inline "
-        "message для WebApp.shareMessage. prepared_message_id = null, если "
-        "подготовить сообщение не удалось — фронтенд делает фолбэк на "
+        "Prepares a completed workout's card for sharing: PNG URLs "
+        "(post and story), a personal invite link and a prepared inline "
+        "message for WebApp.shareMessage. prepared_message_id = null if "
+        "the message could not be prepared — the frontend falls back to "
         "t.me/share/url."
     ),
     tags=["Share"],
@@ -186,9 +186,7 @@ async def share_workout(
     card_url = f"{base_url}/api/share/card/{token}.png?variant=post"
     story_url = f"{base_url}/api/share/card/{token}.png?variant=story"
     invite_link = f"https://t.me/{settings.bot_username}?start=addfriend_{user.id}"
-    share_text = (
-        f"Потренировался в PixelFit: +{workout.total_xp_earned} XP! Присоединяйся"
-    )
+    share_text = t(user.language, "share.caption", xp=workout.total_xp_earned)
 
     # Best-effort: on ANY failure the frontend still gets the urls and falls
     # back to a t.me/share/url link share.
@@ -205,23 +203,23 @@ async def share_workout(
                 "photo_width": 1080,
                 "photo_height": 1350,
                 "caption": share_text,
-                "reply_markup": _challenge_button(invite_link),
+                "reply_markup": _challenge_button(invite_link, user.language),
             })
         except Exception as e:
             logger.warning(f"Failed to prepare inline share message: {e}")
         # Text variant: the full exercise report with the referral button —
-        # used by the «Поделиться» button in RoutinePlayer.
+        # used by the "Share" button in RoutinePlayer.
         try:
             report_text = await _build_report_text(
-                session, workout, body.routine_name if body else None
+                session, workout, body.routine_name if body else None, user.language
             )
             prepared_text_message_id = await _save_prepared_inline_message({
                 "_telegram_id": user.telegram_id,
                 "type": "article",
                 "id": "share_text",
-                "title": "Отчёт о тренировке",
+                "title": t(user.language, "share.report_title"),
                 "input_message_content": {"message_text": report_text},
-                "reply_markup": _challenge_button(invite_link),
+                "reply_markup": _challenge_button(invite_link, user.language),
             })
         except Exception as e:
             logger.warning(f"Failed to prepare text share message: {e}")
@@ -238,10 +236,10 @@ async def share_workout(
 
 @router.get(
     "/card/{token}.png",
-    summary="PNG-карточка тренировки",
+    summary="Workout PNG card",
     description=(
-        "Отдаёт PNG-карточку завершённой тренировки по HMAC-подписанному "
-        "токену. Без авторизации — ссылку скачивают серверы Telegram."
+        "Serves a completed workout's PNG card by its HMAC-signed "
+        "token. Unauthenticated — the link is fetched by Telegram's servers."
     ),
     response_class=Response,
     responses={200: {"content": {"image/png": {}}}},
@@ -251,7 +249,7 @@ async def get_share_card(
     token: str,
     session: AsyncSessionDep,
     variant: Literal["post", "story"] = Query(
-        "post", description="Формат карточки: пост (1080×1350) или сторис (1080×1920)"
+        "post", description="Card format: post (1080×1350) or story (1080×1920)"
     ),
 ):
     session_id = _parse_card_token(token)
@@ -298,8 +296,9 @@ async def get_share_card(
         date_str=workout.finished_at.strftime("%d.%m"),
         bot_username=settings.bot_username,
     )
-    # Pillow rendering is CPU-bound — keep it off the event loop.
-    png = await run_in_threadpool(render_card, data, variant)
+    # Pillow rendering is CPU-bound — keep it off the event loop. Card labels
+    # follow the workout owner's UI language (en fallback).
+    png = await run_in_threadpool(render_card, data, variant, workout.user.language)
 
     return Response(
         content=png,

@@ -1,7 +1,7 @@
 """User-related Pydantic schemas."""
 
 from datetime import date, time, datetime
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
 
 class UserResponse(BaseModel):
@@ -11,9 +11,8 @@ class UserResponse(BaseModel):
     username: str | None = None
     first_name: str | None = None
     last_name: str | None = None
-    email: str | None = None
-    has_password: bool = False
     avatar_id: str
+    language: str = "en"
     level: int
     total_xp: int
     coins: int
@@ -33,16 +32,6 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-    @model_validator(mode="wrap")
-    @classmethod
-    def _compute_has_password(cls, values, handler):
-        # If validating from ORM model, check password_hash attribute
-        if hasattr(values, "password_hash"):
-            result = handler(values)
-            result.has_password = values.password_hash is not None
-            return result
-        return handler(values)
 
 
 class UserStatsResponse(BaseModel):
@@ -66,6 +55,7 @@ class UserStatsResponse(BaseModel):
 class UpdateUserRequest(BaseModel):
     """Request schema for updating user profile."""
     avatar_id: str | None = None
+    language: str | None = None  # 'ru' | 'en'; validated in the endpoint
     notification_time: time | None = None
     notifications_enabled: bool | None = None
     sound_enabled: bool | None = None
@@ -103,6 +93,7 @@ class UserProfileResponse(BaseModel):
 class ExerciseRecord(BaseModel):
     """A single personal record tied to one exercise."""
     exercise_slug: str
+    exercise_name: str
     exercise_name_ru: str
     value: int
 

@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
+from app.i18n import t
 from app.db.models import (
     Exercise, UserCustomRoutine, UserCustomRoutineExercise
 )
@@ -95,6 +96,7 @@ async def get_custom_routine(
                 id=ex.id,
                 exercise_id=ex.exercise_id,
                 exercise_slug=exercises_map[ex.exercise_id].slug,
+                exercise_name=exercises_map[ex.exercise_id].name,
                 exercise_name_ru=exercises_map[ex.exercise_id].name_ru,
                 is_timed=exercises_map[ex.exercise_id].is_timed,
                 sort_order=ex.sort_order,
@@ -282,7 +284,7 @@ async def duplicate_custom_routine(
     # Create copy
     new_routine = UserCustomRoutine(
         user_id=user.id,
-        name=f"{original.name} (копия)",
+        name=f"{original.name} {t(user.language, 'content.routine_copy_suffix')}",
         description=original.description,
         routine_type=original.routine_type,
         duration_minutes=original.duration_minutes,

@@ -19,6 +19,7 @@ from sqlalchemy import select, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import MonthlyBoss, BossContribution, User
+from app.i18n import t
 from app.services.notifications import save_notification
 
 
@@ -73,6 +74,13 @@ async def get_or_create_current_boss(session: AsyncSession) -> MonthlyBoss:
     )
     boss = result.scalar_one_or_none()
     if boss:
+        # Backfill the English legend for bosses created before legend_en existed.
+        if boss.legend_en is None:
+            catalogue = _load_bosses_catalogue()
+            template = next((b for b in catalogue if b["month"] == start.month), None)
+            if template is not None:
+                boss.legend_en = template.get("legend_en")
+                await session.flush()
         return boss
 
     catalogue = _load_bosses_catalogue()
@@ -88,6 +96,7 @@ async def get_or_create_current_boss(session: AsyncSession) -> MonthlyBoss:
         image_url=template.get("image_url"),
         theme=template["theme"],
         legend_ru=template["legend_ru"],
+        legend_en=template.get("legend_en"),
         max_hp=template["max_hp"],
         current_hp=template["max_hp"],
         start_date=start,
@@ -105,32 +114,39 @@ async def get_or_create_current_boss(session: AsyncSession) -> MonthlyBoss:
         broadcast_new_boss_push,
         dispatch_in_background,
     )
-    dispatch_in_background(broadcast_new_boss_push(boss.name_ru, boss.image_emoji))
+    dispatch_in_background(
+        broadcast_new_boss_push(boss.name_ru, boss.image_emoji, boss_name_en=boss.name)
+    )
     return boss
+
+
+def _boss_name(boss: MonthlyBoss, lang: str | None) -> str:
+    """Localized boss name: English template name for 'en', Russian otherwise."""
+    return boss.name if (lang == "en" and boss.name) else boss.name_ru
 
 
 async def _broadcast_new_boss_notification(session: AsyncSession, boss: MonthlyBoss) -> None:
     """Save in-app notification for every user that a new boss arrived."""
     from app.db.models import Notification
 
-    result = await session.execute(select(User.id).where(User.notifications_enabled.is_(True)))
-    user_ids = [row[0] for row in result.all()]
-    if not user_ids:
+    result = await session.execute(
+        select(User.id, User.language).where(User.notifications_enabled.is_(True))
+    )
+    recipients = result.all()
+    if not recipients:
         return
 
-    title = "Новый босс месяца!"
-    msg = f"{boss.image_emoji} {boss.name_ru} появился. Вступай в битву!"
     now = datetime.utcnow()
 
     notifications = [
         Notification(
             user_id=uid,
             notification_type="boss_appeared",
-            title=title,
-            message=msg,
+            title=t(lang, "boss.new.title"),
+            message=t(lang, "boss.new.message", emoji=boss.image_emoji, name=_boss_name(boss, lang)),
             created_at=now,
         )
-        for uid in user_ids
+        for uid, lang in recipients
     ]
     session.add_all(notifications)
     await session.flush()
@@ -229,16 +245,22 @@ async def _broadcast_milestone_notification(
     from app.db.models import Notification
 
     pct = int(ratio * 100)
-    title = f"Босс на {pct}% HP!"
-    msg = f"{boss.image_emoji} {boss.name_ru} ослабевает. Добей его!"
-    result = await session.execute(select(User.id).where(User.notifications_enabled.is_(True)))
-    user_ids = [uid for (uid,) in result.all()]
-    if not user_ids:
+    result = await session.execute(
+        select(User.id, User.language).where(User.notifications_enabled.is_(True))
+    )
+    recipients = result.all()
+    if not recipients:
         return
     now = datetime.utcnow()
     session.add_all([
-        Notification(user_id=uid, notification_type="boss_milestone", title=title, message=msg, created_at=now)
-        for uid in user_ids
+        Notification(
+            user_id=uid,
+            notification_type="boss_milestone",
+            title=t(lang, "boss.milestone.title", pct=pct),
+            message=t(lang, "boss.milestone.message", emoji=boss.image_emoji, name=_boss_name(boss, lang)),
+            created_at=now,
+        )
+        for uid, lang in recipients
     ])
     await session.flush()
 
@@ -248,18 +270,24 @@ async def _broadcast_defeat_notification(
 ) -> None:
     from app.db.models import Notification
 
-    title = "Босс повержен!"
-    msg = f"{boss.image_emoji} {boss.name_ru} побеждён. Забери награду на странице босса."
     result = await session.execute(
-        select(BossContribution.user_id).where(BossContribution.boss_id == boss.id)
+        select(BossContribution.user_id, User.language)
+        .join(User, User.id == BossContribution.user_id)
+        .where(BossContribution.boss_id == boss.id)
     )
-    user_ids = [uid for (uid,) in result.all()]
-    if not user_ids:
+    recipients = result.all()
+    if not recipients:
         return
     now = datetime.utcnow()
     session.add_all([
-        Notification(user_id=uid, notification_type="boss_defeated", title=title, message=msg, created_at=now)
-        for uid in user_ids
+        Notification(
+            user_id=uid,
+            notification_type="boss_defeated",
+            title=t(lang, "boss.defeat.title"),
+            message=t(lang, "boss.defeat.message", emoji=boss.image_emoji, name=_boss_name(boss, lang)),
+            created_at=now,
+        )
+        for uid, lang in recipients
     ])
     await session.flush()
 

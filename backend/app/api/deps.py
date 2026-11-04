@@ -7,7 +7,6 @@ from typing import Annotated
 from datetime import datetime, timedelta
 
 from fastapi import Depends, HTTPException, Header, status
-from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -70,38 +69,13 @@ def validate_telegram_init_data(init_data: str, bot_token: str) -> dict | None:
         return None
 
 
-def create_jwt_token(user_id: int) -> str:
-    """Create a JWT token for web authentication."""
-    expire = datetime.utcnow() + timedelta(minutes=settings.jwt_expire_minutes)
-    payload = {
-        "sub": str(user_id),
-        "exp": expire,
-        "type": "access",
-    }
-    return jwt.encode(payload, settings.secret_key, algorithm=settings.jwt_algorithm)
-
-
-def verify_jwt_token(token: str) -> int | None:
-    """Verify JWT token and return user_id or None."""
-    try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.jwt_algorithm])
-        user_id = int(payload.get("sub", 0))
-        if user_id == 0:
-            return None
-        return user_id
-    except (JWTError, ValueError):
-        return None
-
-
 async def get_current_user(
     authorization: Annotated[str | None, Header()] = None,
     session: AsyncSession = Depends(get_async_session),
 ) -> User:
     """
-    Get current user from Telegram init data or JWT token.
-    Authorization header format:
-      - "tma <init_data>" for Telegram Mini App
-      - "Bearer <jwt_token>" for web auth
+    Get the current user from Telegram Mini App init data.
+    Authorization header format: "tma <init_data>".
     """
     if not authorization:
         raise HTTPException(
@@ -109,34 +83,10 @@ async def get_current_user(
             detail="Authorization header required",
         )
 
-    # JWT Bearer token auth
-    if authorization.startswith("Bearer "):
-        token = authorization[7:]
-        user_id = verify_jwt_token(token)
-        if user_id is None:
-            logger.warning("Auth rejected: invalid or expired JWT")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired token",
-            )
-
-        result = await session.execute(
-            select(User).where(User.id == user_id)
-        )
-        user = result.scalar_one_or_none()
-        if not user:
-            logger.warning("Auth rejected: JWT valid but user %s not found", user_id)
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found",
-            )
-        return user
-
-    # Telegram Mini App auth
     if not authorization.startswith("tma "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization format. Expected: tma <init_data> or Bearer <token>",
+            detail="Invalid authorization format. Expected: tma <init_data>",
         )
 
     init_data = authorization[4:]  # Remove "tma " prefix

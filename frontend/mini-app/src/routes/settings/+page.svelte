@@ -2,10 +2,12 @@
 	import { base } from '$app/paths';
 	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { PixelIcon, PixelModal } from '$lib/components/ui';
+	import { PixelIcon } from '$lib/components/ui';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { sound } from '$lib/stores/sound.svelte';
+	import { api } from '$lib/api/client';
+	import { t, setLocale, getLocale } from '$lib/i18n/index.svelte';
 
 	// ── Звук ──────────────────────────────────────────────
 	const soundOn = $derived(userStore.user?.sound_enabled ?? true);
@@ -44,7 +46,7 @@
 		if (normSaving) return;
 		const value = Math.round(Number(normInput));
 		if (!Number.isFinite(value) || value < 100 || value > 100000) {
-			normMessage = 'Норма должна быть от 100 до 100000 XP';
+			normMessage = t('settings.game.norm.invalid');
 			return;
 		}
 		normSaving = true;
@@ -52,16 +54,39 @@
 		try {
 			await userStore.setActivityNorm(value);
 			telegram.hapticNotification('success');
-			normMessage = '✅ Норма обновлена';
+			normMessage = t('settings.game.norm.saved');
 		} catch (err) {
 			telegram.hapticNotification('error');
-			normMessage = err instanceof Error ? err.message : 'Не удалось сохранить';
+			normMessage = err instanceof Error ? err.message : t('settings.game.norm.saveError');
 		} finally {
 			normSaving = false;
 		}
 	}
 
 	// ── Уведомления (Telegram-пуши) ───────────────────────
+	// ── Язык интерфейса ───────────────────────────────────
+	const currentLang = $derived(userStore.user?.language ?? getLocale());
+	let langBusy = $state(false);
+	async function setLanguage(lang: 'ru' | 'en') {
+		if (langBusy || currentLang === lang) return;
+		const prev = currentLang;
+		langBusy = true;
+		// Live-switch the whole UI immediately (optimistic).
+		setLocale(lang);
+		if (userStore.user) userStore.user.language = lang;
+		try {
+			userStore.user = await api.updateUser({ language: lang });
+			telegram.hapticImpact('light');
+		} catch {
+			// Server rejected it — roll the optimistic switch back.
+			setLocale(prev);
+			if (userStore.user) userStore.user.language = prev;
+			telegram.hapticNotification('error');
+		} finally {
+			langBusy = false;
+		}
+	}
+
 	const notifOn = $derived(userStore.user?.notifications_enabled ?? true);
 	let notifBusy = $state(false);
 	async function toggleNotif() {
@@ -88,52 +113,17 @@
 		try {
 			await userStore.setNotificationTime(timeInput);
 			telegram.hapticNotification('success');
-			timeMessage = '✅ Время сохранено';
+			timeMessage = t('settings.notifications.time.saved');
 		} catch (err) {
 			telegram.hapticNotification('error');
-			timeMessage = err instanceof Error ? err.message : 'Не удалось сохранить';
+			timeMessage = err instanceof Error ? err.message : t('settings.notifications.time.saveError');
 		} finally {
 			timeSaving = false;
 		}
 	}
 
-	// ── Аккаунт ───────────────────────────────────────────
-	let showLinkTelegram = $state(false);
-	let telegramIdInput = $state('');
-	let accountMessage = $state<string | null>(null);
-	let accountError = $state<string | null>(null);
-	let accountLoading = $state(false);
-
-	const hasAccountInfo = $derived(!!userStore.user?.email || !!userStore.user?.telegram_id);
-
-	function openLink() {
-		showLinkTelegram = true;
-		accountError = null;
-	}
-
-	async function handleLinkTelegram() {
-		const tid = parseInt(telegramIdInput);
-		if (isNaN(tid)) {
-			accountError = 'Введите корректный Telegram ID (число)';
-			return;
-		}
-		accountError = null;
-		accountLoading = true;
-		try {
-			const result = await userStore.linkTelegram(tid);
-			accountMessage = result.message;
-			showLinkTelegram = false;
-			telegramIdInput = '';
-		} catch (err) {
-			accountError = err instanceof Error ? err.message : 'Ошибка';
-		} finally {
-			accountLoading = false;
-		}
-	}
-
-	function handleLogout() {
-		userStore.logout();
-	}
+	// ── Account ───────────────────────────────────────────
+	const hasAccountInfo = $derived(!!userStore.user?.telegram_id);
 
 	function goBack() {
 		goto(`${base}/profile`);
@@ -154,41 +144,41 @@
 
 <div class="page container anim-cascade">
 	<header class="set-head">
-		<a class="set-back" href="{base}/profile" aria-label="Назад">
+		<a class="set-back" href="{base}/profile" aria-label={t('settings.back')}>
 			<PixelIcon name="arrowleft" size="md" color="var(--text)" />
 		</a>
-		<h1 class="set-title">Настройки</h1>
+		<h1 class="set-title">{t('settings.title')}</h1>
 		<span class="set-headgear" aria-hidden="true"><PixelIcon name="gear" size="md" color="var(--accent)" /></span>
 	</header>
 
 	<!-- Игра -->
 	<section class="set-section">
-		<h3 class="set-section__t">Игра</h3>
+		<h3 class="set-section__t">{t('settings.game.heading')}</h3>
 		<div class="set-list">
 			<button class="set-row" onclick={toggleSound}>
 				<PixelIcon name="bell" size="md" color="var(--accent)" />
 				<div class="set-row__text">
-					<span class="set-row__title">Звук</span>
-					<span class="set-row__hint">8-битные сигналы на тренировке</span>
+					<span class="set-row__title">{t('settings.game.sound.title')}</span>
+					<span class="set-row__hint">{t('settings.game.sound.hint')}</span>
 				</div>
-				<span class="set-toggle" class:on={soundOn}>{soundOn ? 'Вкл' : 'Выкл'}</span>
+				<span class="set-toggle" class:on={soundOn}>{soundOn ? t('settings.toggle.on') : t('settings.toggle.off')}</span>
 			</button>
 
 			<button class="set-row" onclick={toggleLeaderboard} disabled={lbBusy}>
 				<PixelIcon name="trophy" size="md" color="var(--gold)" />
 				<div class="set-row__text">
-					<span class="set-row__title">Виден друзьям</span>
-					<span class="set-row__hint">Показывать тебя в недельном рейтинге друзей</span>
+					<span class="set-row__title">{t('settings.game.leaderboard.title')}</span>
+					<span class="set-row__hint">{t('settings.game.leaderboard.hint')}</span>
 				</div>
-				<span class="set-toggle" class:on={lbVisible}>{lbVisible ? 'Вкл' : 'Выкл'}</span>
+				<span class="set-toggle" class:on={lbVisible}>{lbVisible ? t('settings.toggle.on') : t('settings.toggle.off')}</span>
 			</button>
 
 			<div class="set-block">
 				<div class="set-block__head">
 					<PixelIcon name="target" size="md" color="var(--accent2)" />
 					<div class="set-row__text">
-						<span class="set-row__title">Дневная норма</span>
-						<span class="set-row__hint">Цель XP в день — по ней раскрашивается календарь активности (4 уровня заливки).</span>
+						<span class="set-row__title">{t('settings.game.norm.title')}</span>
+						<span class="set-row__hint">{t('settings.game.norm.hint')}</span>
 					</div>
 				</div>
 				<div class="set-controls">
@@ -200,9 +190,9 @@
 						step="50"
 						bind:value={normInput}
 					/>
-					<span class="set-unit">XP</span>
+					<span class="set-unit">{t('settings.game.norm.unit')}</span>
 					<button class="set-save" disabled={normSaving} onclick={handleSaveNorm}>
-						{normSaving ? '...' : 'Сохранить'}
+						{normSaving ? t('settings.common.saving') : t('settings.common.save')}
 					</button>
 				</div>
 				{#if normMessage}
@@ -214,15 +204,15 @@
 
 	<!-- Уведомления -->
 	<section class="set-section">
-		<h3 class="set-section__t">Уведомления</h3>
+		<h3 class="set-section__t">{t('settings.notifications.heading')}</h3>
 		<div class="set-list">
 			<button class="set-row" onclick={toggleNotif} disabled={notifBusy}>
 				<PixelIcon name="mail" size="md" color="var(--accent)" />
 				<div class="set-row__text">
-					<span class="set-row__title">Напоминания в Telegram</span>
-					<span class="set-row__hint">Пуш о тренировке и при простое 3+ дня</span>
+					<span class="set-row__title">{t('settings.notifications.push.title')}</span>
+					<span class="set-row__hint">{t('settings.notifications.push.hint')}</span>
 				</div>
-				<span class="set-toggle" class:on={notifOn}>{notifOn ? 'Вкл' : 'Выкл'}</span>
+				<span class="set-toggle" class:on={notifOn}>{notifOn ? t('settings.toggle.on') : t('settings.toggle.off')}</span>
 			</button>
 
 			{#if notifOn}
@@ -230,14 +220,14 @@
 					<div class="set-block__head">
 						<PixelIcon name="clock" size="md" color="var(--accent2)" />
 						<div class="set-row__text">
-							<span class="set-row__title">Время напоминания</span>
-							<span class="set-row__hint">Придёт в выбранный час, если не тренировался в этот день</span>
+							<span class="set-row__title">{t('settings.notifications.time.title')}</span>
+							<span class="set-row__hint">{t('settings.notifications.time.hint')}</span>
 						</div>
 					</div>
 					<div class="set-controls">
 						<input class="set-input" type="time" bind:value={timeInput} />
 						<button class="set-save" disabled={timeSaving || !timeInput} onclick={handleSaveTime}>
-							{timeSaving ? '...' : 'Сохранить'}
+							{timeSaving ? t('settings.common.saving') : t('settings.common.save')}
 						</button>
 					</div>
 					{#if timeMessage}
@@ -248,71 +238,55 @@
 		</div>
 	</section>
 
-	<!-- Аккаунт -->
+	<!-- Язык -->
 	<section class="set-section">
-		<h3 class="set-section__t">Аккаунт</h3>
-
-		{#if accountMessage}
-			<div class="account-success">{accountMessage}</div>
-		{/if}
-
-		{#if hasAccountInfo}
-			<div class="account-info">
-				{#if userStore.user?.email}
-					<div class="account-row">
-						<span class="account-label">Email</span>
-						<span class="account-value">{userStore.user.email}</span>
+		<h3 class="set-section__t">{t('settings.language.heading')}</h3>
+		<div class="set-list">
+			<div class="set-block">
+				<div class="set-block__head">
+					<PixelIcon name="star" size="md" color="var(--accent2)" />
+					<div class="set-row__text">
+						<span class="set-row__title">{t('settings.language.title')}</span>
+						<span class="set-row__hint">{t('settings.language.hint')}</span>
 					</div>
-				{/if}
+				</div>
+				<div class="set-controls lang-controls">
+					<button
+						class="set-lang"
+						class:on={currentLang === 'ru'}
+						disabled={langBusy}
+						onclick={() => setLanguage('ru')}
+					>
+						{t('settings.language.ru')}
+					</button>
+					<button
+						class="set-lang"
+						class:on={currentLang === 'en'}
+						disabled={langBusy}
+						onclick={() => setLanguage('en')}
+					>
+						{t('settings.language.en')}
+					</button>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Account -->
+	{#if hasAccountInfo}
+		<section class="set-section">
+			<h3 class="set-section__t">{t('settings.account.heading')}</h3>
+			<div class="account-info">
 				{#if userStore.user?.telegram_id}
 					<div class="account-row">
-						<span class="account-label">Telegram</span>
-						<span class="account-value">ID: {userStore.user.telegram_id}</span>
+						<span class="account-label">{t('settings.account.telegram')}</span>
+						<span class="account-value">{t('settings.account.telegramId', { id: userStore.user.telegram_id })}</span>
 					</div>
 				{/if}
 			</div>
-		{/if}
-
-		<div class="account-actions">
-			{#if !userStore.hasTelegram}
-				<button class="account-btn" onclick={openLink}>
-					Привязать Telegram
-				</button>
-			{/if}
-
-			{#if userStore.authMode === 'web'}
-				<button class="account-btn logout-btn" onclick={handleLogout}>
-					Выйти
-				</button>
-			{/if}
-		</div>
-	</section>
+		</section>
+	{/if}
 </div>
-
-<!-- Link Telegram Modal -->
-<PixelModal
-	open={showLinkTelegram}
-	title="Привязать Telegram"
-	onclose={() => { showLinkTelegram = false; accountError = null; }}
->
-	<div class="modal-instructions">
-		<p>1. Начните диалог с ботом <b>@pixelfitbot</b></p>
-		<p>2. Введите ваш Telegram ID ниже</p>
-		<p>3. Подтвердите привязку в Telegram</p>
-	</div>
-	<form class="modal-form" onsubmit={(e) => { e.preventDefault(); handleLinkTelegram(); }}>
-		<div class="modal-field">
-			<label for="tg-id">Telegram ID</label>
-			<input id="tg-id" type="text" bind:value={telegramIdInput} placeholder="Например: 123456789" required />
-		</div>
-		{#if accountError}
-			<div class="modal-error">{accountError}</div>
-		{/if}
-		<button type="submit" class="modal-submit" disabled={accountLoading}>
-			{accountLoading ? 'Отправка...' : 'Отправить запрос'}
-		</button>
-	</form>
-</PixelModal>
 
 <style>
 	.page {
@@ -486,15 +460,35 @@
 		text-align: center;
 	}
 
-	/* Account (moved from profile) */
-	.account-success {
-		padding: var(--spacing-sm);
-		background: var(--bg2);
-		border: var(--bw) solid var(--green);
-		font-size: var(--font-size-xs);
-		color: var(--green);
-		margin-bottom: var(--spacing-sm);
+	/* Language selector (RU / EN) */
+	.lang-controls {
+		gap: var(--spacing-sm);
 	}
+	.set-lang {
+		flex: 1;
+		padding: 8px var(--spacing-md);
+		background: var(--bg3);
+		border: var(--bw) solid var(--line);
+		color: var(--muted);
+		font-family: inherit;
+		font-size: var(--font-size-xs);
+		cursor: pointer;
+		text-align: center;
+	}
+	.set-lang:active:not(:disabled) {
+		transform: translate(2px, 2px);
+	}
+	.set-lang:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+	.set-lang.on {
+		background: var(--accent);
+		border-color: var(--accent);
+		color: var(--on-accent);
+	}
+
+	/* Account (moved from profile) */
 	.account-info {
 		background: var(--bg2);
 		border: var(--bw) solid var(--line);
@@ -523,81 +517,5 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-xs);
-	}
-	.account-btn {
-		padding: 10px var(--spacing-md);
-		background: var(--bg2);
-		border: var(--bw) solid var(--line);
-		color: var(--accent);
-		font-family: var(--font-ui);
-		font-size: var(--font-size-xs);
-		cursor: pointer;
-		text-align: left;
-		box-shadow: var(--shadow);
-	}
-	.account-btn:active {
-		transform: translate(2px, 2px);
-		box-shadow: none;
-	}
-	.logout-btn {
-		color: var(--danger);
-	}
-
-	/* Link Telegram modal */
-	.modal-form {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-md);
-		padding: var(--spacing-sm) 0;
-	}
-	.modal-field {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-	}
-	.modal-field label {
-		font-size: var(--font-size-xs);
-		color: var(--muted);
-	}
-	.modal-field input {
-		padding: 10px 12px;
-		background: var(--bg3);
-		border: var(--bw) solid var(--line);
-		color: var(--text);
-		font-size: 14px;
-		outline: none;
-	}
-	.modal-field input:focus {
-		border-color: var(--accent);
-	}
-	.modal-error {
-		color: var(--danger);
-		font-size: var(--font-size-xs);
-		padding: var(--spacing-xs);
-	}
-	.modal-submit {
-		padding: 12px;
-		background: var(--accent);
-		border: none;
-		color: var(--on-accent);
-		font-family: var(--font-ui);
-		font-size: var(--font-size-xs);
-		cursor: pointer;
-	}
-	.modal-submit:active:not(:disabled) {
-		transform: translate(2px, 2px);
-	}
-	.modal-submit:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-	.modal-instructions {
-		padding: var(--spacing-sm) 0;
-		font-size: 12px;
-		color: var(--muted);
-		line-height: 1.6;
-	}
-	.modal-instructions p {
-		margin: 4px 0;
 	}
 </style>

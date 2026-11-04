@@ -90,8 +90,8 @@ async def build_user_response(session, user: User) -> UserResponse:
 @router.get(
     "/me",
     response_model=UserResponse,
-    summary="Получить профиль текущего пользователя",
-    description="Возвращает полную информацию о текущем аутентифицированном пользователе.",
+    summary="Get the current user's profile",
+    description="Returns full information about the currently authenticated user.",
     tags=["Users"]
 )
 async def get_current_user_profile(user: CurrentUser, session: AsyncSessionDep):
@@ -101,8 +101,8 @@ async def get_current_user_profile(user: CurrentUser, session: AsyncSessionDep):
 @router.get(
     "/me/purchased-avatars",
     response_model=list[str],
-    summary="Получить купленные аватары",
-    description="Возвращает список ID аватаров, купленных текущим пользователем.",
+    summary="Get purchased avatars",
+    description="Returns the list of avatar IDs purchased by the current user.",
     tags=["Users"]
 )
 async def get_purchased_avatars(
@@ -120,8 +120,8 @@ async def get_purchased_avatars(
 @router.put(
     "/me",
     response_model=UserResponse,
-    summary="Обновить профиль пользователя",
-    description="Обновляет настройки текущего пользователя (аватар, уведомления).",
+    summary="Update the user's profile",
+    description="Updates the current user's settings (avatar, notifications).",
     tags=["Users"]
 )
 async def update_current_user(
@@ -190,6 +190,13 @@ async def update_current_user(
     if request.daily_activity_norm is not None:
         # Records a history row for today and updates the current-norm column.
         await set_user_norm(session, user, request.daily_activity_norm)
+    if request.language is not None:
+        if request.language not in ("ru", "en"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Unsupported language (expected 'ru' or 'en')",
+            )
+        user.language = request.language
 
     await session.flush()
     await session.refresh(user)
@@ -212,8 +219,8 @@ async def complete_onboarding(
 
 @router.get(
     "/me/streak-freezes",
-    summary="Инфо о заморозках стрика",
-    description="Текущее число заморозок, лимит и цена покупки.",
+    summary="Streak freeze info",
+    description="Current number of freezes, the limit, and the purchase price.",
     tags=["Users"],
 )
 async def get_streak_freeze_info(user: CurrentUser):
@@ -230,8 +237,8 @@ async def get_streak_freeze_info(user: CurrentUser):
 @router.post(
     "/me/streak-freezes/buy",
     response_model=UserResponse,
-    summary="Купить заморозку стрика",
-    description="Списывает монеты и добавляет одну заморозку (до лимита).",
+    summary="Buy a streak freeze",
+    description="Deducts coins and adds one freeze (up to the limit).",
     tags=["Users"],
 )
 async def buy_streak_freeze_endpoint(
@@ -255,8 +262,8 @@ async def buy_streak_freeze_endpoint(
 @router.get(
     "/me/stats",
     response_model=UserStatsResponse,
-    summary="Получить статистику пользователя",
-    description="Возвращает подробную статистику пользователя: тренировки, XP, уровень, streak, достижения, монеты и т.д.",
+    summary="Get user statistics",
+    description="Returns detailed user statistics: workouts, XP, level, streak, achievements, coins, etc.",
     tags=["Users"]
 )
 async def get_current_user_stats(
@@ -346,8 +353,8 @@ async def get_current_user_stats(
 @router.get(
     "/me/activity",
     response_model=UserActivityResponse,
-    summary="Получить календарь активности",
-    description="Возвращает данные о тренировках по дням для календаря активности. Только XP из тренировок, без достижений.",
+    summary="Get the activity calendar",
+    description="Returns per-day workout data for the activity calendar. Only workout XP, excluding achievements.",
     tags=["Users"]
 )
 async def get_user_activity(
@@ -412,8 +419,8 @@ async def get_user_activity(
 @router.get(
     "/me/records",
     response_model=UserRecordsResponse,
-    summary="Личные рекорды",
-    description="Лучшие личные показатели пользователя (рекорды).",
+    summary="Personal records",
+    description="The user's best personal results (records).",
     tags=["Users"],
 )
 async def get_user_records(
@@ -422,7 +429,7 @@ async def get_user_records(
 ):
     """Personal records: best set, best workout for an exercise, longest workout, max streak."""
     best_set_row = (await session.execute(
-        select(Exercise.slug, Exercise.name_ru, UserExerciseProgress.best_single_set)
+        select(Exercise.slug, Exercise.name, Exercise.name_ru, UserExerciseProgress.best_single_set)
         .join(Exercise, UserExerciseProgress.exercise_id == Exercise.id)
         .where(UserExerciseProgress.user_id == user.id)
         .where(UserExerciseProgress.best_single_set > 0)
@@ -431,7 +438,7 @@ async def get_user_records(
     )).first()
 
     best_workout_row = (await session.execute(
-        select(Exercise.slug, Exercise.name_ru, UserExerciseProgress.best_workout_reps)
+        select(Exercise.slug, Exercise.name, Exercise.name_ru, UserExerciseProgress.best_workout_reps)
         .join(Exercise, UserExerciseProgress.exercise_id == Exercise.id)
         .where(UserExerciseProgress.user_id == user.id)
         .where(UserExerciseProgress.best_workout_reps > 0)
@@ -454,13 +461,15 @@ async def get_user_records(
     return UserRecordsResponse(
         best_set=ExerciseRecord(
             exercise_slug=best_set_row[0],
-            exercise_name_ru=best_set_row[1],
-            value=best_set_row[2],
+            exercise_name=best_set_row[1],
+            exercise_name_ru=best_set_row[2],
+            value=best_set_row[3],
         ) if best_set_row else None,
         best_workout=ExerciseRecord(
             exercise_slug=best_workout_row[0],
-            exercise_name_ru=best_workout_row[1],
-            value=best_workout_row[2],
+            exercise_name=best_workout_row[1],
+            exercise_name_ru=best_workout_row[2],
+            value=best_workout_row[3],
         ) if best_workout_row else None,
         longest_workout_seconds=int(longest_workout),
         max_streak=user.max_streak,

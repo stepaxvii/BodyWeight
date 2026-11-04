@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { DayActivity } from '$lib/types';
 	import { CountUp } from '$lib/components/ui';
+	import { t } from '$lib/i18n/index.svelte';
 
 	interface Props {
 		activityData: Record<string, DayActivity>;
@@ -77,17 +78,17 @@
 	<div class="chart-summary anim-cascade">
 		<div class="summary-item">
 			<span class="summary-value"><CountUp value={totalValue} /></span>
-			<span class="summary-label">XP</span>
+			<span class="summary-label">{t('comp1.activityChart.xp')}</span>
 		</div>
 		<div class="summary-divider"></div>
 		<div class="summary-item">
 			<span class="summary-value">{activeDays}</span>
-			<span class="summary-label">дней</span>
+			<span class="summary-label">{t('comp1.activityChart.days')}</span>
 		</div>
 		<div class="summary-divider"></div>
 		<div class="summary-item">
 			<span class="summary-value">{activeDays > 0 ? Math.round(totalValue / activeDays) : 0}</span>
-			<span class="summary-label">в среднем</span>
+			<span class="summary-label">{t('comp1.activityChart.average')}</span>
 		</div>
 	</div>
 

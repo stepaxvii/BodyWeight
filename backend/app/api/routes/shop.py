@@ -11,15 +11,15 @@ router = APIRouter()
 @router.get(
     "",
     response_model=list[ShopItemResponse],
-    summary="Получить товары магазина",
-    description="Возвращает список товаров магазина с информацией о владении пользователем.",
+    summary="Get shop items",
+    description="Returns the list of shop items along with the user's ownership status.",
     tags=["Shop"]
 )
 async def get_shop_items(
     session: AsyncSessionDep,
     user: CurrentUser,
     item_type: str | None = Query(
-        None, description="Фильтр по типу товара"
+        None, description="Filter by item type"
     ),
 ):
     query = select(ShopItem).where(ShopItem.is_active == True)

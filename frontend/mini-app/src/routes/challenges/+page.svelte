@@ -5,15 +5,17 @@
 	import Banner from '$lib/components/ui/Banner.svelte';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { t } from '$lib/i18n/index.svelte';
 	import type { ChallengeListItem, ChallengeStatus } from '$lib/types';
 
 	type Tab = 'active' | 'upcoming' | 'finished' | 'mine';
-	const TAB_DEFS: { id: Tab; label: string }[] = [
-		{ id: 'active', label: 'Идут' },
-		{ id: 'upcoming', label: 'Скоро' },
-		{ id: 'finished', label: 'Завершены' },
-		{ id: 'mine', label: 'Мои' }
-	];
+	const TAB_IDS: Tab[] = ['active', 'upcoming', 'finished', 'mine'];
+	const tabLabelKey: Record<Tab, string> = {
+		active: 'challenges.list.tabActive',
+		upcoming: 'challenges.list.tabUpcoming',
+		finished: 'challenges.list.tabFinished',
+		mine: 'challenges.list.tabMine'
+	};
 
 	function rarOf(s: ChallengeStatus): string {
 		return s === 'active' ? 'r2' : s === 'upcoming' ? 'r3' : 'r1';
@@ -37,7 +39,10 @@
 	});
 	// Tab labels carry a count so the user knows where the action is.
 	const tabs = $derived(
-		TAB_DEFS.map((t) => ({ id: t.id, label: counts[t.id] > 0 ? `${t.label} ${counts[t.id]}` : t.label }))
+		TAB_IDS.map((id) => {
+			const label = t(tabLabelKey[id]);
+			return { id, label: counts[id] > 0 ? `${label} ${counts[id]}` : label };
+		})
 	);
 	// The active challenge the user is in — pinned at top for quick re-entry.
 	const featured = $derived(lists.active.find((c) => c.is_member) ?? null);
@@ -66,16 +71,16 @@
 	}
 
 	function statusLabel(s: ChallengeStatus): string {
-		if (s === 'upcoming') return 'Скоро';
-		if (s === 'active') return 'Идёт';
-		return 'Завершён';
+		if (s === 'upcoming') return t('challenges.status.upcoming');
+		if (s === 'active') return t('challenges.status.active');
+		return t('challenges.status.finished');
 	}
 </script>
 
 <div class="challenges-page">
-	<Banner icon="calendar" title="Челленджи" sub="Соревнуйся и забирай награды" deco="trophy">
+	<Banner icon="calendar" title={t('challenges.list.bannerTitle')} sub={t('challenges.list.bannerSub')} deco="trophy">
 		{#snippet action()}
-			<a href="{base}/challenges/new" class="banner-new" aria-label="Создать челлендж">
+			<a href="{base}/challenges/new" class="banner-new" aria-label={t('challenges.list.createAria')}>
 				<PixelIcon name="plus" size="md" color="currentColor" />
 			</a>
 		{/snippet}
@@ -84,12 +89,12 @@
 	{#if featured}
 		<a href="{base}/challenges/{featured.id}" class="chal-hero">
 			<div class="chal-hero__top">
-				<span class="chal-hero__label"><PixelIcon name="trophy" size="sm" color="var(--gold)" /> Твой активный челлендж</span>
+				<span class="chal-hero__label"><PixelIcon name="trophy" size="sm" color="var(--gold)" /> {t('challenges.list.heroLabel')}</span>
 				<span class="chal-hero__pct">{featured.completion_percent ?? 0}%</span>
 			</div>
 			<span class="chal-hero__title">{featured.title}</span>
 			<div class="chal-hero__bar"><div class="chal-hero__fill" style="width: {featured.completion_percent ?? 0}%"></div></div>
-			<span class="chal-hero__go"><PixelIcon name="play" size="sm" color="var(--on-accent)" /> Продолжить</span>
+			<span class="chal-hero__go"><PixelIcon name="play" size="sm" color="var(--on-accent)" /> {t('challenges.list.heroContinue')}</span>
 		</a>
 	{/if}
 
@@ -100,12 +105,12 @@
 	/>
 
 	{#if loading}
-		<div class="loading">Загрузка...</div>
+		<div class="loading">{t('challenges.list.loading')}</div>
 	{:else if items.length === 0}
 		<EmptyState
-			title="Пусто"
-			message={activeTab === 'mine' ? 'Ты ещё не создал и не присоединился ни к одному челленджу' : 'Нет челленджей'}
-			buttonText="Создать челлендж"
+			title={t('challenges.list.emptyTitle')}
+			message={activeTab === 'mine' ? t('challenges.list.emptyMineMessage') : t('challenges.list.emptyMessage')}
+			buttonText={t('challenges.list.emptyButton')}
 			onButtonClick={() => (window.location.href = `${base}/challenges/new`)}
 		/>
 	{:else}
@@ -119,21 +124,21 @@
 					</div>
 					<div class="chal-meta">
 						<span><PixelIcon name="calendar" size="sm" color="var(--muted)" /> {fmtDate(item.start_date)} — {fmtDate(item.end_date)}</span>
-						{#if item.creator_name}<span>от @{item.creator_name}</span>{/if}
+						{#if item.creator_name}<span>{t('challenges.list.fromCreator', { name: item.creator_name })}</span>{/if}
 					</div>
 					<div class="chal-meta">
 						<span class="item__tag"><PixelIcon name="users" size="sm" color="var(--muted)" /> {item.participants_count}</span>
-						<span class="item__tag"><PixelIcon name="dumbbell" size="sm" color="var(--muted)" /> {item.exercises_count} упр.</span>
-						{#if item.is_member}<span class="chal-mem"><PixelIcon name="check" size="sm" color="#fff" /> участвуешь</span>{/if}
+						<span class="item__tag"><PixelIcon name="dumbbell" size="sm" color="var(--muted)" /> {t('challenges.list.exercisesCount', { count: item.exercises_count })}</span>
+						{#if item.is_member}<span class="chal-mem"><PixelIcon name="check" size="sm" color="#fff" /> {t('challenges.list.member')}</span>{/if}
 					</div>
 					{#if item.is_member && item.status === 'active' && item.completion_percent !== null}
 						<div class="chal-prog">
 							<div class="chal-prog__bar"><div class="chal-prog__fill" style="width: {item.completion_percent}%"></div></div>
-							<span class="chal-prog__pct">{item.completion_percent}%{#if item.completed_days !== null} · {item.completed_days}/{item.total_days} дн.{/if}</span>
+							<span class="chal-prog__pct">{item.completion_percent}%{#if item.completed_days !== null} · {t('challenges.list.daysProgress', { done: item.completed_days, total: item.total_days })}{/if}</span>
 						</div>
 					{/if}
 					{#if item.reward_claimable}
-						<div class="chal-claim"><PixelIcon name="coin" size="sm" color="var(--gold)" /> Забери награду: +{item.reward_coins}</div>
+						<div class="chal-claim"><PixelIcon name="coin" size="sm" color="var(--gold)" /> {t('challenges.list.claimReward', { coins: item.reward_coins })}</div>
 					{/if}
 				</a>
 			{/each}

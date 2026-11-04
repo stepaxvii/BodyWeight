@@ -1,93 +1,61 @@
 import type { Badge, BadgeId } from '$lib/types';
+import { t } from '$lib/i18n/index.svelte';
+
+/** Localized badge name (reactive to the active locale). */
+export function getBadgeName(badge: Badge): string {
+	return t(`gamedata.${badge.id}.name`);
+}
+
+/** Localized badge description (reactive to the active locale). */
+export function getBadgeDescription(badge: Badge): string {
+	return t(`gamedata.${badge.id}.description`);
+}
+
+/**
+ * Badge definitions. `name`/`name_ru`/`description`/`description_ru` are exposed
+ * as getters so they resolve through the `gamedata` i18n namespace lazily and
+ * stay reactive to the active locale.
+ */
+function badge(
+	id: BadgeId,
+	rarity: Badge['rarity'],
+): Badge {
+	return {
+		id,
+		rarity,
+		get name() {
+			return t(`gamedata.${id}.name`);
+		},
+		get name_ru() {
+			return t(`gamedata.${id}.name`);
+		},
+		get description() {
+			return t(`gamedata.${id}.description`);
+		},
+		get description_ru() {
+			return t(`gamedata.${id}.description`);
+		},
+	};
+}
 
 export const BADGES: Badge[] = [
-	// === COMMON (Обычные) ===
-	{
-		id: 'first-blood',
-		name: 'First Blood',
-		name_ru: 'Первая кровь',
-		description: 'Complete your first workout',
-		description_ru: 'Завершите первую тренировку',
-		rarity: 'common'
-	},
-	{
-		id: 'early-bird',
-		name: 'Early Bird',
-		name_ru: 'Ранняя пташка',
-		description: 'Complete a workout before 7 AM',
-		description_ru: 'Завершите тренировку до 7 утра',
-		rarity: 'common'
-	},
-	{
-		id: 'night-owl',
-		name: 'Night Owl',
-		name_ru: 'Ночная сова',
-		description: 'Complete a workout after 10 PM',
-		description_ru: 'Завершите тренировку после 10 вечера',
-		rarity: 'common'
-	},
+	// === COMMON ===
+	badge('first-blood', 'common'),
+	badge('early-bird', 'common'),
+	badge('night-owl', 'common'),
 
-	// === RARE (Редкие) ===
-	{
-		id: 'week-warrior',
-		name: 'Week Warrior',
-		name_ru: 'Недельный воин',
-		description: 'Maintain a 7-day workout streak',
-		description_ru: 'Сохраняйте серию тренировок 7 дней',
-		rarity: 'rare'
-	},
-	{
-		id: 'iron-will',
-		name: 'Iron Will',
-		name_ru: 'Железная воля',
-		description: 'Complete 1000 total reps',
-		description_ru: 'Выполните 1000 повторений всего',
-		rarity: 'rare'
-	},
-	{
-		id: 'perfectionist',
-		name: 'Perfectionist',
-		name_ru: 'Перфекционист',
-		description: 'Complete 10 workouts in a row without skipping a day',
-		description_ru: 'Выполните 10 тренировок подряд без пропусков',
-		rarity: 'rare'
-	},
+	// === RARE ===
+	badge('week-warrior', 'rare'),
+	badge('iron-will', 'rare'),
+	badge('perfectionist', 'rare'),
 
-	// === EPIC (Эпические) ===
-	{
-		id: 'centurion',
-		name: 'Centurion',
-		name_ru: 'Центурион',
-		description: 'Complete 100 workouts total',
-		description_ru: 'Завершите 100 тренировок всего',
-		rarity: 'epic'
-	},
-	{
-		id: 'month-master',
-		name: 'Month Master',
-		name_ru: 'Мастер месяца',
-		description: 'Maintain a 30-day workout streak',
-		description_ru: 'Сохраняйте серию тренировок 30 дней',
-		rarity: 'epic'
-	},
+	// === EPIC ===
+	badge('centurion', 'epic'),
+	badge('month-master', 'epic'),
 
-	// === LEGENDARY (Легендарные) ===
-	{
-		id: 'legend',
-		name: 'Legend',
-		name_ru: 'Легенда',
-		description: 'Reach level 25',
-		description_ru: 'Достигните 25 уровня',
-		rarity: 'legendary'
-	},
-	{
-		id: 'unstoppable',
-		name: 'Unstoppable',
-		name_ru: 'Неудержимый',
-		description: 'Maintain a 100-day workout streak',
-		description_ru: 'Сохраняйте серию тренировок 100 дней',
-		rarity: 'legendary'
-	}
+	// === LEGENDARY ===
+	badge('legend', 'legendary'),
+	badge('unstoppable', 'legendary'),
 ];
 
 export function getBadge(id: BadgeId): Badge | undefined {

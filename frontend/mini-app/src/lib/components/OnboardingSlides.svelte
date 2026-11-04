@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { PixelButton, PixelIcon } from '$lib/components/ui';
+	import { t } from '$lib/i18n/index.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
 
 	interface Props {
@@ -8,37 +9,14 @@
 
 	let { onComplete }: Props = $props();
 
+	// Text is resolved from i18n in markup (keys below) so it stays reactive to
+	// the locale switcher; only icon/color/key live here.
 	const slides = [
-		{
-			icon: 'dumbbell',
-			title: 'Тренируйся',
-			description: 'Выполняй упражнения где угодно и когда удобно. Отжимания, приседания, планка и другие.',
-			color: 'var(--pixel-red)'
-		},
-		{
-			icon: 'xp',
-			title: 'Получай XP',
-			description: 'За каждое повторение ты получаешь опыт. Прокачивай уровень и открывай новые упражнения.',
-			color: 'var(--pixel-blue)'
-		},
-		{
-			icon: 'streak',
-			title: 'Держи серию',
-			description: 'Тренируйся каждый день и получай бонусы к XP. Не пропускай ни одного дня!',
-			color: 'var(--pixel-yellow)'
-		},
-		{
-			icon: 'trophy',
-			title: 'Получай награды',
-			description: 'Разблокируй достижения и соревнуйся с друзьями в таблице лидеров.',
-			color: 'var(--pixel-green)'
-		},
-		{
-			icon: 'heart',
-			title: 'Будь честен',
-			description: 'Тренировки нужны тебе, а не приложению. Записывай только то, что сделал на самом деле!',
-			color: 'var(--pixel-purple)'
-		}
+		{ icon: 'dumbbell', key: 'train', color: 'var(--pixel-red)' },
+		{ icon: 'xp', key: 'xp', color: 'var(--pixel-blue)' },
+		{ icon: 'streak', key: 'streak', color: 'var(--pixel-yellow)' },
+		{ icon: 'trophy', key: 'rewards', color: 'var(--pixel-green)' },
+		{ icon: 'heart', key: 'honest', color: 'var(--pixel-purple)' }
 	];
 
 	let currentSlide = $state(0);
@@ -74,7 +52,7 @@
 
 <div class="slides-container">
 	<button class="skip-btn" onclick={skip}>
-		Пропустить
+		{t('comp2.slides.skip')}
 	</button>
 
 	<div class="slide" style="--slide-color: {slides[currentSlide].color}">
@@ -147,8 +125,8 @@
 			{/if}
 		</div>
 
-		<h1 class="slide-title">{slides[currentSlide].title}</h1>
-		<p class="slide-description">{slides[currentSlide].description}</p>
+		<h1 class="slide-title">{t(`comp2.slides.${slides[currentSlide].key}.title`)}</h1>
+		<p class="slide-description">{t(`comp2.slides.${slides[currentSlide].key}.description`)}</p>
 	</div>
 
 	<div class="dots">
@@ -157,7 +135,7 @@
 				class="dot"
 				class:active={index === currentSlide}
 				onclick={() => goToSlide(index)}
-				aria-label="Слайд {index + 1}"
+				aria-label={t('comp2.slides.slideAria', { index: index + 1 })}
 			></button>
 		{/each}
 	</div>
@@ -166,7 +144,7 @@
 		{#if currentSlide > 0}
 			<PixelButton variant="ghost" onclick={prevSlide}>
 				<PixelIcon name="back" size="sm" />
-				Назад
+				{t('comp2.slides.back')}
 			</PixelButton>
 		{:else}
 			<div></div>
@@ -176,7 +154,7 @@
 			variant={isLastSlide ? 'success' : 'primary'}
 			onclick={nextSlide}
 		>
-			{isLastSlide ? 'Выбрать персонажа' : 'Далее'}
+			{isLastSlide ? t('comp2.slides.pickCharacter') : t('comp2.slides.next')}
 			{#if !isLastSlide}
 				<PixelIcon name="arrow-right" size="sm" />
 			{/if}

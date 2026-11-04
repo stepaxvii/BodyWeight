@@ -25,6 +25,7 @@ class ChallengeCreate(BaseModel):
 class ChallengeExerciseResponse(BaseModel):
     exercise_id: int
     exercise_slug: str
+    exercise_name: str
     exercise_name_ru: str
     daily_target: int
     is_timed: bool
@@ -70,6 +71,7 @@ class ChallengeDayProgress(BaseModel):
     progress_date: date
     exercise_id: int
     exercise_slug: str
+    exercise_name: str
     exercise_name_ru: str
     accumulated: int
     target: int

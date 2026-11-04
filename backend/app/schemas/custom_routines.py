@@ -16,6 +16,7 @@ class RoutineExerciseResponse(BaseModel):
     id: int
     exercise_id: int
     exercise_slug: str
+    exercise_name: str
     exercise_name_ru: str
     is_timed: bool
     sort_order: int

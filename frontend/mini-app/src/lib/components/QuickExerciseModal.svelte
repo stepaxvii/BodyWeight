@@ -7,6 +7,7 @@
 	import { exercisesStore } from '$lib/stores/exercises.svelte';
 	import { calculateCyclingXp, calculateRunningXp, calculateWalkingXp, calculateExerciseXp, calculateTimedXp, xpPerRep } from '$lib/utils/xp';
 	import { getTagName } from '$lib/utils';
+	import { t, ln } from '$lib/i18n/index.svelte';
 	import type { Exercise, EquipmentType, ExerciseCategory } from '$lib/types';
 	import { onMount } from 'svelte';
 
@@ -44,14 +45,15 @@
 	let categories = $state<ExerciseCategory[]>([]);
 
 	// Filter options
+	// labelKey resolves via i18n in markup so it tracks the locale switcher.
 	const EQUIPMENT_OPTIONS = [
-		{ id: 'none', label: 'Без снаряжения' },
-		{ id: 'pullup-bar', label: 'Турник' },
-		{ id: 'dip-bars', label: 'Брусья' },
-		{ id: 'bench', label: 'Скамья' },
-		{ id: 'wall', label: 'Стена' },
-		{ id: 'bike', label: 'Велосипед' },
-		{ id: 'dumbbell', label: 'Гантели' }
+		{ id: 'none', labelKey: 'none' },
+		{ id: 'pullup-bar', labelKey: 'pullupBar' },
+		{ id: 'dip-bars', labelKey: 'dipBars' },
+		{ id: 'bench', labelKey: 'bench' },
+		{ id: 'wall', labelKey: 'wall' },
+		{ id: 'bike', labelKey: 'bike' },
+		{ id: 'dumbbell', labelKey: 'dumbbell' }
 	];
 
 	const MUSCLE_TAG_IDS = [
@@ -583,28 +585,28 @@
 </script>
 
 
-<PixelModal {open} title="Быстрая запись" onclose={handleClose}>
+<PixelModal {open} title={t('modals1.quick.modalTitle')} onclose={handleClose}>
 	<div class="ql">
 		{#if step === 'mode'}
 			<div class="ql-modes">
 				<button class="ql-mode" onclick={selectRunning}>
 					<span class="slot slot--md"><PixelIcon name="run" size="md" color="var(--gold)" /></span>
-					<span class="ql-mode__l">Бег · дистанция</span>
+					<span class="ql-mode__l">{t('modals1.quick.modeRunning')}</span>
 					<PixelIcon name="chevron" size="sm" color="var(--muted)" class="ql-chev" />
 				</button>
 				<button class="ql-mode" onclick={selectCycling}>
 					<span class="slot slot--md"><PixelIcon name="bike" size="md" color="var(--green)" /></span>
-					<span class="ql-mode__l">Поездка на велосипеде</span>
+					<span class="ql-mode__l">{t('modals1.quick.modeCycling')}</span>
 					<PixelIcon name="chevron" size="sm" color="var(--muted)" class="ql-chev" />
 				</button>
 				<button class="ql-mode" onclick={selectWalking}>
 					<span class="slot slot--md"><PixelIcon name="steps" size="md" color="var(--accent)" /></span>
-					<span class="ql-mode__l">Ходьба · шаги</span>
+					<span class="ql-mode__l">{t('modals1.quick.modeWalking')}</span>
 					<PixelIcon name="chevron" size="sm" color="var(--muted)" class="ql-chev" />
 				</button>
 				<button class="ql-mode" onclick={() => selectMode('favorites')}>
 					<span class="slot slot--md"><PixelIcon name="heart" size="md" color="var(--danger)" /></span>
-					<span class="ql-mode__l">Избранные упражнения</span>
+					<span class="ql-mode__l">{t('modals1.quick.modeFavorites')}</span>
 					{#if favoritesStore.count > 0}
 						<span class="ql-mode__badge">{favoritesStore.count}</span>
 					{:else}
@@ -613,69 +615,69 @@
 				</button>
 				<button class="ql-mode" onclick={() => selectMode('all')}>
 					<span class="slot slot--md"><PixelIcon name="dumbbell" size="md" color="var(--accent)" /></span>
-					<span class="ql-mode__l">Все упражнения</span>
+					<span class="ql-mode__l">{t('modals1.quick.modeAll')}</span>
 					<PixelIcon name="chevron" size="sm" color="var(--muted)" class="ql-chev" />
 				</button>
 			</div>
 		{:else if step === 'exercise'}
 			<div class="ql-back">
-				<button class="ql-backbtn" onclick={goBack} aria-label="Назад"><PixelIcon name="arrowleft" size="sm" /></button>
-				<span class="ql-back__t">{exerciseMode === 'favorites' ? 'Избранные' : 'Все упражнения'}</span>
+				<button class="ql-backbtn" onclick={goBack} aria-label={t('modals1.quick.back')}><PixelIcon name="arrowleft" size="sm" /></button>
+				<span class="ql-back__t">{exerciseMode === 'favorites' ? t('modals1.quick.headFavorites') : t('modals1.quick.headAll')}</span>
 			</div>
 			<div class="ql-search">
 				<PixelIcon name="search" size="sm" color="var(--muted)" />
-				<input class="ql-search__in" placeholder="Поиск упражнений..." bind:value={searchQuery} />
-				<button class="ql-search__filter" onclick={openFilters} aria-label="Фильтр">
+				<input class="ql-search__in" placeholder={t('modals1.quick.searchPlaceholder')} bind:value={searchQuery} />
+				<button class="ql-search__filter" onclick={openFilters} aria-label={t('modals1.quick.filter')}>
 					<PixelIcon name="gear" size="sm" />
 					{#if activeFilterCount > 0}<span class="ql-fbadge">{activeFilterCount}</span>{/if}
 				</button>
 			</div>
 			{#if exerciseMode === 'all' && categories.length > 0}
 				<div class="ql-cats">
-					<button class="ql-pill" class:is-active={selectedCategory === null} onclick={() => (selectedCategory = null)}>Все</button>
+					<button class="ql-pill" class:is-active={selectedCategory === null} onclick={() => (selectedCategory = null)}>{t('modals1.quick.allCategories')}</button>
 					{#each categories as cat}
-						<button class="ql-pill" class:is-active={selectedCategory === cat.slug} onclick={() => toggleCategory(cat.slug)}>{cat.name_ru}</button>
+						<button class="ql-pill" class:is-active={selectedCategory === cat.slug} onclick={() => toggleCategory(cat.slug)}>{ln(cat.name, cat.name_ru)}</button>
 					{/each}
 				</div>
 			{/if}
 			<div class="ql-list">
 				{#each displayedExercises as ex}
 					<button class="ql-ex" onclick={() => selectExercise(ex)}>
-						<span class="ql-ex__n">{ex.name_ru}</span>
-						<span class="ql-ex__xp">+{Number(xpPerRep(ex.base_xp).toFixed(1))} XP/{isTimeBased(ex) ? '10с' : 'повт'}</span>
+						<span class="ql-ex__n">{ln(ex.name, ex.name_ru)}</span>
+						<span class="ql-ex__xp">{isTimeBased(ex) ? t('modals1.quick.xpPerTimeShort', { xp: Number(xpPerRep(ex.base_xp).toFixed(1)) }) : t('modals1.quick.xpPerRepShort', { xp: Number(xpPerRep(ex.base_xp).toFixed(1)) })}</span>
 					</button>
 				{/each}
 				{#if displayedExercises.length === 0}
 					<p class="ql-empty">
-						{#if exerciseMode === 'favorites'}Нет избранных упражнений{:else if searchQuery || activeFilterCount > 0}Ничего не найдено{:else}Нет упражнений{/if}
+						{#if exerciseMode === 'favorites'}{t('modals1.quick.emptyFavorites')}{:else if searchQuery || activeFilterCount > 0}{t('modals1.quick.emptyNotFound')}{:else}{t('modals1.quick.emptyNone')}{/if}
 					</p>
 				{/if}
 			</div>
 		{:else if step === 'filters'}
 			<div class="ql-back">
-				<button class="ql-backbtn" onclick={goBack} aria-label="Назад"><PixelIcon name="arrowleft" size="sm" /></button>
-				<span class="ql-back__t">Фильтры</span>
+				<button class="ql-backbtn" onclick={goBack} aria-label={t('modals1.quick.back')}><PixelIcon name="arrowleft" size="sm" /></button>
+				<span class="ql-back__t">{t('modals1.quick.filtersTitle')}</span>
 			</div>
 			<div class="filter-sections">
 				<div class="filter-section">
-					<h4 class="filter-section-title">Категория</h4>
+					<h4 class="filter-section-title">{t('modals1.quick.filterCategory')}</h4>
 					<div class="filter-options">
-						<button class="ql-pill" class:is-active={selectedCategory === null} onclick={() => (selectedCategory = null)}>Все</button>
+						<button class="ql-pill" class:is-active={selectedCategory === null} onclick={() => (selectedCategory = null)}>{t('modals1.quick.allCategories')}</button>
 						{#each categories as cat}
-							<button class="ql-pill" class:is-active={selectedCategory === cat.slug} onclick={() => toggleCategory(cat.slug)}>{cat.name_ru}</button>
+							<button class="ql-pill" class:is-active={selectedCategory === cat.slug} onclick={() => toggleCategory(cat.slug)}>{ln(cat.name, cat.name_ru)}</button>
 						{/each}
 					</div>
 				</div>
 				<div class="filter-section">
-					<h4 class="filter-section-title">Оборудование</h4>
+					<h4 class="filter-section-title">{t('modals1.quick.filterEquipment')}</h4>
 					<div class="filter-options">
 						{#each EQUIPMENT_OPTIONS as eq}
-							<button class="ql-pill" class:is-active={selectedEquipment.includes(eq.id)} onclick={() => toggleEquipment(eq.id)}>{eq.label}</button>
+							<button class="ql-pill" class:is-active={selectedEquipment.includes(eq.id)} onclick={() => toggleEquipment(eq.id)}>{t('modals1.quick.equipment.' + eq.labelKey)}</button>
 						{/each}
 					</div>
 				</div>
 				<div class="filter-section">
-					<h4 class="filter-section-title">Сложность</h4>
+					<h4 class="filter-section-title">{t('modals1.quick.filterDifficulty')}</h4>
 					<div class="filter-options">
 						{#each [1, 2, 3, 4, 5] as level}
 							<button class="ql-pill" class:is-active={selectedDifficulties.includes(level)} onclick={() => toggleDifficulty(level)}>{'★'.repeat(level) + '☆'.repeat(5 - level)}</button>
@@ -683,7 +685,7 @@
 					</div>
 				</div>
 				<div class="filter-section">
-					<h4 class="filter-section-title">Группы мышц</h4>
+					<h4 class="filter-section-title">{t('modals1.quick.filterMuscles')}</h4>
 					<div class="filter-options">
 						{#each MUSCLE_TAG_IDS as tagId}
 							<button class="ql-pill" class:is-active={selectedTags.includes(tagId)} onclick={() => toggleTag(tagId)}>{getTagName(tagId)}</button>
@@ -692,72 +694,72 @@
 				</div>
 			</div>
 			<div class="ql-filteractions">
-				<PixelButton variant="secondary" fullWidth onclick={clearFilters}>Сбросить все</PixelButton>
-				<PixelButton variant="primary" fullWidth onclick={goBack}>Применить</PixelButton>
+				<PixelButton variant="secondary" fullWidth onclick={clearFilters}>{t('modals1.quick.clearAll')}</PixelButton>
+				<PixelButton variant="primary" fullWidth onclick={goBack}>{t('modals1.quick.apply')}</PixelButton>
 			</div>
 		{:else if step === 'input' && selectedExercise}
 			<div class="ql-back">
-				<button class="ql-backbtn" onclick={goBack} aria-label="Назад"><PixelIcon name="arrowleft" size="sm" /></button>
-				<span class="ql-back__t">{selectedExercise.name_ru}</span>
+				<button class="ql-backbtn" onclick={goBack} aria-label={t('modals1.quick.back')}><PixelIcon name="arrowleft" size="sm" /></button>
+				<span class="ql-back__t">{ln(selectedExercise.name, selectedExercise.name_ru)}</span>
 			</div>
-			<span class="ql-label">{isTimeBased(selectedExercise!) ? 'Длительность (секунды)' : 'Количество повторений'}</span>
+			<span class="ql-label">{isTimeBased(selectedExercise!) ? t('modals1.quick.durationLabel') : t('modals1.quick.repsLabel')}</span>
 			<div class="qty">
-				<button class="qty__btn" onclick={() => adjustValue(isTimeBased(selectedExercise!) ? -10 : -5)} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
-				<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="numeric" maxlength="3" value={String(isTimeBased(selectedExercise!) ? duration : reps)} oninput={typeRepsOrDuration} onblur={blurRepsOrDuration} aria-label={isTimeBased(selectedExercise!) ? 'Секунды' : 'Повторения'} /><span class="qty__u">{isTimeBased(selectedExercise!) ? 'сек' : 'повт.'}</span></div>
-				<button class="qty__btn" onclick={() => adjustValue(isTimeBased(selectedExercise!) ? 10 : 5)} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
+				<button class="qty__btn" onclick={() => adjustValue(isTimeBased(selectedExercise!) ? -10 : -5)} aria-label={t('modals1.quick.less')}><PixelIcon name="minus" size="sm" /></button>
+				<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="numeric" maxlength="3" value={String(isTimeBased(selectedExercise!) ? duration : reps)} oninput={typeRepsOrDuration} onblur={blurRepsOrDuration} aria-label={isTimeBased(selectedExercise!) ? t('modals1.quick.secondsAria') : t('modals1.quick.repsAria')} /><span class="qty__u">{isTimeBased(selectedExercise!) ? t('modals1.quick.unitSec') : t('modals1.quick.unitReps')}</span></div>
+				<button class="qty__btn" onclick={() => adjustValue(isTimeBased(selectedExercise!) ? 10 : 5)} aria-label={t('modals1.quick.more')}><PixelIcon name="plus" size="sm" /></button>
 			</div>
-			<PixelButton variant="success" size="lg" fullWidth loading={isSubmitting} onclick={handleSave}><PixelIcon name="check" /> Записать</PixelButton>
+			<PixelButton variant="success" size="lg" fullWidth loading={isSubmitting} onclick={handleSave}><PixelIcon name="check" /> {t('modals1.quick.record')}</PixelButton>
 		{:else if step === 'cycling-input'}
 			<div class="ql-back">
-				<button class="ql-backbtn" onclick={goBack} aria-label="Назад"><PixelIcon name="arrowleft" size="sm" /></button>
-				<span class="ql-back__t">Велосипед</span>
+				<button class="ql-backbtn" onclick={goBack} aria-label={t('modals1.quick.back')}><PixelIcon name="arrowleft" size="sm" /></button>
+				<span class="ql-back__t">{t('modals1.quick.cyclingTitle')}</span>
 			</div>
-			<span class="ql-label">Дистанция</span>
+			<span class="ql-label">{t('modals1.quick.distanceLabel')}</span>
 			<div class="qty">
-				<button class="qty__btn" onclick={() => (cyclingDistanceKm = Math.max(0.5, +(cyclingDistanceKm - 0.5).toFixed(1)))} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
-				<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="decimal" maxlength="5" value={String(cyclingDistanceKm)} oninput={typeCyclingKm} onblur={blurCyclingKm} aria-label="Дистанция, км" /><span class="qty__u">км</span></div>
-				<button class="qty__btn" onclick={() => (cyclingDistanceKm = +(cyclingDistanceKm + 0.5).toFixed(1))} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
+				<button class="qty__btn" onclick={() => (cyclingDistanceKm = Math.max(0.5, +(cyclingDistanceKm - 0.5).toFixed(1)))} aria-label={t('modals1.quick.less')}><PixelIcon name="minus" size="sm" /></button>
+				<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="decimal" maxlength="5" value={String(cyclingDistanceKm)} oninput={typeCyclingKm} onblur={blurCyclingKm} aria-label={t('modals1.quick.distanceAria')} /><span class="qty__u">{t('modals1.quick.unitKm')}</span></div>
+				<button class="qty__btn" onclick={() => (cyclingDistanceKm = +(cyclingDistanceKm + 0.5).toFixed(1))} aria-label={t('modals1.quick.more')}><PixelIcon name="plus" size="sm" /></button>
 			</div>
-			<span class="ql-label">Время</span>
+			<span class="ql-label">{t('modals1.quick.timeLabel')}</span>
 			<div class="qty">
-				<button class="qty__btn" onclick={() => (cyclingDurationMin = Math.max(5, cyclingDurationMin - 1))} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
-				<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="numeric" maxlength="3" value={String(cyclingDurationMin)} oninput={typeCyclingMin} onblur={blurCyclingMin} aria-label="Время, минуты" /><span class="qty__u">мин</span></div>
-				<button class="qty__btn" onclick={() => (cyclingDurationMin = cyclingDurationMin + 1)} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
+				<button class="qty__btn" onclick={() => (cyclingDurationMin = Math.max(5, cyclingDurationMin - 1))} aria-label={t('modals1.quick.less')}><PixelIcon name="minus" size="sm" /></button>
+				<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="numeric" maxlength="3" value={String(cyclingDurationMin)} oninput={typeCyclingMin} onblur={blurCyclingMin} aria-label={t('modals1.quick.timeAria')} /><span class="qty__u">{t('modals1.quick.unitMin')}</span></div>
+				<button class="qty__btn" onclick={() => (cyclingDurationMin = cyclingDurationMin + 1)} aria-label={t('modals1.quick.more')}><PixelIcon name="plus" size="sm" /></button>
 			</div>
-			<div class="ql-sum"><span>Ср. скорость: {cyclingSpeedKmh.toFixed(1)} км/ч</span><span class="ql-sum__xp">+{cyclingEstimatedXp} XP</span></div>
-			<PixelButton variant="success" size="lg" fullWidth loading={isSubmitting} onclick={handleSaveCycling}><PixelIcon name="check" /> Записать поездку</PixelButton>
+			<div class="ql-sum"><span>{t('modals1.quick.avgSpeed', { speed: cyclingSpeedKmh.toFixed(1) })}</span><span class="ql-sum__xp">+{cyclingEstimatedXp} XP</span></div>
+			<PixelButton variant="success" size="lg" fullWidth loading={isSubmitting} onclick={handleSaveCycling}><PixelIcon name="check" /> {t('modals1.quick.recordRide')}</PixelButton>
 			{:else if step === 'running-input'}
 				<div class="ql-back">
-					<button class="ql-backbtn" onclick={goBack} aria-label="Назад"><PixelIcon name="arrowleft" size="sm" /></button>
-					<span class="ql-back__t">Бег</span>
+					<button class="ql-backbtn" onclick={goBack} aria-label={t('modals1.quick.back')}><PixelIcon name="arrowleft" size="sm" /></button>
+					<span class="ql-back__t">{t('modals1.quick.runningTitle')}</span>
 				</div>
-				<span class="ql-label">Дистанция</span>
+				<span class="ql-label">{t('modals1.quick.distanceLabel')}</span>
 				<div class="qty">
-					<button class="qty__btn" onclick={() => (runningDistanceKm = Math.max(0.1, +(runningDistanceKm - 0.5).toFixed(1)))} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
-					<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="decimal" maxlength="5" value={String(runningDistanceKm)} oninput={typeRunningKm} onblur={blurRunningKm} aria-label="Дистанция, км" /><span class="qty__u">км</span></div>
-					<button class="qty__btn" onclick={() => (runningDistanceKm = +(runningDistanceKm + 0.5).toFixed(1))} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
+					<button class="qty__btn" onclick={() => (runningDistanceKm = Math.max(0.1, +(runningDistanceKm - 0.5).toFixed(1)))} aria-label={t('modals1.quick.less')}><PixelIcon name="minus" size="sm" /></button>
+					<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="decimal" maxlength="5" value={String(runningDistanceKm)} oninput={typeRunningKm} onblur={blurRunningKm} aria-label={t('modals1.quick.distanceAria')} /><span class="qty__u">{t('modals1.quick.unitKm')}</span></div>
+					<button class="qty__btn" onclick={() => (runningDistanceKm = +(runningDistanceKm + 0.5).toFixed(1))} aria-label={t('modals1.quick.more')}><PixelIcon name="plus" size="sm" /></button>
 				</div>
-				<span class="ql-label">Время</span>
+				<span class="ql-label">{t('modals1.quick.timeLabel')}</span>
 				<div class="qty">
-					<button class="qty__btn" onclick={() => (runningDurationMin = Math.max(3, runningDurationMin - 1))} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
-					<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="numeric" maxlength="3" value={String(runningDurationMin)} oninput={typeRunningMin} onblur={blurRunningMin} aria-label="Время, минуты" /><span class="qty__u">мин</span></div>
-					<button class="qty__btn" onclick={() => (runningDurationMin = runningDurationMin + 1)} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
+					<button class="qty__btn" onclick={() => (runningDurationMin = Math.max(3, runningDurationMin - 1))} aria-label={t('modals1.quick.less')}><PixelIcon name="minus" size="sm" /></button>
+					<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="numeric" maxlength="3" value={String(runningDurationMin)} oninput={typeRunningMin} onblur={blurRunningMin} aria-label={t('modals1.quick.timeAria')} /><span class="qty__u">{t('modals1.quick.unitMin')}</span></div>
+					<button class="qty__btn" onclick={() => (runningDurationMin = runningDurationMin + 1)} aria-label={t('modals1.quick.more')}><PixelIcon name="plus" size="sm" /></button>
 				</div>
-				<div class="ql-sum"><span>Ср. темп: {runningSpeedKmh.toFixed(1)} км/ч</span><span class="ql-sum__xp">+{runningEstimatedXp} XP</span></div>
-				<PixelButton variant="success" size="lg" fullWidth loading={isSubmitting} onclick={handleSaveRunning}><PixelIcon name="check" /> Записать пробежку</PixelButton>
+				<div class="ql-sum"><span>{t('modals1.quick.avgPace', { speed: runningSpeedKmh.toFixed(1) })}</span><span class="ql-sum__xp">+{runningEstimatedXp} XP</span></div>
+				<PixelButton variant="success" size="lg" fullWidth loading={isSubmitting} onclick={handleSaveRunning}><PixelIcon name="check" /> {t('modals1.quick.recordRun')}</PixelButton>
 		{:else if step === 'walking-input'}
 			<div class="ql-back">
-				<button class="ql-backbtn" onclick={goBack} aria-label="Назад"><PixelIcon name="arrowleft" size="sm" /></button>
-				<span class="ql-back__t">Ходьба</span>
+				<button class="ql-backbtn" onclick={goBack} aria-label={t('modals1.quick.back')}><PixelIcon name="arrowleft" size="sm" /></button>
+				<span class="ql-back__t">{t('modals1.quick.walkingTitle')}</span>
 			</div>
-			<span class="ql-label">Количество шагов</span>
+			<span class="ql-label">{t('modals1.quick.stepsLabel')}</span>
 			<div class="qty">
-				<button class="qty__btn" onclick={() => (walkingSteps = Math.max(100, walkingSteps - 500))} aria-label="Меньше"><PixelIcon name="minus" size="sm" /></button>
-				<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="numeric" maxlength="6" value={String(walkingSteps)} oninput={typeWalkingSteps} onblur={blurWalkingSteps} aria-label="Количество шагов" /><span class="qty__u">шагов</span></div>
-				<button class="qty__btn" onclick={() => (walkingSteps = walkingSteps + 500)} aria-label="Больше"><PixelIcon name="plus" size="sm" /></button>
+				<button class="qty__btn" onclick={() => (walkingSteps = Math.max(100, walkingSteps - 500))} aria-label={t('modals1.quick.less')}><PixelIcon name="minus" size="sm" /></button>
+				<div class="qty__mid"><input class="qty__v qty__in" type="text" inputmode="numeric" maxlength="6" value={String(walkingSteps)} oninput={typeWalkingSteps} onblur={blurWalkingSteps} aria-label={t('modals1.quick.stepsAria')} /><span class="qty__u">{t('modals1.quick.unitSteps')}</span></div>
+				<button class="qty__btn" onclick={() => (walkingSteps = walkingSteps + 500)} aria-label={t('modals1.quick.more')}><PixelIcon name="plus" size="sm" /></button>
 			</div>
-			<div class="ql-sum"><span>≈ {(walkingSteps / 1300).toFixed(1)} км</span><span class="ql-sum__xp">+{walkingEstimatedXp} XP</span></div>
-			<PixelButton variant="success" size="lg" fullWidth loading={isSubmitting} onclick={handleSaveWalking}><PixelIcon name="check" /> Записать ходьбу</PixelButton>
+			<div class="ql-sum"><span>{t('modals1.quick.approxKm', { km: (walkingSteps / 1300).toFixed(1) })}</span><span class="ql-sum__xp">+{walkingEstimatedXp} XP</span></div>
+			<PixelButton variant="success" size="lg" fullWidth loading={isSubmitting} onclick={handleSaveWalking}><PixelIcon name="check" /> {t('modals1.quick.recordWalk')}</PixelButton>
 		{/if}
 	</div>
 </PixelModal>

@@ -1,7 +1,8 @@
 """Workout share card renderer — server-side PNG in the app's NES-cobalt style.
 
-PURE module: no app config, no DB, no network — only Pillow and the bundled
-Pixel Operator fonts (app/assets/fonts/), so it can be smoke-tested standalone:
+No app config, no DB, no network — only Pillow, the bundled Pixel Operator
+fonts (app/assets/fonts/) and the pure app.i18n label catalog, so it can still
+be smoke-tested standalone:
 
     python3 -c "
     from app.services.share_card import CardData, render_card
@@ -30,6 +31,8 @@ from functools import lru_cache
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
+
+from app.i18n import t
 
 # Palette — mirrors frontend palette in src/app.css (NES-cobalt paper look)
 CREAM = "#efe6d4"      # page background
@@ -82,17 +85,23 @@ class CardData:
     bot_username: str   # without @
 
 
-def _plural_days(n: int) -> str:
-    """Russian pluralization: 1 день, 2 дня, 5 дней."""
-    n = abs(n) % 100
-    if 11 <= n <= 14:
-        return "дней"
-    last = n % 10
-    if last == 1:
-        return "день"
-    if 2 <= last <= 4:
-        return "дня"
-    return "дней"
+def _plural_days(n: int, lang: str) -> str:
+    """Localized day-count word, pulled from the i18n catalog (RU has 3 forms)."""
+    if (lang or "").startswith("ru"):
+        nn = abs(n) % 100
+        if 11 <= nn <= 14:
+            key = "day_many"
+        else:
+            last = nn % 10
+            if last == 1:
+                key = "day_one"
+            elif 2 <= last <= 4:
+                key = "day_few"
+            else:
+                key = "day_many"
+    else:
+        key = "day_one" if abs(n) == 1 else "day_many"
+    return t(lang, f"sharecard.{key}")
 
 
 def _fmt(n: int) -> str:
@@ -141,8 +150,11 @@ def _draw_stairs(
         draw.rectangle([x0, y0, x0 + w - 1, y0 + u - 1], fill=color)
 
 
-def render_card(data: CardData, variant: str = "post") -> bytes:
-    """Render the share card as PNG bytes. ``variant``: 'post' or 'story'."""
+def render_card(data: CardData, variant: str = "post", lang: str = "en") -> bytes:
+    """Render the share card as PNG bytes. ``variant``: 'post' or 'story'.
+
+    ``lang`` picks the card's label language (en fallback).
+    """
     if variant == "post":
         width, height = POST_SIZE
     elif variant == "story":
@@ -190,25 +202,25 @@ def render_card(data: CardData, variant: str = "post") -> bytes:
     inner_bottom = panel_bottom - BORDER - PAD
     inner_w = inner_right - inner_left
 
-    title_text = "Тренировка завершена!"
+    title_text = t(lang, "sharecard.title")
     title_size = _fit_size(draw, title_text, True, TITLE_SIZE, inner_w)
 
     xp_text = f"+{_fmt(data.xp)} XP"
     xp_size = _fit_size(draw, xp_text, True, XP_SIZE, inner_w - 2 * XP_STROKE)
 
     # Stat rows; zero-valued rows are omitted (timed-only workout -> only
-    # «Время»), boss row only when the workout actually dealt damage.
+    # the time row), boss row only when the workout actually dealt damage.
     rows: list[tuple[str, str]] = []
     if data.total_reps > 0:
-        rows.append((f"Повторения: {_fmt(data.total_reps)}", COBALT))
+        rows.append((f"{t(lang, 'sharecard.reps')}: {_fmt(data.total_reps)}", COBALT))
     if data.duration_minutes > 0:
-        rows.append((f"Время: {_fmt(data.duration_minutes)} мин", GOLD))
+        rows.append((f"{t(lang, 'sharecard.time')}: {_fmt(data.duration_minutes)} {t(lang, 'sharecard.time_unit')}", GOLD))
     if data.streak_days > 0:
         rows.append(
-            (f"Серия: {_fmt(data.streak_days)} {_plural_days(data.streak_days)}", GOLD)
+            (f"{t(lang, 'sharecard.streak')}: {_fmt(data.streak_days)} {_plural_days(data.streak_days, lang)}", GOLD)
         )
     if data.boss_damage > 0:
-        rows.append((f"Боссу: -{_fmt(data.boss_damage)} HP", COBALT))
+        rows.append((f"{t(lang, 'sharecard.boss')}: -{_fmt(data.boss_damage)} HP", COBALT))
 
     # Press Start 2P is wide — fit every row at one shared size so the stat
     # block keeps a uniform look even with long numbers.

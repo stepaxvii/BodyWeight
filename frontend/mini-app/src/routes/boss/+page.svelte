@@ -5,6 +5,7 @@
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
+	import { t, ln } from '$lib/i18n/index.svelte';
 	import type { Boss, BossLeaderboard, BossMyContribution, BossHistory, BossHistoryItem } from '$lib/types';
 
 	let boss = $state<Boss | null>(null);
@@ -17,10 +18,10 @@
 	let claimMessage = $state<string | null>(null);
 	let activeTab = $state<'current' | 'history'>('current');
 
-	const tabs = [
-		{ id: 'current' as const, label: 'Текущий' },
-		{ id: 'history' as const, label: 'История' }
-	];
+	const tabs = $derived([
+		{ id: 'current' as const, label: t('boss.tabs.current') },
+		{ id: 'history' as const, label: t('boss.tabs.history') }
+	]);
 
 	async function loadAll() {
 		loading = true;
@@ -49,14 +50,14 @@
 		claiming = true;
 		try {
 			const result = await api.claimBossReward(boss.id);
-			claimMessage = `Получено: +${result.coins_awarded} монет!`;
+			claimMessage = t('boss.claim.toastSuccess', { coins: result.coins_awarded });
 			telegram.hapticNotification('success');
 			await userStore.loadStats();
 			await loadAll();
 		} catch (e) {
 			console.error('Claim failed:', e);
 			telegram.hapticNotification('error');
-			claimMessage = 'Не удалось забрать награду';
+			claimMessage = t('boss.claim.toastError');
 		} finally {
 			claiming = false;
 		}
@@ -82,9 +83,9 @@
 	}
 
 	function statusLabel(status: string): string {
-		if (status === 'defeated') return 'Повержен';
-		if (status === 'expired') return 'Не побеждён';
-		return 'В битве';
+		if (status === 'defeated') return t('boss.status.defeated');
+		if (status === 'expired') return t('boss.status.expired');
+		return t('boss.status.active');
 	}
 </script>
 
@@ -93,7 +94,7 @@
 		<a href="{base}/" class="back-link">
 			<PixelIcon name="arrow-left" size="sm" />
 		</a>
-		<h1>Босс месяца</h1>
+		<h1>{t('boss.title')}</h1>
 	</header>
 
 	<PixelTabs
@@ -103,14 +104,14 @@
 	/>
 
 	{#if loading}
-		<div class="loading">Загрузка...</div>
+		<div class="loading">{t('boss.loading')}</div>
 	{:else if activeTab === 'current'}
 		{#if boss}
 			<PixelCard padding="md">
 				<div class="boss-hero">
-					<img src="{base}{boss.image_url}" alt={boss.name_ru} class="boss-img-large anim-floaty" />
+					<img src="{base}{boss.image_url}" alt={ln(boss.name, boss.name_ru)} class="boss-img-large anim-floaty" />
 					<div class="boss-hero__top">
-						<span class="boss-title">{boss.name_ru}</span>
+						<span class="boss-title">{ln(boss.name, boss.name_ru)}</span>
 						<span class="status-pill status-{boss.status}">{statusLabel(boss.status)}</span>
 					</div>
 					<p class="boss-period">{formatDate(boss.start_date)} — {formatDate(boss.end_date)}</p>
@@ -120,30 +121,30 @@
 							<div class="hp-fill-large anim-bar-grow" style="width: {hpPercent}%; background: {barColor};"></div>
 						</div>
 						<div class="hp-numbers">
-							<span>{formatNum(boss.current_hp)} HP</span>
+							<span>{formatNum(boss.current_hp)} {t('boss.hp')}</span>
 							<span class="hp-max">/ {formatNum(boss.max_hp)}</span>
 						</div>
 					</div>
 
-					<p class="boss-legend">{boss.legend_ru}</p>
+					<p class="boss-legend">{ln(boss.legend, boss.legend_ru)}</p>
 				</div>
 			</PixelCard>
 
 			<PixelCard padding="md">
-				<h3 class="section-title">Твой вклад</h3>
+				<h3 class="section-title">{t('boss.contribution.title')}</h3>
 				{#if me && me.total_damage > 0}
 					<div class="me-stats">
 						<div class="me-stat">
 							<span class="me-value"><CountUp value={me.total_damage} /></span>
-							<span class="me-label">урон</span>
+							<span class="me-label">{t('boss.contribution.damage')}</span>
 						</div>
 						<div class="me-stat">
 							<span class="me-value">{me.rank ? `#${me.rank}` : '—'}</span>
-							<span class="me-label">место</span>
+							<span class="me-label">{t('boss.contribution.rank')}</span>
 						</div>
 						<div class="me-stat">
 							<span class="me-value">{me.attacks_count}</span>
-							<span class="me-label">ударов</span>
+							<span class="me-label">{t('boss.contribution.attacks')}</span>
 						</div>
 					</div>
 
@@ -151,9 +152,9 @@
 						<div class="claim-card">
 							<div class="claim-info">
 								<span class="claim-coins">+<CountUp value={me.reward_coins} /></span>
-								<span class="claim-text">монет ждут тебя</span>
+								<span class="claim-text">{t('boss.claim.coinsWaiting')}</span>
 								{#if me.is_top10}
-									<span class="claim-top10"><PixelIcon name="trophy" size="sm" color="var(--gold)" /> Топ-10</span>
+									<span class="claim-top10"><PixelIcon name="trophy" size="sm" color="var(--gold)" /> {t('boss.claim.top10')}</span>
 								{/if}
 							</div>
 							<PixelButton
@@ -162,23 +163,23 @@
 								loading={claiming}
 								onclick={handleClaim}
 							>
-								Забрать
+								{t('boss.claim.button')}
 							</PixelButton>
 						</div>
 					{:else if me.reward_claimed_at}
-						<div class="claimed-msg">Награда уже получена ({formatNum(me.reward_coins)} монет)</div>
+						<div class="claimed-msg">{t('boss.claim.claimed', { coins: formatNum(me.reward_coins) })}</div>
 					{/if}
 
 					{#if claimMessage}
 						<div class="claim-toast">{claimMessage}</div>
 					{/if}
 				{:else}
-					<p class="me-empty">Ты ещё не нанёс ни одного удара. Сделай тренировку — XP станет уроном по боссу.</p>
+					<p class="me-empty">{t('boss.contribution.empty')}</p>
 				{/if}
 			</PixelCard>
 
 			<PixelCard padding="md">
-				<h3 class="section-title">Топ-10 по урону</h3>
+				<h3 class="section-title">{t('boss.leaderboard.title')}</h3>
 				{#if leaderboard && leaderboard.entries.length > 0}
 					<div class="leaderboard anim-rows">
 						{#each leaderboard.entries as entry}
@@ -186,7 +187,7 @@
 								<span class="lb-rank">#{entry.rank}</span>
 								<PixelAvatar avatarId={entry.avatar_id || 'shadow-wolf'} size="sm" />
 								<span class="lb-name">
-									{entry.username || entry.first_name || 'Игрок'}
+									{entry.username || entry.first_name || t('boss.leaderboard.defaultPlayer')}
 								</span>
 								<span class="lb-damage">{formatNum(entry.total_damage)}</span>
 							</div>
@@ -195,14 +196,14 @@
 					{#if me && me.rank && me.rank > 10}
 						<div class="lb-row lb-me lb-self-row">
 							<span class="lb-rank">#{me.rank}</span>
-							<span class="lb-name">Ты</span>
+							<span class="lb-name">{t('boss.leaderboard.you')}</span>
 							<span class="lb-damage">{formatNum(me.total_damage)}</span>
 						</div>
 					{/if}
 				{:else}
 					<EmptyState
-						title="Никто ещё не атаковал"
-						message="Стань первым, кто ударит босса"
+						title={t('boss.leaderboard.emptyTitle')}
+						message={t('boss.leaderboard.emptyMessage')}
 					/>
 				{/if}
 			</PixelCard>
@@ -213,9 +214,9 @@
 				{#each history.bosses as h (h.id)}
 					<PixelCard padding="md">
 						<div class="hist-row">
-							<img src="{base}{h.image_url}" alt={h.name_ru} class="hist-img" />
+							<img src="{base}{h.image_url}" alt={ln(h.name, h.name_ru)} class="hist-img" />
 							<div class="hist-info">
-								<div class="hist-name">{h.name_ru}</div>
+								<div class="hist-name">{ln(h.name, h.name_ru)}</div>
 								<div class="hist-period">{formatDate(h.start_date)} — {formatDate(h.end_date)}</div>
 								<div class="hist-status status-{h.status}">{statusLabel(h.status)}</div>
 							</div>
@@ -223,21 +224,21 @@
 								{#if h.my_total_damage > 0}
 									<div class="hist-stat">
 										<span class="hist-stat-val">{formatNum(h.my_total_damage)}</span>
-										<span class="hist-stat-lbl">урон</span>
+										<span class="hist-stat-lbl">{t('boss.history.damage')}</span>
 									</div>
 									{#if h.my_rank}
 										<div class="hist-stat">
 											<span class="hist-stat-val">#{h.my_rank}</span>
-											<span class="hist-stat-lbl">место</span>
+											<span class="hist-stat-lbl">{t('boss.history.rank')}</span>
 										</div>
 									{/if}
 									{#if h.my_reward_coins > 0}
 										<div class="hist-reward" class:hist-claimed={h.my_reward_claimed}>
-											{h.my_reward_claimed ? '✓' : '+'}{h.my_reward_coins} м
+											{h.my_reward_claimed ? '✓' : '+'}{h.my_reward_coins} {t('boss.history.rewardUnit')}
 										</div>
 									{/if}
 								{:else}
-									<div class="hist-empty">Не участвовал</div>
+									<div class="hist-empty">{t('boss.history.notParticipated')}</div>
 								{/if}
 							</div>
 						</div>
@@ -245,7 +246,7 @@
 				{/each}
 			</div>
 		{:else}
-			<EmptyState title="История пуста" message="Здесь будут появляться прошлые боссы" />
+			<EmptyState title={t('boss.history.emptyTitle')} message={t('boss.history.emptyMessage')} />
 		{/if}
 	{/if}
 </div>

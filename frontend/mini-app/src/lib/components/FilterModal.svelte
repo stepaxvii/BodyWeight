@@ -2,6 +2,7 @@
 	import { PixelButton, PixelModal } from '$lib/components/ui';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { getTagName } from '$lib/utils';
+	import { t } from '$lib/i18n/index.svelte';
 
 	export interface FilterState {
 		equipment: string[];
@@ -32,17 +33,17 @@
 		}
 	});
 
-	// Filter options
-	const EQUIPMENT_OPTIONS = [
-		{ id: 'none', label: 'Без снаряжения' },
-		{ id: 'pullup-bar', label: 'Турник' },
-		{ id: 'dip-bars', label: 'Брусья' },
-		{ id: 'dumbbell', label: 'Гантели' },
-		{ id: 'resistance-band', label: 'Эспандер' },
-		{ id: 'bench', label: 'Скамья' },
-		{ id: 'wall', label: 'Стена' },
-		{ id: 'bike', label: 'Велосипед' }
-	];
+	// Filter options (labels resolve reactively via t())
+	const EQUIPMENT_OPTIONS = $derived([
+		{ id: 'none', label: t('modals2.equipmentNone') },
+		{ id: 'pullup-bar', label: t('modals2.equipmentPullupBar') },
+		{ id: 'dip-bars', label: t('modals2.equipmentDipBars') },
+		{ id: 'dumbbell', label: t('modals2.equipmentDumbbell') },
+		{ id: 'resistance-band', label: t('modals2.equipmentResistanceBand') },
+		{ id: 'bench', label: t('modals2.equipmentBench') },
+		{ id: 'wall', label: t('modals2.equipmentWall') },
+		{ id: 'bike', label: t('modals2.equipmentBike') }
+	]);
 
 	// Muscle tag IDs - labels come from getTagName()
 	const MUSCLE_TAG_IDS = [
@@ -99,11 +100,11 @@
 	);
 </script>
 
-<PixelModal {open} title="Фильтры" onclose={onClose}>
+<PixelModal {open} title={t('modals2.filters')} onclose={onClose}>
 	<div class="filter-sections">
 		<!-- Equipment -->
 		<div class="filter-section">
-			<h4 class="section-label">Снаряжение</h4>
+			<h4 class="section-label">{t('modals2.equipmentSection')}</h4>
 			<div class="filter-chips">
 				{#each EQUIPMENT_OPTIONS as option}
 					<button
@@ -119,7 +120,7 @@
 
 		<!-- Difficulty -->
 		<div class="filter-section">
-			<h4 class="section-label">Сложность</h4>
+			<h4 class="section-label">{t('modals2.difficulty')}</h4>
 			<div class="filter-chips difficulty-chips">
 				{#each [1, 2, 3, 4, 5] as level}
 					<button
@@ -135,7 +136,7 @@
 
 		<!-- Muscle tags -->
 		<div class="filter-section">
-			<h4 class="section-label">Группы мышц</h4>
+			<h4 class="section-label">{t('modals2.muscleGroups')}</h4>
 			<div class="filter-chips">
 				{#each MUSCLE_TAG_IDS as tagId}
 					<button
@@ -152,10 +153,10 @@
 
 	<div class="filter-actions">
 		<PixelButton variant="ghost" onclick={handleReset} disabled={activeCount === 0}>
-			Сбросить
+			{t('modals2.reset')}
 		</PixelButton>
 		<PixelButton variant="primary" onclick={handleApply}>
-			Применить {#if activeCount > 0}({activeCount}){/if}
+			{t('modals2.apply')} {#if activeCount > 0}({activeCount}){/if}
 		</PixelButton>
 	</div>
 </PixelModal>

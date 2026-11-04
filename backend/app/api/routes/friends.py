@@ -3,6 +3,7 @@ from sqlalchemy import select, or_
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import User, Friendship, Notification
+from app.i18n import t
 from app.services.notifications import (
     send_friend_request_notification, send_friend_accepted_notification
 )
@@ -14,8 +15,8 @@ router = APIRouter()
 @router.get(
     "",
     response_model=list[FriendResponse],
-    summary="Получить список друзей",
-    description="Возвращает список друзей пользователя с возможностью фильтрации по статусу.",
+    summary="Get friends list",
+    description="Returns the user's friends list with optional filtering by status.",
     tags=["Friends"]
 )
 async def get_friends(
@@ -23,7 +24,7 @@ async def get_friends(
     user: CurrentUser,
     status_filter: str = Query(
         "accepted",
-        description="Фильтр по статусу: accepted, pending, all"
+        description="Filter by status: accepted, pending, all"
     ),
 ):
     query = (
@@ -57,8 +58,8 @@ async def get_friends(
 @router.get(
     "/requests",
     response_model=list[FriendResponse],
-    summary="Получить запросы в друзья",
-    description="Возвращает список входящих запросов в друзья.",
+    summary="Get friend requests",
+    description="Returns the list of incoming friend requests.",
     tags=["Friends"]
 )
 async def get_friend_requests(
@@ -152,19 +153,20 @@ async def add_friend(
     await session.flush()
 
     # Send notification to target user in background
-    from_name = user.username or user.first_name or "Пользователь"
+    from_name = user.username or user.first_name or t(target_user.language, "bot.common.user_fallback")
     background_tasks.add_task(
         send_friend_request_notification,
         telegram_id=target_user.telegram_id,
         from_user_name=from_name,
+        lang=target_user.language,
     )
 
     # Save notification to database for badge counter
     notification = Notification(
         user_id=target_user.id,
         notification_type="friend_request",
-        title="Новая заявка в друзья!",
-        message=f"{from_name} хочет добавить тебя в друзья.",
+        title=t(target_user.language, "notifications.friend_request.title"),
+        message=t(target_user.language, "notifications.friend_request.message", from_user_name=from_name),
         related_user_id=user.id,
     )
     session.add(notification)
@@ -225,19 +227,20 @@ async def accept_friend_request(
     await session.flush()
 
     # Notify the original requester that their request was accepted
-    accepter_name = user.username or user.first_name or "Пользователь"
+    accepter_name = user.username or user.first_name or t(friend_user.language, "bot.common.user_fallback")
     background_tasks.add_task(
         send_friend_accepted_notification,
         telegram_id=friend_user.telegram_id,
         friend_name=accepter_name,
+        lang=friend_user.language,
     )
 
     # Save notification to database for badge counter
     notification = Notification(
         user_id=friend_user.id,
         notification_type="friend_accepted",
-        title="Заявка принята!",
-        message=f"{accepter_name} теперь твой друг.",
+        title=t(friend_user.language, "notifications.friend_accepted.title"),
+        message=t(friend_user.language, "notifications.friend_accepted.message", friend_name=accepter_name),
         related_user_id=user.id,
     )
     session.add(notification)

@@ -11,6 +11,7 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import User
+from app.i18n import t
 from app.services.notifications import (
     save_notification,
     send_referral_reward_push,
@@ -58,29 +59,33 @@ async def grant_referral_reward_on_first_workout(
     inviter.coins += REFERRAL_REWARD_COINS
     inviter.referral_rewards_count += 1
 
-    invitee_name = user.username or user.first_name or "Пользователь"
+    invitee_name = user.username or user.first_name or t(inviter.language, "bot.common.user_fallback")
 
     await save_notification(
         session=session,
         user_id=inviter.id,
         notification_type="referral_reward",
-        title="Награда за приглашение!",
-        message=(
-            f"Твой друг {invitee_name} провёл первую тренировку! "
-            f"+{REFERRAL_REWARD_COINS} монет"
+        title=t(inviter.language, "referral.reward.title"),
+        message=t(
+            inviter.language,
+            "referral.reward.message",
+            invitee_name=invitee_name,
+            coins=REFERRAL_REWARD_COINS,
         ),
         related_user_id=user.id,
     )
 
     if bot_push and inviter.telegram_id and inviter.notifications_enabled:
-        text = (
-            f"🤝 <b>Награда за приглашение!</b>\n\n"
-            f"Твой друг <b>{invitee_name}</b> провёл первую тренировку.\n"
-            f"Тебе начислено <b>+{REFERRAL_REWARD_COINS}</b> монет "
-            f"({inviter.referral_rewards_count}/{REFERRAL_REWARDS_CAP} наград)."
+        text = t(
+            inviter.language,
+            "referral.reward.push",
+            invitee_name=invitee_name,
+            coins=REFERRAL_REWARD_COINS,
+            rewards_count=inviter.referral_rewards_count,
+            rewards_cap=REFERRAL_REWARDS_CAP,
         )
         dispatch_in_background(
-            send_referral_reward_push(inviter.telegram_id, text)
+            send_referral_reward_push(inviter.telegram_id, text, lang=inviter.language)
         )
 
     logger.info(

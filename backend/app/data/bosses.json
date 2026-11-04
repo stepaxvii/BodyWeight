@@ -8,7 +8,8 @@
     "image_url": "/sprites/bosses/frost-golem.svg",
     "max_hp": 50000,
     "theme": "winter",
-    "legend_ru": "С первых дней января с гор спускается Ледяной Голем — древний страж мерзлоты. Его ледяная поступь сковывает реки и поля, и пока он стоит, зима не отступит. Только тепло, рождённое движением и упорством, может растопить его сердце. Каждая твоя тренировка — удар по его кристаллической броне."
+    "legend_ru": "С первых дней января с гор спускается Ледяной Голем — древний страж мерзлоты. Его ледяная поступь сковывает реки и поля, и пока он стоит, зима не отступит. Только тепло, рождённое движением и упорством, может растопить его сердце. Каждая твоя тренировка — удар по его кристаллической броне.",
+    "legend_en": "From the first days of January, the Frost Golem descends from the mountains — an ancient warden of the deep freeze. Its icy tread locks the rivers and fields, and while it stands, winter will not retreat. Only warmth born of movement and persistence can melt its heart. Every workout you finish is a blow against its crystalline armor."
   },
   {
     "month": 2,
@@ -19,7 +20,8 @@
     "image_url": "/sprites/bosses/blizzard-wolf.svg",
     "max_hp": 50000,
     "theme": "winter",
-    "legend_ru": "Февраль приводит за собой последнюю метель. Её ведёт Снежный Волк-Альфа — вожак стаи зимних бурь. Чем сильнее ты двигаешься, тем громче рычание разносится по тундре. Только сообщество, тренирующееся вместе, способно отогнать стаю до прихода весны."
+    "legend_ru": "Февраль приводит за собой последнюю метель. Её ведёт Снежный Волк-Альфа — вожак стаи зимних бурь. Чем сильнее ты двигаешься, тем громче рычание разносится по тундре. Только сообщество, тренирующееся вместе, способно отогнать стаю до прихода весны.",
+    "legend_en": "February drags the last blizzard in its wake, and leading it is the Blizzard Wolf — alpha of the pack of winter storms. The harder you move, the louder its snarl rolls across the tundra. Only a community training together can drive the pack back before spring arrives."
   },
   {
     "month": 3,
@@ -30,7 +32,8 @@
     "image_url": "/sprites/bosses/mud-colossus.svg",
     "max_hp": 50000,
     "theme": "spring",
-    "legend_ru": "Снег тает, и из распутицы поднимается Грязевой Колосс — оживший хаос оттепели. Он тяжёл и упрям, как твоя лень после зимы. Чтобы прорваться к чистой весне, нужно вытоптать его шаг за шагом, повторение за повторением."
+    "legend_ru": "Снег тает, и из распутицы поднимается Грязевой Колосс — оживший хаос оттепели. Он тяжёл и упрям, как твоя лень после зимы. Чтобы прорваться к чистой весне, нужно вытоптать его шаг за шагом, повторение за повторением.",
+    "legend_en": "The snow melts, and from the churned mire rises the Mud Colossus — the living chaos of the thaw. It is heavy and stubborn, like your sluggishness after winter. To break through to a clear spring, you must trample it down step by step, rep by rep."
   },
   {
     "month": 4,
@@ -41,7 +44,8 @@
     "image_url": "/sprites/bosses/spore-awakener.svg",
     "max_hp": 50000,
     "theme": "spring",
-    "legend_ru": "Апрельские дожди разбудили древний мицелий. Гриб-Пробуждённый прорастает корнями глубоко в землю и питается стагнацией. Каждое твоё движение — спора надежды, распространяющая жизнь. Победа над ним означает, что весна окончательно вступила в силу."
+    "legend_ru": "Апрельские дожди разбудили древний мицелий. Гриб-Пробуждённый прорастает корнями глубоко в землю и питается стагнацией. Каждое твоё движение — спора надежды, распространяющая жизнь. Победа над ним означает, что весна окончательно вступила в силу.",
+    "legend_en": "The April rains have woken an ancient mycelium. The Spore Awakener drives its roots deep into the earth and feeds on stagnation. Every movement you make is a spore of hope, spreading life. To defeat it is to let spring take hold once and for all."
   },
   {
     "month": 5,
@@ -52,7 +56,8 @@
     "image_url": "/sprites/bosses/bloom-kraken.svg",
     "max_hp": 50000,
     "theme": "spring",
-    "legend_ru": "Май — время Цветочного Спрута. Его щупальца — вьющиеся лианы, его глаза — раскрывшиеся бутоны. Он выглядит безобидно, но опутывает города ленью аллергии и весенней дремотой. Только ритм тренировок способен прорвать его пыльцовый кокон."
+    "legend_ru": "Май — время Цветочного Спрута. Его щупальца — вьющиеся лианы, его глаза — раскрывшиеся бутоны. Он выглядит безобидно, но опутывает города ленью аллергии и весенней дремотой. Только ритм тренировок способен прорвать его пыльцовый кокон.",
+    "legend_en": "May belongs to the Bloom Kraken. Its tentacles are winding vines, its eyes are opened buds. It looks harmless, yet it ensnares cities in the lethargy of allergies and springtime drowsiness. Only the rhythm of training can tear through its cocoon of pollen."
   },
   {
     "month": 6,
@@ -63,7 +68,8 @@
     "image_url": "/sprites/bosses/solar-phoenix.svg",
     "max_hp": 50000,
     "theme": "summer",
-    "legend_ru": "В день летнего солнцестояния пробуждается Солнечный Феникс. Его пламя выжигает всё лишнее — но также сжигает мотивацию неосторожных. Тот, кто тренируется в его жаре, закаляется как сталь. Победить Феникса значит впитать в себя силу самого долгого дня в году."
+    "legend_ru": "В день летнего солнцестояния пробуждается Солнечный Феникс. Его пламя выжигает всё лишнее — но также сжигает мотивацию неосторожных. Тот, кто тренируется в его жаре, закаляется как сталь. Победить Феникса значит впитать в себя силу самого долгого дня в году.",
+    "legend_en": "On the summer solstice the Solar Phoenix awakens. Its flame burns away all that is excess — but it also scorches the motivation of the careless. Those who train in its heat are tempered like steel. To defeat the Phoenix is to take into yourself the power of the longest day of the year."
   },
   {
     "month": 7,
@@ -74,7 +80,8 @@
     "image_url": "/sprites/bosses/storm-leviathan.svg",
     "max_hp": 50000,
     "theme": "summer",
-    "legend_ru": "Июльские грозы — это вздохи Громового Левиафана. Он плавает в облаках и обрушивает молнии на тех, кто прячется от движения. Только синхронные удары всего сообщества способны поразить его бронированную чешую и вернуть небу ясность."
+    "legend_ru": "Июльские грозы — это вздохи Громового Левиафана. Он плавает в облаках и обрушивает молнии на тех, кто прячется от движения. Только синхронные удары всего сообщества способны поразить его бронированную чешую и вернуть небу ясность.",
+    "legend_en": "July's thunderstorms are the breaths of the Storm Leviathan. It swims through the clouds and hurls lightning at those who hide from movement. Only the community striking in unison can pierce its armored scales and return clarity to the sky."
   },
   {
     "month": 8,
@@ -85,7 +92,8 @@
     "image_url": "/sprites/bosses/harvest-reaper.svg",
     "max_hp": 50000,
     "theme": "summer",
-    "legend_ru": "В августе по полям бродит Жнец Урожая. Его коса срезает не колосья, а плоды труда тех, кто остановился. Он — воплощение августовской лени, когда кажется, что всё уже сделано. Чтобы спасти урожай года, нужно работать упорнее, чем он машет своей косой."
+    "legend_ru": "В августе по полям бродит Жнец Урожая. Его коса срезает не колосья, а плоды труда тех, кто остановился. Он — воплощение августовской лени, когда кажется, что всё уже сделано. Чтобы спасти урожай года, нужно работать упорнее, чем он машет своей косой.",
+    "legend_en": "In August the Harvest Reaper roams the fields. Its scythe cuts down not the grain but the fruits of labor of those who have stopped. It is the embodiment of August idleness, when it seems everything is already done. To save the year's harvest, you must work harder than it swings its blade."
   },
   {
     "month": 9,
@@ -96,7 +104,8 @@
     "image_url": "/sprites/bosses/foliage-eldritch.svg",
     "max_hp": 50000,
     "theme": "autumn",
-    "legend_ru": "Сентябрь приносит ветра, и в их вихрях рождается Лиственный Кошмар — существо из тысячи опавших листьев. Он шепчет на ухо: «отдохни, лето кончилось, расслабься». Каждая твоя тренировка раскидывает его по ветру и даёт городам спокойную осень."
+    "legend_ru": "Сентябрь приносит ветра, и в их вихрях рождается Лиственный Кошмар — существо из тысячи опавших листьев. Он шепчет на ухо: «отдохни, лето кончилось, расслабься». Каждая твоя тренировка раскидывает его по ветру и даёт городам спокойную осень.",
+    "legend_en": "September brings the winds, and in their swirls the Foliage Eldritch is born — a creature of a thousand fallen leaves. It whispers in your ear: \"rest now, summer is over, let go.\" Every workout you finish scatters it to the wind and grants the cities a peaceful autumn."
   },
   {
     "month": 10,
@@ -107,7 +116,8 @@
     "image_url": "/sprites/bosses/pumpkin-king.svg",
     "max_hp": 50000,
     "theme": "autumn",
-    "legend_ru": "В октябре из тёмных полей выходит Тыквенный Король. Его свита — все, кто променял движение на сладости и ужастики. Он не злой по природе, просто слишком много съел. Только живая энергия тренировок способна развеять его чары и вернуть мир в равновесие к Хэллоуину."
+    "legend_ru": "В октябре из тёмных полей выходит Тыквенный Король. Его свита — все, кто променял движение на сладости и ужастики. Он не злой по природе, просто слишком много съел. Только живая энергия тренировок способна развеять его чары и вернуть мир в равновесие к Хэллоуину.",
+    "legend_en": "In October the Pumpkin King emerges from the dark fields. His court is everyone who traded movement for sweets and scary stories. He is not evil by nature — he has simply eaten far too much. Only the living energy of training can break his spell and restore the world to balance by Halloween."
   },
   {
     "month": 11,
@@ -118,7 +128,8 @@
     "image_url": "/sprites/bosses/fog-wanderer.svg",
     "max_hp": 50000,
     "theme": "autumn",
-    "legend_ru": "Ноябрь — самый серый месяц. Из тумана выходит Странник без лица. Он не атакует — он просто стоит и смотрит, и от его взгляда хочется лечь и не вставать. Победить его можно только одним способом: продолжать двигаться, не глядя в его пустые глаза."
+    "legend_ru": "Ноябрь — самый серый месяц. Из тумана выходит Странник без лица. Он не атакует — он просто стоит и смотрит, и от его взгляда хочется лечь и не вставать. Победить его можно только одним способом: продолжать двигаться, не глядя в его пустые глаза.",
+    "legend_en": "November is the grayest month. Out of the fog steps a faceless Wanderer. It does not attack — it simply stands and watches, and under its gaze you want to lie down and never get up. There is only one way to defeat it: keep moving, and never look into its empty eyes."
   },
   {
     "month": 12,
@@ -129,6 +140,7 @@
     "image_url": "/sprites/bosses/winter-king.svg",
     "max_hp": 50000,
     "theme": "winter",
-    "legend_ru": "В декабре на трон вступает Зимний Король — повелитель праздничного безделья и новогоднего обжорства. Он коронует тех, кто бросил тренировки до января. Чтобы войти в новый год сильнее, чем в прошлый, его корону нужно сбить совместными усилиями всего сообщества."
+    "legend_ru": "В декабре на трон вступает Зимний Король — повелитель праздничного безделья и новогоднего обжорства. Он коронует тех, кто бросил тренировки до января. Чтобы войти в новый год сильнее, чем в прошлый, его корону нужно сбить совместными усилиями всего сообщества.",
+    "legend_en": "In December the Winter King takes the throne — lord of holiday idleness and New Year's gluttony. He crowns all who abandon their training until January. To enter the new year stronger than the last, his crown must be struck down by the combined effort of the whole community."
   }
 ]

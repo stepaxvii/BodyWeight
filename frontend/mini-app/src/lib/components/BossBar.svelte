@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { Boss } from '$lib/types';
+	import { t, ln } from '$lib/i18n/index.svelte';
 
 	let boss = $state<Boss | null>(null);
 	let loading = $state(true);
@@ -38,17 +39,17 @@
 	<a href="{base}/boss" class="boss-bar" class:defeated={isDefeated} class:expired={isExpired}>
 		<img
 			src="{base}{boss.image_url}"
-			alt={boss.name_ru}
+			alt={ln(boss.name, boss.name_ru)}
 			class="boss-img anim-floaty"
 		/>
 		<div class="boss-content">
 			<div class="boss-header">
-				<span class="boss-name">{boss.name_ru}</span>
+				<span class="boss-name">{ln(boss.name, boss.name_ru)}</span>
 				<span class="boss-status">
 					{#if isDefeated}
-						ПОВЕРЖЕН
+						{t('comp1.boss.defeated')}
 					{:else if isExpired}
-						ИСТЁК
+						{t('comp1.boss.expired')}
 					{:else}
 						{Math.round(hpPercent)}%
 					{/if}
@@ -61,7 +62,7 @@
 				></div>
 			</div>
 			<div class="boss-hp-text">
-				{boss.current_hp.toLocaleString('ru-RU')} / {boss.max_hp.toLocaleString('ru-RU')} HP
+				{t('comp1.boss.hp', { current: boss.current_hp.toLocaleString('ru-RU'), max: boss.max_hp.toLocaleString('ru-RU') })}
 			</div>
 		</div>
 	</a>

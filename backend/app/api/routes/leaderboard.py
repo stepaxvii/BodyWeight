@@ -26,8 +26,8 @@ async def _equipped_titles(session, user_ids: list[int]) -> dict[int, str]:
 @router.get(
     "",
     response_model=LeaderboardResponse,
-    summary="Недельный рейтинг друзей",
-    description="Возвращает рейтинг среди друзей текущего пользователя по XP, заработанным на текущей неделе (с понедельника).",
+    summary="Weekly friends leaderboard",
+    description="Returns a leaderboard among the current user's friends, ranked by XP earned during the current week (since Monday).",
     tags=["Leaderboard"]
 )
 async def get_friends_weekly_leaderboard(

@@ -19,6 +19,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from app.db.models import User
+from app.i18n import t
 from app.services.notifications import (
     send_daily_reminder,
     send_inactivity_reminder,
@@ -65,17 +66,21 @@ async def check_daily_reminders(session: AsyncSession) -> int:
         success = await send_daily_reminder(
             telegram_id=user.telegram_id,
             streak=user.current_streak,
+            lang=user.language,
         )
 
         if success:
             sent_count += 1
-            # Also save as in-app notification
+            # Also save as in-app notification (recipient's language)
+            title = t(user.language, "notifications.daily_reminder.title")
             if user.current_streak > 0:
-                title = "Время тренировки!"
-                message = f"Твой streak: {user.current_streak} дней подряд! Не останавливайся!"
+                message = t(
+                    user.language,
+                    "notifications.daily_reminder.message_with_streak",
+                    streak=user.current_streak,
+                )
             else:
-                title = "Время тренировки!"
-                message = "Начни свой день с упражнений. Даже 10 минут — это уже прогресс!"
+                message = t(user.language, "notifications.daily_reminder.message_no_streak")
             await save_notification(
                 session=session,
                 user_id=user.id,
@@ -127,17 +132,22 @@ async def check_inactivity_reminders(session: AsyncSession) -> int:
         success = await send_inactivity_reminder(
             telegram_id=user.telegram_id,
             days_inactive=days_inactive,
+            lang=user.language,
         )
 
         if success:
             sent_count += 1
-            # Also save as in-app notification
+            # Also save as in-app notification (recipient's language)
             await save_notification(
                 session=session,
                 user_id=user.id,
                 notification_type="inactivity_reminder",
-                title="Мы скучаем!",
-                message=f"Прошло уже {days_inactive} дней без тренировок. Вернись к занятиям!",
+                title=t(user.language, "notifications.inactivity.title"),
+                message=t(
+                    user.language,
+                    "notifications.inactivity.message",
+                    days_inactive=days_inactive,
+                ),
             )
 
     if sent_count > 0:

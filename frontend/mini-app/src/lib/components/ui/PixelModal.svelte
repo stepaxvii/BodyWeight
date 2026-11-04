@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { telegram } from '$lib/stores/telegram.svelte';
+	import { t } from '$lib/i18n/index.svelte';
 	import PixelIcon from './PixelIcon.svelte';
 
 	interface Props {
@@ -44,7 +45,7 @@
 			{#if title}
 				<div class="sheet__head">
 					<span class="sheet__title" id="modal-title">{title}</span>
-					<button class="sheet__close" onclick={handleClose} aria-label="Закрыть">
+					<button class="sheet__close" onclick={handleClose} aria-label={t('uimisc.modal.close')}>
 						<PixelIcon name="close" size="sm" />
 					</button>
 				</div>
