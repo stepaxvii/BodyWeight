@@ -13,6 +13,7 @@ import hashlib
 import hmac
 import json
 import logging
+import os
 import socket
 from typing import Literal
 
@@ -78,7 +79,15 @@ async def _save_prepared_inline_message(result: dict) -> str | None:
         f"https://api.telegram.org/bot{settings.bot_token}"
         "/savePreparedInlineMessage"
     )
-    connector = aiohttp.TCPConnector(family=socket.AF_INET)
+    proxy = os.environ.get("TG_PROXY") or None
+    if proxy:
+        # Same outbound proxy as app/bot/session.py (TG_PROXY): api.telegram.org
+        # is DPI-blocked, so this raw Bot API call is tunnelled through SOCKS5 too.
+        from aiohttp_socks import ProxyConnector
+
+        connector = ProxyConnector.from_url(proxy)
+    else:
+        connector = aiohttp.TCPConnector(family=socket.AF_INET)
     timeout = aiohttp.ClientTimeout(total=10)
     async with aiohttp.ClientSession(connector=connector, timeout=timeout) as http:
         async with http.post(url, json=payload) as resp:
