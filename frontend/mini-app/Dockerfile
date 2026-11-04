@@ -1,35 +1,12 @@
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci
-
-# Copy source code
-COPY . .
-
-# Build the application
-RUN npm run build
-
-# Production image
+# Builds the SvelteKit mini-app inside Docker so the host needs no Node.
+# base=/bodyweight is baked in via svelte.config.js. The built SPA is copied to
+# a mounted /out directory at run time:
+#   docker build -t bw-frontend-build frontend/mini-app
+#   docker run --rm -v "$PWD/backend/static:/out" bw-frontend-build
 FROM node:20-alpine
-
 WORKDIR /app
-
-# Copy built files
-COPY --from=builder /app/build ./build
-COPY --from=builder /app/package*.json ./
-
-# Install only production dependencies for serving
-RUN npm ci --omit=dev
-
-# Install a simple static server
-RUN npm install -g sirv-cli
-
-EXPOSE 3000
-
-# Serve the static files
-CMD ["sirv", "build", "--host", "0.0.0.0", "--port", "3000", "--single"]
+COPY package.json package-lock.json* ./
+RUN npm ci || npm install
+COPY . .
+RUN npm run build
+CMD ["sh", "-c", "rm -rf /out/* 2>/dev/null; cp -r build/. /out/ && echo 'SPA -> /out'"]
