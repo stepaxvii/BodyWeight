@@ -259,13 +259,12 @@ async def daily_challenge_lifecycle_job():
 
 async def daily_admin_stats_job():
     """
-    Run at 05:00 UTC (08:00 МСК). Collects yesterday's aggregate stats and
-    sends the digest to the project admin via Telegram. Skipped when
-    ADMIN_TELEGRAM_ID is not configured.
+    Run at 05:00 UTC (08:00 МСК). Sends the digest for the Moscow day that just
+    ended. Skipped when ADMIN_TELEGRAM_ID is not configured.
     """
     from app.config import settings
     from app.db.database import async_session_maker
-    from app.services.admin_stats import collect_daily_stats, format_digest
+    from app.services.admin_stats import collect_daily_stats, format_digest, msk_today
     from app.services.notifications import send_admin_digest
 
     if not settings.admin_telegram_id:
@@ -274,13 +273,42 @@ async def daily_admin_stats_job():
 
     async with async_session_maker() as session:
         try:
-            yesterday = (datetime.utcnow() - timedelta(days=1)).date()
+            yesterday = msk_today() - timedelta(days=1)
             stats = await collect_daily_stats(session, yesterday)
             text = format_digest(stats, yesterday)
             if await send_admin_digest(text):
                 logger.info(f"Daily job: admin digest for {yesterday} sent")
         except Exception:
             logger.exception("Error in daily admin stats job")
+
+
+async def weekly_admin_stats_job():
+    """
+    Run Mondays at 06:00 UTC (09:00 МСК). Sends a 7-day rollup for the Moscow
+    week that just ended (Mon–Sun). Skipped when ADMIN_TELEGRAM_ID is unset.
+    """
+    from app.config import settings
+    from app.db.database import async_session_maker
+    from app.services.admin_stats import (
+        collect_weekly_stats,
+        format_weekly_digest,
+        msk_today,
+    )
+    from app.services.notifications import send_admin_digest
+
+    if not settings.admin_telegram_id:
+        logger.info("Weekly admin stats job skipped: ADMIN_TELEGRAM_ID is not set")
+        return
+
+    async with async_session_maker() as session:
+        try:
+            end_day = msk_today() - timedelta(days=1)  # yesterday (Sunday)
+            stats = await collect_weekly_stats(session, end_day)
+            text = format_weekly_digest(stats)
+            if await send_admin_digest(text):
+                logger.info(f"Weekly job: admin digest for week ending {end_day} sent")
+        except Exception:
+            logger.exception("Error in weekly admin stats job")
 
 
 def start_scheduler():
@@ -348,6 +376,15 @@ def start_scheduler():
         trigger=CronTrigger(hour=5, minute=0, timezone="UTC"),
         id="daily_admin_stats",
         name="Admin daily stats digest (05:00 UTC)",
+        replace_existing=True,
+    )
+
+    # Weekly rollup every Monday (covers the Moscow Mon–Sun that just ended)
+    scheduler.add_job(
+        weekly_admin_stats_job,
+        trigger=CronTrigger(day_of_week="mon", hour=6, minute=0, timezone="UTC"),
+        id="weekly_admin_stats",
+        name="Admin weekly stats digest (Mon 06:00 UTC)",
         replace_existing=True,
     )
 
