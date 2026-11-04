@@ -10,6 +10,14 @@ MESSAGES: dict = {
             "user_fallback": "User",
             "friend_fallback": "friend",
         },
+        # Slash-command menu descriptions (bot.set_my_commands).
+        "commands": {
+            "start": "Start the bot",
+            "stats": "My stats",
+            "help": "Help",
+            "digest": "Daily digest",
+            "weekdigest": "Weekly digest",
+        },
         "start": {
             "inviter_joined_dm": (
                 "🤝 <b>{invitee_name}</b> joined through your "
@@ -69,12 +77,11 @@ MESSAGES: dict = {
                 "\n<b>PixelFit - Workout Tracker</b>\n\n"
                 "<b>Commands:</b>\n"
                 "/start - Start the bot\n"
-                "/workout - Open workout app\n"
                 "/stats - View your statistics\n"
                 "/help - Show this message\n\n"
                 "<b>How it works:</b>\n"
                 "1. Open the Mini App\n"
-                "2. Choose exercises from 8 categories\n"
+                "2. Choose exercises from the catalog\n"
                 "3. Track your reps and sets\n"
                 "4. Earn XP and level up!\n"
                 "5. Maintain your streak for bonus XP\n"

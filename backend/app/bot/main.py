@@ -19,18 +19,43 @@ async def on_startup(bot: Bot):
     """Startup handler."""
     logger.info("Bot starting up...")
 
-    # Set bot commands
-    from aiogram.types import BotCommand
-    commands = [
-        BotCommand(command="start", description="Start the bot"),
-        BotCommand(command="workout", description="Open workout app"),
-        BotCommand(command="stats", description="View your stats"),
-        BotCommand(command="help", description="Get help"),
-    ]
+    # Slash-command menu. Users see start/stats/help (localized: English by
+    # default, Russian for ru-language Telegram clients). The admin's private
+    # chat additionally gets /digest and /weekdigest via a chat-scoped list —
+    # so those stay hidden from everyone else. /workout was dropped: the app
+    # opens from the menu button, the command was redundant.
+    from aiogram.types import (
+        BotCommand,
+        BotCommandScopeChat,
+        BotCommandScopeDefault,
+    )
+    from app.i18n import t
+
+    def _user_cmds(lang: str) -> list[BotCommand]:
+        return [
+            BotCommand(command="start", description=t(lang, "bot.commands.start")),
+            BotCommand(command="stats", description=t(lang, "bot.commands.stats")),
+            BotCommand(command="help", description=t(lang, "bot.commands.help")),
+        ]
+
+    def _admin_cmds(lang: str) -> list[BotCommand]:
+        return _user_cmds(lang) + [
+            BotCommand(command="digest", description=t(lang, "bot.commands.digest")),
+            BotCommand(command="weekdigest", description=t(lang, "bot.commands.weekdigest")),
+        ]
+
     # Non-fatal: a transient Telegram error here must NOT crash startup and
     # send the container into a restart loop (polling still works without it).
     try:
-        await bot.set_my_commands(commands)
+        await bot.set_my_commands(_user_cmds("en"), scope=BotCommandScopeDefault())
+        await bot.set_my_commands(
+            _user_cmds("ru"), scope=BotCommandScopeDefault(), language_code="ru"
+        )
+        if settings.admin_telegram_id:
+            await bot.set_my_commands(
+                _admin_cmds("ru"),
+                scope=BotCommandScopeChat(chat_id=settings.admin_telegram_id),
+            )
     except Exception as e:
         logger.warning("set_my_commands failed (non-fatal, continuing to poll): %s", e)
 
