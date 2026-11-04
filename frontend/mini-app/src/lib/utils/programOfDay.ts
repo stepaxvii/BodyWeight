@@ -61,7 +61,8 @@ export function isEligibleForProgram(e: Exercise): boolean {
 		e.equipment === 'none' &&
 		e.difficulty >= MEDIUM_MIN &&
 		e.difficulty <= MEDIUM_MAX &&
-		e.slug !== 'cycling' // cycling is an activity, not a routine exercise
+		e.slug !== 'cycling' && // cycling/running are activities, not routine exercises
+		e.slug !== 'running'
 	);
 }
 

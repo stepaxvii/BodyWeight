@@ -10,6 +10,7 @@ Use `make_ipv4_session()` for every Bot (the polling bot AND the API-process
 push bots). Each Bot owns its session lifecycle, so a fresh instance is returned
 on every call.
 """
+import os
 import socket
 
 from aiogram.client.session.aiohttp import AiohttpSession
@@ -24,6 +25,15 @@ def make_ipv4_session(timeout: float | None = None) -> AiohttpSession:
     sets its own per-request timeout for ``get_updates`` and must not be capped
     to a few seconds, or long-polling would error on every cycle.
     """
+    # Route Bot API traffic through an outbound SOCKS5/HTTP proxy when TG_PROXY
+    # is set: api.telegram.org is DPI-blocked on this network, and socks5h://
+    # resolves DNS at the proxy so the provider never sees the api.telegram.org
+    # SNI. The proxy owns connectivity, so IPv4-pinning the connector is moot.
+    proxy = os.environ.get("TG_PROXY") or None
+    if proxy:
+        if timeout is None:
+            return AiohttpSession(proxy=proxy)
+        return AiohttpSession(proxy=proxy, timeout=timeout)
     session = AiohttpSession() if timeout is None else AiohttpSession(timeout=timeout)
     # aiogram builds `TCPConnector(**_connector_init)` inside create_session();
     # adding family=AF_INET forces IPv4-only resolution/connection.

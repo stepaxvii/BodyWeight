@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     # Debug mode
     debug: bool = False
 
+    # Admin Telegram ID for the daily stats digest and /digest bot command
+    # (env: ADMIN_TELEGRAM_ID; unset = digest disabled)
+    admin_telegram_id: int | None = None
+
     # Logging
     log_level: str = "INFO"  # DEBUG, INFO, WARNING, ERROR
 

@@ -4,7 +4,7 @@ import secrets
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, status
-from sqlalchemy import select, or_
+from sqlalchemy import func, or_, select
 
 from app.api.deps import (
     AsyncSessionDep,
@@ -25,6 +25,7 @@ from app.schemas import (
     LinkTelegramRequest,
     ConfirmLinkResponse,
 )
+from app.services.notifications import notify_admin_new_user
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -129,6 +130,11 @@ async def validate_auth(
         )
         session.add(welcome_notification)
         await session.flush()
+
+        total_users = (
+            await session.execute(select(func.count()).select_from(User))
+        ).scalar_one()
+        notify_admin_new_user(total_users)
     else:
         user.username = username
         user.first_name = first_name
@@ -200,6 +206,11 @@ async def web_register(
     )
     session.add(welcome_notification)
     await session.flush()
+
+    total_users = (
+        await session.execute(select(func.count()).select_from(User))
+    ).scalar_one()
+    notify_admin_new_user(total_users)
 
     token = create_jwt_token(user.id)
 
@@ -342,8 +353,8 @@ async def link_telegram(
             web_username=user.username or user.email or f"User #{user.id}",
             link_token=link_token,
         )
-    except Exception as e:
-        logger.error(f"Failed to send link confirmation: {e}")
+    except Exception:
+        logger.exception("Failed to send link confirmation to %s", request.telegram_id)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Не удалось отправить подтверждение в Telegram. Убедитесь, что вы начали диалог с ботом.",

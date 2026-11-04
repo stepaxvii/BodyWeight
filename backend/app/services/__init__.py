@@ -1,17 +1,6 @@
-from .xp_calculator import (
-    calculate_exercise_xp,
-    calculate_timed_xp,
-    calculate_coins,
-    xp_for_level,
-    get_level_from_xp,
-)
-from .achievement_checker import check_achievements
+"""Service layer.
 
-__all__ = [
-    "calculate_exercise_xp",
-    "calculate_timed_xp",
-    "calculate_coins",
-    "xp_for_level",
-    "get_level_from_xp",
-    "check_achievements",
-]
+Import services by module (``from app.services.xp_calculator import ...``);
+this package intentionally re-exports nothing so that pure modules like
+``share_card`` stay importable without the DB stack installed.
+"""

@@ -6,27 +6,14 @@
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import type { AvatarId } from '$lib/types';
 
-	// Onboarding stages: consent -> slides -> avatar selection
-	let stage = $state<'consent' | 'slides' | 'avatar'>('consent');
-	let leaderboardConsent = $state(false);
+	// Onboarding stages: slides -> avatar selection
+	let stage = $state<'slides' | 'avatar'>('slides');
 
 	// Filter only free avatars for onboarding
 	const freeAvatars = AVATARS.filter(a => a.price === 0 && a.requiredLevel === 1);
 
 	let selectedAvatar = $state<AvatarId>('shadow-wolf');
 	let isSubmitting = $state(false);
-
-	function acceptLeaderboard() {
-		leaderboardConsent = true;
-		stage = 'slides';
-		telegram.hapticImpact('medium');
-	}
-
-	function declineLeaderboard() {
-		leaderboardConsent = false;
-		stage = 'slides';
-		telegram.hapticImpact('light');
-	}
 
 	function handleSlidesComplete() {
 		stage = 'avatar';
@@ -46,7 +33,7 @@
 
 		try {
 			await userStore.setAvatar(selectedAvatar);
-			await userStore.completeOnboarding(leaderboardConsent);
+			await userStore.completeOnboarding(true);
 		} catch (err) {
 			console.error('Onboarding error:', err);
 			telegram.hapticNotification('error');
@@ -56,26 +43,7 @@
 	}
 </script>
 
-{#if stage === 'consent'}
-	<div class="onboarding consent-screen">
-		<div class="onboarding-content consent-content">
-			<div class="welcome-section">
-				<h1 class="title">Рейтинг</h1>
-				<p class="subtitle">
-					В общем рейтинге будет отображаться ваш <strong>username</strong> или <strong>имя</strong> (first name) из Telegram. Только при вашем согласии данные попадут в базу и вы появитесь в таблице лидеров.
-				</p>
-			</div>
-			<div class="consent-actions">
-				<PixelButton variant="success" size="lg" fullWidth onclick={acceptLeaderboard}>
-					Принять
-				</PixelButton>
-				<PixelButton variant="ghost" size="lg" fullWidth onclick={declineLeaderboard}>
-					Не показывать в рейтинге
-				</PixelButton>
-			</div>
-		</div>
-	</div>
-{:else if stage === 'slides'}
+{#if stage === 'slides'}
 	<OnboardingSlides onComplete={handleSlidesComplete} />
 {:else}
 	<div class="onboarding">
@@ -245,27 +213,6 @@
 	.action-section {
 		width: 100%;
 		padding-top: var(--spacing-md);
-	}
-
-	.consent-screen {
-		justify-content: center;
-	}
-
-	.consent-content {
-		max-width: 360px;
-		gap: var(--spacing-xl);
-	}
-
-	.consent-content .subtitle {
-		text-align: left;
-		line-height: 1.5;
-	}
-
-	.consent-actions {
-		display: flex;
-		flex-direction: column;
-		gap: var(--spacing-md);
-		width: 100%;
 	}
 
 	@keyframes bounce {

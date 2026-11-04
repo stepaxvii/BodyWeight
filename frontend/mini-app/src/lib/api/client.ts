@@ -11,7 +11,6 @@ import type {
 	WorkoutSummaryResponse,
 	Achievement,
 	LeaderboardEntry,
-	LeaderboardType,
 	Goal,
 	Friend,
 	ShopItem,
@@ -33,7 +32,8 @@ import type {
 	ChallengeCalendar,
 	ChallengeClaimResult,
 	ChallengeCreatePayload,
-	ChallengeStatus
+	ChallengeStatus,
+	ShareCardResponse
 } from '$lib/types';
 
 const API_BASE = '/bodyweight/api';
@@ -291,6 +291,15 @@ class ApiClient {
 		});
 	}
 
+	// Share: server-rendered workout card (PNG) + prepared inline message for
+	// one-tap sharing into any chat. Owner-only on the backend.
+	async prepareShareCard(sessionId: number, routineName?: string): Promise<ShareCardResponse> {
+		return this.request<ShareCardResponse>(`/share/workout/${sessionId}`, {
+			method: 'POST',
+			body: JSON.stringify({ routine_name: routineName ?? null })
+		});
+	}
+
 	// Achievements
 	async getAchievements(options?: { skip?: number; limit?: number }): Promise<PaginatedResponse<Achievement>> {
 		const params = new URLSearchParams();
@@ -316,10 +325,9 @@ class ApiClient {
 		return allAchievements;
 	}
 
-	// Leaderboard
-	async getLeaderboard(type: LeaderboardType = 'global'): Promise<LeaderboardEntry[]> {
-		const endpoint = type === 'global' ? '/leaderboard' : `/leaderboard/${type}`;
-		const response = await this.request<{ entries: LeaderboardEntry[]; current_user_rank: number | null }>(endpoint);
+	// Leaderboard (недельный рейтинг друзей)
+	async getLeaderboard(): Promise<LeaderboardEntry[]> {
+		const response = await this.request<{ entries: LeaderboardEntry[]; current_user_rank: number | null }>('/leaderboard');
 		return Array.isArray(response?.entries) ? response.entries : [];
 	}
 
@@ -353,7 +361,13 @@ class ApiClient {
 		});
 	}
 
-	async getInviteLink(): Promise<{ invite_link: string; user_id: number }> {
+	async getInviteLink(): Promise<{
+		invite_link: string;
+		user_id: number;
+		rewarded_invites: number;
+		rewards_cap: number;
+		reward_coins: number;
+	}> {
 		return this.request('/friends/invite-link');
 	}
 

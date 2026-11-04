@@ -116,7 +116,9 @@ async def main(dry_run: bool, no_push: bool, limit: int | None) -> None:
 
             # Telegram push (best-effort)
             if not no_push and user.notifications_enabled and user.telegram_id:
-                ok = await send_announcement_push(user.telegram_id, PUSH_TEXT)
+                ok = await send_announcement_push(
+                    user.telegram_id, PUSH_TEXT, notify_admin_on_block=False
+                )
                 if ok:
                     push_sent += 1
                 else:

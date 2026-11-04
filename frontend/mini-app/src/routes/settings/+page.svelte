@@ -177,8 +177,8 @@
 			<button class="set-row" onclick={toggleLeaderboard} disabled={lbBusy}>
 				<PixelIcon name="trophy" size="md" color="var(--gold)" />
 				<div class="set-row__text">
-					<span class="set-row__title">Виден в рейтинге</span>
-					<span class="set-row__hint">Показывать тебя в общем рейтинге и у друзей</span>
+					<span class="set-row__title">Виден друзьям</span>
+					<span class="set-row__hint">Показывать тебя в недельном рейтинге друзей</span>
 				</div>
 				<span class="set-toggle" class:on={lbVisible}>{lbVisible ? 'Вкл' : 'Выкл'}</span>
 			</button>

@@ -62,6 +62,7 @@ from .boss import (
     BossHistoryEntry,
     BossHistoryResponse,
 )
+from .share import ShareWorkoutRequest, ShareWorkoutResponse
 from .challenges import (
     ChallengeExerciseCreate,
     ChallengeCreate,
@@ -144,6 +145,9 @@ __all__ = [
     "BossClaimResponse",
     "BossHistoryEntry",
     "BossHistoryResponse",
+    # Share
+    "ShareWorkoutRequest",
+    "ShareWorkoutResponse",
     # Challenges
     "ChallengeExerciseCreate",
     "ChallengeCreate",

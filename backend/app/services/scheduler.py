@@ -159,8 +159,8 @@ async def hourly_notification_job():
             await session.commit()
             if count > 0:
                 logger.info(f"Hourly job: sent {count} daily reminders")
-        except Exception as e:
-            logger.error(f"Error in hourly notification job: {e}")
+        except Exception:
+            logger.exception("Error in hourly notification job")
 
 
 async def daily_inactivity_job():
@@ -176,8 +176,8 @@ async def daily_inactivity_job():
             await session.commit()
             if count > 0:
                 logger.info(f"Daily job: sent {count} inactivity reminders")
-        except Exception as e:
-            logger.error(f"Error in daily inactivity job: {e}")
+        except Exception:
+            logger.exception("Error in daily inactivity job")
 
 
 async def daily_streak_freeze_job():
@@ -197,8 +197,8 @@ async def daily_streak_freeze_job():
                 logger.info(
                     f"Daily job: streaks frozen={stats['frozen']}, broken={stats['broken']}"
                 )
-        except Exception as e:
-            logger.error(f"Error in daily streak freeze job: {e}")
+        except Exception:
+            logger.exception("Error in daily streak freeze job")
 
 
 async def daily_boss_finalization_job():
@@ -218,8 +218,8 @@ async def daily_boss_finalization_job():
             await session.commit()
             if count > 0:
                 logger.info(f"Daily job: finalized {count} boss(es)")
-        except Exception as e:
-            logger.error(f"Error in daily boss finalization job: {e}")
+        except Exception:
+            logger.exception("Error in daily boss finalization job")
 
 
 async def daily_challenge_lifecycle_job():
@@ -243,8 +243,34 @@ async def daily_challenge_lifecycle_job():
                 logger.info(
                     f"Daily job: challenges changed={changed}, finalized={finalized}"
                 )
-        except Exception as e:
-            logger.error(f"Error in daily challenge lifecycle job: {e}")
+        except Exception:
+            logger.exception("Error in daily challenge lifecycle job")
+
+
+async def daily_admin_stats_job():
+    """
+    Run at 05:00 UTC (08:00 МСК). Collects yesterday's aggregate stats and
+    sends the digest to the project admin via Telegram. Skipped when
+    ADMIN_TELEGRAM_ID is not configured.
+    """
+    from app.config import settings
+    from app.db.database import async_session_maker
+    from app.services.admin_stats import collect_daily_stats, format_digest
+    from app.services.notifications import send_admin_digest
+
+    if not settings.admin_telegram_id:
+        logger.info("Daily admin stats job skipped: ADMIN_TELEGRAM_ID is not set")
+        return
+
+    async with async_session_maker() as session:
+        try:
+            yesterday = (datetime.utcnow() - timedelta(days=1)).date()
+            stats = await collect_daily_stats(session, yesterday)
+            text = format_digest(stats, yesterday)
+            if await send_admin_digest(text):
+                logger.info(f"Daily job: admin digest for {yesterday} sent")
+        except Exception:
+            logger.exception("Error in daily admin stats job")
 
 
 def start_scheduler():
@@ -303,6 +329,15 @@ def start_scheduler():
         trigger=CronTrigger(hour=0, minute=10, timezone="UTC"),
         id="daily_challenge_lifecycle",
         name="Challenge lifecycle (UTC midnight)",
+        replace_existing=True,
+    )
+
+    # Yesterday's stats digest to the project admin
+    scheduler.add_job(
+        daily_admin_stats_job,
+        trigger=CronTrigger(hour=5, minute=0, timezone="UTC"),
+        id="daily_admin_stats",
+        name="Admin daily stats digest (05:00 UTC)",
         replace_existing=True,
     )
 

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from sqlalchemy import select, func, and_
 
 from app.api.deps import AsyncSessionDep, CurrentUser
@@ -26,73 +26,15 @@ async def _equipped_titles(session, user_ids: list[int]) -> dict[int, str]:
 @router.get(
     "",
     response_model=LeaderboardResponse,
-    summary="Глобальный рейтинг",
-    description="Возвращает глобальный рейтинг пользователей по общему количеству XP.",
+    summary="Недельный рейтинг друзей",
+    description="Возвращает рейтинг среди друзей текущего пользователя по XP, заработанным на текущей неделе (с понедельника).",
     tags=["Leaderboard"]
 )
-async def get_global_leaderboard(
+async def get_friends_weekly_leaderboard(
     session: AsyncSessionDep,
     user: CurrentUser,
-    limit: int = Query(50, ge=1, le=100, description="Максимальное количество пользователей в рейтинге"),
 ):
-    visible = User.leaderboard_visible.is_(True)
-    result = await session.execute(
-        select(User)
-        .where(visible)
-        .order_by(User.total_xp.desc())
-        .limit(limit)
-    )
-    users = list(result.scalars().all())
-    titles = await _equipped_titles(session, [u.id for u in users])
-    entries = []
-    current_user_rank = None
-
-    for rank, u in enumerate(users, 1):
-        is_current = u.id == user.id
-        if is_current:
-            current_user_rank = rank
-
-        entries.append(LeaderboardEntry(
-            rank=rank,
-            user_id=u.id,
-            username=u.username,
-            first_name=u.first_name,
-            avatar_id=u.avatar_id,
-            level=u.level,
-            total_xp=u.total_xp,
-            current_streak=u.current_streak,
-            equipped_title=titles.get(u.id),
-            is_current_user=is_current,
-        ))
-
-    # If current user is not in top (or not in leaderboard), find their rank among visible users
-    if current_user_rank is None:
-        rank_result = await session.execute(
-            select(func.count(User.id))
-            .where(visible)
-            .where(User.total_xp > user.total_xp)
-        )
-        current_user_rank = (rank_result.scalar() or 0) + 1
-
-    return LeaderboardResponse(
-        entries=entries,
-        current_user_rank=current_user_rank,
-    )
-
-
-@router.get(
-    "/weekly",
-    response_model=LeaderboardResponse,
-    summary="Недельный рейтинг",
-    description="Возвращает рейтинг пользователей по XP, заработанным на текущей неделе (с понедельника).",
-    tags=["Leaderboard"]
-)
-async def get_weekly_leaderboard(
-    session: AsyncSessionDep,
-    user: CurrentUser,
-    limit: int = Query(50, ge=1, le=100, description="Максимальное количество пользователей в рейтинге"),
-):
-    # Calculate week start (Monday)
+    # Calculate week start (Monday, 00:00 UTC)
     today = datetime.utcnow().date()
     week_start = today - timedelta(days=today.weekday())
     week_start_dt = datetime.combine(week_start, datetime.min.time())
@@ -109,58 +51,11 @@ async def get_weekly_leaderboard(
         .subquery()
     )
 
-    visible = User.leaderboard_visible.is_(True)
-    result = await session.execute(
-        select(User, weekly_xp_subq.c.weekly_xp)
-        .join(weekly_xp_subq, User.id == weekly_xp_subq.c.user_id)
-        .where(visible)
-        .order_by(weekly_xp_subq.c.weekly_xp.desc())
-        .limit(limit)
-    )
-    rows = result.all()
-    titles = await _equipped_titles(session, [u.id for u, _ in rows])
-
-    entries = []
-    current_user_rank = None
-
-    for rank, (u, weekly_xp) in enumerate(rows, 1):
-        is_current = u.id == user.id
-        if is_current:
-            current_user_rank = rank
-
-        entries.append(LeaderboardEntry(
-            rank=rank,
-            user_id=u.id,
-            username=u.username,
-            first_name=u.first_name,
-            avatar_id=u.avatar_id,
-            level=u.level,
-            total_xp=weekly_xp or 0,  # This is weekly XP
-            current_streak=u.current_streak,
-            equipped_title=titles.get(u.id),
-            is_current_user=is_current,
-        ))
-
-    return LeaderboardResponse(
-        entries=entries,
-        current_user_rank=current_user_rank,
-    )
-
-
-@router.get(
-    "/friends",
-    response_model=LeaderboardResponse,
-    summary="Рейтинг друзей",
-    description="Возвращает рейтинг среди друзей текущего пользователя по общему количеству XP.",
-    tags=["Leaderboard"]
-)
-async def get_friends_leaderboard(
-    session: AsyncSessionDep,
-    user: CurrentUser,
-):
-    visible = User.leaderboard_visible.is_(True)
+    # Accepted friends; outerjoin + coalesce so friends with zero XP this week
+    # still appear — small friend lists should look alive.
+    weekly_xp = func.coalesce(weekly_xp_subq.c.weekly_xp, 0)
     stmt = (
-        select(User)
+        select(User, weekly_xp.label("weekly_xp"))
         .join(
             Friendship,
             and_(
@@ -169,23 +64,32 @@ async def get_friends_leaderboard(
                 Friendship.status == "accepted"
             )
         )
-        .where(visible)
-        .order_by(User.total_xp.desc())
+        .outerjoin(weekly_xp_subq, User.id == weekly_xp_subq.c.user_id)
+        .where(User.leaderboard_visible.is_(True))
+        .order_by(weekly_xp.desc())
         .limit(50)
     )
 
     result = await session.execute(stmt)
-    friends = list(result.scalars().all())
+    rows = [(u, xp or 0) for u, xp in result.all()]
 
     # Add current user only if they consented to leaderboard
-    friends_with_me = ([user] if user.leaderboard_visible else []) + friends
-    friends_with_me.sort(key=lambda u: u.total_xp, reverse=True)
-    titles = await _equipped_titles(session, [u.id for u in friends_with_me])
+    if user.leaderboard_visible:
+        my_xp_result = await session.execute(
+            select(func.sum(WorkoutSession.total_xp_earned))
+            .where(WorkoutSession.user_id == user.id)
+            .where(WorkoutSession.status == "completed")
+            .where(WorkoutSession.finished_at >= week_start_dt)
+        )
+        rows.append((user, my_xp_result.scalar() or 0))
+
+    rows.sort(key=lambda row: row[1], reverse=True)
+    titles = await _equipped_titles(session, [u.id for u, _ in rows])
 
     entries = []
     current_user_rank = None
 
-    for rank, u in enumerate(friends_with_me, 1):
+    for rank, (u, xp) in enumerate(rows, 1):
         is_current = u.id == user.id
         if is_current:
             current_user_rank = rank
@@ -197,7 +101,7 @@ async def get_friends_leaderboard(
             first_name=u.first_name,
             avatar_id=u.avatar_id,
             level=u.level,
-            total_xp=u.total_xp,
+            total_xp=xp,  # This is weekly XP
             current_streak=u.current_streak,
             equipped_title=titles.get(u.id),
             is_current_user=is_current,

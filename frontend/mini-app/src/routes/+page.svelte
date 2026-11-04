@@ -199,6 +199,17 @@
 		<BossBar />
 	</section>
 
+	<!-- Activity Calendar (year) -->
+	{#if activityData}
+		<section class="activity-section">
+			<ActivityCalendar
+				activityData={activityData.days}
+				year={new Date().getFullYear()}
+				onDayClick={handleDayClick}
+			/>
+		</section>
+	{/if}
+
 	<!-- Progress Card - Level + XP -->
 	<section class="progress-section">
 		<div class="progress-card">
@@ -263,16 +274,6 @@
 		</section>
 	{/if}
 
-	<!-- Activity Calendar (year) -->
-	{#if activityData}
-		<section class="activity-section">
-			<ActivityCalendar
-				activityData={activityData.days}
-				year={new Date().getFullYear()}
-				onDayClick={handleDayClick}
-			/>
-		</section>
-	{/if}
 </div>
 
 	<!-- Day details modal (from calendar click) -->

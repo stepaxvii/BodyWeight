@@ -37,6 +37,15 @@ class User(Base):
     # Settings
     notification_time: Mapped[time | None] = mapped_column(Time)
     notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Whether this user has blocked the bot (set from the my_chat_member update
+    # and defensively on a 403 when sending). BooleanCoerce: SQLite stores a
+    # string server_default as truthy, so coerce on read.
+    bot_blocked: Mapped[bool] = mapped_column(BooleanCoerce, default=False, server_default="0")
+    # Whether the bot can actually deliver a message: False once a send hits
+    # "chat not found" / "user is deactivated" (user never started THIS bot —
+    # e.g. after a bot migration). Flips back True on the my_chat_member
+    # "member" update when they (re)start. Distinct from bot_blocked.
+    bot_reachable: Mapped[bool] = mapped_column(BooleanCoerce, default=True, server_default="1")
     # 8-bit sound effects toggle (roadmap 5.1)
     sound_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
     # Target XP per day for the activity calendar (history in user_activity_norms)
@@ -44,7 +53,12 @@ class User(Base):
 
     # Onboarding
     is_onboarded: Mapped[bool] = mapped_column(Boolean, default=False)
-    leaderboard_visible: Mapped[bool] = mapped_column(BooleanCoerce, default=False)
+    leaderboard_visible: Mapped[bool] = mapped_column(BooleanCoerce, default=True)
+
+    # Referral program: who invited this user (set once, for new/zero-workout
+    # users only) and how many of THIS user's invitees already earned a reward
+    invited_by_user_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    referral_rewards_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

@@ -10,6 +10,7 @@ This module contains the core business logic for completing workouts:
 - Notification creation
 """
 
+import logging
 from datetime import datetime, date, timedelta
 from typing import Any
 from dataclasses import dataclass, field
@@ -31,6 +32,7 @@ from app.services.xp_calculator import (
     calculate_exercise_xp,
     calculate_timed_xp,
     calculate_cycling_xp,
+    calculate_running_xp,
     calculate_walking_xp,
     calculate_coins,
     get_level_from_xp,
@@ -44,6 +46,9 @@ from app.services.notifications import (
 )
 from app.services.boss import deal_damage as boss_deal_damage
 from app.services.challenges import record_progress as challenges_record_progress
+from app.services.referral import grant_referral_reward_on_first_workout
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -288,6 +293,22 @@ async def process_workout_completion(
             total_reps = int(round(ex_data.distance_km * 10))
             total_duration = ex_data.duration_minutes * 60
             sets_count = 1
+        # Special handling for running activity (distance + duration, like cycling)
+        elif ex_data.exercise_slug == "running" and ex_data.distance_km is not None and ex_data.duration_minutes is not None:
+            if ex_data.duration_minutes < 3:
+                raise ValueError("Running duration must be at least 3 minutes")
+            if ex_data.distance_km <= 0:
+                raise ValueError("Running distance must be positive")
+
+            xp_earned = calculate_running_xp(
+                distance_km=ex_data.distance_km,
+                duration_minutes=ex_data.duration_minutes,
+                streak_days=user.current_streak,
+            )
+            # Store distance in 100m units to keep progress-compatible integer metric
+            total_reps = int(round(ex_data.distance_km * 10))
+            total_duration = ex_data.duration_minutes * 60
+            sets_count = 1
         # Special handling for walking activity
         elif ex_data.exercise_slug == "walking" and ex_data.steps is not None:
             if ex_data.steps <= 0:
@@ -428,8 +449,9 @@ async def process_workout_completion(
     try:
         await boss_deal_damage(session, user, total_xp)
     except Exception:
-        import logging
-        logging.getLogger(__name__).exception("Failed to deal boss damage")
+        logger.exception(
+            "Failed to deal boss damage (user=%s session=%s)", user.id, workout.id
+        )
 
     # 8.6 Record challenge progress for any active challenges this user joined
     # (best-effort — never block workout completion). The returned deltas are
@@ -443,8 +465,9 @@ async def process_workout_completion(
             reps_by_slug=challenge_quantity_by_slug,
         )
     except Exception:
-        import logging
-        logging.getLogger(__name__).exception("Failed to record challenge progress")
+        logger.exception(
+            "Failed to record challenge progress (user=%s session=%s)", user.id, workout.id
+        )
 
     await session.flush()
 
@@ -457,6 +480,25 @@ async def process_workout_completion(
 
     # 11. Check achievements
     new_achievements = await check_achievements(session, user)
+
+    # 11.5 Referral reward: if this submit is the user's FIRST completed workout,
+    # reward their inviter (best-effort — never block workout completion).
+    # The current session is already flushed as "completed", so a count of 1
+    # means exactly this workout.
+    try:
+        completed_workouts = (
+            await session.execute(
+                select(func.count(WorkoutSession.id))
+                .where(WorkoutSession.user_id == user.id)
+                .where(WorkoutSession.status == "completed")
+            )
+        ).scalar() or 0
+        if completed_workouts == 1:
+            await grant_referral_reward_on_first_workout(session, user)
+    except Exception:
+        logger.exception(
+            "Failed to grant referral reward (user=%s session=%s)", user.id, workout.id
+        )
 
     # Note: Coins and XP from achievements are already awarded
     # We just track them in workout summary for display

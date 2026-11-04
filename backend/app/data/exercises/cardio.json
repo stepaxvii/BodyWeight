@@ -534,6 +534,26 @@
     "description_ru": "Встань на одну ногу и выброси другую прямую ногу вперёд на уровень бедра. Подпрыгни и поменяй ноги, выбрасывая противоположную ногу вперёд, пока первая приземляется. Продолжай чередовать в ритмичном прыгающем движении. Держи удары контролируемыми, кор напряжённым. Улучшает силу сгибателей бедра, баланс и кардио."
   },
   {
+    "slug": "running",
+    "category": "cardio",
+    "name": "Running",
+    "name_ru": "Бег",
+    "tags": [
+      "quads",
+      "glutes",
+      "calves",
+      "intermediate",
+      "outdoor",
+      "cardio"
+    ],
+    "difficulty": 2,
+    "base_xp": 12,
+    "required_level": 1,
+    "equipment": "none",
+    "description": "Outdoor or treadmill run tracked by distance and duration. XP is based on distance with a bonus for a faster pace.",
+    "description_ru": "Бег (улица или дорожка), где учитываются дистанция и время. XP начисляется за дистанцию с бонусом за более быстрый темп."
+  },
+  {
     "slug": "cycling",
     "category": "cardio",
     "name": "Cycling",

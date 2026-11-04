@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, date, timedelta
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import select, func
@@ -32,6 +33,7 @@ from app.schemas.workouts import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 def _make_exercise_response(we: WorkoutExercise) -> WorkoutExerciseResponse:
@@ -303,6 +305,22 @@ async def submit_workout(
                         "Cycling duration must be at least 5 minutes"
                     ),
                 )
+        elif ex.exercise_slug == "running":
+            if ex.distance_km is None or ex.duration_minutes is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Running requires distance_km and duration_minutes",
+                )
+            if ex.distance_km <= 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Running distance must be positive",
+                )
+            if ex.duration_minutes < 3:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Running duration must be at least 3 minutes",
+                )
         elif ex.exercise_slug == "walking":
             if ex.steps is None:
                 raise HTTPException(
@@ -376,6 +394,14 @@ async def submit_workout(
             )
             if existing is not None:
                 return _dedup_summary(existing)
+        raise
+    except Exception:
+        # Attach business context before the 500 propagates (uvicorn logs the
+        # traceback, but not WHO failed) so a silent submit failure is traceable.
+        logger.exception(
+            "Workout submit failed (user=%s request_id=%s)",
+            uid, request.client_request_id,
+        )
         raise
 
     # Reload workout with exercises for response
