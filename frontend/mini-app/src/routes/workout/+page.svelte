@@ -478,8 +478,12 @@
 		telegram.hapticImpact('medium');
 		const card = await ensureShareCard();
 		if (!card) return;
-		if (card.prepared_message_id && telegram.canShareMessage) {
-			telegram.shareMessage(card.prepared_message_id);
+		// Chat share = the text report with the exercise list (same as the
+		// routine player). The photo card is only for stories; sending it to a
+		// chat is what used to "build an image" and stall on some clients.
+		const msgId = card.prepared_text_message_id ?? card.prepared_message_id;
+		if (msgId && telegram.canShareMessage) {
+			telegram.shareMessage(msgId);
 		} else {
 			// Prepared message unavailable (old client / prepare failed) —
 			// plain link share with the personal invite link.
