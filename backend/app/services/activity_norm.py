@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import User, UserActivityNorm
+from app.services.timezones import user_local_today
 
 # Default for brand-new users (and the fallback when no history row applies).
 DEFAULT_ACTIVITY_NORM = 1400
@@ -55,7 +56,7 @@ async def set_user_norm(session: AsyncSession, user: User, norm: int) -> int:
     denormalised ``User.daily_activity_norm``. Returns the clamped value.
     """
     norm = max(MIN_ACTIVITY_NORM, min(MAX_ACTIVITY_NORM, int(norm)))
-    today = date.today()
+    today = user_local_today(user.timezone)
 
     existing = await session.execute(
         select(UserActivityNorm)

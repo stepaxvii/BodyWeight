@@ -1,10 +1,11 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from fastapi import APIRouter
 from sqlalchemy import select, func, and_
 
 from app.api.deps import AsyncSessionDep, CurrentUser
 from app.db.models import User, WorkoutSession, Friendship, ShopItem, UserPurchase
 from app.schemas import LeaderboardEntry, LeaderboardResponse
+from app.services.timezones import local_day_bounds_utc, user_local_today
 
 router = APIRouter()
 
@@ -34,10 +35,12 @@ async def get_friends_weekly_leaderboard(
     session: AsyncSessionDep,
     user: CurrentUser,
 ):
-    # Calculate week start (Monday, 00:00 UTC)
-    today = datetime.utcnow().date()
+    # Week window is the VIEWER's local week (Monday 00:00 local), expressed as a
+    # naive-UTC instant to match naive-UTC ``finished_at``. A shared ranking needs
+    # one boundary; anchoring it to the viewer's calendar is the sensible choice.
+    today = user_local_today(user.timezone)
     week_start = today - timedelta(days=today.weekday())
-    week_start_dt = datetime.combine(week_start, datetime.min.time())
+    week_start_dt, _ = local_day_bounds_utc(week_start, user.timezone)
 
     # Subquery to get weekly XP per user
     weekly_xp_subq = (

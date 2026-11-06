@@ -4,13 +4,13 @@ Streak freeze service.
 Users buy "streak freezes" with coins. Each freeze is automatically spent
 overnight to cover a single missed day so the streak survives (Duolingo-style).
 
-The nightly job (00:01 UTC, before the boss/challenge jobs) processes the day
-that just ended: for anyone with an active streak who did NOT train yesterday it
-either spends one freeze (bridging ``last_workout_date`` so the streak continues)
-or, if they have none, resets the streak to 0.
+The job runs hourly and evaluates each user against their OWN local calendar:
+once a user's local day has rolled past a day they did NOT train, it either
+spends one freeze (bridging ``last_workout_date`` so the streak continues) or,
+if they have none, resets the streak to 0.
 """
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import User
 from app.i18n import t
 from app.services.notifications import save_notification, send_announcement_push
+from app.services.timezones import user_local_today
 
 logger = logging.getLogger(__name__)
 
@@ -60,29 +61,38 @@ async def process_streak_freezes(session: AsyncSession) -> dict:
     - spend one freeze and bridge the gap (streak survives), or
     - reset the streak to 0 if they have no freeze left.
 
-    Idempotent within a day: bridged/broken users are no longer selected on a
-    re-run. Returns counts for logging.
-    """
-    today = datetime.utcnow().date()
-    yesterday = today - timedelta(days=1)
+    Timezone-aware: each user's "yesterday" is computed from their own local
+    calendar (``last_workout_date`` is stored as the user's local date), so the
+    job is run hourly and only acts on a user once their OWN local day has rolled
+    past the missed day.
 
-    # last_workout_date < yesterday  ==  did not train yesterday or today
+    Idempotent within a day: bridged users have ``last_workout_date`` bumped to
+    their local yesterday and broken users drop to streak 0, so neither is acted
+    on again on a re-run. Returns counts for logging.
+    """
+    # Fetch every user with a live streak; decide per-user against their local
+    # calendar (a single global UTC "yesterday" would mis-fire across zones).
     result = await session.execute(
         select(User)
         .where(User.current_streak > 0)
         .where(User.last_workout_date.isnot(None))
-        .where(User.last_workout_date < yesterday)
     )
-    users = list(result.scalars().all())
+    candidates = list(result.scalars().all())
 
     frozen = 0
     broken = 0
-    for user in users:
+    users = []
+    for user in candidates:
+        local_yesterday = user_local_today(user.timezone) - timedelta(days=1)
+        # Trained yesterday or today (local) → streak intact, nothing to do yet.
+        if user.last_workout_date >= local_yesterday:
+            continue
+        users.append(user)
         if user.streak_freezes > 0:
             # Spend a freeze and bridge: pretend they trained yesterday so the
             # streak continues and the next workout increments it normally.
             user.streak_freezes -= 1
-            user.last_workout_date = yesterday
+            user.last_workout_date = local_yesterday
             frozen += 1
 
             await save_notification(

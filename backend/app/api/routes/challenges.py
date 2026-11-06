@@ -39,6 +39,7 @@ from app.services.challenges import (
     REWARD_CLAIM_TTL_DAYS,
 )
 from app.services.notifications import send_new_challenge_push
+from app.services.timezones import user_local_today
 
 
 logger = logging.getLogger(__name__)
@@ -393,8 +394,13 @@ async def _build_details_response(
     if challenge is None:
         raise HTTPException(404, "Challenge not found")
 
-    # Lazy lifecycle transitions on read
-    if await update_challenge_status(session, challenge):
+    # Lazy lifecycle transitions on read. Quests advance on the OWNER's local day
+    # (the viewer is always the quest owner), so the active→finished flip lines up
+    # with the player's own midnight, not UTC's.
+    status_today = (
+        user_local_today(user.timezone) if challenge.quest_id is not None else None
+    )
+    if await update_challenge_status(session, challenge, status_today):
         await session.flush()
     # ISOLATION seam (e): the on-read finalize is the SECOND finalize call-site
     # (besides finalize_due_challenges). Guard it with quest_id is None — generic

@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import AsyncSessionDep, CurrentUser
+from app.services.timezones import local_day_bounds_utc, user_local_today
 from app.db.models import (
     WorkoutSession,
     WorkoutExercise,
@@ -498,9 +499,10 @@ async def get_today_stats(
     session: AsyncSessionDep,
     user: CurrentUser,
 ):
-    today = date.today()
-    today_start = datetime.combine(today, datetime.min.time())
-    today_end = datetime.combine(today, datetime.max.time())
+    # "Today" is the user's local calendar day, expressed as a naive-UTC
+    # half-open window [start, next) to match naive-UTC ``finished_at``.
+    today = user_local_today(user.timezone)
+    today_start, today_end = local_day_bounds_utc(today, user.timezone)
 
     # Count today's completed workouts
     workouts_result = await session.execute(
@@ -509,7 +511,7 @@ async def get_today_stats(
         .where(WorkoutSession.user_id == user.id)
         .where(WorkoutSession.status == "completed")
         .where(WorkoutSession.finished_at >= today_start)
-        .where(WorkoutSession.finished_at <= today_end)
+        .where(WorkoutSession.finished_at < today_end)
     )
     workouts = workouts_result.scalars().all()
 

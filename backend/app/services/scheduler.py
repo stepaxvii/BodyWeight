@@ -12,54 +12,85 @@ Includes built-in APScheduler integration for automatic scheduling.
 """
 
 import logging
-from datetime import datetime, date, timedelta
-from sqlalchemy import select, func, extract
+from datetime import datetime, timedelta
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from app.db.models import User
+from app.db.models import Notification, User
 from app.i18n import t
 from app.services.notifications import (
     send_daily_reminder,
     send_inactivity_reminder,
     save_notification,
 )
+from app.services.timezones import local_day_bounds_utc, user_local_now
 
 logger = logging.getLogger(__name__)
 
 # Global scheduler instance
 scheduler: AsyncIOScheduler | None = None
 
+# Local hour (in each user's own timezone) at which inactivity nudges go out.
+INACTIVITY_LOCAL_HOUR = 12
+
+
+async def _already_sent_today(
+    session: AsyncSession, user: User, notif_type: str, local_today
+) -> bool:
+    """True if a notification of ``notif_type`` already landed for this user on
+    their current LOCAL calendar day. Used to make the hourly jobs idempotent
+    across a DST fall-back, when the gated local wall-clock hour repeats and the
+    cron would otherwise fire a second identical push + bell row."""
+    day_start, _ = local_day_bounds_utc(local_today, user.timezone)
+    existing = await session.execute(
+        select(Notification.id)
+        .where(Notification.user_id == user.id)
+        .where(Notification.notification_type == notif_type)
+        .where(Notification.created_at >= day_start)
+        .limit(1)
+    )
+    return existing.scalar_one_or_none() is not None
+
 
 async def check_daily_reminders(session: AsyncSession) -> int:
     """
-    Check and send daily workout reminders via Telegram.
+    Send daily workout reminders via Telegram at each user's LOCAL notification hour.
 
-    Sends to users who:
-    - Have notifications_enabled = True (opted in for Telegram pushes)
-    - Have notification_time set matching current hour
-    - Haven't worked out today
+    Fires for users who:
+    - have notifications_enabled = True (opted in for Telegram pushes),
+    - have notification_time set whose HOUR matches the current hour in THEIR
+      timezone (``user.timezone``), and
+    - haven't worked out yet on their own local calendar day.
+
+    Run hourly: the local-hour match is true for exactly one hour per user, the
+    last_workout_date guard drops users once they train, and a per-local-day
+    dedup guard covers the DST fall-back case where the gated hour repeats — so
+    each user is reminded at most once per local day.
 
     Returns:
         Number of reminders sent
     """
-    now = datetime.now()
-    current_hour = now.hour
-    today = now.date()
-
     result = await session.execute(
         select(User)
         .where(User.notifications_enabled == True)
         .where(User.notification_time.isnot(None))
-        .where(extract('hour', User.notification_time) == current_hour)
     )
     users = result.scalars().all()
 
     sent_count = 0
 
     for user in users:
-        if user.last_workout_date == today:
+        local_now = user_local_now(user.timezone)
+        # Match the user's chosen hour against their OWN local clock.
+        if user.notification_time.hour != local_now.hour:
+            continue
+        # Already trained on their local day → nothing to nudge.
+        if user.last_workout_date == local_now.date():
+            continue
+        # Idempotency across a repeated DST wall-clock hour.
+        if await _already_sent_today(session, user, "daily_reminder", local_now.date()):
             continue
 
         # Send Telegram push
@@ -97,36 +128,52 @@ async def check_daily_reminders(session: AsyncSession) -> int:
 
 async def check_inactivity_reminders(session: AsyncSession) -> int:
     """
-    Check and send inactivity reminders via Telegram.
+    Send inactivity reminders via Telegram at each user's local noon.
 
-    Sends to users who:
-    - Have notifications_enabled = True
-    - Haven't worked out in 3+ days
-    - Have done at least one workout before
+    Fires for users who:
+    - have notifications_enabled = True,
+    - have done at least one workout before,
+    - are exactly 3, 7 or 14 days inactive on THEIR local calendar, and
+    - it is currently ~noon in their timezone.
 
-    Reminders are sent only on specific days: 3, 7, 14 days of inactivity.
-    After 14 days, no more reminders are sent.
+    Run hourly: the local-noon gate, the exact-day-count match and a per-local-day
+    dedup guard (for the DST fall-back repeated hour) mean each threshold fires at
+    most once per user. After 14 days no more are sent.
 
     Returns:
         Number of reminders sent
     """
-    today = date.today()
-
     reminder_days = {3, 7, 14}
-    target_dates = {today - timedelta(days=d) for d in reminder_days}
+
+    # Coarse pre-filter: only users whose last workout falls inside the widest
+    # threshold window, padded by a day on each side for timezone skew (a user's
+    # local "today" can be UTC today ±1). The exact day count is verified below
+    # against each user's local calendar.
+    utc_today = datetime.utcnow().date()
+    coarse_lo = utc_today - timedelta(days=15)
+    coarse_hi = utc_today - timedelta(days=2)
 
     result = await session.execute(
         select(User)
         .where(User.notifications_enabled == True)
         .where(User.last_workout_date.isnot(None))
-        .where(User.last_workout_date.in_(target_dates))
+        .where(User.last_workout_date >= coarse_lo)
+        .where(User.last_workout_date <= coarse_hi)
     )
     users = result.scalars().all()
 
     sent_count = 0
 
     for user in users:
-        days_inactive = (today - user.last_workout_date).days
+        local_now = user_local_now(user.timezone)
+        if local_now.hour != INACTIVITY_LOCAL_HOUR:
+            continue
+        days_inactive = (local_now.date() - user.last_workout_date).days
+        if days_inactive not in reminder_days:
+            continue
+        # Idempotency across a repeated DST wall-clock hour.
+        if await _already_sent_today(session, user, "inactivity_reminder", local_now.date()):
+            continue
 
         # Send Telegram push
         success = await send_inactivity_reminder(
@@ -158,43 +205,32 @@ async def check_inactivity_reminders(session: AsyncSession) -> int:
 
 async def hourly_notification_job():
     """
-    Job function called by APScheduler every hour.
-    Checks daily reminders for users whose notification_time matches current hour.
+    Job function called by APScheduler every hour. Handles both personal push
+    streams, each gated on the user's OWN local clock:
+    - daily workout reminders at the user's local notification hour, and
+    - inactivity reminders at the user's local noon (3/7/14 days).
     """
     from app.db.database import async_session_maker
 
     async with async_session_maker() as session:
         try:
-            count = await check_daily_reminders(session)
+            daily = await check_daily_reminders(session)
+            inactivity = await check_inactivity_reminders(session)
             await session.commit()
-            if count > 0:
-                logger.info(f"Hourly job: sent {count} daily reminders")
+            if daily or inactivity:
+                logger.info(
+                    f"Hourly job: {daily} daily reminders, {inactivity} inactivity reminders"
+                )
         except Exception:
             logger.exception("Error in hourly notification job")
 
 
-async def daily_inactivity_job():
+async def hourly_streak_freeze_job():
     """
-    Job function called by APScheduler once per day at noon.
-    Checks for inactive users and sends reminders.
-    """
-    from app.db.database import async_session_maker
-
-    async with async_session_maker() as session:
-        try:
-            count = await check_inactivity_reminders(session)
-            await session.commit()
-            if count > 0:
-                logger.info(f"Daily job: sent {count} inactivity reminders")
-        except Exception:
-            logger.exception("Error in daily inactivity job")
-
-
-async def daily_streak_freeze_job():
-    """
-    Run shortly after UTC midnight (before boss/challenge jobs). Spends a
-    streak freeze for users who missed yesterday, or breaks the streak if
-    they have none. Idempotent within a day.
+    Run every hour, a couple of minutes before the challenge-lifecycle job.
+    Spends a streak freeze for users whose OWN local day has rolled past a
+    missed day, or breaks the streak if they have none. Per-user timezone-aware
+    and idempotent (see services.streak.process_streak_freezes).
     """
     from app.db.database import async_session_maker
     from app.services.streak import process_streak_freezes
@@ -205,10 +241,10 @@ async def daily_streak_freeze_job():
             await session.commit()
             if stats["frozen"] or stats["broken"]:
                 logger.info(
-                    f"Daily job: streaks frozen={stats['frozen']}, broken={stats['broken']}"
+                    f"Hourly job: streaks frozen={stats['frozen']}, broken={stats['broken']}"
                 )
         except Exception:
-            logger.exception("Error in daily streak freeze job")
+            logger.exception("Error in hourly streak freeze job")
 
 
 async def daily_boss_finalization_job():
@@ -232,11 +268,12 @@ async def daily_boss_finalization_job():
             logger.exception("Error in daily boss finalization job")
 
 
-async def daily_challenge_lifecycle_job():
+async def hourly_challenge_lifecycle_job():
     """
-    Run shortly after midnight UTC. Transitions challenge statuses
-    (upcoming->active->finished) and finalizes finished challenges.
-    Idempotent.
+    Run every hour. Transitions challenge statuses (upcoming->active->finished)
+    and finalizes finished co-op challenges. Quests advance on the OWNER's local
+    day (so the active->finished flip lands at the player's own midnight, wherever
+    they live); co-op challenges use a shared UTC boundary. Idempotent.
     """
     from app.db.database import async_session_maker
     from app.services.challenges import (
@@ -251,10 +288,10 @@ async def daily_challenge_lifecycle_job():
             await session.commit()
             if changed or finalized:
                 logger.info(
-                    f"Daily job: challenges changed={changed}, finalized={finalized}"
+                    f"Hourly job: challenges changed={changed}, finalized={finalized}"
                 )
         except Exception:
-            logger.exception("Error in daily challenge lifecycle job")
+            logger.exception("Error in hourly challenge lifecycle job")
 
 
 async def daily_admin_stats_job():
@@ -324,49 +361,44 @@ def start_scheduler():
 
     scheduler = AsyncIOScheduler()
 
-    # Check daily reminders every hour at :00
+    # Personal pushes every hour at :00 — daily reminders fire at each user's
+    # local notification hour and inactivity nudges at each user's local noon.
     scheduler.add_job(
         hourly_notification_job,
         trigger=CronTrigger(minute=0),
         id="hourly_reminders",
-        name="Check daily reminders (hourly)",
+        name="Personal reminders (hourly, per-user local time)",
         replace_existing=True,
     )
 
-    # Check inactivity once per day at 12:00
+    # Streak maintenance every hour at :02 — must run BEFORE the hourly challenge
+    # job. Each user is evaluated against their OWN local midnight, so this has to
+    # run hourly to catch every timezone's day rollover.
     scheduler.add_job(
-        daily_inactivity_job,
-        trigger=CronTrigger(hour=12, minute=0),
-        id="daily_inactivity",
-        name="Check inactivity reminders (daily)",
+        hourly_streak_freeze_job,
+        trigger=CronTrigger(minute=2),
+        id="hourly_streak_freeze",
+        name="Streak freeze maintenance (hourly, per-user local midnight)",
         replace_existing=True,
     )
 
-    # Spend/break streaks for the day that just ended — must run BEFORE the
-    # boss/challenge jobs and before users start training today.
+    # Challenge lifecycle every hour at :12 — quests flip on the owner's local
+    # midnight (so it must run hourly); co-op challenges use a shared UTC boundary.
     scheduler.add_job(
-        daily_streak_freeze_job,
-        trigger=CronTrigger(hour=0, minute=1, timezone="UTC"),
-        id="daily_streak_freeze",
-        name="Streak freeze maintenance (UTC midnight)",
+        hourly_challenge_lifecycle_job,
+        trigger=CronTrigger(minute=12),
+        id="hourly_challenge_lifecycle",
+        name="Challenge lifecycle (hourly, owner-local quests)",
         replace_existing=True,
     )
 
-    # Finalize bosses + spawn new monthly boss shortly after UTC midnight
+    # Finalize bosses + spawn new monthly boss shortly after UTC midnight. The
+    # monthly boss is a single GLOBAL event, so its boundary stays UTC.
     scheduler.add_job(
         daily_boss_finalization_job,
         trigger=CronTrigger(hour=0, minute=5, timezone="UTC"),
         id="daily_boss_finalization",
         name="Finalize bosses + spawn new monthly boss (UTC midnight)",
-        replace_existing=True,
-    )
-
-    # Transition challenge statuses + finalize finished ones
-    scheduler.add_job(
-        daily_challenge_lifecycle_job,
-        trigger=CronTrigger(hour=0, minute=10, timezone="UTC"),
-        id="daily_challenge_lifecycle",
-        name="Challenge lifecycle (UTC midnight)",
         replace_existing=True,
     )
 

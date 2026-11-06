@@ -27,6 +27,8 @@ from pathlib import Path
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.services.timezones import user_local_today
+
 from app.db.models import (
     Challenge,
     ChallengeExercise,
@@ -525,7 +527,7 @@ async def _live_quest_progress(
     quest: dict,
 ) -> dict:
     """Per-exercise live tally for an active quest instance (today's rows)."""
-    today = datetime.utcnow().date()
+    today = user_local_today(user.timezone)
     full_days = await compute_full_days(session, challenge, user.id)
 
     # Per-exercise meta for the quest, keyed by exercise_id (<=5 rows).
@@ -644,10 +646,11 @@ async def accept_quest(session: AsyncSession, user: User, district_id: str) -> C
         raise ValueError("You already have an active quest")
 
     days = int(quest.get("days", 0) or 0)
-    today = datetime.utcnow().date()
+    today = user_local_today(user.timezone)
     # The quest counts from TOMORROW (today is a prep day — the boss says "завтра
-    # жду тебя на тренировку"): window = [tomorrow .. tomorrow+days-1]. The challenge
-    # starts 'upcoming' and flips to 'active' automatically when the date arrives.
+    # жду тебя на тренировку"): window = [tomorrow .. tomorrow+days-1] in the
+    # player's local calendar. The challenge starts 'upcoming' and flips to 'active'
+    # automatically when the date arrives.
     start = today + timedelta(days=1)
     # Scale rep targets to the player's current level (from XP, so a stale
     # user.level doesn't matter).
@@ -1045,9 +1048,10 @@ async def accept_invite(
 
     participant.invite_status = "accepted"
 
-    # Rewrite the shared window so both start together tomorrow.
+    # Rewrite the shared window so both start together tomorrow (anchored to the
+    # accepting player's local calendar).
     days = int(quest.get("days", 0) or 0)
-    acceptance_date = datetime.utcnow().date()
+    acceptance_date = user_local_today(user.timezone)
     challenge.start_date = acceptance_date + timedelta(days=1)
     challenge.end_date = challenge.start_date + timedelta(days=days - 1)
     # status stays 'upcoming' (start_date > today); generic update_challenge_status

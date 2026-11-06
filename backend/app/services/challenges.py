@@ -36,6 +36,7 @@ from app.db.models import (
 )
 from app.i18n import t
 from app.services.notifications import save_notification
+from app.services.timezones import user_local_today
 
 logger = logging.getLogger(__name__)
 
@@ -76,9 +77,14 @@ class CreateChallengeInput:
 # Status transitions (lazy)
 # ---------------------------------------------------------------------------
 
-async def update_challenge_status(session: AsyncSession, challenge: Challenge) -> bool:
-    """Refresh challenge status based on current UTC date. Returns True if changed."""
-    today = datetime.utcnow().date()
+async def update_challenge_status(
+    session: AsyncSession, challenge: Challenge, today: date | None = None
+) -> bool:
+    """Refresh challenge status. ``today`` is the calendar date to compare against —
+    pass the OWNER's local date for quests (defaults to UTC for regular challenges).
+    Returns True if changed."""
+    if today is None:
+        today = datetime.utcnow().date()
     new_status = challenge.status
 
     if challenge.status == "upcoming" and today >= challenge.start_date:
@@ -93,14 +99,25 @@ async def update_challenge_status(session: AsyncSession, challenge: Challenge) -
 
 
 async def update_all_statuses(session: AsyncSession) -> int:
-    """Lazy bulk transition for cron / API calls. Returns number changed."""
-    today = datetime.utcnow().date()
+    """Lazy bulk transition for cron / API calls. Returns number changed.
+
+    Quest challenges advance on the OWNER's local calendar day (so a solo player
+    keeps credit through their own local midnight, not UTC's); regular challenges
+    use UTC.
+    """
+    utc_today = datetime.utcnow().date()
     result = await session.execute(
-        select(Challenge).where(Challenge.status.in_(["upcoming", "active"]))
+        select(Challenge)
+        .where(Challenge.status.in_(["upcoming", "active"]))
+        .options(selectinload(Challenge.creator))
     )
     changed = 0
     for ch in result.scalars().all():
-        if await update_challenge_status(session, ch):
+        if ch.quest_id and ch.creator is not None:
+            today = user_local_today(ch.creator.timezone)
+        else:
+            today = utc_today
+        if await update_challenge_status(session, ch, today):
             changed += 1
     return changed
 
@@ -121,7 +138,9 @@ async def create_challenge(
     if len(title) > MAX_TITLE_LEN:
         raise ValueError(f"Title too long (max {MAX_TITLE_LEN})")
 
-    today = datetime.utcnow().date()
+    # "Not in the past" is judged on the creator's own calendar, so a user behind
+    # UTC isn't wrongly blocked from starting a challenge on their local today.
+    today = user_local_today(creator.timezone)
     if data.start_date < today:
         raise ValueError("start_date cannot be in the past")
     duration = (data.end_date - data.start_date).days + 1

@@ -14,7 +14,7 @@ from app.db.models import (
     UserPurchase,
 )
 from app.services.xp_calculator import xp_for_level
-from app.services.timezones import is_valid_zone
+from app.services.timezones import is_valid_zone, local_day_bounds_utc, user_local_today
 from app.services.activity_norm import (
     get_norm_history,
     resolve_norm,
@@ -315,13 +315,17 @@ async def get_current_user_stats(
     )
     achievements_count = achievements_result.scalar() or 0
 
-    # This week stats
-    week_start = get_week_start(date.today())
+    # This week stats — week boundary anchored to the user's local calendar day,
+    # expressed as a naive-UTC instant so it compares correctly against the
+    # naive-UTC started_at (func.date() would extract the UTC date and skew the
+    # boundary day for users far from UTC).
+    week_start = get_week_start(user_local_today(user.timezone))
+    week_start_dt, _ = local_day_bounds_utc(week_start, user.timezone)
     week_workouts_result = await session.execute(
         select(func.count(WorkoutSession.id))
         .where(WorkoutSession.user_id == user.id)
         .where(WorkoutSession.status == "completed")
-        .where(func.date(WorkoutSession.started_at) >= week_start)
+        .where(WorkoutSession.started_at >= week_start_dt)
     )
     this_week_workouts = week_workouts_result.scalar() or 0
 
@@ -329,7 +333,7 @@ async def get_current_user_stats(
         select(func.sum(WorkoutSession.total_xp_earned))
         .where(WorkoutSession.user_id == user.id)
         .where(WorkoutSession.status == "completed")
-        .where(func.date(WorkoutSession.started_at) >= week_start)
+        .where(WorkoutSession.started_at >= week_start_dt)
     )
     this_week_xp = week_xp_result.scalar() or 0
 
@@ -375,9 +379,9 @@ async def get_user_activity(
     year: int | None = None,
 ):
     """Get workout activity calendar data grouped by day."""
-    # Default to current year
+    # Default to current year (the user's local calendar year)
     if year is None:
-        year = date.today().year
+        year = user_local_today(user.timezone).year
 
     # Get all completed workouts for the year
     result = await session.execute(

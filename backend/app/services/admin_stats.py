@@ -9,7 +9,7 @@ baseline. Russian HTML (aiogram HTML parse mode); admin-only.
 """
 import html
 import logging
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,21 +23,24 @@ from app.db.models import (
     WorkoutExercise,
     WorkoutSession,
 )
+from app.services.timezones import local_day_bounds_utc, user_local_today
 
 logger = logging.getLogger(__name__)
 
-_MSK_OFFSET = timedelta(hours=3)
+# Admin digests are Moscow-time. Route through the shared timezone service (one
+# source of truth, DST-correct) instead of a hardcoded offset — the IANA zone
+# happens to be a fixed UTC+3 today, but the math no longer assumes it.
+_MSK_TZ = "Europe/Moscow"
 
 
 def msk_today() -> date:
     """Current calendar day in Moscow time."""
-    return (datetime.utcnow() + _MSK_OFFSET).date()
+    return user_local_today(_MSK_TZ)
 
 
 def _utc_window(day: date) -> tuple[datetime, datetime]:
     """[00:00, 24:00) of the Moscow day `day`, as the naive-UTC range to query."""
-    start = datetime.combine(day, time.min) - _MSK_OFFSET
-    return start, start + timedelta(days=1)
+    return local_day_bounds_utc(day, _MSK_TZ)
 
 
 def _done_conds(day: date):

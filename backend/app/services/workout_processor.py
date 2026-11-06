@@ -47,6 +47,7 @@ from app.services.notifications import (
 )
 from app.services.boss import deal_damage as boss_deal_damage
 from app.services.challenges import record_progress as challenges_record_progress
+from app.services.timezones import local_date_of, local_day_bounds_utc, user_local_today
 from app.services.referral import grant_referral_reward_on_first_workout
 
 logger = logging.getLogger(__name__)
@@ -95,6 +96,7 @@ async def _exercise_day_totals(
     exercise_ids: list[int],
     day: date,
     current_workout_id: int | None,
+    tz_name: str,
 ) -> dict[int, int]:
     """Prior total reps per exercise across `day`'s completed workouts.
 
@@ -108,8 +110,8 @@ async def _exercise_day_totals(
     """
     if not exercise_ids:
         return {}
-    day_start = datetime.combine(day, datetime.min.time())
-    next_day = day_start + timedelta(days=1)
+    # The local calendar day as a half-open UTC window over the UTC finished_at.
+    day_start, next_day = local_day_bounds_utc(day, tz_name)
     query = (
         select(
             WorkoutExercise.exercise_id,
@@ -157,8 +159,8 @@ async def process_workout_completion(
     if not user:
         raise ValueError(f"User {data.user_id} not found")
 
-    # 2. Check if first workout today
-    today = date.today()
+    # 2. Check if first workout today (in the USER's local calendar day)
+    today = local_date_of(data.finished_at, user.timezone)
     is_first_today = user.last_workout_date != today
 
     # 3. Calculate streak multiplier
@@ -265,6 +267,7 @@ async def process_workout_completion(
         [e.id for e in exercise_by_slug.values()],
         today,
         workout.id,
+        user.timezone,
     )
 
     for ex_data in data.exercises:
@@ -462,7 +465,7 @@ async def process_workout_completion(
         challenge_progress = await challenges_record_progress(
             session,
             user,
-            workout_date=data.finished_at.date(),
+            workout_date=today,
             reps_by_slug=challenge_quantity_by_slug,
         )
     except Exception:
@@ -572,7 +575,7 @@ async def _update_user_goals(
     `user` is the already-loaded caller object (same identity-map instance), so
     goal updates read/mutate it directly instead of re-fetching by id.
     """
-    today = date.today()
+    today = user_local_today(user.timezone)
 
     goals_result = await session.execute(
         select(UserGoal)
@@ -641,7 +644,11 @@ async def _notify_friends_about_workout(user: User, session: AsyncSession) -> No
     """
     from sqlalchemy import and_, or_
 
-    today = date.today()
+    # Coarse "friends who haven't trained today" filter uses the acting user's
+    # local day. ``last_workout_date`` is stored as each user's own local date,
+    # so this is a cross-timezone heuristic (good enough for a social nudge);
+    # the exact once-per-day dedup below uses each friend's own local day.
+    today = user_local_today(user.timezone)
 
     # Get all accepted friends (in both directions)
     friends_result = await session.execute(
@@ -667,12 +674,17 @@ async def _notify_friends_about_workout(user: User, session: AsyncSession) -> No
     push_targets: list[int] = []
     push_langs: dict[int, str] = {}
     for friend in friends:
-        # Check if we already sent friend_workout notification to this friend today
+        # Check if we already sent friend_workout notification to this friend today.
+        # ``created_at`` is stored naive-UTC, so compare against the start of the
+        # FRIEND's own local day expressed in UTC (one push per friend-local day).
+        friend_day_start, _ = local_day_bounds_utc(
+            user_local_today(friend.timezone), friend.timezone
+        )
         existing_notification = await session.execute(
             select(Notification)
             .where(Notification.user_id == friend.id)
             .where(Notification.notification_type == "friend_workout")
-            .where(Notification.created_at >= datetime.combine(today, datetime.min.time()))
+            .where(Notification.created_at >= friend_day_start)
         )
         if existing_notification.scalar_one_or_none():
             continue  # Already notified today

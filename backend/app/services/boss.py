@@ -65,7 +65,12 @@ def _month_bounds(today: date) -> tuple[date, date]:
 
 
 async def get_or_create_current_boss(session: AsyncSession) -> MonthlyBoss:
-    """Return the active boss for the current UTC month, creating it if missing."""
+    """Return the active boss for the current UTC month, creating it if missing.
+
+    The monthly boss is a single GLOBAL event shared by every player, so its
+    month window is deliberately anchored to UTC (not per-user local time) — one
+    boss per calendar month for everyone.
+    """
     today = datetime.utcnow().date()
     start, end = _month_bounds(today)
 

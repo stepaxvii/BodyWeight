@@ -1,8 +1,9 @@
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import select
 
 from app.api.deps import AsyncSessionDep, CurrentUser
+from app.services.timezones import user_local_today
 from app.db.models import UserGoal
 from app.schemas import CreateGoalRequest, GoalResponse
 
@@ -24,7 +25,7 @@ async def get_goals(
     query = select(UserGoal).where(UserGoal.user_id == user.id)
 
     if active_only:
-        today = date.today()
+        today = user_local_today(user.timezone)
         query = query.where(UserGoal.end_date >= today)
 
     query = query.order_by(UserGoal.end_date.asc())
@@ -76,7 +77,7 @@ async def create_goal(
             detail="Target value must be positive",
         )
 
-    today = date.today()
+    today = user_local_today(user.timezone)
     end_date = today + timedelta(days=request.duration_days)
 
     goal = UserGoal(
@@ -130,7 +131,7 @@ async def update_goal_progress(
             detail="Goal already completed",
         )
 
-    if goal.end_date < date.today():
+    if goal.end_date < user_local_today(user.timezone):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Goal has expired",
@@ -166,7 +167,7 @@ async def get_goals_progress(
     Get detailed progress for all active goals.
     Includes completed and incomplete goals.
     """
-    today = date.today()
+    today = user_local_today(user.timezone)
 
     # Get all active goals (not expired)
     query = (
