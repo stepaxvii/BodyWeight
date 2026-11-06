@@ -21,6 +21,11 @@ class User(Base):
     # on first /start (English fallback); existing users backfilled to 'ru'
     # (migration 020). Changed via the profile language switcher (PUT /users/me).
     language: Mapped[str] = mapped_column(String(5), default="en", server_default="ru")
+    # IANA timezone name (e.g. "Europe/Moscow"); default "UTC". Day boundaries,
+    # streaks, quest days and the local reminder time are all computed in this
+    # zone. Auto-detected from the client on first open, overridable in Settings
+    # (migration 024). See app/services/timezones.py.
+    timezone: Mapped[str] = mapped_column(String(64), default="UTC", server_default="UTC")
 
     # Gamification
     level: Mapped[int] = mapped_column(Integer, default=1)

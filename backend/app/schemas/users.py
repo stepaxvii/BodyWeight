@@ -13,6 +13,7 @@ class UserResponse(BaseModel):
     last_name: str | None = None
     avatar_id: str
     language: str = "en"
+    timezone: str = "UTC"
     level: int
     total_xp: int
     coins: int
@@ -59,6 +60,7 @@ class UpdateUserRequest(BaseModel):
     """Request schema for updating user profile."""
     avatar_id: str | None = None
     language: str | None = None  # 'ru' | 'en'; validated in the endpoint
+    timezone: str | None = None  # IANA zone name; validated in the endpoint
     notification_time: time | None = None
     notifications_enabled: bool | None = None
     sound_enabled: bool | None = None

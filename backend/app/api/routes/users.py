@@ -14,6 +14,7 @@ from app.db.models import (
     UserPurchase,
 )
 from app.services.xp_calculator import xp_for_level
+from app.services.timezones import is_valid_zone
 from app.services.activity_norm import (
     get_norm_history,
     resolve_norm,
@@ -201,6 +202,13 @@ async def update_current_user(
                 detail="Unsupported language (expected 'ru' or 'en')",
             )
         user.language = request.language
+    if request.timezone is not None:
+        if not is_valid_zone(request.timezone):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Unknown timezone (expected an IANA zone name)",
+            )
+        user.timezone = request.timezone
 
     await session.flush()
     await session.refresh(user)
