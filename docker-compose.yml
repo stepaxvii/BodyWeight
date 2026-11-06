@@ -19,7 +19,13 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
       timeout: 10s
-      retries: 3
+      retries: 5
+      # Cold start on the Pi (alembic upgrade + init_db seeding + uvicorn boot) can
+      # take ~40-70s. During start_period, failing checks DON'T mark the container
+      # unhealthy (it stays "starting"), and the first success flips it to healthy —
+      # so `compose up` with the bot's `depends_on: service_healthy` no longer aborts
+      # with "dependency failed to start" before the backend finishes booting.
+      start_period: 120s
 
   bot:
     build:

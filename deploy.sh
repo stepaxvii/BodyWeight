@@ -23,7 +23,10 @@ sudo rsync -a --delete backend/static/ "$CADDY_ROOT"/
 sudo chown -R caddy:caddy "$CADDY_ROOT" 2>/dev/null || true
 
 echo "==> [4/5] rebuild + (re)start containers (xray+backend+bot via compose + override)"
-docker compose up -d --build
+# Belt-and-suspenders: if the backend is still booting when compose checks health
+# (depends_on: service_healthy), `up` can exit non-zero before the bot starts.
+# The start_period healthcheck grace should prevent it, but retry once just in case.
+docker compose up -d --build || { echo "   compose up raced the healthcheck; retrying once..."; sleep 15; docker compose up -d; }
 
 echo "==> [5/5] status"
 docker compose ps
