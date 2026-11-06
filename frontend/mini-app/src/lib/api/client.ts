@@ -144,7 +144,7 @@ class ApiClient {
 		return this.request<UserRecords>('/users/me/records');
 	}
 
-	async updateUser(data: { avatar_id?: string; notifications_enabled?: boolean; notification_time?: string | null; sound_enabled?: boolean; leaderboard_visible?: boolean; daily_activity_norm?: number; language?: 'ru' | 'en' }): Promise<User> {
+	async updateUser(data: { avatar_id?: string; notifications_enabled?: boolean; notification_time?: string | null; sound_enabled?: boolean; leaderboard_visible?: boolean; daily_activity_norm?: number; language?: 'ru' | 'en'; timezone?: string }): Promise<User> {
 		return this.request<User>('/users/me', {
 			method: 'PUT',
 			body: JSON.stringify(data)

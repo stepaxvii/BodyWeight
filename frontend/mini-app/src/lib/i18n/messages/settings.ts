@@ -41,6 +41,14 @@ export default {
 			},
 		},
 
+		timezone: {
+			heading: 'Часовой пояс',
+			title: 'Твой часовой пояс',
+			hint: 'По нему считаются дни квестов, стрики и время напоминаний',
+			saved: '✅ Часовой пояс сохранён',
+			saveError: 'Не удалось сохранить'
+		},
+
 		language: {
 			heading: 'Язык',
 			title: 'Язык интерфейса',
@@ -101,6 +109,14 @@ export default {
 				saved: '✅ Time saved',
 				saveError: 'Could not save',
 			},
+		},
+
+		timezone: {
+			heading: 'Timezone',
+			title: 'Your timezone',
+			hint: 'Used for quest days, streaks and reminder time',
+			saved: '✅ Timezone saved',
+			saveError: 'Could not save'
 		},
 
 		language: {

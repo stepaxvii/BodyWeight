@@ -8,6 +8,7 @@
 	import { sound } from '$lib/stores/sound.svelte';
 	import { api } from '$lib/api/client';
 	import { t, setLocale, getLocale } from '$lib/i18n/index.svelte';
+	import { TIMEZONE_GROUPS } from '$lib/timezones';
 
 	// ── Звук ──────────────────────────────────────────────
 	const soundOn = $derived(userStore.user?.sound_enabled ?? true);
@@ -122,6 +123,26 @@
 		}
 	}
 
+	// ── Часовой пояс ──────────────────────────────────────
+	let tzInput = $state('UTC');
+	let tzSaving = $state(false);
+	let tzMessage = $state<string | null>(null);
+	async function handleSaveTimezone() {
+		if (tzSaving || !tzInput) return;
+		tzSaving = true;
+		tzMessage = null;
+		try {
+			await userStore.setTimezone(tzInput);
+			telegram.hapticNotification('success');
+			tzMessage = t('settings.timezone.saved');
+		} catch (err) {
+			telegram.hapticNotification('error');
+			tzMessage = err instanceof Error ? err.message : t('settings.timezone.saveError');
+		} finally {
+			tzSaving = false;
+		}
+	}
+
 	// ── Account ───────────────────────────────────────────
 	const hasAccountInfo = $derived(!!userStore.user?.telegram_id);
 
@@ -133,6 +154,7 @@
 		normInput = userStore.dailyActivityNorm;
 		const t = userStore.user?.notification_time;
 		timeInput = t ? t.slice(0, 5) : '';
+		tzInput = userStore.user?.timezone || 'UTC';
 		// Native Telegram back button (no-op outside Telegram).
 		telegram.showBackButton(goBack);
 	});
@@ -203,6 +225,38 @@
 	</section>
 
 	<!-- Уведомления -->
+	<section class="set-section">
+		<h3 class="set-section__t">{t('settings.timezone.heading')}</h3>
+		<div class="set-list">
+			<div class="set-block">
+				<div class="set-block__head">
+					<PixelIcon name="clock" size="md" color="var(--accent2)" />
+					<div class="set-row__text">
+						<span class="set-row__title">{t('settings.timezone.title')}</span>
+						<span class="set-row__hint">{t('settings.timezone.hint')}</span>
+					</div>
+				</div>
+				<div class="set-controls">
+					<select class="set-input set-select" bind:value={tzInput}>
+						{#each TIMEZONE_GROUPS as group (group.region)}
+							<optgroup label={group.region}>
+								{#each group.zones as z (z.value)}
+									<option value={z.value}>{z.label}</option>
+								{/each}
+							</optgroup>
+						{/each}
+					</select>
+					<button class="set-save" disabled={tzSaving || !tzInput} onclick={handleSaveTimezone}>
+						{tzSaving ? t('settings.common.saving') : t('settings.common.save')}
+					</button>
+				</div>
+				{#if tzMessage}
+					<p class="set-msg">{tzMessage}</p>
+				{/if}
+			</div>
+		</div>
+	</section>
+
 	<section class="set-section">
 		<h3 class="set-section__t">{t('settings.notifications.heading')}</h3>
 		<div class="set-list">
@@ -431,6 +485,20 @@
 	}
 	.set-input:focus {
 		border-color: var(--accent);
+	}
+	/* Native <select> reusing the .set-input skin (timezone picker). */
+	.set-select {
+		appearance: none;
+		-webkit-appearance: none;
+		cursor: pointer;
+		background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+			linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+		background-position:
+			calc(100% - 16px) calc(50% - 2px),
+			calc(100% - 11px) calc(50% - 2px);
+		background-size: 5px 5px, 5px 5px;
+		background-repeat: no-repeat;
+		padding-right: 28px;
 	}
 	.set-unit {
 		font-size: var(--font-size-xs);

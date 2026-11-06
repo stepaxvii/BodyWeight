@@ -92,6 +92,7 @@ export interface User {
 	notifications_enabled: boolean;
 	sound_enabled: boolean;
 	language: 'ru' | 'en';
+	timezone?: string; // IANA name; day boundaries + reminders are computed in it
 	city_enabled?: boolean;
 	is_onboarded: boolean;
 	leaderboard_visible: boolean;

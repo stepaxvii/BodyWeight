@@ -1,5 +1,6 @@
 import type { User, UserStats, AvatarId } from '$lib/types';
 import { api } from '$lib/api/client';
+import { detectTimezone } from '$lib/timezones';
 
 // User state using Svelte 5 runes
 class UserStore {
@@ -77,6 +78,9 @@ class UserStore {
 			this.user = response.user;
 			this.isAuthenticated = true;
 			try { localStorage.setItem('cache_user', JSON.stringify(response.user)); } catch {}
+			// Adopt the device timezone on first open (fire-and-forget) so day
+			// boundaries + reminders are right without visiting Settings.
+			void this.maybeAdoptDeviceTimezone();
 		} catch (err) {
 			// If offline, try cached user data
 			if (!navigator.onLine) {
@@ -106,6 +110,27 @@ class UserStore {
 			if (navigator.onLine) {
 				this.error = err instanceof Error ? err.message : 'Failed to load user';
 			}
+		}
+	}
+
+	/** Set the user's IANA timezone (from the Settings dropdown). */
+	async setTimezone(tz: string) {
+		this.user = await api.updateUser({ timezone: tz });
+		try { localStorage.setItem('cache_user', JSON.stringify(this.user)); } catch {}
+	}
+
+	/** First-open auto-detect: adopt the device zone while the stored one is still
+	 * the "UTC" default. An explicit (non-UTC) choice is never overridden. */
+	private async maybeAdoptDeviceTimezone() {
+		const u = this.user;
+		if (!u || (u.timezone && u.timezone !== 'UTC')) return;
+		const detected = detectTimezone();
+		if (!detected || detected === 'UTC') return;
+		try {
+			this.user = await api.updateUser({ timezone: detected });
+			try { localStorage.setItem('cache_user', JSON.stringify(this.user)); } catch {}
+		} catch {
+			/* non-critical: the user can still pick a zone in Settings */
 		}
 	}
 

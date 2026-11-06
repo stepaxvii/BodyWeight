@@ -31,7 +31,12 @@
 	let error = $state<string | null>(null);
 
 	function todayIso(): string {
-		return new Date().toISOString().split('T')[0];
+		// Local calendar date (toISOString() is UTC and would show yesterday for
+		// UTC+ users late in the day).
+		const d = new Date();
+		const m = String(d.getMonth() + 1).padStart(2, '0');
+		const day = String(d.getDate()).padStart(2, '0');
+		return `${d.getFullYear()}-${m}-${day}`;
 	}
 	function addDaysIso(fromIso: string, days: number): string {
 		// UTC-anchored so date math never drifts a day across timezones.
