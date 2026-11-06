@@ -124,7 +124,6 @@ class DistrictResponse(BaseModel):
     name: str
     name_ru: str
     order: int
-    map_pos: list[int] | None = None
     scene: str | None = None
     muscle: str | None = None
     muscle_ru: str | None = None
@@ -132,6 +131,9 @@ class DistrictResponse(BaseModel):
     unlock: dict | None = None
     quest: Quest | None = None
     dialogue: dict | None = None
+    # Co-op is MANDATORY on a few future districts and absent on the solo ones.
+    # Drives whether the client shows any co-op/mercenary UI (default: solo).
+    coop: bool = False
 
     # Derived, per-player.
     status: str  # locked | available | active | completed

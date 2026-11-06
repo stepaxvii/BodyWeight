@@ -588,18 +588,39 @@ async def _live_quest_progress(
 # Accept / abandon (spec §4.2 / §4.10)
 # ---------------------------------------------------------------------------
 
+# Quest reps scale with the player's level so a seasoned fighter gets a
+# commensurate challenge instead of a trivial one. Gentle linear ramp of +5% per
+# level above 1, capped at 2x the authored base (reached at level ~21). The base
+# daily_target in districts.json is therefore the level-1 (beginner) target.
+_QUEST_SCALE_PER_LEVEL = 0.05
+_QUEST_SCALE_CAP = 2.0
+
+
+def scale_target_for_level(base: int, level: int) -> int:
+    """Scale a quest's base daily_target up for a higher-level player.
+
+    Never below the base; capped at 2x. Co-op quests (none yet) are expected to
+    pass the AVERAGE level of the participating players.
+    """
+    factor = min(_QUEST_SCALE_CAP, 1.0 + max(0, level - 1) * _QUEST_SCALE_PER_LEVEL)
+    return max(int(base), round(int(base) * factor))
+
+
 async def accept_quest(session: AsyncSession, user: User, district_id: str) -> Challenge:
     """Materialize the district's quest into a Challenge (quest_id set) and add
     the player as the inviter/solo participant (invite_status=NULL).
 
     SOLO window: start_date=today, end_date=today+days-1 → status='active'.
-    Enforces the one-active-quest lock (spec §4.9/§5). Raises ValueError (→400).
+    Quest rep targets are scaled to the player's level (see
+    ``scale_target_for_level``). Enforces the one-active-quest lock
+    (spec §4.9/§5). Raises ValueError (→400).
     """
     from app.services.challenges import (
         CreateChallengeInput,
         ChallengeExerciseInput,
         create_challenge,
     )
+    from app.services.xp_calculator import get_level_from_xp
 
     d = district_by_id(district_id)
     if d is None:
@@ -626,6 +647,9 @@ async def accept_quest(session: AsyncSession, user: User, district_id: str) -> C
 
     days = int(quest.get("days", 0) or 0)
     today = datetime.utcnow().date()
+    # Scale rep targets to the player's current level (from XP, so a stale
+    # user.level doesn't matter).
+    level = get_level_from_xp(user.total_xp)
     data = CreateChallengeInput(
         title=quest.get("title") or quest_id,
         description=None,
@@ -634,7 +658,7 @@ async def accept_quest(session: AsyncSession, user: User, district_id: str) -> C
         exercises=[
             ChallengeExerciseInput(
                 exercise_slug=e["exercise_slug"],
-                daily_target=int(e["daily_target"]),
+                daily_target=scale_target_for_level(int(e["daily_target"]), level),
             )
             for e in exercises
         ],

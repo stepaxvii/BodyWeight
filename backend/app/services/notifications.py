@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
@@ -139,8 +139,13 @@ async def _send(
     keyboard: InlineKeyboardMarkup | None = None,
     label: str = "push",
     notify_admin_on_block: bool = True,
+    photo: str | None = None,
 ) -> bool:
     """Single Telegram-send path for every push. Returns True on success.
+
+    When ``photo`` (a local file path) is given, the push is sent as a photo with
+    ``text`` as the HTML caption (Telegram caption limit: 1024 chars); otherwise
+    a plain text message. Both share the identical delivery + error handling.
 
     A 403 means the user blocked the bot — expected, not an error: log at INFO,
     record the block, and (unless suppressed) ping the admin once if this is a
@@ -151,7 +156,15 @@ async def _send(
     """
     try:
         bot = get_bot()
-        await bot.send_message(chat_id=telegram_id, text=text, reply_markup=keyboard)
+        if photo is not None:
+            await bot.send_photo(
+                chat_id=telegram_id,
+                photo=FSInputFile(photo),
+                caption=text,
+                reply_markup=keyboard,
+            )
+        else:
+            await bot.send_message(chat_id=telegram_id, text=text, reply_markup=keyboard)
         logger.info("%s sent to %s", label, telegram_id)
         return True
     except TelegramForbiddenError:
@@ -554,6 +567,26 @@ async def send_announcement_push(
         telegram_id, text,
         keyboard=get_open_app_keyboard(lang), label="Announcement push",
         notify_admin_on_block=notify_admin_on_block,
+    )
+
+
+async def send_announcement_photo(
+    telegram_id: int,
+    caption: str,
+    image_path: str,
+    *,
+    notify_admin_on_block: bool = True,
+    lang: str = "en",
+) -> bool:
+    """Send a feature announcement as a photo + HTML caption (localized).
+
+    Same delivery/dedup semantics as ``send_announcement_push`` but leads with an
+    image (e.g. a district render). ``caption`` must be <= 1024 chars (Telegram).
+    """
+    return await _send(
+        telegram_id, caption,
+        keyboard=get_open_app_keyboard(lang), label="Announcement photo",
+        notify_admin_on_block=notify_admin_on_block, photo=image_path,
     )
 
 

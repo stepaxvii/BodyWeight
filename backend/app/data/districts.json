@@ -10,8 +10,8 @@
       "name": "Your Yard",
       "name_ru": "Твой двор",
       "order": 0,
-      "map_pos": [100, 252],
       "scene": "yard",
+      "coop": false,
       "muscle": "Full body",
       "muscle_ru": "Всё тело",
       "boss": {
@@ -30,9 +30,9 @@
         "days": 3,
         "per_day_all": true,
         "exercises": [
-          { "exercise_slug": "pushup-knee",   "equipment": "none", "daily_target": 10 },
-          { "exercise_slug": "squat-regular", "equipment": "none", "daily_target": 15 },
-          { "exercise_slug": "glute-bridge",  "equipment": "none", "daily_target": 15 }
+          { "exercise_slug": "pushup-regular", "equipment": "none", "daily_target": 10, "easier": "pushup-knee" },
+          { "exercise_slug": "squat-regular",  "equipment": "none", "daily_target": 15 },
+          { "exercise_slug": "glute-bridge",   "equipment": "none", "daily_target": 15 }
         ],
         "reward": {
           "xp": 150,
@@ -49,10 +49,10 @@
           { "speaker": "hero", "line": "I'm ready to train. Where do I start?", "line_ru": "Я готов тренироваться. С чего начать?" },
           { "speaker": "boss", "line": "With the basics, fighter. A pull-up bar, the parallel bars, your own body — nothing else needed.", "line_ru": "С основ, боец. Турник, брусья, своё тело — больше ничего не надо." },
           { "speaker": "hero", "line": "Sounds within reach.", "line_ru": "Звучит по силам." },
-          { "speaker": "boss", "line": "Three days: knee push-ups, squats, the glute bridge. All three, every day. Make it and you're one of us.", "line_ru": "Три дня: отжимания с колен, приседания, мостик. Каждый день — все три. Выдюжишь — и ты наш, дворовый боец." }
+          { "speaker": "boss", "line": "Three days: push-ups, squats, the glute bridge. All three, every day. Too hard? Start from your knees — same muscles, easier path. Make it and you're one of us.", "line_ru": "Три дня: отжимания, приседания, мостик. Каждый день — все три. Тяжело? Начни с колен — те же мышцы, просто полегче. Выдюжишь — и ты наш, дворовый боец." }
         ],
-        "offer":      "Listen up, fighter. Nothing fancy — three days, three basics of the yard: knee push-ups, squats, and the glute bridge. Hit the daily count every day and you're already one of us.",
-        "offer_ru":   "Слушай сюда, боец. Ничего хитрого — три дня, три основы двора: отжался с колен, присел, поднял таз в мостике. Сделаешь норму каждый день — и ты уже наш, дворовый боец.",
+        "offer":      "Listen up, fighter. Nothing fancy — three days, three basics of the yard: push-ups, squats, and the glute bridge. If full push-ups are too hard, start from your knees — it works the same muscles and gets you going. Hit the daily count every day and you're already one of us.",
+        "offer_ru":   "Слушай сюда, боец. Ничего хитрого — три дня, три основы двора: отжимания, приседания и мостик. Если полные отжимания тяжело — начни с колен, это та же группа мышц, просто проще начать. Сделаешь норму каждый день — и ты уже наш, дворовый боец.",
         "accept":     "That's the spirit. All three, every day. Go!",
         "accept_ru":  "Вот это по-нашему. Каждый день — все три. Пошёл!",
         "progress":   "Good work, no slacking. One more day and you're ready for the city.",
@@ -69,8 +69,8 @@
       "name": "French Quarter",
       "name_ru": "Французский квартал",
       "order": 1,
-      "map_pos": [50, 168],
       "scene": "french",
+      "coop": false,
       "muscle": "Chest & triceps",
       "muscle_ru": "Грудь и трицепс",
       "boss": {
@@ -125,11 +125,11 @@
 
     {
       "id": "cossack",
-      "name": "Cossack Settlement",
-      "name_ru": "Казачья слобода",
+      "name": "Cossacks",
+      "name_ru": "Казаки",
       "order": 2,
-      "map_pos": [152, 162],
       "scene": "cossack",
+      "coop": false,
       "muscle": "Legs",
       "muscle_ru": "Ноги",
       "boss": {
@@ -187,7 +187,6 @@
       "name": "Downtown",
       "name_ru": "Даунтаун",
       "order": 3,
-      "map_pos": [96, 92],
       "scene": "downtown",
       "muscle": "Chest",
       "muscle_ru": "Грудь",
@@ -211,7 +210,6 @@
       "name": "North Port",
       "name_ru": "Северный порт",
       "order": 4,
-      "map_pos": [154, 70],
       "scene": "port",
       "muscle": "Back",
       "muscle_ru": "Спина",

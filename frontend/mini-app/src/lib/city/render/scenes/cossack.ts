@@ -6,7 +6,7 @@ import { AV_FOX, AV_MINO, type Rect } from '../sprites';
 
 let ctx: CanvasRenderingContext2D;
 
-export function drawCossack(context: CanvasRenderingContext2D, t: number): void {
+export function drawCossack(context: CanvasRenderingContext2D, t: number, heroAv: Rect[] | null = null): void {
   ctx = context;
   const cv = ctx.canvas;
   const W = cv.width, H = cv.height; ctx.imageSmoothingEnabled = false;
@@ -178,7 +178,7 @@ export function drawCossack(context: CanvasRenderingContext2D, t: number): void 
     const bob = reduce ? 0 : (Math.sin(t / 430) > 0 ? 0 : 1); y -= bob; const hood = '#5a5240', hoodSh = '#43402f', pant = '#3b342a', sc = 0.8;
     A(0.5, () => R(x - 8, y, 16, 1, '#07080c')); R(x - 6, y - 6, 5, 6, pant); R(x + 1, y - 6, 5, 6, pant); R(x - 6, y, 5, 2, '#241c12'); R(x + 1, y, 5, 2, '#241c12');
     R(x - 7, y - 16, 14, 10, hood); R(x - 7, y - 16, 3, 10, hoodSh); R(x + 5, y - 16, 2, 10, mix(hood, '#fff', 0.08)); R(x - 7, y - 16, 14, 2, mix(hood, '#fff', 0.12)); R(x - 1, y - 15, 2, 8, hoodSh);
-    A(0.3, () => R(x + 6, y - 16, 1, 10, C.rimWarm)); avatar(AV_FOX, x, y - 13 - Math.round(32 * sc), sc);
+    A(0.3, () => R(x + 6, y - 16, 1, 10, C.rimWarm)); avatar(heroAv ?? AV_FOX, x, y - 13 - Math.round(32 * sc), sc);
   }
   function boss(x: number, y: number, av: Rect[], t: number) {
     const br = reduce ? 0 : (Math.sin(t / 1100) > 0 ? 0 : 1); y -= br; const vest = '#6b2f2a', vestSh = '#471c18', vestHi = '#8a3f36', sc = 0.95;   // red Cossack coat

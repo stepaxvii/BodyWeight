@@ -6,7 +6,7 @@ import { AV_FOX, AV_BEAR, type Rect } from '../sprites';
 
 let ctx: CanvasRenderingContext2D;
 
-export function drawFrench(context: CanvasRenderingContext2D, t: number): void {
+export function drawFrench(context: CanvasRenderingContext2D, t: number, heroAv: Rect[] | null = null): void {
   ctx = context;
   const W = ctx.canvas.width, H = ctx.canvas.height;   // 200 x 356 low-res buffer, ×2 crisp
   ctx.imageSmoothingEnabled = false;
@@ -236,7 +236,7 @@ export function drawFrench(context: CanvasRenderingContext2D, t: number): void {
     R(x-6,y-6,5,6,pant); R(x+1,y-6,5,6,pant); R(x-6,y,5,2,'#1c2026'); R(x+1,y,5,2,'#1c2026');   // legs
     R(x-7,y-16,14,10,hood); R(x-7,y-16,3,10,hoodSh); R(x+5,y-16,2,10,mix(hood,'#fff',0.08)); R(x-7,y-16,14,2,mix(hood,'#fff',0.12)); R(x-1,y-15,2,8,hoodSh);
     A(0.35,()=>R(x+6,y-16,1,10,C.rimWarm)); A(0.3,()=>R(x-7,y-16,1,10,C.rimCool));
-    drawAvatar(AV_FOX, x, y-13-Math.round(32*sc), sc); }
+    drawAvatar(heroAv ?? AV_FOX, x, y-13-Math.round(32*sc), sc); }
 
   // district boss — broad neutral body + the REAL iron-bear avatar as the head
   function boss(x:number,y:number,t:number){ const br=reduce?0:(Math.sin(t/1100)>0?0:1); y-=br;

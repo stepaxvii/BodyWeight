@@ -727,7 +727,6 @@ export interface DistrictResponse {
 	name: string;
 	name_ru: string;
 	order: number;
-	map_pos?: number[] | null;
 	scene?: string | null;
 	muscle?: string | null;
 	muscle_ru?: string | null;
@@ -735,6 +734,9 @@ export interface DistrictResponse {
 	unlock?: Record<string, unknown> | null;
 	quest?: Quest | null;
 	dialogue?: DistrictDialogue | null;
+	// Co-op is MANDATORY on a few future districts and absent on the solo ones.
+	// When false (default), the client shows no co-op/mercenary UI for the district.
+	coop?: boolean;
 	// Derived, per-player.
 	status: DistrictStatus;
 	quest_progress?: QuestProgress | null;

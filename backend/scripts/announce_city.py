@@ -36,44 +36,68 @@ from app.db.models import User, Notification
 from app.services.notifications import (
     save_notification,
     send_announcement_push,
+    send_announcement_photo,
     close_bot,
 )
 
 # Dedup identifier. Don't change unless you intentionally re-announce to everyone.
 NOTIFICATION_TYPE = "feature_announcement_city"
 
-# Per-language copy. In-app (bell) title/message + Telegram push (HTML).
+# District render shown with the push (French Quarter). Colocated with this
+# script so it ships in the API container; falls back to a text push if missing.
+IMAGE_PATH = Path(__file__).parent / "assets" / "city-french.png"
+
+# Per-language copy. In-app (bell) title/message (plain text) + Telegram push
+# (HTML caption on the district photo). Captions are kept < 1024 chars.
 COPY = {
     "ru": {
-        "title": "Город: новая фича",
+        "title": "Открылся Город 🏙",
         "message": (
-            "Открылась карта города! Заходи в районы, бери задания у боссов "
-            "и проходи их обычными тренировками. Начни со двора — Тренер Лев "
-            "ждёт. Открой «Город» в нижнем меню."
+            "Открылась карта Города! Районы, боссы и квесты. Заходи к боссу, "
+            "бери квест (норма на несколько дней) и проходи его обычными "
+            "тренировками — прогресс идёт сам из твоих подходов. Закрыл квест → "
+            "титул, XP, монеты и новый район. Начни со двора — Тренер Лев ждёт. "
+            "Открой вкладку «Город»."
         ),
         "push": (
-            "🏙 <b>В PixelFit открылся Город!</b>\n\n"
-            "Карта районов: заходишь к боссу, берёшь задание (норма на несколько "
-            "дней) и проходишь его обычными тренировками — прогресс идёт сам. "
-            "Закрыл задание → награда и новый район.\n\n"
-            "🦁 Начни со двора — Тренер Лев уже ждёт. Открой Mini App и загляни "
-            "во вкладку <b>Город</b>."
+            "🏙 <b>В PixelFit открылся ГОРОД</b> — целый мир районов, боссов и "
+            "квестов.\n\n"
+            "Как это работает:\n"
+            "🗺 Город — это карта районов. В каждом свой босс со своим испытанием.\n"
+            "💬 Заходишь к боссу → он даёт <b>квест</b>: норму на несколько дней "
+            "(например, «Чистый жим» — 7 дней).\n"
+            "🏋️ Проходишь квест <b>обычными тренировками</b> — прогресс "
+            "считается сам из твоих подходов.\n"
+            "🏆 Закрыл квест → титул, XP, монеты и новый открытый район.\n\n"
+            "🦁 Старт — во дворе: Тренер Лев ждёт с тремя основами. Дальше — "
+            "Французский квартал (на фото) и Казаки.\n\n"
+            "Открывай Mini App → вкладка <b>Город</b> и в путь!"
         ),
     },
     "en": {
-        "title": "The City: new feature",
+        "title": "The City is open 🏙",
         "message": (
-            "A city map just opened! Step into districts, take quests from their "
-            "bosses, and clear them with your normal workouts. Start in the yard "
-            "— Coach Leo is waiting. Open 'City' in the bottom menu."
+            "A city map just opened! Districts, bosses and quests. Visit a boss, "
+            "take a quest (a daily goal for a few days) and clear it with your "
+            "normal workouts — progress fills itself from your sets. Finish a "
+            "quest → a title, XP, coins and a new district. Start in the yard — "
+            "Coach Leo is waiting. Open the 'City' tab."
         ),
         "push": (
-            "🏙 <b>The City is now open in PixelFit!</b>\n\n"
-            "A district map: meet a boss, take a quest (a daily goal for a few "
-            "days) and clear it with your normal workouts — progress fills "
-            "itself. Clear the quest → reward and a new district.\n\n"
-            "🦁 Start in the yard — Coach Leo is waiting. Open the Mini App and "
-            "check the <b>City</b> tab."
+            "🏙 <b>The CITY is open in PixelFit</b> — a whole world of districts, "
+            "bosses and quests.\n\n"
+            "How it works:\n"
+            "🗺 The city is a map of districts, each with its own boss and "
+            "challenge.\n"
+            "💬 Visit a boss → he gives you a <b>quest</b>: a daily goal for a "
+            "few days (e.g. 'Clean Press' — 7 days).\n"
+            "🏋️ Clear it with your <b>normal workouts</b> — progress fills "
+            "itself from your sets.\n"
+            "🏆 Finish the quest → a title, XP, coins and a new district "
+            "unlocked.\n\n"
+            "🦁 Start in the yard: Coach Leo is waiting with three basics. Then "
+            "the French Quarter (pictured) and the Cossacks.\n\n"
+            "Open the Mini App → <b>City</b> tab and go!"
         ),
     },
 }
@@ -100,6 +124,11 @@ async def main(dry_run: bool, no_push: bool, limit: int | None) -> None:
     push_failed = 0
     skipped = 0
     total_seen = 0
+
+    # Surface a missing photo asset loudly: the push silently degrades to text, so
+    # without this a missing/unshipped image looks like a successful photo run.
+    if not no_push and not IMAGE_PATH.exists():
+        print(f"WARNING: announcement image not found at {IMAGE_PATH} — sending TEXT-ONLY pushes.")
 
     async with async_session_maker() as session:
         users_q = await session.execute(select(User).order_by(User.id))
@@ -137,11 +166,18 @@ async def main(dry_run: bool, no_push: bool, limit: int | None) -> None:
             # re-runs deduplicate cleanly.
             await session.commit()
 
-            # Telegram push (best-effort, localized).
+            # Telegram push (best-effort, localized). Lead with the district photo
+            # when the image is present; otherwise fall back to a text-only push.
             if not no_push and user.notifications_enabled and user.telegram_id:
-                ok = await send_announcement_push(
-                    user.telegram_id, copy["push"], notify_admin_on_block=False, lang=lang
-                )
+                if IMAGE_PATH.exists():
+                    ok = await send_announcement_photo(
+                        user.telegram_id, copy["push"], str(IMAGE_PATH),
+                        notify_admin_on_block=False, lang=lang,
+                    )
+                else:
+                    ok = await send_announcement_push(
+                        user.telegram_id, copy["push"], notify_admin_on_block=False, lang=lang
+                    )
                 if ok:
                     push_sent += 1
                 else:

@@ -28,6 +28,8 @@ function vgrad(x: number, y: number, w: number, h: number, c0: string, c1: strin
   for (let i = 1; i < bands; i++) { const yy = y + Math.round(i * bh), ca = mix(c0, c1, (i - 1) / (bands - 1)); for (let xx = x + ((yy & 1) ? 0 : 1); xx < x + w; xx += 2) R(xx, yy, 1, 1, ca); }
 }
 function avatar(av: Rect[], cx: number, topY: number, sc: number) { for (const r of av) R(Math.round(cx - 16 * sc + r[0] * sc), Math.round(topY + r[1] * sc), Math.max(1, Math.round(r[2] * sc)), Math.max(1, Math.round(r[3] * sc)), r[4]); }
+// The player's avatar as the hero's head (falls back to AV_FOX). Set per-draw.
+let heroAv: Rect[] | null = null;
 
 // ---------- palette (bright day) ----------
 const C = {
@@ -148,7 +150,7 @@ function heroFox(x: number, y: number, t: number) {
   const bob = reduce ? 0 : (Math.sin(t / 430) > 0 ? 0 : 1); y -= bob; const sh = '#d84a3a', shSh = '#a8362a', pant = '#3a4656', sc = 0.8;
   A(0.4, () => R(x - 8, y, 16, 1, '#2a2a22')); R(x - 6, y - 6, 5, 6, pant); R(x + 1, y - 6, 5, 6, pant); R(x - 6, y, 5, 2, '#20242b'); R(x + 1, y, 5, 2, '#20242b');
   R(x - 7, y - 16, 14, 10, sh); R(x - 7, y - 16, 3, 10, shSh); R(x + 5, y - 16, 2, 10, mix(sh, '#fff', 0.12)); R(x - 7, y - 16, 14, 2, mix(sh, '#fff', 0.14)); R(x - 2, y - 16, 4, 2, '#efe6cf');  // t-shirt + collar
-  A(0.3, () => R(x + 6, y - 16, 1, 10, C.rimWarm)); avatar(AV_FOX, x, y - 13 - Math.round(32 * sc), sc);
+  A(0.3, () => R(x + 6, y - 16, 1, 10, C.rimWarm)); avatar(heroAv ?? AV_FOX, x, y - 13 - Math.round(32 * sc), sc);
 }
 function mentor(x: number, y: number, av: Rect[], t: number) {
   const br = reduce ? 0 : (Math.sin(t / 1000) > 0 ? 0 : 1); y -= br; const trk = '#2f5aa0', trkSh = '#214078', trkHi = '#4a76bc', sc = 0.95;  // coach tracksuit
@@ -166,7 +168,8 @@ function questBang(x: number, y: number, t: number) {
 
 function draw(t: number) { R(0, 0, W, H, C.ink); sky(t); far(t); let bx = -10; let i = 0; while (bx < W) { apartment(bx, i * 7 + 1); bx += 46 + ((i * 13) % 20) + 8; i++; } R(0, GROUND, W, 1, mix(C.grassDk, '#000', 0.2)); yard(t); sport(t); }
 
-export function drawYard(context: CanvasRenderingContext2D, t: number) {
+export function drawYard(context: CanvasRenderingContext2D, t: number, hero: Rect[] | null = null) {
   ctx = context;
+  heroAv = hero;
   draw(t);
 }
