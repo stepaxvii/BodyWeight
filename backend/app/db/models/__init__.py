@@ -16,6 +16,7 @@ from .challenge import (
     ChallengeExercise,
     ChallengeParticipant,
     ChallengeProgress,
+    UserQuestCompletion,
 )
 
 __all__ = [
@@ -42,4 +43,5 @@ __all__ = [
     "ChallengeExercise",
     "ChallengeParticipant",
     "ChallengeProgress",
+    "UserQuestCompletion",
 ]

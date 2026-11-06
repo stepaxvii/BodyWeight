@@ -32,7 +32,10 @@ import type {
 	ChallengeClaimResult,
 	ChallengeCreatePayload,
 	ChallengeStatus,
-	ShareCardResponse
+	ShareCardResponse,
+	DistrictResponse,
+	DistrictListResponse,
+	AcceptQuestResponse
 } from '$lib/types';
 
 const API_BASE = '/bodyweight/api';
@@ -475,6 +478,48 @@ class ApiClient {
 	async claimChallengeReward(id: number): Promise<ChallengeClaimResult> {
 		return this.request<ChallengeClaimResult>(`/challenges/${id}/claim`, {
 			method: 'POST'
+		});
+	}
+
+	// ============== Districts (RPG city) ==============
+
+	async getDistricts(): Promise<DistrictListResponse> {
+		return this.request<DistrictListResponse>('/districts');
+	}
+
+	async getDistrict(id: string): Promise<DistrictResponse> {
+		return this.request<DistrictResponse>(`/districts/${id}`);
+	}
+
+	async acceptQuest(id: string): Promise<AcceptQuestResponse> {
+		return this.request<AcceptQuestResponse>(`/districts/${id}/accept`, {
+			method: 'POST'
+		});
+	}
+
+	async abandonQuest(id: string): Promise<void> {
+		await this.request(`/districts/${id}/abandon`, { method: 'POST' });
+	}
+
+	async invitePartner(id: string, userId: number): Promise<void> {
+		await this.request(`/districts/${id}/invite`, {
+			method: 'POST',
+			body: JSON.stringify({ user_id: userId })
+		});
+	}
+
+	async acceptInvite(id: string): Promise<void> {
+		await this.request(`/districts/${id}/accept-invite`, { method: 'POST' });
+	}
+
+	async declineInvite(id: string): Promise<void> {
+		await this.request(`/districts/${id}/decline-invite`, { method: 'POST' });
+	}
+
+	async hireMercenary(id: string, avatar: string): Promise<void> {
+		await this.request(`/districts/${id}/hire-mercenary`, {
+			method: 'POST',
+			body: JSON.stringify({ avatar })
 		});
 	}
 }

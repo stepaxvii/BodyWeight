@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     # (env: ADMIN_TELEGRAM_ID; unset = digest disabled)
     admin_telegram_id: int | None = None
 
+    # RPG "City" feature beta gate. True (default) => City is ADMIN-ONLY: only
+    # ADMIN_TELEGRAM_ID sees the nav button and can call /api/districts. Flip to
+    # False (env CITY_BETA=false) + restart to open it to everyone — no rebuild
+    # needed (the frontend reads `city_enabled` from /users/me at runtime).
+    city_beta: bool = True
+
     # Logging
     log_level: str = "INFO"  # DEBUG, INFO, WARNING, ERROR
 

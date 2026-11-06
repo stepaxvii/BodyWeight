@@ -92,6 +92,7 @@ export interface User {
 	notifications_enabled: boolean;
 	sound_enabled: boolean;
 	language: 'ru' | 'en';
+	city_enabled?: boolean;
 	is_onboarded: boolean;
 	leaderboard_visible: boolean;
 	daily_activity_norm: number;
@@ -372,7 +373,7 @@ export interface AuthResponse {
 }
 
 // Navigation
-export type NavItem = 'home' | 'workout' | 'challenges' | 'profile' | 'leaderboard';
+export type NavItem = 'home' | 'workout' | 'challenges' | 'city' | 'profile' | 'leaderboard';
 
 // Routine types (workout complexes)
 export type RoutineCategory = 'morning' | 'home' | 'pullup-bar' | 'dip-bars' | 'dumbbell' | 'resistance-band';
@@ -632,4 +633,123 @@ export interface ChallengeCalendar {
 
 export interface ChallengeClaimResult {
 	coins_awarded: number;
+}
+
+// ============== RPG Districts & Quests ==============
+// Mirrors backend/app/schemas/districts.py. Bilingual: unsuffixed = English,
+// `*_ru` = Russian (render via ln(en, ru)). `status`: locked | available |
+// active | completed.
+
+export type DistrictStatus = 'locked' | 'available' | 'active' | 'completed';
+
+export interface DistrictBoss {
+	avatar?: string | null;
+	name?: string | null;
+	name_ru?: string | null;
+	role?: string | null;
+	role_ru?: string | null;
+}
+
+// One line of a district's sequential (JRPG-style) dialogue.
+export interface DistrictDialogueLine {
+	speaker: 'boss' | 'hero';
+	line: string;
+	line_ru: string;
+}
+
+// The district `dialogue` dict mixes plain bilingual strings (offer/progress/…)
+// with the `intro` array of dialogue lines, so values are a union.
+export type DistrictDialogue = Record<string, string | DistrictDialogueLine[] | undefined>;
+
+export interface QuestExercise {
+	exercise_slug: string;
+	equipment?: string | null;
+	daily_target: number;
+	easier?: string | null;
+}
+
+export interface QuestReward {
+	xp: number;
+	coins: number;
+	title_slug?: string | null;
+	title?: string | null;
+	title_ru?: string | null;
+}
+
+export interface Quest {
+	id?: string | null;
+	district_id?: string | null;
+	title?: string | null;
+	title_ru?: string | null;
+	days?: number | null;
+	per_day_all?: boolean | null;
+	exercises: QuestExercise[];
+	reward?: QuestReward | null;
+	unlocks: string[];
+}
+
+export interface QuestProgressExercise {
+	exercise_slug: string;
+	name?: string | null;
+	name_ru?: string | null;
+	daily_target: number;
+	accumulated: number;
+	completed: boolean;
+	is_timed: boolean;
+}
+
+export interface QuestProgress {
+	challenge_id: number;
+	challenge_status: string;
+	full_days: number;
+	days: number;
+	start_date: string;
+	end_date: string;
+	mercenary_avatar?: string | null;
+	// Present only on the detail endpoint's live progress.
+	exercises?: QuestProgressExercise[] | null;
+}
+
+// Pending co-op invite the current player has received on this district's quest.
+// Set by the backend (per current user, per district) when the player has a
+// ChallengeParticipant row with invite_status="pending" on a quest challenge
+// whose quest belongs to this district; null otherwise.
+export interface IncomingInvite {
+	inviter_name: string;
+	inviter_user_id: number;
+	challenge_id: number;
+	quest_title: string;
+	quest_title_ru: string;
+}
+
+export interface DistrictResponse {
+	id: string;
+	name: string;
+	name_ru: string;
+	order: number;
+	map_pos?: number[] | null;
+	scene?: string | null;
+	muscle?: string | null;
+	muscle_ru?: string | null;
+	boss?: DistrictBoss | null;
+	unlock?: Record<string, unknown> | null;
+	quest?: Quest | null;
+	dialogue?: DistrictDialogue | null;
+	// Derived, per-player.
+	status: DistrictStatus;
+	quest_progress?: QuestProgress | null;
+	// Pending co-op invite for the current player on this district (null if none).
+	incoming_invite?: IncomingInvite | null;
+}
+
+export interface DistrictListResponse {
+	districts: DistrictResponse[];
+}
+
+export interface AcceptQuestResponse {
+	challenge_id: number;
+	quest_id?: string | null;
+	status: string;
+	start_date: string;
+	end_date: string;
 }

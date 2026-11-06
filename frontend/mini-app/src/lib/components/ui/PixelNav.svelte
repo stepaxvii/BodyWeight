@@ -4,6 +4,7 @@
 	import { base } from '$app/paths';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { workoutStore } from '$lib/stores/workout.svelte';
+	import { userStore } from '$lib/stores/user.svelte';
 	import { t } from '$lib/i18n/index.svelte';
 	import type { NavItem } from '$lib/types';
 	import PixelButton from './PixelButton.svelte';
@@ -21,6 +22,11 @@
 		{ id: 'workout', label: t('home.nav.workout'), href: `${base}/workout`, icon: 'workout' },
 		{ id: 'challenges', label: t('home.nav.challenges'), href: `${base}/challenges`, icon: 'calendar' },
 		{ id: 'leaderboard', label: t('home.nav.leaderboard'), href: `${base}/leaderboard`, icon: 'trophy' },
+		// City is beta-gated: shown only when the backend says this user may access
+		// it (CITY_BETA off, or the admin). `city_enabled` comes from /users/me.
+		...(userStore.user?.city_enabled
+			? [{ id: 'city', label: t('home.nav.city'), href: `${base}/city`, icon: 'target' } as NavItemConfig]
+			: []),
 		{ id: 'profile', label: t('home.nav.profile'), href: `${base}/profile`, icon: 'user' }
 	]);
 

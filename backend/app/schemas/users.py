@@ -27,6 +27,9 @@ class UserResponse(BaseModel):
     leaderboard_visible: bool
     daily_activity_norm: int = 1400
     equipped_title: str | None = None
+    # RPG City beta gate: whether THIS user may access the City (CITY_BETA off,
+    # or they are the admin). The frontend shows the City nav only when true.
+    city_enabled: bool = False
     created_at: datetime
     updated_at: datetime
 

@@ -199,6 +199,11 @@ TITLES = [
     ("title-athlete", "Athlete", "Атлет", 0, 10),
     ("title-iron-warrior", "Iron Warrior", "Железный воин", 150, 8),
     ("title-fitness-legend", "Fitness Legend", "Легенда фитнеса", 500, 15),
+    # District quest rewards (RPG city). Price 0 — granted by completing a quest,
+    # not purchased. required_level 1 so the grant is never level-gated.
+    ("title-yard-fighter", "Yard Fighter", "Дворовый боец", 0, 1),
+    ("title-iron-elbow", "Iron Elbow", "Железный локоть", 0, 1),
+    ("title-cossack", "Cossack", "Казак", 0, 1),
 ]
 
 

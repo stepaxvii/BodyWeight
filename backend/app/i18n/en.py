@@ -247,6 +247,101 @@ MESSAGES: dict = {
             "message": "{emoji} {name} has been defeated. Claim your reward on the boss page.",
         },
     },
+    "quest": {
+        # RPG districts & quests. Content (quest_title/district_name/reward) is
+        # passed in already-localized by the caller from districts.json; these
+        # keys only carry the static chrome + {placeholders}.
+        "accepted": {
+            "title": "Quest accepted!",
+            "message": (
+                "“{quest_title}” — {district_name}. {days} days to clear it. "
+                "Train every day!"
+            ),
+            "push": (
+                "🗺️ <b>Quest accepted!</b>\n\n"
+                "“{quest_title}” in <b>{district_name}</b>.\n"
+                "Hit the daily norm every day for {days} days."
+            ),
+        },
+        "day_progress": {
+            "title": "Quest day complete!",
+            "message": (
+                "“{quest_title}”: day {full_days}/{days} done. Keep the streak — "
+                "miss a day and the quest fails."
+            ),
+        },
+        "completed": {
+            "title": "Quest cleared!",
+            "message": "“{quest_title}” cleared in {district_name}! Reward: {reward}.",
+            "push": (
+                "🏆 <b>Quest cleared!</b>\n\n"
+                "You finished “{quest_title}”.\n"
+                "Reward: <b>{reward}</b>."
+            ),
+        },
+        "district_unlocked": {
+            "title": "District unlocked!",
+            "message": "You’ve unlocked {district_name}. New quests await.",
+            "push": (
+                "🏙️ <b>New district unlocked!</b>\n\n"
+                "{district_name} is open. Step in and take a quest."
+            ),
+        },
+        "failed": {
+            "title": "Quest failed",
+            "message": (
+                "“{quest_title}”: the {days}-day window ended before you cleared "
+                "every day. Abandon and retry when ready."
+            ),
+            "push": (
+                "❌ <b>Quest failed</b>\n\n"
+                "“{quest_title}” expired. The window needs all {days} days — retry it."
+            ),
+        },
+        "invite": {
+            # Co-op invite (explicit consent): received -> declined/accepted.
+            "received": {
+                "title": "Co-op quest invite",
+                "message": (
+                    "{from_user_name} invited you to “{quest_title}” in "
+                    "{district_name}. Accept to train together."
+                ),
+                "push": (
+                    "🤝 <b>Co-op quest invite!</b>\n\n"
+                    "<b>{from_user_name}</b> invited you to “{quest_title}”.\n"
+                    "Accept to start together tomorrow."
+                ),
+            },
+            "accepted": {
+                "title": "Partner joined your quest",
+                "message": (
+                    "{partner_name} accepted “{quest_title}”. "
+                    "You start together tomorrow!"
+                ),
+                "push": (
+                    "💪 <b>{partner_name} joined your quest!</b>\n\n"
+                    "“{quest_title}” — you start together tomorrow."
+                ),
+            },
+            "declined": {
+                "title": "Invite declined",
+                "message": (
+                    "{partner_name} declined “{quest_title}”. "
+                    "You can go solo or hire a mercenary."
+                ),
+                "push": (
+                    "🙅 <b>{partner_name} declined your co-op invite.</b>\n\n"
+                    "“{quest_title}” — go solo or hire a mercenary."
+                ),
+            },
+        },
+        "mercenary": {
+            # ValueError messages raised by hire_mercenary (NOT pushes).
+            "funds": "Not enough coins: need {price}, have {coins}",
+            "already": "A mercenary is already hired for this quest.",
+            "not_quest": "Mercenaries can only be hired for quests.",
+        },
+    },
     "email": {
         # No transactional email bodies are currently sent by the backend.
     },
