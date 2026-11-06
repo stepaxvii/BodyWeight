@@ -1045,6 +1045,19 @@
 		flex: 1;
 	}
 
+	/* The dark pixel overlays sit on #121826, but the app's ghost PixelButton is
+	   transparent with dark text (built for the LIGHT theme) — so "close"/"leave"
+	   buttons vanished into the background. Give ghost buttons a dark-overlay skin
+	   here so they read; primary/danger keep their accent colour. */
+	.callout :global(.pixel-button.ghost),
+	.dbar :global(.pixel-button.ghost),
+	.invite-box :global(.pixel-button.ghost),
+	.picker :global(.pixel-button.ghost) {
+		background: #1b2436;
+		border-color: #e8bf48;
+		color: #efe6cf;
+	}
+
 	.dbar-who {
 		display: inline-block;
 		font-size: 9px;
