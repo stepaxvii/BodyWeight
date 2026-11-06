@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, tick } from 'svelte';
 	import { PixelButton, PixelIcon } from '$lib/components/ui';
 	import { api } from '$lib/api/client';
 	import { telegram } from '$lib/stores/telegram.svelte';
@@ -495,7 +495,6 @@
 	}
 
 	onMount(async () => {
-		sizeCanvas('map');
 		await cityStore.load();
 		loading = false;
 		// Start the player at the first active/available district, else home.
@@ -508,6 +507,12 @@
 			playerId = start.id;
 			playerPos = { x: start.map_pos[0], y: start.map_pos[1] };
 		}
+		// The <canvas> lives behind {#if loading}, so it only mounts AFTER
+		// loading=false. Wait for that DOM update so canvasEl is bound before we
+		// grab its 2D context — otherwise ctx stays null and the render loop
+		// silently draws nothing (the black screen we hit on first deploy).
+		await tick();
+		sizeCanvas('map');
 		startLoop();
 	});
 
