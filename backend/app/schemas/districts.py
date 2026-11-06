@@ -35,7 +35,6 @@ class QuestExercise(BaseModel):
     exercise_slug: str
     equipment: str | None = None
     daily_target: int
-    easier: str | None = None
 
 
 class QuestReward(BaseModel):

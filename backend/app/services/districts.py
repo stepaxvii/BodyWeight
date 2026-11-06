@@ -142,9 +142,6 @@ def validate(valid_slugs: set[str]) -> list[str]:
             eq = e.get("equipment")
             if eq not in allowed:
                 problems.append(f"{qid}: '{slug}' equipment '{eq}' not in {sorted(allowed)}")
-            easier = e.get("easier")
-            if easier and easier not in valid_slugs:
-                problems.append(f"{qid}: easier '{easier}' is not a known slug")
 
     # Note: unlock-ref cross-checking is intentionally NOT done here — the stub
     # districts (downtown/port) legitimately point at not-yet-authored quests.

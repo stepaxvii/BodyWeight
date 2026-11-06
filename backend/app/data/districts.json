@@ -30,7 +30,7 @@
         "days": 3,
         "per_day_all": true,
         "exercises": [
-          { "exercise_slug": "pushup-regular", "equipment": "none", "daily_target": 10, "easier": "pushup-knee" },
+          { "exercise_slug": "pushup-regular", "equipment": "none", "daily_target": 10 },
           { "exercise_slug": "squat-regular",  "equipment": "none", "daily_target": 15 },
           { "exercise_slug": "glute-bridge",   "equipment": "none", "daily_target": 15 }
         ],
@@ -49,10 +49,10 @@
           { "speaker": "hero", "line": "I'm ready to train. Where do I start?", "line_ru": "Я готов тренироваться. С чего начать?" },
           { "speaker": "boss", "line": "With the basics, fighter. A pull-up bar, the parallel bars, your own body — nothing else needed.", "line_ru": "С основ, боец. Турник, брусья, своё тело — больше ничего не надо." },
           { "speaker": "hero", "line": "Sounds within reach.", "line_ru": "Звучит по силам." },
-          { "speaker": "boss", "line": "Three days: push-ups, squats, the glute bridge. All three, every day. Too hard? Start from your knees — same muscles, easier path. Make it and you're one of us.", "line_ru": "Три дня: отжимания, приседания, мостик. Каждый день — все три. Тяжело? Начни с колен — те же мышцы, просто полегче. Выдюжишь — и ты наш, дворовый боец." }
+          { "speaker": "boss", "line": "Three days: push-ups, squats, the glute bridge. All three, every day. Make it and you're one of us.", "line_ru": "Три дня: отжимания, приседания, мостик. Каждый день — все три. Выдюжишь — и ты наш, дворовый боец." }
         ],
-        "offer":      "Listen up, fighter. Nothing fancy — three days, three basics of the yard: push-ups, squats, and the glute bridge. If full push-ups are too hard, start from your knees — it works the same muscles and gets you going. Hit the daily count every day and you're already one of us.",
-        "offer_ru":   "Слушай сюда, боец. Ничего хитрого — три дня, три основы двора: отжимания, приседания и мостик. Если полные отжимания тяжело — начни с колен, это та же группа мышц, просто проще начать. Сделаешь норму каждый день — и ты уже наш, дворовый боец.",
+        "offer":      "Listen up, fighter. Nothing fancy — three days, three basics of the yard: push-ups, squats, and the glute bridge. Hit the daily count every day and you're already one of us.",
+        "offer_ru":   "Слушай сюда, боец. Ничего хитрого — три дня, три основы двора: отжимания, приседания и мостик. Сделаешь норму каждый день — и ты уже наш, дворовый боец.",
         "accept":     "That's the spirit. All three, every day. Rest up today — I'll see you at training tomorrow!",
         "accept_ru":  "Вот это по-нашему. Каждый день — все три. Сегодня отдыхай, а завтра жду тебя на тренировку!",
         "progress":   "Good work, no slacking. One more day and you're ready for the city.",
@@ -94,9 +94,9 @@
         "days": 7,
         "per_day_all": true,
         "exercises": [
-          { "exercise_slug": "pushup-diamond", "equipment": "none",     "daily_target": 10, "easier": "pushup-knee" },
-          { "exercise_slug": "pushup-wide",    "equipment": "none",     "daily_target": 12, "easier": "pushup-knee" },
-          { "exercise_slug": "dip-parallel",   "equipment": "dip-bars", "daily_target": 8,  "easier": "pushup-knee" }
+          { "exercise_slug": "pushup-diamond", "equipment": "none",     "daily_target": 10 },
+          { "exercise_slug": "pushup-wide",    "equipment": "none",     "daily_target": 12 },
+          { "exercise_slug": "dip-parallel",   "equipment": "dip-bars", "daily_target": 8 }
         ],
         "reward": {
           "xp": 500,
@@ -159,7 +159,7 @@
         "days": 5,
         "per_day_all": true,
         "exercises": [
-          { "exercise_slug": "squat-cossack", "equipment": "none", "daily_target": 16, "easier": "squat-sumo" },
+          { "exercise_slug": "squat-cossack", "equipment": "none", "daily_target": 16 },
           { "exercise_slug": "lunge-reverse", "equipment": "none", "daily_target": 16 },
           { "exercise_slug": "glute-bridge",  "equipment": "none", "daily_target": 20 }
         ],

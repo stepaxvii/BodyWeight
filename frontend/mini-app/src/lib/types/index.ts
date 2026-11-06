@@ -665,7 +665,6 @@ export interface QuestExercise {
 	exercise_slug: string;
 	equipment?: string | null;
 	daily_target: number;
-	easier?: string | null;
 }
 
 export interface QuestReward {
