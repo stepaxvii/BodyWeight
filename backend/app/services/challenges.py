@@ -32,6 +32,7 @@ from app.db.models import (
     Exercise,
     Friendship,
     User,
+    UserQuestCompletion,
 )
 from app.i18n import t
 from app.services.notifications import save_notification
@@ -197,6 +198,11 @@ async def join_challenge(
     if challenge is None:
         raise ValueError("Challenge not found")
 
+    # ISOLATION seam (b): quest challenges are never joinable via the ordinary
+    # join path — co-op entry is the explicit invite/accept flow (spec §5/§7.3).
+    if challenge.quest_id is not None:
+        raise ValueError("Quests are not joinable")
+
     # Lazy status refresh in case start_date hit
     await update_challenge_status(session, challenge)
 
@@ -319,6 +325,17 @@ async def record_progress(
         .join(ChallengeExercise, ChallengeExercise.challenge_id == Challenge.id)
         .join(Exercise, Exercise.id == ChallengeExercise.exercise_id)
         .where(ChallengeParticipant.user_id == user.id)
+        # Only COUNTING participants accrue progress: a 'pending'/'declined'
+        # co-op invitee who never accepted must not gain quest progress rows
+        # (spec §6/§7 — co-op reward requires EXPLICIT accept). invite_status is
+        # NULL for every regular challenge and for solo/accepted quest players,
+        # so this leaves ordinary-challenge behaviour unchanged.
+        .where(
+            or_(
+                ChallengeParticipant.invite_status.is_(None),
+                ChallengeParticipant.invite_status == "accepted",
+            )
+        )
         .where(Challenge.status == "active")
         .where(Challenge.start_date <= workout_date)
         .where(Challenge.end_date >= workout_date)
@@ -432,12 +449,141 @@ async def record_progress(
                 exercises=deltas,
             )
         )
+
+    # COMPLETION HOOK (spec §4.6/§4.7): for any quest challenge this workout
+    # touched, detect per-participant completion (full_days >= quest.days) and
+    # grant the FIXED quest reward — never tier/claim coins. Runs in the same
+    # transaction as the progress write (like achievement checks).
+    quest_challenges = [c for c, _ in grouped.values() if c.quest_id is not None]
+    for challenge in quest_challenges:
+        await _maybe_complete_quest(session, user, challenge)
+
     return out
+
+
+async def _maybe_complete_quest(
+    session: AsyncSession,
+    user: User,
+    challenge: Challenge,
+) -> None:
+    """
+    Quest completion detection in the record_progress path (spec §4.6/§4.7).
+
+    - If this user reached full_days >= quest.days and has no UserQuestCompletion
+      yet → apply the fixed quest reward and record the completion.
+    - Close the INSTANCE (status="finished", WITHOUT finalized_at) once every
+      real participant (invite_status IN NULL/'accepted') is done OR the window
+      ended. finalized_at stays NULL so the claim/tier path never opens (§4.7).
+    """
+    # Late import: services.districts <-> services.challenges would cycle.
+    from app.services.districts import apply_quest_reward, quest_by_id
+
+    quest = quest_by_id(challenge.quest_id)
+    if quest is None:
+        return  # content gone / unknown quest_id — nothing to grant
+    quest_days = quest.get("days") or 0
+    if quest_days <= 0:
+        return
+
+    # Per-participant completion for the acting user.
+    already = await session.execute(
+        select(UserQuestCompletion.id)
+        .where(UserQuestCompletion.user_id == user.id)
+        .where(UserQuestCompletion.quest_id == challenge.quest_id)
+    )
+    user_already_done = already.scalar_one_or_none() is not None
+
+    if not user_already_done:
+        full_days = await compute_full_days(session, challenge, user.id)
+        if full_days >= quest_days:
+            await apply_quest_reward(session, user, quest)
+            session.add(
+                UserQuestCompletion(
+                    user_id=user.id,
+                    quest_id=challenge.quest_id,
+                    district_id=quest.get("_district_id") or "",
+                )
+            )
+            await session.flush()
+
+    # Instance close (co-op wait-for-all). Real participants = invite_status IN
+    # (NULL, 'accepted'); pending/declined invites and mercenaries do not gate.
+    if challenge.status == "finished":
+        return  # already closed by generic status machinery or a prior pass
+
+    today = datetime.utcnow().date()
+    window_ended = today > challenge.end_date
+
+    parts_result = await session.execute(
+        select(ChallengeParticipant.user_id).where(
+            ChallengeParticipant.challenge_id == challenge.id,
+            or_(
+                ChallengeParticipant.invite_status.is_(None),
+                ChallengeParticipant.invite_status == "accepted",
+            ),
+        )
+    )
+    real_participant_ids = [uid for (uid,) in parts_result.all()]
+
+    all_done = False
+    if real_participant_ids:
+        done_result = await session.execute(
+            select(func.count(UserQuestCompletion.id))
+            .where(UserQuestCompletion.quest_id == challenge.quest_id)
+            .where(UserQuestCompletion.user_id.in_(real_participant_ids))
+        )
+        done_count = done_result.scalar() or 0
+        all_done = done_count >= len(real_participant_ids)
+
+    if all_done or window_ended:
+        # Close the instance WITHOUT finalized_at — quests have no claim/tier path.
+        challenge.status = "finished"
+        await session.flush()
 
 
 # ---------------------------------------------------------------------------
 # Finalization & rewards
 # ---------------------------------------------------------------------------
+
+async def compute_full_days(
+    session: AsyncSession,
+    challenge: Challenge,
+    user_id: int,
+) -> int:
+    """
+    DISTINCT calendar dates where ALL of this challenge's exercises hit target
+    for `user_id` (AND-per-day). Reusable service-layer helper so quest
+    completion detection does not need the route-layer `_calc_running_completion`
+    (keeps services/ free of route imports — spec §4.1).
+    """
+    # Count exercises in this challenge
+    ex_result = await session.execute(
+        select(func.count(ChallengeExercise.id)).where(
+            ChallengeExercise.challenge_id == challenge.id
+        )
+    )
+    n_exercises = ex_result.scalar() or 0
+    if n_exercises == 0:
+        return 0
+
+    rows = await session.execute(
+        select(ChallengeProgress.progress_date)
+        .where(ChallengeProgress.challenge_id == challenge.id)
+        .where(ChallengeProgress.user_id == user_id)
+        .where(ChallengeProgress.completed.is_(True))
+        # Only count days WITHIN the (possibly rewritten) quest window. Guards
+        # against a co-op head start: accept_invite moves start_date to today+1,
+        # so a pre-invite day the inviter already completed falls before
+        # start_date and must not count toward full_days (spec §4.5).
+        .where(ChallengeProgress.progress_date >= challenge.start_date)
+        .where(ChallengeProgress.progress_date <= challenge.end_date)
+    )
+    counts: dict[date, int] = {}
+    for (d,) in rows.all():
+        counts[d] = counts.get(d, 0) + 1
+
+    return sum(1 for v in counts.values() if v >= n_exercises)
+
 
 async def _participant_completion_percent(
     session: AsyncSession,
@@ -454,29 +600,7 @@ async def _participant_completion_percent(
     if duration <= 0:
         return 0
 
-    # Count exercises in this challenge
-    ex_result = await session.execute(
-        select(func.count(ChallengeExercise.id)).where(
-            ChallengeExercise.challenge_id == challenge.id
-        )
-    )
-    n_exercises = ex_result.scalar() or 0
-    if n_exercises == 0:
-        return 0
-
-    # Count progress rows that are completed for this user grouped by date.
-    # A day fully complete = exactly n_exercises completed rows for that date.
-    rows = await session.execute(
-        select(ChallengeProgress.progress_date)
-        .where(ChallengeProgress.challenge_id == challenge.id)
-        .where(ChallengeProgress.user_id == user_id)
-        .where(ChallengeProgress.completed.is_(True))
-    )
-    counts: dict[date, int] = {}
-    for (d,) in rows.all():
-        counts[d] = counts.get(d, 0) + 1
-
-    full_days = sum(1 for v in counts.values() if v >= n_exercises)
+    full_days = await compute_full_days(session, challenge, user_id)
     return min(100, int(round(100 * full_days / duration)))
 
 
@@ -546,6 +670,9 @@ async def finalize_due_challenges(session: AsyncSession) -> int:
         select(Challenge)
         .where(Challenge.finalized_at.is_(None))
         .where(Challenge.end_date < today)
+        # ISOLATION seam (c): quest challenges never enter the tier-finalize job;
+        # their reward is the fixed apply_quest_reward, not claimable tier coins.
+        .where(Challenge.quest_id.is_(None))
     )
     bosses = list(result.scalars().all())
     for ch in bosses:
@@ -572,7 +699,16 @@ async def claim_reward(
         raise ValueError("Reward already claimed")
 
     challenge = await session.get(Challenge, challenge_id)
-    if challenge is None or challenge.finalized_at is None:
+    if challenge is None:
+        raise ValueError("Challenge not finalized yet")
+
+    # ISOLATION seam (f): quests carry no claimable reward (no tier/claim coins).
+    # Defence-in-depth: their finalize never runs, so reward_coins==0 anyway, and
+    # they never get finalized_at — but reject explicitly against regressions.
+    if challenge.quest_id is not None:
+        raise ValueError("Quests have no claimable reward")
+
+    if challenge.finalized_at is None:
         raise ValueError("Challenge not finalized yet")
 
     if datetime.utcnow() > challenge.finalized_at + timedelta(days=REWARD_CLAIM_TTL_DAYS):

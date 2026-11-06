@@ -1,0 +1,233 @@
+{
+  "version": 2,
+  "_comment": "Контент-слой районов и квестов (статический, как bosses.json). Квест = шаблон -> материализуется в Challenge на игрока при принятии. Схема суффиксов: unsuffixed поле = English, *_ru = Russian (рендер через ln(en, ru)). Имена упражнений в UI берутся из таблицы Exercise (bilingual), тут только exercise_slug. Правило: стартовые районы только eq in [none, pullup-bar, dip-bars].",
+  "allowed_equipment_starter": ["none", "pullup-bar", "dip-bars"],
+  "unlock_order": ["home", "french", "cossack", "downtown", "port"],
+
+  "districts": [
+    {
+      "id": "home",
+      "name": "Your Yard",
+      "name_ru": "Твой двор",
+      "order": 0,
+      "map_pos": [100, 252],
+      "scene": "yard",
+      "muscle": "Full body",
+      "muscle_ru": "Всё тело",
+      "boss": {
+        "avatar": "solar-lion",
+        "name": "Coach Leo",
+        "name_ru": "Тренер Лев",
+        "role": "mentor",
+        "role_ru": "наставник"
+      },
+      "unlock": { "type": "start" },
+      "quest": {
+        "id": "yard-basics",
+        "district_id": "home",
+        "title": "Three Pillars of the Yard",
+        "title_ru": "Три основы двора",
+        "days": 3,
+        "per_day_all": true,
+        "exercises": [
+          { "exercise_slug": "pushup-knee",   "equipment": "none", "daily_target": 10 },
+          { "exercise_slug": "squat-regular", "equipment": "none", "daily_target": 15 },
+          { "exercise_slug": "glute-bridge",  "equipment": "none", "daily_target": 15 }
+        ],
+        "reward": {
+          "xp": 150,
+          "coins": 15,
+          "title_slug": "title-yard-fighter",
+          "title": "Yard Fighter",
+          "title_ru": "Дворовый боец"
+        },
+        "unlocks": ["french", "cossack"]
+      },
+      "dialogue": {
+        "intro": [
+          { "speaker": "boss", "line": "Oh, a newcomer! Come on in — the yard welcomes everyone.", "line_ru": "О, новенький! Заходи, не стесняйся — двор всех принимает." },
+          { "speaker": "hero", "line": "I'm ready to train. Where do I start?", "line_ru": "Я готов тренироваться. С чего начать?" },
+          { "speaker": "boss", "line": "With the basics, fighter. A pull-up bar, the parallel bars, your own body — nothing else needed.", "line_ru": "С основ, боец. Турник, брусья, своё тело — больше ничего не надо." },
+          { "speaker": "hero", "line": "Sounds within reach.", "line_ru": "Звучит по силам." },
+          { "speaker": "boss", "line": "Three days: knee push-ups, squats, the glute bridge. All three, every day. Make it and you're one of us.", "line_ru": "Три дня: отжимания с колен, приседания, мостик. Каждый день — все три. Выдюжишь — и ты наш, дворовый боец." }
+        ],
+        "offer":      "Listen up, fighter. Nothing fancy — three days, three basics of the yard: knee push-ups, squats, and the glute bridge. Hit the daily count every day and you're already one of us.",
+        "offer_ru":   "Слушай сюда, боец. Ничего хитрого — три дня, три основы двора: отжался с колен, присел, поднял таз в мостике. Сделаешь норму каждый день — и ты уже наш, дворовый боец.",
+        "accept":     "That's the spirit. All three, every day. Go!",
+        "accept_ru":  "Вот это по-нашему. Каждый день — все три. Пошёл!",
+        "progress":   "Good work, no slacking. One more day and you're ready for the city.",
+        "progress_ru":"Молодцом, не филонишь. Ещё денёк — и ты готов к городу.",
+        "complete":   "That's it, fighter — you're no rookie now. Take the title and head into the city: Iron is in the quarter and Batya is in the settlement, both waiting for you.",
+        "complete_ru":"Ну всё, боец — ты больше не новичок. Держи титул и дуй в город: Железный в квартале и Батька в слободе тебя заждались.",
+        "repeat":     "The yard's always glad to see you. Warmed up? Then on into the city.",
+        "repeat_ru":  "Двор всегда рад. Размялся? Тогда вперёд по городу."
+      }
+    },
+
+    {
+      "id": "french",
+      "name": "French Quarter",
+      "name_ru": "Французский квартал",
+      "order": 1,
+      "map_pos": [50, 168],
+      "scene": "french",
+      "muscle": "Chest & triceps",
+      "muscle_ru": "Грудь и трицепс",
+      "boss": {
+        "avatar": "iron-bear",
+        "name": "Iron",
+        "name_ru": "Железный",
+        "role": "quarter boss",
+        "role_ru": "хозяин квартала"
+      },
+      "unlock": { "type": "quest_done", "quest": "yard-basics" },
+      "quest": {
+        "id": "clean-press",
+        "district_id": "french",
+        "title": "Clean Press",
+        "title_ru": "Чистый жим",
+        "days": 7,
+        "per_day_all": true,
+        "exercises": [
+          { "exercise_slug": "pushup-diamond", "equipment": "none",     "daily_target": 10, "easier": "pushup-knee" },
+          { "exercise_slug": "pushup-wide",    "equipment": "none",     "daily_target": 12, "easier": "pushup-knee" },
+          { "exercise_slug": "dip-parallel",   "equipment": "dip-bars", "daily_target": 8,  "easier": "pushup-knee" }
+        ],
+        "reward": {
+          "xp": 500,
+          "coins": 50,
+          "title_slug": "title-iron-elbow",
+          "title": "Iron Elbow",
+          "title_ru": "Железный локоть"
+        },
+        "unlocks": []
+      },
+      "dialogue": {
+        "intro": [
+          { "speaker": "boss", "line": "The quarter isn't for the weak. What do you want?", "line_ru": "Квартал не для слабых. Чего пришёл?" },
+          { "speaker": "hero", "line": "To get stronger. They say you know pressing.", "line_ru": "Хочу стать сильнее. Говорят, ты знаешь толк в жиме." },
+          { "speaker": "boss", "line": "Pressing is character. No pull-bars for triceps — that's for show, not strength.", "line_ru": "Жим — это характер. Никаких турников для трицепса, это понты, а не сила." },
+          { "speaker": "hero", "line": "Then teach me for real.", "line_ru": "Тогда научи по-настоящему." },
+          { "speaker": "boss", "line": "Seven days of clean pressing: diamond, wide, the bars. Hold it in your elbows and you'll earn an iron name.", "line_ru": "Семь дней чистого жима: алмазные, широкие, брусья. Выдержишь локтями — получишь железное имя." }
+        ],
+        "offer":      "Iron has no love for the weak, and a weak press is no press. No pull-bars for triceps — that's for show, not strength. Diamond push-ups, wide push-ups, and the bars. Seven days of clean pressing — hold it in your elbows and you'll earn an iron name.",
+        "offer_ru":   "Железо не любит слабых, а слабый жим — не жим. Никаких турников для трицепса — это понты, а не сила. Алмазные отжимания, широкие да брусья. Семь дней чистого жима — выдержишь локтями, получишь железное имя.",
+        "accept":     "Seven days. No misses. Elbows in.",
+        "accept_ru":  "Семь дней. Без пропусков. Локти в кучу.",
+        "progress":   "Halfway there. Endure — the press forges character.",
+        "progress_ru":"Половина пути. Терпи — жим кует характер.",
+        "complete":   "Solid. Your elbow is iron now. The quarter accepts you.",
+        "complete_ru":"Годно. Теперь локоть у тебя железный. Квартал тебя принял.",
+        "repeat":     "The quarter keeps its shape. Want another round — say so.",
+        "repeat_ru":  "Квартал держит форму. Нужен ещё круг — скажи."
+      }
+    },
+
+    {
+      "id": "cossack",
+      "name": "Cossack Settlement",
+      "name_ru": "Казачья слобода",
+      "order": 2,
+      "map_pos": [152, 162],
+      "scene": "cossack",
+      "muscle": "Legs",
+      "muscle_ru": "Ноги",
+      "boss": {
+        "avatar": "minotaur",
+        "name": "Batya",
+        "name_ru": "Батька",
+        "role": "settlement strongman",
+        "role_ru": "бугай слободы"
+      },
+      "unlock": { "type": "quest_done", "quest": "yard-basics" },
+      "quest": {
+        "id": "strong-legs",
+        "district_id": "cossack",
+        "title": "Strong Legs",
+        "title_ru": "Крепкие ноги",
+        "days": 5,
+        "per_day_all": true,
+        "exercises": [
+          { "exercise_slug": "squat-cossack", "equipment": "none", "daily_target": 16, "easier": "squat-sumo" },
+          { "exercise_slug": "lunge-reverse", "equipment": "none", "daily_target": 16 },
+          { "exercise_slug": "glute-bridge",  "equipment": "none", "daily_target": 20 }
+        ],
+        "reward": {
+          "xp": 400,
+          "coins": 40,
+          "title_slug": "title-cossack",
+          "title": "Cossack",
+          "title_ru": "Казак"
+        },
+        "unlocks": []
+      },
+      "dialogue": {
+        "intro": [
+          { "speaker": "boss", "line": "Ho-ho! A guest in the settlement! Are those legs of yours any good?", "line_ru": "О-го-го! Гость в слободе! Ноги-то крепкие?" },
+          { "speaker": "hero", "line": "Don't know yet. Shall we test them?", "line_ru": "Пока не знаю. Проверим?" },
+          { "speaker": "boss", "line": "That's the spirit! Here we respect legs and character.", "line_ru": "От это по-нашему! В слободе уважают ноги да характер." },
+          { "speaker": "hero", "line": "Give me the work, then.", "line_ru": "Тогда давай нагрузку." },
+          { "speaker": "boss", "line": "Five days: Cossack squats, reverse lunges, the bridge. Make it and you'll be a Cossack!", "line_ru": "Пять дней: казачьи приседы, выпады назад, мостик. Выдюжишь — станешь казаком!" }
+        ],
+        "offer":      "Hey, Cossack! Legs are everything, the rest follows! Cossack squats to the full width, reverse lunges, and the glute bridge — so you can drop deep, step strong, and hold your backside. Five days and you'll have legs like mine!",
+        "offer_ru":   "Эй, казак! Ноги — это всё, остальное приложится! Казачьи приседы на всю ширину, выпады назад да ягодичный мостик — чтоб и присесть глубоко, и шагнуть, и зад держал. Пять дней — и будут у тебя ноги, как у меня!",
+        "accept":     "That's it! Five days and your legs turn Cossack.",
+        "accept_ru":  "От так! Пять ден — и ноги у тебя станут казачьи.",
+        "progress":   "Legs burning? Means you're working. Batya's pleased.",
+        "progress_ru":"Ноги горят? Значит, работаешь. Батька доволен.",
+        "complete":   "Lovely! Now you're a Cossack. Take the title, and come by — we'll drill again.",
+        "complete_ru":"Любо! Теперь ты казак. Держи титул, да заходи — ещё погоняем.",
+        "repeat":     "Oh, the Cossack's back! Shall we squat?",
+        "repeat_ru":  "О, казак вернулся! Присядем?"
+      }
+    },
+
+    {
+      "id": "downtown",
+      "name": "Downtown",
+      "name_ru": "Даунтаун",
+      "order": 3,
+      "map_pos": [96, 92],
+      "scene": "downtown",
+      "muscle": "Chest",
+      "muscle_ru": "Грудь",
+      "boss": {
+        "avatar": "cyber-ape",
+        "name": "???",
+        "name_ru": "???",
+        "role": "???",
+        "role_ru": "???"
+      },
+      "unlock": { "type": "all_of", "quests": ["clean-press", "strong-legs"] },
+      "quest": { "_status": "TBD — следующий тир; здесь вводится инвентарь (качалка)" },
+      "dialogue": {
+        "locked":    "Prove yourself in two districts and the glass towers will let you in.",
+        "locked_ru": "Докажи себя в двух районах — и стеклянные башни тебя впустят."
+      }
+    },
+
+    {
+      "id": "port",
+      "name": "North Port",
+      "name_ru": "Северный порт",
+      "order": 4,
+      "map_pos": [154, 70],
+      "scene": "port",
+      "muscle": "Back",
+      "muscle_ru": "Спина",
+      "boss": {
+        "avatar": "kraken",
+        "name": "???",
+        "name_ru": "???",
+        "role": "???",
+        "role_ru": "???"
+      },
+      "unlock": { "type": "quest_done", "quest": "downtown-tbd" },
+      "quest": { "_status": "TBD" },
+      "dialogue": {
+        "locked":    "The port is locked. Take Downtown first.",
+        "locked_ru": "Порт на замке. Сначала возьми Даунтаун."
+      }
+    }
+  ]
+}

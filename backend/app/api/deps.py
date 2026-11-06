@@ -141,4 +141,18 @@ async def get_current_user(
 
 # Type alias for dependency injection
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+async def require_city_access(user: CurrentUser) -> User:
+    """Beta gate for the RPG City. While settings.city_beta is on, only the
+    admin (ADMIN_TELEGRAM_ID) may reach the /api/districts endpoints — everyone
+    else gets 403. Flip CITY_BETA=false (+ restart) to open it to all users."""
+    if settings.city_beta and user.telegram_id != settings.admin_telegram_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="City is in beta"
+        )
+    return user
+
+
+CityUser = Annotated[User, Depends(require_city_access)]
 AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_session)]

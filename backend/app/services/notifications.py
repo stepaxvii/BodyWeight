@@ -386,6 +386,153 @@ async def send_new_challenge_push(
     )
 
 
+# --- RPG quests (districts) ---------------------------------------------------
+# Push wrappers for quest events, mirroring send_new_challenge_push. The in-app
+# row is written by the caller via save_notification (same txn as the state
+# change); these fire the Telegram push post-commit via dispatch_in_background.
+# Content ({quest_title}/{district_name}/{reward}) is passed already-localized by
+# the caller from districts.json (decision 1); `lang` is the recipient's
+# users.language used for the .push template + keyboard button label.
+
+
+async def send_quest_accepted_push(
+    telegram_id: int,
+    quest_title: str,
+    district_name: str,
+    days: int,
+    quest_challenge_id: int,
+    lang: str = "en",
+) -> bool:
+    """Confirm to the player that they picked up a quest (deep-links into it)."""
+    text = t(
+        lang,
+        "quest.accepted.push",
+        quest_title=quest_title,
+        district_name=district_name,
+        days=days,
+    )
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_challenge_keyboard(quest_challenge_id, lang),
+        label="Quest-accepted notification",
+    )
+
+
+async def send_quest_completed_push(
+    telegram_id: int,
+    quest_title: str,
+    reward: str,
+    quest_challenge_id: int,
+    lang: str = "en",
+) -> bool:
+    """Tell the player they cleared a quest and what the fixed reward was."""
+    text = t(
+        lang,
+        "quest.completed.push",
+        quest_title=quest_title,
+        reward=reward,
+    )
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_challenge_keyboard(quest_challenge_id, lang),
+        label="Quest-completed notification",
+    )
+
+
+async def send_district_unlocked_push(
+    telegram_id: int,
+    district_name: str,
+    lang: str = "en",
+) -> bool:
+    """Announce a newly unlocked district (opens the app, not a specific quest)."""
+    text = t(lang, "quest.district_unlocked.push", district_name=district_name)
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_app_keyboard(lang),
+        label="District-unlocked notification",
+    )
+
+
+async def send_quest_failed_push(
+    telegram_id: int,
+    quest_title: str,
+    days: int,
+    lang: str = "en",
+) -> bool:
+    """Tell the player the quest window closed before they cleared every day."""
+    text = t(lang, "quest.failed.push", quest_title=quest_title, days=days)
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_app_keyboard(lang),
+        label="Quest-failed notification",
+    )
+
+
+async def send_quest_invite_received_push(
+    telegram_id: int,
+    from_user_name: str,
+    quest_title: str,
+    district_name: str,
+    quest_challenge_id: int,
+    lang: str = "en",
+) -> bool:
+    """Tell a friend they were invited to a co-op quest (deep-links into it)."""
+    text = t(
+        lang,
+        "quest.invite.received.push",
+        from_user_name=from_user_name,
+        quest_title=quest_title,
+        district_name=district_name,
+    )
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_challenge_keyboard(quest_challenge_id, lang),
+        label="Quest-invite-received notification",
+    )
+
+
+async def send_quest_invite_accepted_push(
+    telegram_id: int,
+    partner_name: str,
+    quest_title: str,
+    quest_challenge_id: int,
+    lang: str = "en",
+) -> bool:
+    """Tell the inviter that the partner accepted the co-op invite."""
+    text = t(
+        lang,
+        "quest.invite.accepted.push",
+        partner_name=partner_name,
+        quest_title=quest_title,
+    )
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_challenge_keyboard(quest_challenge_id, lang),
+        label="Quest-invite-accepted notification",
+    )
+
+
+async def send_quest_invite_declined_push(
+    telegram_id: int,
+    partner_name: str,
+    quest_title: str,
+    quest_challenge_id: int,
+    lang: str = "en",
+) -> bool:
+    """Tell the inviter that the partner declined the co-op invite."""
+    text = t(
+        lang,
+        "quest.invite.declined.push",
+        partner_name=partner_name,
+        quest_title=quest_title,
+    )
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_challenge_keyboard(quest_challenge_id, lang),
+        label="Quest-invite-declined notification",
+    )
+
+
 async def send_announcement_push(
     telegram_id: int, text: str, *, notify_admin_on_block: bool = True, lang: str = "en"
 ) -> bool:

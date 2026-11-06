@@ -170,7 +170,13 @@ async def list_challenges_route(
     await update_all_statuses(session)
     await finalize_due_challenges(session)
 
-    query = select(Challenge).order_by(Challenge.start_date.desc())
+    # ISOLATION seam (a): quest challenges never appear in the public catalog —
+    # they are surfaced only through the /districts endpoints.
+    query = (
+        select(Challenge)
+        .where(Challenge.quest_id.is_(None))
+        .order_by(Challenge.start_date.desc())
+    )
 
     if status_filter in ("upcoming", "active", "finished"):
         query = query.where(Challenge.status == status_filter)
@@ -390,7 +396,16 @@ async def _build_details_response(
     # Lazy lifecycle transitions on read
     if await update_challenge_status(session, challenge):
         await session.flush()
-    if challenge.status == "finished" and challenge.finalized_at is None:
+    # ISOLATION seam (e): the on-read finalize is the SECOND finalize call-site
+    # (besides finalize_due_challenges). Guard it with quest_id is None — generic
+    # update_challenge_status above flips a quest to "finished" once today>end_date,
+    # and without this guard the next line would grant tier coins on top of the
+    # fixed apply_quest_reward (double-grant, spec §5/§6/§14.3).
+    if (
+        challenge.quest_id is None
+        and challenge.status == "finished"
+        and challenge.finalized_at is None
+    ):
         await finalize_challenge(session, challenge)
         await session.flush()
 

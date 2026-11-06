@@ -256,6 +256,101 @@ MESSAGES: dict = {
             "message": "{emoji} {name} побеждён. Забери награду на странице босса.",
         },
     },
+    "quest": {
+        # RPG-районы и квесты. Контент (quest_title/district_name/reward)
+        # передаёт вызывающий код уже локализованным из districts.json; здесь
+        # только статическая обёртка + {плейсхолдеры} (байт-в-байт как в en.py).
+        "accepted": {
+            "title": "Квест принят!",
+            "message": (
+                "«{quest_title}» — {district_name}. У тебя {days} дн., чтобы его "
+                "закрыть. Тренируйся каждый день!"
+            ),
+            "push": (
+                "🗺️ <b>Квест принят!</b>\n\n"
+                "«{quest_title}» в районе <b>{district_name}</b>.\n"
+                "Выполняй дневную норму каждый день в течение {days} дн."
+            ),
+        },
+        "day_progress": {
+            "title": "День квеста закрыт!",
+            "message": (
+                "«{quest_title}»: день {full_days}/{days} выполнен. Держи серию — "
+                "пропустишь день, и квест провален."
+            ),
+        },
+        "completed": {
+            "title": "Квест пройден!",
+            "message": "«{quest_title}» пройден в районе {district_name}! Награда: {reward}.",
+            "push": (
+                "🏆 <b>Квест пройден!</b>\n\n"
+                "Ты завершил «{quest_title}».\n"
+                "Награда: <b>{reward}</b>."
+            ),
+        },
+        "district_unlocked": {
+            "title": "Открыт район!",
+            "message": "Ты открыл район {district_name}. Тебя ждут новые квесты.",
+            "push": (
+                "🏙️ <b>Открыт новый район!</b>\n\n"
+                "{district_name} доступен. Заходи и бери квест."
+            ),
+        },
+        "failed": {
+            "title": "Квест провален",
+            "message": (
+                "«{quest_title}»: окно в {days} дн. закончилось до того, как ты "
+                "закрыл каждый день. Откажись и попробуй снова, когда будешь готов."
+            ),
+            "push": (
+                "❌ <b>Квест провален</b>\n\n"
+                "«{quest_title}» истёк. Нужны все {days} дн. — попробуй снова."
+            ),
+        },
+        "invite": {
+            # Co-op приглашение (явное согласие): received -> declined/accepted.
+            "received": {
+                "title": "Приглашение в co-op квест",
+                "message": (
+                    "{from_user_name} зовёт тебя в «{quest_title}» в районе "
+                    "{district_name}. Прими, чтобы тренироваться вместе."
+                ),
+                "push": (
+                    "🤝 <b>Приглашение в co-op квест!</b>\n\n"
+                    "<b>{from_user_name}</b> зовёт тебя в «{quest_title}».\n"
+                    "Прими, чтобы начать вместе завтра."
+                ),
+            },
+            "accepted": {
+                "title": "Напарник присоединился",
+                "message": (
+                    "{partner_name} принял «{quest_title}». "
+                    "Вы начинаете вместе завтра!"
+                ),
+                "push": (
+                    "💪 <b>{partner_name} присоединился к твоему квесту!</b>\n\n"
+                    "«{quest_title}» — вы начинаете вместе завтра."
+                ),
+            },
+            "declined": {
+                "title": "Приглашение отклонено",
+                "message": (
+                    "{partner_name} отклонил «{quest_title}». "
+                    "Можешь пройти соло или нанять наёмника."
+                ),
+                "push": (
+                    "🙅 <b>{partner_name} отклонил твоё co-op приглашение.</b>\n\n"
+                    "«{quest_title}» — проходи соло или найми наёмника."
+                ),
+            },
+        },
+        "mercenary": {
+            # ValueError-сообщения hire_mercenary (НЕ пуши).
+            "funds": "Недостаточно монет: нужно {price}, есть {coins}",
+            "already": "Наёмник для этого квеста уже нанят.",
+            "not_quest": "Наёмника можно нанять только для квеста.",
+        },
+    },
     "email": {
         # No transactional email bodies are currently sent by the backend.
         # This namespace is reserved so future email copy has a home.
