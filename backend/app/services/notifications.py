@@ -378,6 +378,18 @@ def get_open_challenge_keyboard(challenge_id: int, lang: str | None = None) -> I
     )
 
 
+def get_open_quest_set_keyboard(lang: str | None = None) -> InlineKeyboardMarkup:
+    """Keyboard whose button opens the Mini App on the workout page (``startapp=
+    workout`` → /workout, which defaults to the "My sets" tab where the ready
+    quest set lives) — so the deep link matches the "My sets → Quests" copy."""
+    url = f"https://t.me/{settings.bot_username}?startapp=workout"
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text=t(lang, "bot.keyboard.open_quest_set"), url=url)]
+        ]
+    )
+
+
 async def send_new_challenge_push(
     telegram_id: int,
     creator_name: str,
@@ -428,6 +440,21 @@ async def send_quest_accepted_push(
         telegram_id, text,
         keyboard=get_open_challenge_keyboard(quest_challenge_id, lang),
         label="Quest-accepted notification",
+    )
+
+
+async def send_quest_set_ready_push(
+    telegram_id: int,
+    quest_title: str,
+    lang: str = "en",
+) -> bool:
+    """On the quest's start day, point the player at the ready-made exercise set
+    under "My sets → Quests" (deep-links to the workout page's My-sets tab)."""
+    text = t(lang, "quest.set_ready.push", quest_title=quest_title)
+    return await _send(
+        telegram_id, text,
+        keyboard=get_open_quest_set_keyboard(lang),
+        label="Quest-set-ready notification",
     )
 
 

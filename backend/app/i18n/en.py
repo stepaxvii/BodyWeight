@@ -100,6 +100,7 @@ MESSAGES: dict = {
             "open_app": "Open the app",
             "open_app_emoji": "🎮 Open the app",
             "open_challenge": "Open challenge",
+            "open_quest_set": "Open quest set",
         },
         "admin": {
             "digest_failed": "Couldn't build the digest, check the logs.",
@@ -261,6 +262,18 @@ MESSAGES: dict = {
                 "🗺️ <b>Quest accepted!</b>\n\n"
                 "“{quest_title}” in <b>{district_name}</b>.\n"
                 "Hit the daily norm every day for {days} days."
+            ),
+        },
+        "set_ready": {
+            "title": "Quest started!",
+            "message": (
+                "“{quest_title}” has begun. A ready-made exercise set is waiting "
+                "in “My sets → Quests” — no need to build it each time."
+            ),
+            "push": (
+                "⚔️ <b>Quest started!</b>\n\n"
+                "“{quest_title}” begins today.\n"
+                "Your exercise set is ready under <b>My sets → Quests</b> — jump in and train."
             ),
         },
         "day_progress": {

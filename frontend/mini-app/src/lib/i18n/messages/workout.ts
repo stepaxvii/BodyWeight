@@ -60,6 +60,11 @@ export default {
 			start: 'Начать тренировку',
 		},
 
+		questSet: {
+			heading: 'Квесты',
+			badge: 'Сет квеста',
+		},
+
 		tabs: {
 			myRoutines: 'Мои',
 			routines: 'Сеты',
@@ -169,6 +174,11 @@ export default {
 			durationMin: '~{minutes}m',
 			exercisesShort: '{count} exercises',
 			start: 'Start workout',
+		},
+
+		questSet: {
+			heading: 'Quests',
+			badge: 'Quest set',
 		},
 
 		tabs: {

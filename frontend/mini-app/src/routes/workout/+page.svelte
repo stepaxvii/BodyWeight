@@ -14,6 +14,7 @@
 	import { favoritesStore } from '$lib/stores/favorites.svelte';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
+	import { cityStore } from '$lib/city/city.svelte';
 	import { calculateExerciseXp, calculateTimedXp } from '$lib/utils/xp';
 	import { buildProgramOfDay } from '$lib/utils/programOfDay';
 	import { t, ln } from '$lib/i18n/index.svelte';
@@ -48,6 +49,12 @@
 	// different directions). Deterministic per calendar day. Built in onMount.
 	let programOfDay = $state<Routine | null>(null);
 	let programXp = $state(0);
+
+	// Quest set (set-feature): the active/accepted quest's exercises as a
+	// ready-made Routine so the player doesn't rebuild it each day. Playing it
+	// submits a normal workout that counts toward the quest via record_progress.
+	let questSet = $state<Routine | null>(null);
+	let questSetMeta = $state<{ title: string; exerciseCount: number } | null>(null);
 
 	// Custom routine editor state
 	let showCustomRoutineEditor = $state(false);
@@ -360,7 +367,8 @@
 		// These already handle errors internally
 		await Promise.all([
 			workoutStore.loadActiveWorkout(),
-			favoritesStore.loadFavorites()
+			favoritesStore.loadFavorites(),
+			loadActiveQuestSet()
 		]);
 
 		categories = cats;
@@ -537,6 +545,62 @@
 		selectedRoutine = routine;
 		showRoutinePlayer = true;
 		telegram.hapticImpact('medium');
+	}
+
+	// Quest set (set-feature): expose the active/accepted quest's exercises as a
+	// ready-made set. Built from the quest's live per-exercise daily targets
+	// (level-scaled, with is_timed), so it matches exactly what the quest counts.
+	async function loadActiveQuestSet() {
+		try {
+			await cityStore.load();
+			const d = cityStore.districts.find(
+				(x) =>
+					x.quest_progress != null &&
+					(x.quest_progress.challenge_status === 'active' ||
+						x.quest_progress.challenge_status === 'upcoming')
+			);
+			if (!d) {
+				questSet = null;
+				questSetMeta = null;
+				return;
+			}
+			// quest_progress.exercises is only present on the detail endpoint.
+			const detail = d.quest_progress?.exercises?.length
+				? d
+				: await cityStore.reloadDistrict(d.id);
+			const qp = detail?.quest_progress;
+			const exs = qp?.exercises ?? [];
+			// Only surface the set once the quest is actually running ("на время
+			// квеста"). During 'upcoming' (the prep day) a workout wouldn't count
+			// toward the quest yet (start_date is tomorrow), so showing a playable
+			// card then would be a confusing no-op.
+			if (!detail || !qp || exs.length === 0 || qp.challenge_status !== 'active') {
+				questSet = null;
+				questSetMeta = null;
+				return;
+			}
+			const title = ln(
+				detail.quest?.title ?? detail.name,
+				detail.quest?.title_ru ?? detail.name_ru
+			);
+			questSet = {
+				slug: `quest-${qp.challenge_id}`,
+				name: title,
+				description: '',
+				category: 'home',
+				duration_minutes: Math.max(5, exs.length * 3),
+				difficulty: 3,
+				exercises: exs.map((ex) => ({
+					slug: ex.exercise_slug,
+					reps: ex.is_timed ? undefined : ex.daily_target,
+					duration: ex.is_timed ? ex.daily_target : undefined
+				}))
+			};
+			questSetMeta = { title, exerciseCount: exs.length };
+		} catch {
+			questSet = null;
+			questSetMeta = null;
+		}
 	}
 
 	function startProgramOfDay() {
@@ -1033,6 +1097,29 @@
 			{/if}
 
 		{:else if activeMainTab === 'my-routines'}
+			<!-- Quest set (set-feature): active quest's exercises, ready to play -->
+			{#if questSet && questSetMeta}
+				<section class="tab-section">
+					<div class="category-group-header">
+						<span class="category-group-title">{t('workout.questSet.heading')}</span>
+					</div>
+					<div class="routines-list anim-rows">
+						<button class="item routine-card r4" onclick={() => selectRoutine(questSet!)}>
+							<span class="item__edge"></span>
+							<span class="slot slot--md"><PixelIcon name="star" size="md" color="var(--rar, var(--accent))" /></span>
+							<div class="item__body">
+								<span class="item__name">{questSetMeta.title}</span>
+								<div class="item__sub">
+									<span class="item__tag"><PixelIcon name="dumbbell" size="sm" color="var(--muted)" /> {questSetMeta.exerciseCount}</span>
+									<span class="item__tag">{t('workout.questSet.badge')}</span>
+								</div>
+							</div>
+							<span class="slot slot--sm slot--filled routine-card__go"><PixelIcon name="play" size="sm" color="var(--on-accent)" /></span>
+						</button>
+					</div>
+				</section>
+			{/if}
+
 			<!-- My custom routines section -->
 			<section class="tab-section">
 				<CustomRoutineList

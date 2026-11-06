@@ -14,18 +14,20 @@ Includes built-in APScheduler integration for automatic scheduling.
 import logging
 from datetime import datetime, timedelta
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from app.db.models import Notification, User
+from app.db.models import Challenge, Notification, User
 from app.i18n import t
 from app.services.notifications import (
     send_daily_reminder,
     send_inactivity_reminder,
+    send_quest_set_ready_push,
     save_notification,
 )
-from app.services.timezones import local_day_bounds_utc, user_local_now
+from app.services.timezones import local_day_bounds_utc, user_local_now, user_local_today
 
 logger = logging.getLogger(__name__)
 
@@ -203,12 +205,86 @@ async def check_inactivity_reminders(session: AsyncSession) -> int:
     return sent_count
 
 
+async def check_quest_start_notifications(session: AsyncSession) -> int:
+    """On each player's LOCAL quest-start day, surface a one-time pointer to the
+    ready-made exercise set under "My sets → Quests" (set-feature).
+
+    Run hourly: fires once the quest's ``start_date`` equals the owner's local
+    today, and is idempotent per local day via the saved bell notification (which
+    also covers the DST fall-back repeated hour). Saves the in-app bell for every
+    owner and additionally pushes to Telegram when they opted in.
+
+    Returns:
+        Number of quests announced
+    """
+    from app.services.districts import quest_by_id
+
+    result = await session.execute(
+        select(Challenge)
+        .where(Challenge.quest_id.isnot(None))
+        .where(Challenge.status.in_(["upcoming", "active"]))
+        .options(selectinload(Challenge.creator))
+    )
+
+    sent = 0
+    for ch in result.scalars().all():
+        user = ch.creator
+        if user is None:
+            continue
+        # Only announce once the quest is actually running: start_date is the
+        # owner's local today AND the hourly lifecycle job (which runs before this
+        # one each tick) has flipped it to 'active'. This keeps the push in lockstep
+        # with the workout-page card, which also only shows the set while 'active'.
+        if ch.status != "active":
+            continue
+        local_today = user_local_today(user.timezone)
+        if ch.start_date != local_today:
+            continue
+        if await _already_sent_today(session, user, "quest_set_ready", local_today):
+            continue
+
+        quest = quest_by_id(ch.quest_id) or {}
+        is_ru = (user.language or "").startswith("ru")
+        title = (
+            (quest.get("title_ru") if is_ru else quest.get("title"))
+            or quest.get("title")
+            or ch.title
+        )
+
+        # In-app bell (recipient's language) — also the per-local-day marker.
+        await save_notification(
+            session=session,
+            user_id=user.id,
+            notification_type="quest_set_ready",
+            title=t(user.language, "quest.set_ready.title"),
+            message=t(user.language, "quest.set_ready.message", quest_title=title),
+        )
+
+        # Telegram push (best-effort, only if the user opted in).
+        if user.notifications_enabled and user.telegram_id:
+            try:
+                await send_quest_set_ready_push(
+                    user.telegram_id, title, user.language
+                )
+            except Exception:
+                logger.exception(
+                    "Failed to push quest-set-ready to %s", user.telegram_id
+                )
+        sent += 1
+
+    if sent > 0:
+        logger.info(f"Announced {sent} quest set(s) on start day")
+
+    return sent
+
+
 async def hourly_notification_job():
     """
-    Job function called by APScheduler every hour. Handles both personal push
+    Job function called by APScheduler every hour. Handles the personal push
     streams, each gated on the user's OWN local clock:
-    - daily workout reminders at the user's local notification hour, and
-    - inactivity reminders at the user's local noon (3/7/14 days).
+    - daily workout reminders at the user's local notification hour,
+    - inactivity reminders at the user's local noon (3/7/14 days), and
+    - quest-set-ready pointer on the quest's local start day.
     """
     from app.db.database import async_session_maker
 
@@ -216,10 +292,12 @@ async def hourly_notification_job():
         try:
             daily = await check_daily_reminders(session)
             inactivity = await check_inactivity_reminders(session)
+            quest_sets = await check_quest_start_notifications(session)
             await session.commit()
-            if daily or inactivity:
+            if daily or inactivity or quest_sets:
                 logger.info(
-                    f"Hourly job: {daily} daily reminders, {inactivity} inactivity reminders"
+                    f"Hourly job: {daily} daily reminders, {inactivity} inactivity "
+                    f"reminders, {quest_sets} quest-set pointers"
                 )
         except Exception:
             logger.exception("Error in hourly notification job")
@@ -361,19 +439,13 @@ def start_scheduler():
 
     scheduler = AsyncIOScheduler()
 
-    # Personal pushes every hour at :00 — daily reminders fire at each user's
-    # local notification hour and inactivity nudges at each user's local noon.
-    scheduler.add_job(
-        hourly_notification_job,
-        trigger=CronTrigger(minute=0),
-        id="hourly_reminders",
-        name="Personal reminders (hourly, per-user local time)",
-        replace_existing=True,
-    )
+    # Hourly ordering within each tick matters: streak maintenance (:02) → challenge
+    # lifecycle (:04, flips quests upcoming→active on the owner's local midnight) →
+    # personal pushes (:06). The notification job's quest-set pointer requires the
+    # quest to already be 'active', so the lifecycle flip must land first.
 
-    # Streak maintenance every hour at :02 — must run BEFORE the hourly challenge
-    # job. Each user is evaluated against their OWN local midnight, so this has to
-    # run hourly to catch every timezone's day rollover.
+    # Streak maintenance — each user evaluated against their OWN local midnight, so
+    # it runs hourly to catch every timezone's day rollover.
     scheduler.add_job(
         hourly_streak_freeze_job,
         trigger=CronTrigger(minute=2),
@@ -382,13 +454,24 @@ def start_scheduler():
         replace_existing=True,
     )
 
-    # Challenge lifecycle every hour at :12 — quests flip on the owner's local
-    # midnight (so it must run hourly); co-op challenges use a shared UTC boundary.
+    # Challenge lifecycle — quests flip on the owner's local midnight (so it must
+    # run hourly); co-op challenges use a shared UTC boundary.
     scheduler.add_job(
         hourly_challenge_lifecycle_job,
-        trigger=CronTrigger(minute=12),
+        trigger=CronTrigger(minute=4),
         id="hourly_challenge_lifecycle",
         name="Challenge lifecycle (hourly, owner-local quests)",
+        replace_existing=True,
+    )
+
+    # Personal pushes — daily reminders at each user's local notification hour,
+    # inactivity nudges at each user's local noon, and the quest-set pointer on the
+    # quest's local start day (runs AFTER the lifecycle flip above).
+    scheduler.add_job(
+        hourly_notification_job,
+        trigger=CronTrigger(minute=6),
+        id="hourly_reminders",
+        name="Personal reminders (hourly, per-user local time)",
         replace_existing=True,
     )
 
