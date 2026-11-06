@@ -9,7 +9,7 @@
 	import { cityStore } from '$lib/city/city.svelte';
 	import { t, ln } from '$lib/i18n/index.svelte';
 	import type { DistrictResponse, DistrictDialogueLine, DistrictStatus, Friend } from '$lib/types';
-	import { ISO_MAP, pctX, pctY } from '$lib/city/iso';
+	import { CITY_MAP, pctX, pctY } from '$lib/city/citymap';
 	import type { Rect } from '$lib/city/render/sprites';
 	import { loadAvatarHead } from '$lib/city/render/heroAvatar';
 	import { drawYard } from '$lib/city/render/scenes/yard';
@@ -20,7 +20,7 @@
 	const DISTRICT_W = 200,
 		DISTRICT_H = 356;
 
-	// 'landing' is the stats hub the route opens to; 'map' is the iso district map;
+	// 'landing' is the stats hub the route opens to; 'map' is the top-down district map;
 	// 'travel' is the brief fade between map and a scene; 'district' is a scene.
 	type Mode = 'landing' | 'map' | 'travel' | 'district';
 
@@ -76,7 +76,7 @@
 	// Co-op surfaces appear ONLY on districts flagged coop (none of the solo v1 set).
 	const coopEnabled = $derived(currentDistrict?.coop === true);
 
-	// ---- iso map overlay nodes (anchored to the base-image art via ISO_MAP) ----
+	// ---- map overlay nodes (anchored to the base-image art via CITY_MAP) ----
 	type OverlayNode = {
 		id: string;
 		name: string;
@@ -91,9 +91,9 @@
 	};
 	const overlayNodes = $derived<OverlayNode[]>(
 		cityStore.districts
-			.filter((d) => ISO_MAP.districts[d.id])
+			.filter((d) => CITY_MAP.districts[d.id])
 			.map((d) => {
-				const a = ISO_MAP.districts[d.id];
+				const a = CITY_MAP.districts[d.id];
 				return {
 					id: d.id,
 					name: ln(d.name, d.name_ru),
@@ -543,7 +543,7 @@
 
 	{#snippet hubBanner(title: string, tagline?: string)}
 		<div class="hub-banner">
-			<img class="hub-banner-img" src="{base}/city/citymap_iso_base.png" alt="" aria-hidden="true" />
+			<img class="hub-banner-img" src="{base}/city/citymap_base.png" alt="" aria-hidden="true" />
 			<div class="hub-banner-fade"></div>
 			<div class="hub-banner-text">
 				<div class="hub-title">{title}</div>
@@ -629,10 +629,14 @@
 					aria-label={backTitle}
 				></canvas>
 			{:else}
-				<!-- iso city map: static background art + percentage-anchored overlay -->
-				<img class="map-bg" src="{base}/city/citymap_iso_base.png" alt="" aria-hidden="true" />
+				<!-- top-down city map: static background art + percentage-anchored overlay -->
+				<img class="map-bg" src="{base}/city/citymap_base.png" alt="" aria-hidden="true" />
 				<div class="map-overlay">
 					{#each overlayNodes as n (n.id)}
+						{#if n.status === 'locked'}
+							<!-- Dim locked islands so they read as closed (base art is full-bright). -->
+							<div class="lock-veil" style="left:{n.cx}%; top:{n.cy}%"></div>
+						{/if}
 						{#if n.isPlayer}
 							<div class="here-ring" style="left:{n.cx}%; top:{n.cy}%"></div>
 						{/if}
@@ -1218,7 +1222,7 @@
 		cursor: pointer;
 	}
 
-	/* --- iso map background + overlay --- */
+	/* --- top-down map background + overlay --- */
 	.map-bg {
 		position: absolute;
 		inset: 0;
@@ -1232,6 +1236,22 @@
 	.map-overlay {
 		position: absolute;
 		inset: 0;
+	}
+
+	/* Dark ellipse veil over a locked district island (base art is full-bright). */
+	.lock-veil {
+		position: absolute;
+		width: 30%;
+		height: 22%;
+		transform: translate(-50%, -50%);
+		background: radial-gradient(
+			ellipse at center,
+			rgba(8, 10, 16, 0.62) 0%,
+			rgba(8, 10, 16, 0.5) 58%,
+			rgba(8, 10, 16, 0) 74%
+		);
+		pointer-events: none;
+		z-index: 1;
 	}
 
 	/* Transparent tap target over each plot (centre-anchored). Sizes are a touch-
