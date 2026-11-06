@@ -120,7 +120,8 @@
 	);
 
 	// ---- JRPG dialogue state machine (district mode) ----
-	type TalkPhase = 'idle' | 'intro' | 'offer';
+	// 'accepted' = the boss's one-off accept line, shown right after taking the quest.
+	type TalkPhase = 'idle' | 'intro' | 'offer' | 'accepted';
 	let talkPhase = $state<TalkPhase>('idle');
 	let introIndex = $state(0);
 
@@ -131,6 +132,28 @@
 	);
 	const currentLine = $derived<DistrictDialogueLine | null>(introLines[introIndex] ?? null);
 	const hasIntro = $derived(introLines.length > 0);
+
+	// Boss lines during an ACTIVE quest — several lines that advance with the day,
+	// so the boss isn't stuck on one phrase (falls back to the single `progress`).
+	const progressLines = $derived<DistrictDialogueLine[]>(
+		Array.isArray(currentDistrict?.dialogue?.progress_lines)
+			? (currentDistrict.dialogue.progress_lines as DistrictDialogueLine[])
+			: []
+	);
+	function activeBossLine(): string {
+		if (progressLines.length && currentProgress) {
+			const i = Math.min(Math.max(currentProgress.full_days, 0), progressLines.length - 1);
+			return ln(progressLines[i].line, progressLines[i].line_ru);
+		}
+		return dlg(currentDistrict, 'progress');
+	}
+
+	// Format an ISO date (YYYY-MM-DD) as DD.MM for the quest window display.
+	function fmtDate(iso?: string | null): string {
+		if (!iso) return '';
+		const [y, m, day] = iso.split('-');
+		return y && m && day ? `${day}.${m}` : iso;
+	}
 
 	// Reset the dialogue machine to 'idle' whenever we land on a new district.
 	$effect(() => {
@@ -243,6 +266,26 @@
 		mode = 'map';
 	}
 
+	// Jump straight from the hub into a district's scene (e.g. tapping the active
+	// quest card), fading in from black — no map stop in between.
+	function enterDistrict(d: DistrictResponse | undefined) {
+		if (!d || d.status === 'locked') return;
+		telegram.hapticImpact('medium');
+		selectedId = null;
+		playerId = d.id;
+		currentId = d.id;
+		// Pull the district detail so the HUD gets per-exercise progress (the list
+		// summary has none); the store update flows into the HUD reactively.
+		cityStore.reloadDistrict(d.id);
+		mode = 'district';
+		fadeAlpha = 1;
+		tick().then(() => {
+			sizeCanvas();
+			startLoop();
+			tween(420, (p) => (fadeAlpha = 1 - p));
+		});
+	}
+
 	// ---- map interactions ----
 	function selectNode(id: string) {
 		telegram.hapticSelection();
@@ -258,6 +301,9 @@
 		if (d.status === 'locked') return;
 		selectedId = null;
 		playerId = d.id;
+		// Pull the district detail so the active-quest HUD gets per-exercise progress
+		// (the map's list summary has none).
+		cityStore.reloadDistrict(d.id);
 		telegram.hapticImpact('medium');
 		mode = 'travel';
 		tween(
@@ -300,7 +346,9 @@
 		try {
 			await api.acceptQuest(d.id);
 			await cityStore.reloadDistrict(d.id);
-			toast(t('city.questAccepted'));
+			// Boss speaks the accept line ("rest today, see you at training tomorrow")
+			// before the active-quest HUD appears.
+			talkPhase = 'accepted';
 			telegram.hapticNotification('success');
 		} catch (e) {
 			console.error('[city] acceptQuest failed', e);
@@ -461,6 +509,12 @@
 			} else {
 				talkPhase = 'offer';
 			}
+			return;
+		}
+
+		if (talkPhase === 'accepted') {
+			telegram.hapticSelection();
+			talkPhase = 'offer';
 		}
 	}
 
@@ -541,14 +595,13 @@
 		<h1>{backTitle}</h1>
 	</header>
 
-	{#snippet hubBanner(title: string, tagline?: string)}
-		<div class="hub-banner">
-			<img class="hub-banner-img" src="{base}/city/citymap_base.png" alt="" aria-hidden="true" />
-			<div class="hub-banner-fade"></div>
-			<div class="hub-banner-text">
-				<div class="hub-title">{title}</div>
-				{#if tagline}<div class="hub-tagline">{tagline}</div>{/if}
-			</div>
+	{#snippet bannerInner(title: string, tagline: string | undefined, showEnter: boolean)}
+		<img class="hub-banner-img" src="{base}/city/citymap_base.png" alt="" aria-hidden="true" />
+		<div class="hub-banner-fade"></div>
+		{#if showEnter}<div class="hub-enter">{t('city.goOut')} →</div>{/if}
+		<div class="hub-banner-text">
+			<div class="hub-title">{title}</div>
+			{#if tagline}<div class="hub-tagline">{tagline}</div>{/if}
 		</div>
 	{/snippet}
 
@@ -557,7 +610,7 @@
 	{:else if !cityEnabled}
 		<!-- ===================== BETA STUB (non-admins) ===================== -->
 		<div class="landing">
-			{@render hubBanner(t('city.comingSoonTitle'))}
+			<div class="hub-banner">{@render bannerInner(t('city.comingSoonTitle'), undefined, false)}</div>
 			<div class="coming-soon">
 				<div class="coming-soon-badge">🚧</div>
 				<p class="coming-soon-body">{t('city.comingSoonBody')}</p>
@@ -566,7 +619,14 @@
 	{:else if mode === 'landing'}
 		<!-- ===================== STATS HUB ===================== -->
 		<div class="landing">
-			{@render hubBanner(t('city.title'), t('city.hubTagline'))}
+			<!-- The whole city banner is the primary "enter" control (no bottom button). -->
+			<button
+				class="hub-banner hub-banner-btn"
+				onclick={enterCity}
+				aria-label="{t('city.title')} — {t('city.goOut')}"
+			>
+				{@render bannerInner(t('city.title'), t('city.hubTagline'), true)}
+			</button>
 
 			<div class="stat-row">
 				<div class="stat">
@@ -584,12 +644,13 @@
 			</div>
 
 			{#if activeDistrict}
-				<div class="active-card">
+				<!-- Tapping the active quest jumps straight into its district scene. -->
+				<button class="active-card" onclick={() => enterDistrict(activeDistrict)}>
 					<div class="active-tag">{t('city.activeQuestLabel')}</div>
 					<div class="active-quest">
 						{ln(activeDistrict.quest?.title, activeDistrict.quest?.title_ru)}
 					</div>
-					<div class="active-where">{ln(activeDistrict.name, activeDistrict.name_ru)}</div>
+					<div class="active-where">{ln(activeDistrict.name, activeDistrict.name_ru)} →</div>
 					{#if activeDistrict.quest_progress}
 						<div class="active-day">
 							{t('city.dayOf', {
@@ -598,7 +659,7 @@
 							})}
 						</div>
 					{/if}
-				</div>
+				</button>
 			{/if}
 
 			<div class="dist-list">
@@ -613,10 +674,6 @@
 					</div>
 				{/each}
 			</div>
-
-			<PixelButton variant="primary" onclick={enterCity}>
-				{t('city.goOut')} →
-			</PixelButton>
 		</div>
 	{:else}
 		<!-- ===================== MAP / DISTRICT STAGE ===================== -->
@@ -722,6 +779,11 @@
 					</div>
 					<div class="qhud-day">
 						{t('city.dayOf', { day: currentProgress.full_days, total: currentProgress.days })}
+						{#if currentProgress.start_date && currentProgress.end_date}
+							<span class="qhud-dates">
+								· {fmtDate(currentProgress.start_date)}–{fmtDate(currentProgress.end_date)}
+							</span>
+						{/if}
 					</div>
 					{#if currentProgress.exercises}
 						<div class="qhud-rows">
@@ -785,13 +847,28 @@
 				>
 					{#if currentIsActive}
 						<div class="talkbar-who">{bossName(currentDistrict)}</div>
-						<div class="talkbar-line">{dlg(currentDistrict, 'progress')}</div>
+						<div class="talkbar-line">{activeBossLine()}</div>
 					{:else if currentLine}
 						<div class="talkbar-who" class:hero={currentLine.speaker === 'hero'}>
 							{speakerName(currentDistrict, currentLine)}
 						</div>
 						<div class="talkbar-line">{ln(currentLine.line, currentLine.line_ru)}</div>
 					{/if}
+					<div class="talkbar-next" aria-hidden="true">{t('city.next')}</div>
+				</div>
+			{/if}
+
+			<!-- DISTRICT: boss's accept line (one-off, right after taking the quest) -->
+			{#if mode === 'district' && currentDistrict && !incomingInvite && talkPhase === 'accepted'}
+				<div
+					class="talkbar"
+					role="button"
+					tabindex="0"
+					onclick={() => (talkPhase = 'offer')}
+					onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (talkPhase = 'offer')}
+				>
+					<div class="talkbar-who">{bossName(currentDistrict)}</div>
+					<div class="talkbar-line">{dlg(currentDistrict, 'accept')}</div>
 					<div class="talkbar-next" aria-hidden="true">{t('city.next')}</div>
 				</div>
 			{/if}
@@ -804,7 +881,7 @@
 					</div>
 
 					{#if currentIsActive}
-						<div class="dbar-line">{dlg(currentDistrict, 'progress')}</div>
+						<div class="dbar-line">{activeBossLine()}</div>
 						<div class="dbar-actions">
 							<PixelButton variant="danger" size="sm" loading={busy} onclick={abandonQuest}>
 								{t('city.abandon')}
@@ -970,6 +1047,51 @@
 		background: #07080c;
 	}
 
+	/* The landing banner is a button (whole block enters the city). */
+	.hub-banner-btn {
+		display: block;
+		width: 100%;
+		padding: 0;
+		margin: 0;
+		font: inherit;
+		color: inherit;
+		text-align: left;
+		cursor: pointer;
+		transition:
+			box-shadow 0.15s ease,
+			border-color 0.15s ease,
+			transform 0.08s ease;
+	}
+
+	.hub-banner-btn:hover {
+		border-color: #f3cf63;
+		box-shadow: 0 0 0 3px #000, 0 14px 34px rgba(0, 0, 0, 0.62);
+	}
+
+	.hub-banner-btn:active {
+		transform: translateY(1px);
+	}
+
+	.hub-banner-btn:focus-visible {
+		outline: 2px solid var(--gold, #e8bf48);
+		outline-offset: 2px;
+	}
+
+	/* "Enter the city" affordance chip on the clickable banner. */
+	.hub-enter {
+		position: absolute;
+		top: 10px;
+		right: 12px;
+		z-index: 1;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		color: #1a1205;
+		background: var(--gold, #e8bf48);
+		padding: 3px 9px;
+		box-shadow: 2px 2px 0 #000;
+	}
+
 	.hub-banner-img {
 		position: absolute;
 		inset: 0;
@@ -1064,10 +1186,31 @@
 	}
 
 	.active-card {
+		display: block;
+		width: 100%;
+		text-align: left;
+		font: inherit;
 		background: var(--pixel-card);
 		border: var(--border-width) solid var(--border-color);
 		border-left: 4px solid var(--gold, #e8bf48);
 		padding: 9px 11px;
+		cursor: pointer;
+		transition:
+			border-color 0.15s ease,
+			transform 0.08s ease;
+	}
+
+	.active-card:hover {
+		border-color: var(--gold, #e8bf48);
+	}
+
+	.active-card:active {
+		transform: translateY(1px);
+	}
+
+	.active-card:focus-visible {
+		outline: 2px solid var(--gold, #e8bf48);
+		outline-offset: 2px;
 	}
 
 	/* Shared gold "speaker / tag" chip (landing tag + the three dialogue name tabs). */
@@ -1763,6 +1906,11 @@
 		font-size: 9px;
 		color: #c7a24a;
 		margin-top: 2px;
+	}
+
+	.qhud-dates {
+		color: #9aa0ad;
+		font-family: var(--font-data, monospace);
 	}
 
 	.qhud-rows {

@@ -610,10 +610,11 @@ async def accept_quest(session: AsyncSession, user: User, district_id: str) -> C
     """Materialize the district's quest into a Challenge (quest_id set) and add
     the player as the inviter/solo participant (invite_status=NULL).
 
-    SOLO window: start_date=today, end_date=today+days-1 → status='active'.
-    Quest rep targets are scaled to the player's level (see
-    ``scale_target_for_level``). Enforces the one-active-quest lock
-    (spec §4.9/§5). Raises ValueError (→400).
+    SOLO window: today is a prep day — start_date=tomorrow,
+    end_date=tomorrow+days-1 → status='upcoming', auto-advancing to 'active' on the
+    start date (the boss says "завтра жду тебя на тренировку"). Quest rep targets
+    are scaled to the player's level (see ``scale_target_for_level``). Enforces the
+    one-active-quest lock (spec §4.9/§5). Raises ValueError (→400).
     """
     from app.services.challenges import (
         CreateChallengeInput,
@@ -647,14 +648,18 @@ async def accept_quest(session: AsyncSession, user: User, district_id: str) -> C
 
     days = int(quest.get("days", 0) or 0)
     today = datetime.utcnow().date()
+    # The quest counts from TOMORROW (today is a prep day — the boss says "завтра
+    # жду тебя на тренировку"): window = [tomorrow .. tomorrow+days-1]. The challenge
+    # starts 'upcoming' and flips to 'active' automatically when the date arrives.
+    start = today + timedelta(days=1)
     # Scale rep targets to the player's current level (from XP, so a stale
     # user.level doesn't matter).
     level = get_level_from_xp(user.total_xp)
     data = CreateChallengeInput(
         title=quest.get("title") or quest_id,
         description=None,
-        start_date=today,
-        end_date=today + timedelta(days=days - 1),
+        start_date=start,
+        end_date=start + timedelta(days=days - 1),
         exercises=[
             ChallengeExerciseInput(
                 exercise_slug=e["exercise_slug"],

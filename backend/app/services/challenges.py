@@ -336,7 +336,12 @@ async def record_progress(
                 ChallengeParticipant.invite_status == "accepted",
             )
         )
-        .where(Challenge.status == "active")
+        # Count 'upcoming' too, not just 'active': a quest now starts tomorrow
+        # (status='upcoming' until the daily cron flips it), and without this a
+        # workout on the first day before the flip would silently not count. The
+        # start_date/end_date guards below already prevent counting before the
+        # window opens, so matching 'upcoming' here cannot leak early progress.
+        .where(Challenge.status.in_(["upcoming", "active"]))
         .where(Challenge.start_date <= workout_date)
         .where(Challenge.end_date >= workout_date)
         .where(Exercise.slug.in_(list(reps_by_slug.keys())))
