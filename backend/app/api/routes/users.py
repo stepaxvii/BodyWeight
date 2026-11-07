@@ -83,12 +83,10 @@ async def get_equipped_title(session, user_id: int) -> str | None:
 
 async def build_user_response(session, user: User) -> UserResponse:
     """UserResponse enriched with the equipped title + City beta access flag."""
-    from app.config import settings
+    from app.api.deps import feature_enabled_for
     resp = UserResponse.model_validate(user)
     resp.equipped_title = await get_equipped_title(session, user.id)
-    resp.city_enabled = (not settings.city_beta) or (
-        user.telegram_id is not None and user.telegram_id == settings.admin_telegram_id
-    )
+    resp.city_enabled = feature_enabled_for(user, "city")
     return resp
 
 

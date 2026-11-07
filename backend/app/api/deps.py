@@ -143,16 +143,35 @@ async def get_current_user(
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
-async def require_city_access(user: CurrentUser) -> User:
-    """Beta gate for the RPG City. While settings.city_beta is on, only the
-    admin (ADMIN_TELEGRAM_ID) may reach the /api/districts endpoints — everyone
-    else gets 403. Flip CITY_BETA=false (+ restart) to open it to all users."""
-    if settings.city_beta and user.telegram_id != settings.admin_telegram_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="City is in beta"
-        )
-    return user
+def beta_features() -> set[str]:
+    """The set of feature keys currently in BETA (admin-only), parsed from the
+    comma-separated FEATURE_BETA setting. Empty when every feature is public."""
+    return {f.strip().lower() for f in (settings.feature_beta or "").split(",") if f.strip()}
 
 
+def feature_enabled_for(user: User, feature: str) -> bool:
+    """Whether ``user`` may use ``feature``. A feature listed in FEATURE_BETA is
+    admin-only until it's dropped from the list; non-beta features are public."""
+    if feature.lower() not in beta_features():
+        return True
+    return user.telegram_id is not None and user.telegram_id == settings.admin_telegram_id
+
+
+def require_feature(feature: str):
+    """Dependency factory: 403 unless ``feature`` is enabled for the caller.
+    Use as a route/router dependency, e.g. ``Depends(require_feature("city"))``."""
+    async def _require_feature(user: CurrentUser) -> User:
+        if not feature_enabled_for(user, feature):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Feature '{feature}' is in beta",
+            )
+        return user
+
+    return _require_feature
+
+
+# The RPG City is gated through the generic beta mechanism (FEATURE_BETA="city").
+require_city_access = require_feature("city")
 CityUser = Annotated[User, Depends(require_city_access)]
 AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_session)]

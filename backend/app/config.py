@@ -29,12 +29,14 @@ class Settings(BaseSettings):
     # (env: ADMIN_TELEGRAM_ID; unset = digest disabled)
     admin_telegram_id: int | None = None
 
-    # RPG "City" feature beta gate. True (default) => City is ADMIN-ONLY: only
-    # ADMIN_TELEGRAM_ID sees the nav highlight and can call /api/districts. Set
-    # CITY_BETA=false in .env and recreate the backend to open it to everyone —
-    # the var is wired through docker-compose.yml's `environment:`, and the
-    # frontend reads `city_enabled` from /users/me at runtime (no image rebuild).
-    city_beta: bool = True
+    # Feature beta gates. Comma-separated feature keys that are still in BETA and
+    # therefore ADMIN-ONLY (only ADMIN_TELEGRAM_ID sees them live; everyone else
+    # gets a "coming soon" state). Empty = all features public. Env: FEATURE_BETA
+    # (e.g. "city,newthing"), wired through docker-compose.yml's `environment:`.
+    # To open a feature: drop its key from FEATURE_BETA and recreate the backend —
+    # the frontend reads per-feature flags (e.g. `city_enabled`) from /users/me at
+    # runtime (no image rebuild). See api/deps.feature_enabled_for / require_feature.
+    feature_beta: str = ""
 
     # Logging
     log_level: str = "INFO"  # DEBUG, INFO, WARNING, ERROR

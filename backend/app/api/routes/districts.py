@@ -29,9 +29,10 @@ from app.services.notifications import (
 
 logger = logging.getLogger(__name__)
 
-# Beta gate: every /api/districts endpoint is behind require_city_access, so
-# while CITY_BETA is on only the admin can reach the City API (defence in depth
-# — the frontend also hides the nav via `city_enabled`).
+# Beta gate: every /api/districts endpoint is behind require_city_access
+# (= require_feature("city")), so while "city" is in FEATURE_BETA only the admin
+# can reach the City API (defence in depth — the frontend also reflects the state
+# via `city_enabled`).
 router = APIRouter(dependencies=[Depends(require_city_access)])
 
 
