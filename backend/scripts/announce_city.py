@@ -43,9 +43,15 @@ from app.services.notifications import (
 # Dedup identifier. Don't change unless you intentionally re-announce to everyone.
 NOTIFICATION_TYPE = "feature_announcement_city"
 
-# District render shown with the push (French Quarter). Colocated with this
-# script so it ships in the API container; falls back to a text push if missing.
-IMAGE_PATH = Path(__file__).parent / "assets" / "city-french.png"
+# The district render shown with the push — the new 2D Cossacks ("Старая окраина")
+# scene, localized (the title banner is burned into the image per language).
+# Colocated with this script so it ships in the API container; falls back to a
+# text push if the asset is missing.
+ASSETS_DIR = Path(__file__).parent / "assets"
+
+
+def image_for(lang: str) -> Path:
+    return ASSETS_DIR / f"city-cossack-{lang}.png"
 
 # Per-language copy. In-app (bell) title/message (plain text) + Telegram push
 # (HTML caption on the district photo). Captions are kept < 1024 chars.
@@ -63,14 +69,15 @@ COPY = {
             "🏙 <b>В PixelFit открылся ГОРОД</b> — целый мир районов, боссов и "
             "квестов.\n\n"
             "Как это работает:\n"
-            "🗺 Город — это карта районов. В каждом свой босс со своим испытанием.\n"
+            "🗺 Город — это карта районов. В каждом свой босс со своим "
+            "испытанием.\n"
             "💬 Заходишь к боссу → он даёт <b>квест</b>: норму на несколько дней "
             "(например, «Чистый жим» — 7 дней).\n"
             "🏋️ Проходишь квест <b>обычными тренировками</b> — прогресс "
             "считается сам из твоих подходов.\n"
             "🏆 Закрыл квест → титул, XP, монеты и новый открытый район.\n\n"
             "🦁 Старт — во дворе: Тренер Лев ждёт с тремя основами. Дальше — "
-            "Французский квартал (на фото) и Казаки.\n\n"
+            "Французский квартал и Казаки.\n\n"
             "Открывай Mini App → вкладка <b>Город</b> и в путь!"
         ),
     },
@@ -87,8 +94,8 @@ COPY = {
             "🏙 <b>The CITY is open in PixelFit</b> — a whole world of districts, "
             "bosses and quests.\n\n"
             "How it works:\n"
-            "🗺 The city is a map of districts, each with its own boss and "
-            "challenge.\n"
+            "🗺 The city is a map of districts, each with its own boss "
+            "and challenge.\n"
             "💬 Visit a boss → he gives you a <b>quest</b>: a daily goal for a "
             "few days (e.g. 'Clean Press' — 7 days).\n"
             "🏋️ Clear it with your <b>normal workouts</b> — progress fills "
@@ -96,7 +103,7 @@ COPY = {
             "🏆 Finish the quest → a title, XP, coins and a new district "
             "unlocked.\n\n"
             "🦁 Start in the yard: Coach Leo is waiting with three basics. Then "
-            "the French Quarter (pictured) and the Cossacks.\n\n"
+            "the French Quarter and the Cossacks.\n\n"
             "Open the Mini App → <b>City</b> tab and go!"
         ),
     },
@@ -127,8 +134,10 @@ async def main(dry_run: bool, no_push: bool, limit: int | None) -> None:
 
     # Surface a missing photo asset loudly: the push silently degrades to text, so
     # without this a missing/unshipped image looks like a successful photo run.
-    if not no_push and not IMAGE_PATH.exists():
-        print(f"WARNING: announcement image not found at {IMAGE_PATH} — sending TEXT-ONLY pushes.")
+    if not no_push:
+        missing = [lng for lng in ("ru", "en") if not image_for(lng).exists()]
+        if missing:
+            print(f"WARNING: announcement image(s) missing for {missing} in {ASSETS_DIR} — those langs get TEXT-ONLY pushes.")
 
     async with async_session_maker() as session:
         users_q = await session.execute(select(User).order_by(User.id))
@@ -167,11 +176,12 @@ async def main(dry_run: bool, no_push: bool, limit: int | None) -> None:
             await session.commit()
 
             # Telegram push (best-effort, localized). Lead with the district photo
-            # when the image is present; otherwise fall back to a text-only push.
+            # (localized render) when present; otherwise fall back to a text push.
             if not no_push and user.notifications_enabled and user.telegram_id:
-                if IMAGE_PATH.exists():
+                img = image_for(lang)
+                if img.exists():
                     ok = await send_announcement_photo(
-                        user.telegram_id, copy["push"], str(IMAGE_PATH),
+                        user.telegram_id, copy["push"], str(img),
                         notify_admin_on_block=False, lang=lang,
                     )
                 else:
