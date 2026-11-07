@@ -7,7 +7,7 @@
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { sound } from '$lib/stores/sound.svelte';
 	import { api } from '$lib/api/client';
-	import { t, setLocale, getLocale } from '$lib/i18n/index.svelte';
+	import { t, ln, setLocale, getLocale } from '$lib/i18n/index.svelte';
 	import { TIMEZONE_GROUPS } from '$lib/timezones';
 
 	// ── Звук ──────────────────────────────────────────────
@@ -239,9 +239,9 @@
 				<div class="set-controls">
 					<select class="set-input set-select" bind:value={tzInput}>
 						{#each TIMEZONE_GROUPS as group (group.region)}
-							<optgroup label={group.region}>
+							<optgroup label={ln(group.region_en, group.region)}>
 								{#each group.zones as z (z.value)}
-									<option value={z.value}>{z.label}</option>
+									<option value={z.value}>{ln(z.label_en, z.label)}</option>
 								{/each}
 							</optgroup>
 						{/each}
