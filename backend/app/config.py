@@ -29,13 +29,12 @@ class Settings(BaseSettings):
     # (env: ADMIN_TELEGRAM_ID; unset = digest disabled)
     admin_telegram_id: int | None = None
 
-    # Feature beta gates. Comma-separated feature keys that are still in BETA and
-    # therefore ADMIN-ONLY (only ADMIN_TELEGRAM_ID sees them live; everyone else
-    # gets a "coming soon" state). Empty = all features public. Env: FEATURE_BETA
-    # (e.g. "city,newthing"), wired through docker-compose.yml's `environment:`.
-    # To open a feature: drop its key from FEATURE_BETA and recreate the backend —
-    # the frontend reads per-feature flags (e.g. `city_enabled`) from /users/me at
-    # runtime (no image rebuild). See api/deps.feature_enabled_for / require_feature.
+    # Feature beta gates (generic, for FUTURE features). Comma-separated feature
+    # keys that stay ADMIN-ONLY until launched; empty = all features public. Env:
+    # FEATURE_BETA, wired through docker-compose.yml's `environment:`. To open a
+    # gated feature: drop its key from FEATURE_BETA and recreate the backend (no
+    # image rebuild). See api/deps.feature_enabled_for / require_feature. (The City
+    # has graduated from beta, so nothing uses this today.)
     feature_beta: str = ""
 
     # Logging

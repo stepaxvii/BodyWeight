@@ -171,7 +171,7 @@ def require_feature(feature: str):
     return _require_feature
 
 
-# The RPG City is gated through the generic beta mechanism (FEATURE_BETA="city").
-require_city_access = require_feature("city")
-CityUser = Annotated[User, Depends(require_city_access)]
+# NOTE: the generic beta mechanism above (feature_enabled_for / require_feature /
+# FEATURE_BETA) is intentionally kept for FUTURE features even though nothing uses
+# it right now — the City has graduated from beta and is a permanent public tab.
 AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_session)]

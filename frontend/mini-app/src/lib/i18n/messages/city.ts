@@ -9,9 +9,6 @@ export default {
 	ru: {
 		title: 'Город',
 		loading: 'Загрузка города...',
-		comingSoonTitle: 'Скоро: Город',
-		comingSoonBody:
-			'Раздел квестов в городе в разработке. Тренироваться станет ещё интереснее!',
 		mapTapHint: 'Тапни район, чтобы войти',
 		enter: 'Войти',
 		locked: 'Закрыто',
@@ -62,9 +59,6 @@ export default {
 	en: {
 		title: 'City',
 		loading: 'Loading the city...',
-		comingSoonTitle: 'Coming soon: City',
-		comingSoonBody:
-			'The city quests section is under construction. Training is about to get even more fun!',
 		mapTapHint: 'Tap a district to enter',
 		enter: 'Enter',
 		locked: 'Locked',

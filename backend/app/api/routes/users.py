@@ -82,11 +82,9 @@ async def get_equipped_title(session, user_id: int) -> str | None:
 
 
 async def build_user_response(session, user: User) -> UserResponse:
-    """UserResponse enriched with the equipped title + City beta access flag."""
-    from app.api.deps import feature_enabled_for
+    """UserResponse enriched with the equipped title."""
     resp = UserResponse.model_validate(user)
     resp.equipped_title = await get_equipped_title(session, user.id)
-    resp.city_enabled = feature_enabled_for(user, "city")
     return resp
 
 

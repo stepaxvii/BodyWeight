@@ -4,7 +4,6 @@
 	import { base } from '$app/paths';
 	import { telegram } from '$lib/stores/telegram.svelte';
 	import { workoutStore } from '$lib/stores/workout.svelte';
-	import { userStore } from '$lib/stores/user.svelte';
 	import { t } from '$lib/i18n/index.svelte';
 	import type { NavItem } from '$lib/types';
 	import PixelButton from './PixelButton.svelte';
@@ -15,29 +14,12 @@
 		label: string;
 		href: string;
 		icon: string;
-		// Small "Soon" tag on the icon while the feature is beta-gated for this user.
-		badge?: string;
-		// Persistent accent-colour highlight once the feature is live for this user.
-		highlight?: boolean;
 	}
-
-	// City access is per-user (`city_enabled` on /users/me): admins get the live
-	// feature; everyone else is behind the admin-only beta flag. The toolbar always
-	// shows the City entry, but reflects that state — a "Soon" tag while gated, an
-	// accent-colour highlight once the flag is lifted (feature goes public).
-	const cityEnabled = $derived(userStore.user?.city_enabled === true);
 
 	const navItems = $derived<NavItemConfig[]>([
 		{ id: 'home', label: t('home.nav.home'), href: `${base}/`, icon: 'home' },
-		// City sits right after Home so the new feature is near the start of the bar.
-		{
-			id: 'city',
-			label: t('home.nav.city'),
-			href: `${base}/city`,
-			icon: 'target',
-			badge: cityEnabled ? undefined : t('home.nav.citySoon'),
-			highlight: cityEnabled
-		},
+		// City sits right after Home, near the start of the bar.
+		{ id: 'city', label: t('home.nav.city'), href: `${base}/city`, icon: 'target' },
 		{ id: 'workout', label: t('home.nav.workout'), href: `${base}/workout`, icon: 'workout' },
 		{ id: 'challenges', label: t('home.nav.challenges'), href: `${base}/challenges`, icon: 'calendar' },
 		{ id: 'leaderboard', label: t('home.nav.leaderboard'), href: `${base}/leaderboard`, icon: 'trophy' },
@@ -101,16 +83,12 @@
 				href={item.href}
 				class="nav-item"
 				class:active
-				class:highlight={item.highlight && !active}
 				onclick={(e) => handleNavClick(e, item.href)}
 				aria-current={active ? 'page' : undefined}
-				aria-label={item.badge ? `${item.label} — ${item.badge}` : item.label}
+				aria-label={item.label}
 			>
 				<div class="icon-wrapper">
 					<PixelIcon name={item.icon} size="lg" />
-					{#if item.badge}
-						<span class="nav-badge">{item.badge}</span>
-					{/if}
 				</div>
 				{#if active}
 					<div class="active-indicator"></div>
@@ -187,37 +165,12 @@
 		color: var(--pixel-accent);
 	}
 
-	/* Feature is live for this user but not the current page — keep it accented so
-	   the new City entry stands out among the muted icons. */
-	.nav-item.highlight {
-		color: var(--pixel-accent);
-	}
-
 	.icon-wrapper {
-		position: relative;
 		width: 28px;
 		height: 28px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-	}
-
-	/* "Soon" tag shown on a beta-gated icon (e.g. City before launch). */
-	.nav-badge {
-		position: absolute;
-		top: -7px;
-		left: 50%;
-		transform: translateX(-50%);
-		font-family: var(--font-pixel);
-		font-size: 7px;
-		line-height: 1;
-		letter-spacing: 0.5px;
-		padding: 2px 3px;
-		background: var(--pixel-accent);
-		color: var(--pixel-bg-dark);
-		border-radius: 2px;
-		white-space: nowrap;
-		pointer-events: none;
 	}
 
 	.active-indicator {

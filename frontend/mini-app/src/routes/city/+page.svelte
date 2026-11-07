@@ -46,10 +46,6 @@
 
 	let mode = $state<Mode>('landing');
 	let loading = $state(true);
-	// Beta gate: non-admins (city_enabled=false) get a localized "coming soon" stub
-	// and never call the access-gated /api/districts. The layout guarantees the user
-	// is loaded before this route mounts, so reading it in onMount is safe.
-	const cityEnabled = $derived(userStore.user?.city_enabled === true);
 	// id of the district the player is currently on (marked "you are here" on the map).
 	let playerId = $state<string>('home');
 	// id of the district whose scene is being shown (district mode).
@@ -559,11 +555,6 @@
 	}
 
 	onMount(async () => {
-		if (!cityEnabled) {
-			// Non-admin during beta: show the stub, don't touch the gated API.
-			loading = false;
-			return;
-		}
 		// Parse the player's avatar into a hero head (best-effort; null keeps the fox).
 		// 'shadow-wolf' matches the backend/model default when avatar_id is unset.
 		loadAvatarHead(base, userStore.user?.avatar_id ?? 'shadow-wolf').then((h) => (heroAv = h));
@@ -607,15 +598,6 @@
 
 	{#if loading}
 		<div class="loading">{t('city.loading')}</div>
-	{:else if !cityEnabled}
-		<!-- ===================== BETA STUB (non-admins) ===================== -->
-		<div class="landing">
-			<div class="hub-banner">{@render bannerInner(t('city.comingSoonTitle'), undefined, false)}</div>
-			<div class="coming-soon">
-				<div class="coming-soon-badge">🚧</div>
-				<p class="coming-soon-body">{t('city.comingSoonBody')}</p>
-			</div>
-		</div>
 	{:else if mode === 'landing'}
 		<!-- ===================== STATS HUB ===================== -->
 		<div class="landing">
@@ -1131,31 +1113,6 @@
 		color: #d8cbac;
 		margin-top: 3px;
 		text-shadow: 1px 1px 0 #000;
-	}
-
-	/* Beta "coming soon" stub (non-admins). */
-	.coming-soon {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--spacing-sm);
-		text-align: center;
-		padding: var(--spacing-md) var(--spacing-sm);
-		background: var(--pixel-card);
-		border: var(--border-width) solid var(--border-color);
-	}
-
-	.coming-soon-badge {
-		font-size: 30px;
-		line-height: 1;
-	}
-
-	.coming-soon-body {
-		margin: 0;
-		font-size: 12px;
-		line-height: 1.55;
-		color: var(--text-primary);
-		max-width: 30ch;
 	}
 
 	.stat-row {

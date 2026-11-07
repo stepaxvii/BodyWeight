@@ -9,9 +9,9 @@ enforced in the service / challenges layer, not here.
 """
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 
-from app.api.deps import AsyncSessionDep, CurrentUser, require_city_access
+from app.api.deps import AsyncSessionDep, CurrentUser
 from app.schemas.districts import (
     AcceptQuestResponse,
     DistrictListResponse,
@@ -29,11 +29,8 @@ from app.services.notifications import (
 
 logger = logging.getLogger(__name__)
 
-# Beta gate: every /api/districts endpoint is behind require_city_access
-# (= require_feature("city")), so while "city" is in FEATURE_BETA only the admin
-# can reach the City API (defence in depth — the frontend also reflects the state
-# via `city_enabled`).
-router = APIRouter(dependencies=[Depends(require_city_access)])
+# The City is a public feature — every authenticated user may reach these endpoints.
+router = APIRouter()
 
 
 def _bad_request(exc: ValueError) -> HTTPException:
