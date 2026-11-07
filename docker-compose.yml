@@ -8,6 +8,9 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - MINI_APP_URL=${MINI_APP_URL}
       - ADMIN_TELEGRAM_ID=${ADMIN_TELEGRAM_ID:-}
+      # RPG City beta gate. Default true (admin-only); set CITY_BETA=false in .env
+      # to open the City to everyone (no image rebuild — only a backend recreate).
+      - CITY_BETA=${CITY_BETA:-true}
       - DEBUG=true
     volumes:
       - ./data:/app/data

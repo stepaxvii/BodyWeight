@@ -30,9 +30,10 @@ class Settings(BaseSettings):
     admin_telegram_id: int | None = None
 
     # RPG "City" feature beta gate. True (default) => City is ADMIN-ONLY: only
-    # ADMIN_TELEGRAM_ID sees the nav button and can call /api/districts. Flip to
-    # False (env CITY_BETA=false) + restart to open it to everyone — no rebuild
-    # needed (the frontend reads `city_enabled` from /users/me at runtime).
+    # ADMIN_TELEGRAM_ID sees the nav highlight and can call /api/districts. Set
+    # CITY_BETA=false in .env and recreate the backend to open it to everyone —
+    # the var is wired through docker-compose.yml's `environment:`, and the
+    # frontend reads `city_enabled` from /users/me at runtime (no image rebuild).
     city_beta: bool = True
 
     # Logging
